@@ -1,0 +1,90 @@
+[AUTH DEBUG] Current cookies: Array(1)
+270-1a279b38620be853.js:1 [AUTH DEBUG] Is authenticated cookie: false
+270-1a279b38620be853.js:1 [AUTH DEBUG] Current cookies: Array(1)
+270-1a279b38620be853.js:1 [AUTH DEBUG] Is authenticated cookie: false
+270-1a279b38620be853.js:1 [AUTH DEBUG] Current cookies: Array(1)
+270-1a279b38620be853.js:1 [AUTH DEBUG] Is authenticated cookie: false
+270-1a279b38620be853.js:1 [AUTH DEBUG] Current cookies: Array(1)
+270-1a279b38620be853.js:1 [AUTH DEBUG] Is authenticated cookie: false
+270-1a279b38620be853.js:1 [AUTH DEBUG] Current cookies: Array(1)
+270-1a279b38620be853.js:1 [AUTH DEBUG] Is authenticated cookie: false
+270-1a279b38620be853.js:1 [API 1] GET https://api.bonidoc.com/api/v1/auth/me (attempt 1/4)
+270-1a279b38620be853.js:1 [API 2] GET https://api.bonidoc.com/api/v1/auth/me (attempt 1/4)
+270-1a279b38620be853.js:1 [API 3] GET https://api.bonidoc.com/api/v1/auth/me (attempt 1/4)
+270-1a279b38620be853.js:1 [API 4] GET https://api.bonidoc.com/api/v1/auth/me (attempt 1/4)
+270-1a279b38620be853.js:1 [API 5] GET https://api.bonidoc.com/api/v1/auth/me (attempt 1/4)
+270-1a279b38620be853.js:1 [AUTH DEBUG] Current cookies: Array(1)
+270-1a279b38620be853.js:1 [AUTH DEBUG] Is authenticated cookie: false
+270-1a279b38620be853.js:1 [AUTH DEBUG] Current cookies: Array(1)
+270-1a279b38620be853.js:1 [AUTH DEBUG] Is authenticated cookie: false
+270-1a279b38620be853.js:1 [AUTH DEBUG] Current cookies: Array(1)
+270-1a279b38620be853.js:1 [AUTH DEBUG] Is authenticated cookie: false
+270-1a279b38620be853.js:1 [AUTH DEBUG] Current cookies: Array(1)
+270-1a279b38620be853.js:1 [AUTH DEBUG] Is authenticated cookie: false
+270-1a279b38620be853.js:1 [AUTH DEBUG] Current cookies: Array(1)
+270-1a279b38620be853.js:1 [AUTH DEBUG] Is authenticated cookie: false
+270-1a279b38620be853.js:1 [API 6] GET https://api.bonidoc.com/api/v1/auth/me (attempt 1/4)
+270-1a279b38620be853.js:1 [API 7] GET https://api.bonidoc.com/api/v1/auth/me (attempt 1/4)
+270-1a279b38620be853.js:1 [API 8] GET https://api.bonidoc.com/api/v1/auth/me (attempt 1/4)
+270-1a279b38620be853.js:1 [API 9] GET https://api.bonidoc.com/api/v1/auth/me (attempt 1/4)
+270-1a279b38620be853.js:1 [API 10] GET https://api.bonidoc.com/api/v1/auth/me (attempt 1/4)
+api.bonidoc.com/api/v1/auth/me:1  Failed to load resource: the server responded with a status of 401 ()Understand this error
+270-1a279b38620be853.js:1 [API 3] Response 401 in 652ms
+270-1a279b38620be853.js:1 [API 3] Request failed after 1 attempts: Object
+request @ 270-1a279b38620be853.js:1Understand this error
+270-1a279b38620be853.js:1 Failed to get current user: Object
+getCurrentUser @ 270-1a279b38620be853.js:1Understand this error
+api.bonidoc.com/api/v1/auth/me:1  Failed to load resource: the server responded with a status of 401 ()Understand this error
+270-1a279b38620be853.js:1 [API 2] Response 401 in 819ms
+270-1a279b38620be853.js:1 [API 2] Request failed after 1 attempts: Object
+request @ 270-1a279b38620be853.js:1Understand this error
+270-1a279b38620be853.js:1 Failed to get current user: Object
+getCurrentUser @ 270-1a279b38620be853.js:1Understand this error
+api.bonidoc.com/api/v1/auth/me:1  Failed to load resource: the server responded with a status of 401 ()Understand this error
+270-1a279b38620be853.js:1 [API 7] Response 401 in 979ms
+270-1a279b38620be853.js:1 [API 7] Request failed after 1 attempts: Object
+request @ 270-1a279b38620be853.js:1Understand this error
+270-1a279b38620be853.js:1 Failed to get current user: Object
+getCurrentUser @ 270-1a279b38620be853.js:1Understand this error
+api.bonidoc.com/api/v1/auth/me:1  Failed to load resource: the server responded with a status of 401 ()Understand this error
+270-1a279b38620be853.js:1 [API 1] Response 401 in 1142ms
+270-1a279b38620be853.js:1 [API 1] Request failed after 1 attempts: Object
+request @ 270-1a279b38620be853.js:1Understand this error
+270-1a279b38620be853.js:1 Failed to get current user: Object
+getCurrentUser @ 270-1a279b38620be853.js:1Understand this error
+api.bonidoc.com/api/v1/auth/me:1  Failed to load resource: the server responded with a status of 401 ()Understand this error
+270-1a279b38620be853.js:1 [API 10] Response 401 in 1303ms
+270-1a279b38620be853.js:1 [API 10] Request failed after 1 attempts: Object
+request @ 270-1a279b38620be853.js:1Understand this error
+270-1a279b38620be853.js:1 Failed to get current user: Object
+getCurrentUser @ 270-1a279b38620be853.js:1Understand this error
+api.bonidoc.com/api/v1/auth/me:1  Failed to load resource: the server responded with a status of 401 ()Understand this error
+270-1a279b38620be853.js:1 [API 5] Response 401 in 1477ms
+270-1a279b38620be853.js:1 [API 5] Request failed after 1 attempts: Object
+request @ 270-1a279b38620be853.js:1Understand this error
+270-1a279b38620be853.js:1 Failed to get current user: Object
+getCurrentUser @ 270-1a279b38620be853.js:1Understand this error
+api.bonidoc.com/api/v1/auth/me:1  Failed to load resource: the server responded with a status of 401 ()Understand this error
+270-1a279b38620be853.js:1 [API 4] Response 401 in 1642ms
+270-1a279b38620be853.js:1 [API 4] Request failed after 1 attempts: Object
+request @ 270-1a279b38620be853.js:1Understand this error
+270-1a279b38620be853.js:1 Failed to get current user: Object
+getCurrentUser @ 270-1a279b38620be853.js:1Understand this error
+api.bonidoc.com/api/v1/auth/me:1  Failed to load resource: the server responded with a status of 401 ()Understand this error
+270-1a279b38620be853.js:1 [API 6] Response 401 in 1805ms
+270-1a279b38620be853.js:1 [API 6] Request failed after 1 attempts: Object
+request @ 270-1a279b38620be853.js:1Understand this error
+270-1a279b38620be853.js:1 Failed to get current user: Object
+getCurrentUser @ 270-1a279b38620be853.js:1Understand this error
+api.bonidoc.com/api/v1/auth/me:1  Failed to load resource: the server responded with a status of 401 ()Understand this error
+270-1a279b38620be853.js:1 [API 9] Response 401 in 1970ms
+270-1a279b38620be853.js:1 [API 9] Request failed after 1 attempts: Object
+request @ 270-1a279b38620be853.js:1Understand this error
+270-1a279b38620be853.js:1 Failed to get current user: Object
+getCurrentUser @ 270-1a279b38620be853.js:1Understand this error
+api.bonidoc.com/api/v1/auth/me:1  Failed to load resource: the server responded with a status of 401 ()Understand this error
+270-1a279b38620be853.js:1 [API 8] Response 401 in 2141ms
+270-1a279b38620be853.js:1 [API 8] Request failed after 1 attempts: Object
+request @ 270-1a279b38620be853.js:1Understand this error
+270-1a279b38620be853.js:1 Failed to get current user: Object
+getCurrentUser @ 270-1a279b38620be853.js:1Understand this error
