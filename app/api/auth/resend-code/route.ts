@@ -26,7 +26,7 @@ export async function POST(request: NextRequest) {
         {
           success: false,
           error: 'Validation failed',
-          details: validationResult.error.errors,
+          details: validationResult.error.issues,
         },
         { status: 400 }
       )
@@ -37,7 +37,8 @@ export async function POST(request: NextRequest) {
     const supabase = await createServerSupabaseClient()
 
     // Get user information
-    const { data: profile } = await supabase
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { data: profile } = await (supabase as any)
       .from('user_profiles')
       .select('full_name')
       .eq('id', userId)
@@ -122,7 +123,8 @@ export async function POST(request: NextRequest) {
     }
 
     // Log resend action
-    await supabase.rpc('log_security_event', {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    await (supabase as any).rpc('log_security_event', {
       p_event_type: 'login_success',
       p_severity: 'info',
       p_user_id: userId,
