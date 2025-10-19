@@ -24,7 +24,7 @@ if (!supabaseUrl || !supabaseAnonKey) {
  * Automatically handles session management
  */
 export function createClient() {
-  return createBrowserClient<Database>(supabaseUrl, supabaseAnonKey, {
+  return createBrowserClient<Database>(supabaseUrl!, supabaseAnonKey!, {
     auth: {
       // Persist session in cookies for better security
       storage: {
@@ -59,7 +59,7 @@ export function createClient() {
 export async function createServerSupabaseClient() {
   const cookieStore = await cookies()
 
-  return createServerClient<Database>(supabaseUrl, supabaseAnonKey, {
+  return createServerClient<Database>(supabaseUrl!, supabaseAnonKey!, {
     cookies: {
       getAll() {
         return cookieStore.getAll()
@@ -132,7 +132,8 @@ export async function getUserProfile() {
     return null
   }
 
-  const { data: profile, error } = await supabase
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { data: profile, error } = await (supabase as any)
     .from('user_profiles')
     .select('*')
     .eq('id', user.id)

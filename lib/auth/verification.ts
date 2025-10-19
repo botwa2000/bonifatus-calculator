@@ -26,7 +26,8 @@ export async function sendVerificationCode(
     const supabase = await createServerSupabaseClient()
 
     // Call database function to create verification code
-    const { data, error } = await supabase.rpc('create_verification_code', {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { data, error } = await (supabase as any).rpc('create_verification_code', {
       p_user_id: userId,
       p_email: email,
       p_purpose: purpose,
@@ -51,14 +52,15 @@ export async function sendVerificationCode(
       }
     }
 
-    if (!data || data.length === 0) {
+    if (!data || (Array.isArray(data) && data.length === 0)) {
       return {
         success: false,
         error: 'Failed to generate verification code',
       }
     }
 
-    const { code, expires_at } = data[0]
+    const codeData = Array.isArray(data) ? data[0] : data
+    const { code, expires_at } = codeData
 
     // Send email with verification code
     const emailTemplate = getVerificationCodeEmail(code, userName, 15)
@@ -113,7 +115,8 @@ export async function verifyCode(
     const supabase = await createServerSupabaseClient()
 
     // Call database function to verify code
-    const { data, error } = await supabase.rpc('verify_code', {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { data, error } = await (supabase as any).rpc('verify_code', {
       p_user_id: userId,
       p_code: code,
       p_purpose: purpose,
@@ -162,7 +165,8 @@ export async function getVerificationCodeStatus(
   try {
     const supabase = await createServerSupabaseClient()
 
-    const { data, error } = await supabase.rpc('get_verification_code_status', {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { data, error } = await (supabase as any).rpc('get_verification_code_status', {
       p_user_id: userId,
       p_purpose: purpose,
     })
@@ -172,11 +176,11 @@ export async function getVerificationCodeStatus(
       return { hasActiveCode: false }
     }
 
-    if (!data || data.length === 0) {
+    if (!data || (Array.isArray(data) && data.length === 0)) {
       return { hasActiveCode: false }
     }
 
-    const status = data[0]
+    const status = Array.isArray(data) ? data[0] : data
 
     return {
       hasActiveCode: status.has_active_code,
