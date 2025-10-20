@@ -116,16 +116,16 @@ When ready to deploy to production:
 
 2. Add these variables for **Production** environment:
 
-| Variable                         | Value                                 |
-| -------------------------------- | ------------------------------------- |
-| `NEXT_PUBLIC_APP_URL`            | `https://bonifatus.com`               |
-| `EMAIL_HOST`                     | `mx2eed.netcup.net`                   |
-| `EMAIL_PORT`                     | `465`                                 |
-| `EMAIL_SECURE`                   | `true`                                |
-| `EMAIL_USER`                     | `no-reply@bonifatus.com`              |
-| `EMAIL_PASSWORD`                 | `j5a4kAFf8VxCfQf!`                    |
-| `NEXT_PUBLIC_TURNSTILE_SITE_KEY` | `0x4AAAAAAB7cH7pweCPsYnpL`            |
-| `TURNSTILE_SECRET_KEY`           | `0x4AAAAAAB7cH4XmMpy-1OREIPI2uRg2QY4` |
+| Variable                         | Value                            |
+| -------------------------------- | -------------------------------- |
+| `NEXT_PUBLIC_APP_URL`            | `https://bonifatus.com`          |
+| `EMAIL_HOST`                     | `mx2eed.netcup.net`              |
+| `EMAIL_PORT`                     | `465`                            |
+| `EMAIL_SECURE`                   | `true`                           |
+| `EMAIL_USER`                     | `no-reply@bonifatus.com`         |
+| `EMAIL_PASSWORD`                 | `your_email_password_here`       |
+| `NEXT_PUBLIC_TURNSTILE_SITE_KEY` | `your_turnstile_site_key_here`   |
+| `TURNSTILE_SECRET_KEY`           | `your_turnstile_secret_key_here` |
 
 (Supabase variables should already be configured)
 
