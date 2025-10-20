@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import { Turnstile } from '@/components/ui/Turnstile'
 
 type RegistrationStep = 'form' | 'verification'
 
@@ -69,6 +70,12 @@ export default function RegisterPage() {
       return
     }
 
+    // Validate Turnstile token
+    if (!turnstileToken) {
+      setError('Please complete the security verification')
+      return
+    }
+
     setLoading(true)
 
     try {
@@ -83,13 +90,14 @@ export default function RegisterPage() {
           fullName: formData.fullName,
           dateOfBirth: '2000-01-01', // Temporary placeholder - will be added back later
           role: formData.role,
-          turnstileToken: turnstileToken || 'dev-token', // For development
+          turnstileToken: turnstileToken,
         }),
       })
 
       const data = await response.json()
 
       if (!response.ok) {
+        console.error('Registration failed:', data)
         setError(data.error || 'Registration failed')
         setLoading(false)
         return
@@ -541,10 +549,25 @@ export default function RegisterPage() {
               </div>
             </div>
 
+            {/* Turnstile Bot Protection */}
+            <Turnstile
+              siteKey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY || ''}
+              onSuccess={(token) => setTurnstileToken(token)}
+              onError={() => {
+                setError('Security verification failed. Please refresh the page.')
+                setTurnstileToken('')
+              }}
+              onExpire={() => {
+                setTurnstileToken('')
+              }}
+              theme="auto"
+              size="normal"
+            />
+
             {/* Submit Button */}
             <button
               type="submit"
-              disabled={loading}
+              disabled={loading || !turnstileToken}
               className="w-full px-6 py-3 bg-gradient-to-r from-primary-600 to-secondary-600 text-white rounded-lg font-semibold shadow-button hover:shadow-lg hover:scale-105 transition-all duration-normal disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
             >
               {loading ? 'Creating account...' : 'Create Account'}
