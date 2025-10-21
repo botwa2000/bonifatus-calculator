@@ -64,6 +64,13 @@ export interface EmailOptions {
  */
 export async function sendEmail(options: EmailOptions): Promise<boolean> {
   try {
+    console.log('[Email Service] Attempting to send email to:', options.to)
+    console.log('[Email Service] Email configuration check:')
+    console.log('  - HOST:', EMAIL_HOST ? '✓ Set' : '✗ Missing')
+    console.log('  - PORT:', EMAIL_PORT ? '✓ Set' : '✗ Missing')
+    console.log('  - USER:', EMAIL_USER ? '✓ Set' : '✗ Missing')
+    console.log('  - PASSWORD:', EMAIL_PASSWORD ? '✓ Set' : '✗ Missing')
+
     const transport = getTransporter()
 
     const info = await transport.sendMail({
@@ -75,10 +82,19 @@ export async function sendEmail(options: EmailOptions): Promise<boolean> {
       replyTo: options.replyTo,
     })
 
-    console.log('Email sent successfully:', info.messageId)
+    console.log('[Email Service] ✓ Email sent successfully:', info.messageId)
+    console.log('[Email Service] Recipients:', info.accepted)
+    console.log('[Email Service] Rejected:', info.rejected)
     return true
   } catch (error) {
-    console.error('Failed to send email:', error)
+    console.error('[Email Service] ✗ Failed to send email:', error)
+    if (error instanceof Error) {
+      console.error('[Email Service] Error details:', {
+        message: error.message,
+        name: error.name,
+        stack: error.stack?.split('\n').slice(0, 3).join('\n'),
+      })
+    }
     return false
   }
 }
