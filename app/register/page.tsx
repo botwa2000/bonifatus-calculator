@@ -25,6 +25,7 @@ export default function RegisterPage() {
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
   const [turnstileToken, setTurnstileToken] = useState('')
+  const [turnstileLoading, setTurnstileLoading] = useState(true)
   const [passwordStrength, setPasswordStrength] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
@@ -101,6 +102,16 @@ export default function RegisterPage() {
         setError(data.error || 'Registration failed')
         setLoading(false)
         return
+      }
+
+      console.log('Registration response:', data)
+
+      // Check if email was sent successfully
+      if (data.verificationEmailSent === false) {
+        console.warn('Account created but verification email failed to send')
+        setError(
+          'Account created! However, we had trouble sending the verification email. Please use the "Resend" button on the next screen.'
+        )
       }
 
       // Store userId for verification step
@@ -550,27 +561,43 @@ export default function RegisterPage() {
             </div>
 
             {/* Turnstile Bot Protection */}
-            <Turnstile
-              siteKey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY || ''}
-              onSuccess={(token) => setTurnstileToken(token)}
-              onError={() => {
-                setError('Security verification failed. Please refresh the page.')
-                setTurnstileToken('')
-              }}
-              onExpire={() => {
-                setTurnstileToken('')
-              }}
-              theme="auto"
-              size="normal"
-            />
+            <div>
+              <Turnstile
+                siteKey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY || ''}
+                onSuccess={(token) => {
+                  setTurnstileToken(token)
+                  setTurnstileLoading(false)
+                }}
+                onError={() => {
+                  setError('Security verification failed. Please refresh the page.')
+                  setTurnstileToken('')
+                  setTurnstileLoading(false)
+                }}
+                onExpire={() => {
+                  setTurnstileToken('')
+                  setTurnstileLoading(true)
+                }}
+                theme="auto"
+                size="normal"
+              />
+              {turnstileLoading && (
+                <p className="text-xs text-neutral-500 dark:text-neutral-400 text-center mt-2">
+                  Loading security verification...
+                </p>
+              )}
+            </div>
 
             {/* Submit Button */}
             <button
               type="submit"
-              disabled={loading || !turnstileToken}
+              disabled={loading || !turnstileToken || turnstileLoading}
               className="w-full px-6 py-3 bg-gradient-to-r from-primary-600 to-secondary-600 text-white rounded-lg font-semibold shadow-button hover:shadow-lg hover:scale-105 transition-all duration-normal disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
             >
-              {loading ? 'Creating account...' : 'Create Account'}
+              {loading
+                ? 'Creating account...'
+                : turnstileLoading
+                  ? 'Loading verification...'
+                  : 'Create Account'}
             </button>
           </form>
 

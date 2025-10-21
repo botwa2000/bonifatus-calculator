@@ -63,6 +63,7 @@ export async function sendVerificationCode(
     const { code, expires_at } = codeData
 
     // Send email with verification code
+    console.log('[Verification] Preparing to send verification email to:', email)
     const emailTemplate = getVerificationCodeEmail(code, userName, 15)
     const emailSent = await sendEmail({
       to: email,
@@ -72,12 +73,14 @@ export async function sendVerificationCode(
     })
 
     if (!emailSent) {
-      console.error('Failed to send verification email')
+      console.error('[Verification] ✗ Failed to send verification email to:', email)
       return {
         success: false,
         error: 'Failed to send verification email. Please try again.',
       }
     }
+
+    console.log('[Verification] ✓ Verification email sent successfully to:', email)
 
     return {
       success: true,
