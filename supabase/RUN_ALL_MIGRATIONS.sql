@@ -1,10 +1,70 @@
--- Migration: Authentication Foundation
--- Creates user_profiles table with complete production schema
--- This extends Supabase's auth.users table with application-specific data
+-- Migration: Language Support (MUST BE FIRST)
+-- Creates languages table before user_profiles needs it
 
 -- Enable necessary extensions
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 CREATE EXTENSION IF NOT EXISTS "pg_trgm"; -- For text search
+
+-- Create enum for text direction
+CREATE TYPE text_direction AS ENUM ('ltr', 'rtl');
+
+-- Languages Table
+-- Supported application languages
+CREATE TABLE languages (
+    -- Primary Key (ISO 639-1 code)
+    code TEXT PRIMARY KEY CHECK (length(code) = 2),
+
+    -- Language Names
+    name_native TEXT NOT NULL, -- Name in the language itself (e.g., "Deutsch")
+    name_english TEXT NOT NULL, -- Name in English (e.g., "German")
+
+    -- Display Properties
+    text_direction text_direction NOT NULL DEFAULT 'ltr',
+    is_active BOOLEAN NOT NULL DEFAULT true,
+    display_order INTEGER NOT NULL DEFAULT 0,
+
+    -- Timestamp
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+-- Indexes for languages
+CREATE INDEX idx_languages_active ON languages(is_active) WHERE is_active = true;
+CREATE INDEX idx_languages_display_order ON languages(display_order, name_english);
+
+-- Comments for documentation
+COMMENT ON TABLE languages IS 'Supported application languages';
+COMMENT ON COLUMN languages.code IS 'ISO 639-1 two-letter language code';
+COMMENT ON COLUMN languages.name_native IS 'Language name in its own language';
+COMMENT ON COLUMN languages.text_direction IS 'Text direction: ltr (left-to-right) or rtl (right-to-left)';
+COMMENT ON COLUMN languages.display_order IS 'Sort order in language selector (lower = higher priority)';
+
+-- Row Level Security (RLS) Policies
+ALTER TABLE languages ENABLE ROW LEVEL SECURITY;
+
+-- Policy: Public read access (no authentication required)
+CREATE POLICY "Languages are publicly readable"
+    ON languages
+    FOR SELECT
+    USING (true);
+
+-- Grant permissions
+GRANT SELECT ON languages TO anon, authenticated;
+
+-- Seed Initial Languages
+-- Starting with English, German, and French as specified in requirements
+INSERT INTO languages (code, name_native, name_english, text_direction, is_active, display_order) VALUES
+    -- English (default)
+    ('en', 'English', 'English', 'ltr', true, 1),
+
+    -- German (major target market)
+    ('de', 'Deutsch', 'German', 'ltr', true, 2),
+
+    -- French (European market)
+    ('fr', 'Français', 'French', 'ltr', true, 3)
+ON CONFLICT (code) DO NOTHING;
+-- Migration: User Profiles (depends on languages table)
+-- Creates user_profiles table with complete production schema
+-- This extends Supabase's auth.users table with application-specific data
 
 -- Create enum types
 CREATE TYPE user_role AS ENUM ('parent', 'child');
@@ -24,7 +84,7 @@ CREATE TABLE user_profiles (
     avatar_url TEXT, -- URL to Supabase Storage
 
     -- Preferences
-    preferred_language TEXT NOT NULL DEFAULT 'en',
+    preferred_language TEXT NOT NULL DEFAULT 'en' REFERENCES languages(code),
     theme_preference theme_preference NOT NULL DEFAULT 'system',
     timezone TEXT NOT NULL DEFAULT 'UTC',
     notification_preferences JSONB NOT NULL DEFAULT '{
@@ -67,6 +127,7 @@ COMMENT ON COLUMN user_profiles.role IS 'User type: parent or child - determines
 COMMENT ON COLUMN user_profiles.date_of_birth IS 'Required for COPPA compliance and age verification';
 COMMENT ON COLUMN user_profiles.notification_preferences IS 'JSON object controlling email/push notification settings';
 COMMENT ON COLUMN user_profiles.is_active IS 'Soft delete flag - false means account deleted';
+COMMENT ON COLUMN user_profiles.preferred_language IS 'User interface language - references languages.code';
 
 -- Function: Update updated_at timestamp automatically
 CREATE OR REPLACE FUNCTION update_updated_at_column()
@@ -127,27 +188,13 @@ CREATE POLICY "Users can insert own profile"
     FOR INSERT
     WITH CHECK (auth.uid() = id);
 
--- Policy: Parents can read linked children's profiles (will be enhanced when relationships table exists)
--- Note: This policy will be fully functional after parent_child_relationships table is created
-CREATE POLICY "Parents can read linked children profiles"
-    ON user_profiles
-    FOR SELECT
-    USING (
-        -- User can read their own profile OR
-        auth.uid() = id OR
-        -- Parent can read linked child's profile
-        EXISTS (
-            SELECT 1 FROM parent_child_relationships
-            WHERE parent_id = auth.uid()
-            AND child_id = user_profiles.id
-            AND invitation_status = 'accepted'
-        )
-    );
+-- Note: Additional policy for parents to read children's profiles will be added
+-- in migration 003 after parent_child_relationships table is created
 
 -- Grant permissions
 GRANT SELECT, UPDATE ON user_profiles TO authenticated;
 GRANT INSERT ON user_profiles TO authenticated;
--- Migration: Parent-Child Relationships
+-- Migration: Parent-Child Relationships (depends on user_profiles)
 -- Creates the junction table linking parents to children
 -- Supports complex family structures (divorced parents, guardians, etc.)
 
@@ -278,6 +325,8 @@ CREATE POLICY "Users can read their relationships"
     );
 
 -- Policy: Children can update invitation status (accept/reject)
+-- Note: RLS policies cannot enforce field-level restrictions, so application
+-- code must ensure only invitation_status is updated
 CREATE POLICY "Children can update invitation status"
     ON parent_child_relationships
     FOR UPDATE
@@ -286,11 +335,7 @@ CREATE POLICY "Children can update invitation status"
         EXISTS (SELECT 1 FROM user_profiles WHERE id = auth.uid() AND role = 'child')
     )
     WITH CHECK (
-        auth.uid() = child_id AND
-        -- Can only change invitation_status, not other fields
-        parent_id = OLD.parent_id AND
-        child_id = OLD.child_id AND
-        invited_by = OLD.invited_by
+        auth.uid() = child_id
     );
 
 -- Policy: Either party can delete the relationship
@@ -304,7 +349,23 @@ CREATE POLICY "Either party can delete relationship"
 
 -- Grant permissions
 GRANT SELECT, INSERT, UPDATE, DELETE ON parent_child_relationships TO authenticated;
--- Migration: Security Infrastructure
+
+-- Now add the missing policy to user_profiles that depends on this table
+CREATE POLICY "Parents can read linked children profiles"
+    ON user_profiles
+    FOR SELECT
+    USING (
+        -- User can read their own profile OR
+        auth.uid() = id OR
+        -- Parent can read linked child's profile
+        EXISTS (
+            SELECT 1 FROM parent_child_relationships
+            WHERE parent_id = auth.uid()
+            AND child_id = user_profiles.id
+            AND invitation_status = 'accepted'
+        )
+    );
+-- Migration: Security Infrastructure (depends on user_profiles and relationships)
 -- Creates tables for security monitoring, rate limiting, and audit logging
 
 -- Create enum types for security events
@@ -559,75 +620,7 @@ GRANT SELECT ON security_events TO authenticated;
 -- Note: No INSERT/UPDATE/DELETE for users - only via SECURITY DEFINER functions
 GRANT EXECUTE ON FUNCTION log_security_event TO authenticated;
 GRANT EXECUTE ON FUNCTION check_rate_limit TO authenticated;
--- Migration: Language Support
--- Creates languages table and seeds with initial supported languages
-
--- Create enum for text direction
-CREATE TYPE text_direction AS ENUM ('ltr', 'rtl');
-
--- Languages Table
--- Supported application languages
-CREATE TABLE languages (
-    -- Primary Key (ISO 639-1 code)
-    code TEXT PRIMARY KEY CHECK (length(code) = 2),
-
-    -- Language Names
-    name_native TEXT NOT NULL, -- Name in the language itself (e.g., "Deutsch")
-    name_english TEXT NOT NULL, -- Name in English (e.g., "German")
-
-    -- Display Properties
-    text_direction text_direction NOT NULL DEFAULT 'ltr',
-    is_active BOOLEAN NOT NULL DEFAULT true,
-    display_order INTEGER NOT NULL DEFAULT 0,
-
-    -- Timestamp
-    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-);
-
--- Indexes for languages
-CREATE INDEX idx_languages_active ON languages(is_active) WHERE is_active = true;
-CREATE INDEX idx_languages_display_order ON languages(display_order, name_english);
-
--- Comments for documentation
-COMMENT ON TABLE languages IS 'Supported application languages';
-COMMENT ON COLUMN languages.code IS 'ISO 639-1 two-letter language code';
-COMMENT ON COLUMN languages.name_native IS 'Language name in its own language';
-COMMENT ON COLUMN languages.text_direction IS 'Text direction: ltr (left-to-right) or rtl (right-to-left)';
-COMMENT ON COLUMN languages.display_order IS 'Sort order in language selector (lower = higher priority)';
-
--- Row Level Security (RLS) Policies
-ALTER TABLE languages ENABLE ROW LEVEL SECURITY;
-
--- Policy: Public read access (no authentication required)
-CREATE POLICY "Languages are publicly readable"
-    ON languages
-    FOR SELECT
-    USING (true);
-
--- Grant permissions
-GRANT SELECT ON languages TO anon, authenticated;
-
--- Seed Initial Languages
--- Starting with English, German, and French as specified in requirements
-INSERT INTO languages (code, name_native, name_english, text_direction, is_active, display_order) VALUES
-    -- English (default)
-    ('en', 'English', 'English', 'ltr', true, 1),
-
-    -- German (major target market)
-    ('de', 'Deutsch', 'German', 'ltr', true, 2),
-
-    -- French (European market)
-    ('fr', 'Français', 'French', 'ltr', true, 3)
-ON CONFLICT (code) DO NOTHING;
-
--- Add constraint to user_profiles to ensure valid language reference
-ALTER TABLE user_profiles
-ADD CONSTRAINT fk_preferred_language
-FOREIGN KEY (preferred_language) REFERENCES languages(code);
-
--- Update user_profiles comment
-COMMENT ON COLUMN user_profiles.preferred_language IS 'User interface language - references languages.code';
--- Migration: Verification Codes
+-- Migration: Verification Codes (depends on auth.users and security functions)
 -- Creates table for storing email verification codes and password reset codes
 -- Supports 6-digit codes with 15-minute expiration
 

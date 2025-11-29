@@ -5,6 +5,7 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerSupabaseClient } from '@/lib/supabase/client'
+import { createClient } from '@supabase/supabase-js'
 import { sendVerificationCode, getVerificationCodeStatus } from '@/lib/auth/verification'
 import { getClientIp } from '@/lib/auth/turnstile'
 import { z } from 'zod'
@@ -36,6 +37,19 @@ export async function POST(request: NextRequest) {
 
     const supabase = await createServerSupabaseClient()
 
+    // Admin client for privileged lookup (requires service role key)
+    const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+    if (!serviceRoleKey) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'Server configuration error',
+        },
+        { status: 500 }
+      )
+    }
+    const supabaseAdmin = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, serviceRoleKey)
+
     // Get user information
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const { data: profile } = await (supabase as any)
@@ -55,7 +69,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Get user email from auth.users
-    const { data: userData, error: userError } = await supabase.auth.admin.getUserById(userId)
+    const { data: userData, error: userError } = await supabaseAdmin.auth.admin.getUserById(userId)
 
     if (userError || !userData.user?.email) {
       return NextResponse.json(
