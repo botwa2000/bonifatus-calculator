@@ -1,3 +1,7 @@
+import { DemoSection } from '@/components/demo-section'
+import { HeroCta } from '@/components/hero-cta'
+import { DemoLinkButton } from '@/components/demo-link-button'
+
 export default function Home() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary-50 via-white to-secondary-50 dark:from-neutral-900 dark:via-neutral-800 dark:to-neutral-900">
@@ -39,35 +43,27 @@ export default function Home() {
       </header>
 
       {/* Hero Section */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 sm:py-32">
-        <div className="text-center">
-          <div className="inline-block mb-4 px-4 py-2 bg-info-100 dark:bg-info-900/30 rounded-full">
-            <span className="text-info-700 dark:text-info-300 text-sm font-medium">
-              Coming Soon
-            </span>
-          </div>
-          <h2 className="text-4xl sm:text-6xl font-bold text-neutral-900 dark:text-white mb-6">
-            Motivate Academic Excellence
-            <br />
-            <span className="bg-gradient-to-r from-primary-600 to-secondary-600 bg-clip-text text-transparent">
-              Through Smart Rewards
-            </span>
-          </h2>
-          <p className="text-xl text-neutral-600 dark:text-neutral-300 max-w-3xl mx-auto mb-8 leading-relaxed">
-            Bonifatus is a progressive web app that helps parents reward their children for academic
-            achievement through a transparent, configurable bonus points system. Turn grades into
-            motivation.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <button className="px-8 py-4 bg-gradient-to-r from-primary-600 to-secondary-600 text-white rounded-lg font-semibold shadow-button hover:shadow-lg hover:scale-105 transition-all duration-normal">
-              Get Started Free
-            </button>
-            <button className="px-8 py-4 bg-white dark:bg-neutral-800 text-neutral-900 dark:text-white border-2 border-neutral-200 dark:border-neutral-700 rounded-lg font-semibold hover:border-primary-500 dark:hover:border-primary-500 transition-all duration-normal">
-              Learn More
-            </button>
-          </div>
+      <section className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-24 text-left space-y-6">
+        <div className="inline-block px-4 py-2 bg-info-100 dark:bg-info-900/30 rounded-full">
+          <span className="text-info-700 dark:text-info-300 text-sm font-medium">
+            Live Demo — No signup needed
+          </span>
         </div>
+        <h2 className="text-4xl sm:text-5xl font-bold text-neutral-900 dark:text-white">
+          Motivate Academic Excellence
+          <br />
+          <span className="bg-gradient-to-r from-primary-600 to-secondary-600 bg-clip-text text-transparent">
+            Through Smart Rewards
+          </span>
+        </h2>
+        <p className="text-lg text-neutral-600 dark:text-neutral-300 leading-relaxed">
+          See how grades convert to bonus points across global grading systems. Save and track
+          progress for each child when you create a free account.
+        </p>
+        <HeroCta />
       </section>
+
+      <DemoSection />
 
       {/* Features Section */}
       <section
@@ -397,9 +393,9 @@ export default function Home() {
             <button className="px-8 py-4 bg-white text-primary-600 rounded-lg font-semibold hover:shadow-xl hover:scale-105 transition-all duration-200">
               Start Your Free Account
             </button>
-            <button className="px-8 py-4 bg-transparent border-2 border-white text-white rounded-lg font-semibold hover:bg-white/10 transition-all duration-200">
+            <DemoLinkButton className="px-8 py-4 bg-transparent border-2 border-white text-white rounded-lg font-semibold hover:bg-white/10 transition-all duration-200">
               View Demo
-            </button>
+            </DemoLinkButton>
           </div>
         </div>
       </section>
