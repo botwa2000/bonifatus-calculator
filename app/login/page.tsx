@@ -98,34 +98,10 @@ export default function LoginPage() {
       const container = document.getElementById(turnstileContainerId)
       if (!container) return
 
-      const safeExecute = () => {
-        if (!widgetIdRef.current || executingRef.current) return
-        executingRef.current = true
-        dbg('turnstile execute', { widgetId: widgetIdRef.current })
-        clearExecuteTimeout()
-        executeTimeoutRef.current = window.setTimeout(() => {
-          executingRef.current = false
-          setTurnstileLoading(false)
-          setLoading(false)
-          setPendingSubmit(false)
-          setError('Bot verification is taking too long. Please retry.')
-          dbg('turnstile execute timeout', { widgetId: widgetIdRef.current })
-          try {
-            if (widgetIdRef.current) {
-              t.reset(widgetIdRef.current)
-            }
-          } catch {
-            // ignore reset error
-          }
-        }, 12000)
-        t.execute(widgetIdRef.current)
-      }
-
       try {
         if (widgetIdRef.current) {
           t.reset(widgetIdRef.current)
           executingRef.current = false
-          safeExecute()
           return
         }
 
@@ -161,8 +137,7 @@ export default function LoginPage() {
             dbg('turnstile expired-callback')
           },
         })
-
-        safeExecute()
+        executingRef.current = false
       } catch {
         setTurnstileLoading(false)
         setLoading(false)
