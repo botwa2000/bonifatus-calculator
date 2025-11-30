@@ -52,7 +52,7 @@ function getFactorValue(factors: Factor[], type: Factor['factor_type'], key: str
 
 function deriveTierFromDefinitions(system: GradingSystem, grade: string) {
   const def = system.grade_definitions?.find(
-    (g) => g.grade.toLowerCase() === grade.trim().toLowerCase()
+    (g) => (g.grade ?? '').toLowerCase() === grade.trim().toLowerCase()
   )
   if (def?.quality_tier) return def.quality_tier
   return 'below'
