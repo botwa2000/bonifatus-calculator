@@ -31,6 +31,7 @@ export default function LoginPage() {
   const widgetIdRef = useRef<string | null>(null)
   const turnstileRef = useRef<any>(null) // eslint-disable-line @typescript-eslint/no-explicit-any
   const [pendingSubmit, setPendingSubmit] = useState(false)
+  const [turnstileReady, setTurnstileReady] = useState(false)
   const executingRef = useRef(false)
   const executeTimeoutRef = useRef<number | null>(null)
 
@@ -138,6 +139,7 @@ export default function LoginPage() {
           },
         })
         executingRef.current = false
+        setTurnstileReady(true)
       } catch {
         setTurnstileLoading(false)
         setLoading(false)
@@ -187,50 +189,40 @@ export default function LoginPage() {
       setError('Bot protection is not configured. Please try again later.')
       return
     }
-    if (!turnstileToken) {
-      // Try to execute the invisible widget to fetch a token, then submit when ready
-      if (turnstileRef.current && widgetIdRef.current) {
-        setTurnstileLoading(true)
-        setPendingSubmit(true)
-        setLoading(true)
-        try {
-          if (!executingRef.current) {
-            turnstileRef.current.reset(widgetIdRef.current)
-            executingRef.current = false
-            clearExecuteTimeout()
-            executeTimeoutRef.current = window.setTimeout(() => {
-              executingRef.current = false
-              setTurnstileLoading(false)
-              setLoading(false)
-              setPendingSubmit(false)
-              setError('Bot verification is taking too long. Please retry.')
-              dbg('turnstile execute timeout (submit path)', { widgetId: widgetIdRef.current })
-              try {
-                turnstileRef.current.reset(widgetIdRef.current)
-              } catch {
-                // ignore reset error
-              }
-            }, 12000)
-            turnstileRef.current.execute(widgetIdRef.current)
-            executingRef.current = true
-            dbg('turnstile execute from submit', { widgetId: widgetIdRef.current })
-          }
-        } catch {
-          setTurnstileLoading(false)
-          setPendingSubmit(false)
-          setLoading(false)
-          executingRef.current = false
-          setError('Bot verification failed to start. Please retry.')
-          dbg('turnstile execute failed from submit')
-        }
-      } else {
-        setError('Bot verification is not ready. Please retry.')
-        setLoading(false)
-      }
+    if (!turnstileReady || !turnstileRef.current || !widgetIdRef.current) {
+      setError('Bot verification is not ready. Please retry.')
+      setLoading(false)
       return
     }
 
-    submitLogin(turnstileToken)
+    setTurnstileLoading(true)
+    setLoading(true)
+    try {
+      turnstileRef.current.reset(widgetIdRef.current)
+      executingRef.current = false
+      clearExecuteTimeout()
+      executeTimeoutRef.current = window.setTimeout(() => {
+        executingRef.current = false
+        setTurnstileLoading(false)
+        setLoading(false)
+        setError('Bot verification is taking too long. Please retry.')
+        dbg('turnstile execute timeout (submit path)', { widgetId: widgetIdRef.current })
+        try {
+          turnstileRef.current.reset(widgetIdRef.current)
+        } catch {
+          // ignore reset error
+        }
+      }, 12000)
+      turnstileRef.current.execute(widgetIdRef.current)
+      executingRef.current = true
+      dbg('turnstile execute from submit', { widgetId: widgetIdRef.current })
+    } catch {
+      setTurnstileLoading(false)
+      setLoading(false)
+      executingRef.current = false
+      setError('Bot verification failed to start. Please retry.')
+      dbg('turnstile execute failed from submit')
+    }
   }
 
   useEffect(() => {
