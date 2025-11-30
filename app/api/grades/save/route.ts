@@ -120,7 +120,9 @@ export async function POST(request: NextRequest) {
 
     const { data: term, error: termErr } = await supabase
       .from('term_grades')
-      .insert<Database['public']['Tables']['term_grades']['Insert']>(termPayload)
+      // Supabase type inference on insert is misaligned with our generated types; explicit cast is safe here
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      .insert(termPayload as any)
       .select('id')
       .single()
 
