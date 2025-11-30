@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 
@@ -14,45 +14,80 @@ export default function LoginPage() {
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
   const [turnstileToken, setTurnstileToken] = useState('')
-  const [turnstileLoading, setTurnstileLoading] = useState(true)
+  const [turnstileLoading, setTurnstileLoading] = useState(!!siteKey)
   const [showPassword, setShowPassword] = useState(false)
+  const widgetIdRef = useRef<string | null>(null)
 
   // Load and render Turnstile
   const turnstileContainerId = 'turnstile-login-container'
-  if (typeof window !== 'undefined' && siteKey && !document.getElementById('turnstile-script')) {
-    const script = document.createElement('script')
-    script.id = 'turnstile-script'
-    script.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit'
-    script.async = true
-    script.defer = true
-    script.onload = () => {
+  useEffect(() => {
+    if (!siteKey) {
+      setTurnstileLoading(false)
+      return
+    }
+    if (typeof window === 'undefined') return
+
+    const renderTurnstile = () => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const t = (window as any).turnstile
-      if (t && !t.rendered) {
-        try {
-          t.render(`#${turnstileContainerId}`, {
-            sitekey: siteKey,
-            size: 'invisible',
-            callback: (token: string) => {
-              setTurnstileToken(token)
-              setTurnstileLoading(false)
-            },
-            'error-callback': () => {
-              setTurnstileToken('')
-              setTurnstileLoading(false)
-            },
-            'expired-callback': () => {
-              setTurnstileToken('')
-              setTurnstileLoading(false)
-            },
-          })
-        } catch {
-          setTurnstileLoading(false)
+      if (!t) return
+      const container = document.getElementById(turnstileContainerId)
+      if (!container) return
+
+      try {
+        if (widgetIdRef.current) {
+          t.reset(widgetIdRef.current)
+          t.execute(widgetIdRef.current)
+          return
         }
+
+        widgetIdRef.current = t.render(`#${turnstileContainerId}`, {
+          sitekey: siteKey,
+          size: 'invisible',
+          callback: (token: string) => {
+            setTurnstileToken(token)
+            setTurnstileLoading(false)
+            setError('')
+          },
+          'error-callback': () => {
+            setTurnstileToken('')
+            setTurnstileLoading(false)
+          },
+          'expired-callback': () => {
+            setTurnstileToken('')
+            setTurnstileLoading(false)
+          },
+        })
+
+        t.execute(widgetIdRef.current)
+      } catch {
+        setTurnstileLoading(false)
       }
     }
-    document.body.appendChild(script)
-  }
+
+    const existing = document.getElementById('turnstile-script') as HTMLScriptElement | null
+    if (existing?.dataset.loaded === 'true') {
+      renderTurnstile()
+      return
+    }
+
+    const script = existing ?? document.createElement('script')
+    if (!existing) {
+      script.id = 'turnstile-script'
+      script.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit'
+      script.async = true
+      script.defer = true
+      document.body.appendChild(script)
+    }
+    script.onload = () => {
+      script.dataset.loaded = 'true'
+      renderTurnstile()
+    }
+    script.onerror = () => {
+      setTurnstileLoading(false)
+      setError('Bot verification failed to load. Please retry.')
+    }
+  }, [siteKey])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
