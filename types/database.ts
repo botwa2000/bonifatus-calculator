@@ -198,10 +198,12 @@ export interface Database {
           code: string | null
           name: string | Record<string, string> | null
           description: string | Record<string, string> | null
+          country_code: string | null
           scale_type: 'letter' | 'numeric' | 'percentage'
           best_is_highest: boolean
           min_value: number | null
           max_value: number | null
+          passing_threshold: number | null
           grade_definitions: {
             grade?: string | null
             numeric_value?: number | null
@@ -218,10 +220,12 @@ export interface Database {
           code?: string | null
           name?: string | Record<string, string> | null
           description?: string | Record<string, string> | null
+          country_code?: string | null
           scale_type: 'letter' | 'numeric' | 'percentage'
           best_is_highest?: boolean
           min_value?: number | null
           max_value?: number | null
+          passing_threshold?: number | null
           grade_definitions?: {
             grade?: string | null
             numeric_value?: number | null
@@ -238,10 +242,12 @@ export interface Database {
           code?: string | null
           name?: string | Record<string, string> | null
           description?: string | Record<string, string> | null
+          country_code?: string | null
           scale_type?: 'letter' | 'numeric' | 'percentage'
           best_is_highest?: boolean
           min_value?: number | null
           max_value?: number | null
+          passing_threshold?: number | null
           grade_definitions?: {
             grade?: string | null
             numeric_value?: number | null
@@ -261,6 +267,7 @@ export interface Database {
           factor_type: string
           factor_key: string
           factor_value: number
+          description: string | null
           is_active: boolean | null
           created_at: string | null
           updated_at: string | null
@@ -270,6 +277,7 @@ export interface Database {
           factor_type: string
           factor_key: string
           factor_value: number
+          description?: string | null
           is_active?: boolean | null
           created_at?: string | null
           updated_at?: string | null
@@ -279,6 +287,7 @@ export interface Database {
           factor_type?: string
           factor_key?: string
           factor_value?: number
+          description?: string | null
           is_active?: boolean | null
           created_at?: string | null
           updated_at?: string | null
@@ -439,6 +448,83 @@ export interface Database {
             referencedColumns: ['id']
           },
         ]
+      }
+      subjects: {
+        Row: {
+          id: string
+          name: string | Record<string, string>
+          description: string | Record<string, string> | null
+          category_id: string | null
+          is_core_subject: boolean | null
+          is_active: boolean
+          is_custom: boolean
+          display_order: number | null
+          created_at: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          id?: string
+          name: string | Record<string, string>
+          description?: string | Record<string, string> | null
+          category_id?: string | null
+          is_core_subject?: boolean | null
+          is_active?: boolean
+          is_custom?: boolean
+          display_order?: number | null
+          created_at?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          id?: string
+          name?: string | Record<string, string>
+          description?: string | Record<string, string> | null
+          category_id?: string | null
+          is_core_subject?: boolean | null
+          is_active?: boolean
+          is_custom?: boolean
+          display_order?: number | null
+          created_at?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'subjects_category_id_fkey'
+            columns: ['category_id']
+            isOneToOne: false
+            referencedRelation: 'subject_categories'
+            referencedColumns: ['id']
+          },
+        ]
+      }
+      subject_categories: {
+        Row: {
+          id: string
+          name: string | Record<string, string>
+          description: string | Record<string, string> | null
+          display_order: number | null
+          is_active: boolean
+          created_at: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          id?: string
+          name: string | Record<string, string>
+          description?: string | Record<string, string> | null
+          display_order?: number | null
+          is_active?: boolean
+          created_at?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          id?: string
+          name?: string | Record<string, string>
+          description?: string | Record<string, string> | null
+          display_order?: number | null
+          is_active?: boolean
+          created_at?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
       }
       languages: {
         Row: {

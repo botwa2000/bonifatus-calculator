@@ -6,11 +6,7 @@ import type { Tables } from '@/types/database'
 
 type GradingSystem = Tables<'grading_systems'>
 
-type Factor = {
-  factor_type: 'class_level' | 'term_type' | 'grade_tier'
-  factor_key: string
-  factor_value: number
-}
+type Factor = Tables<'bonus_factor_defaults'>
 
 type Subject = {
   id: string
