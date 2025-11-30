@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useMemo, useState } from 'react'
+import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { createBrowserClient } from '@supabase/ssr'
 import type { Database } from '@/types/database'
@@ -36,8 +37,10 @@ export default function ProfileClient({
   const [name, setName] = useState(fullName)
   const [newEmail, setNewEmail] = useState(email)
   const [newPassword, setNewPassword] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
   const [theme, setTheme] = useState<ThemeChoice>(themePreference)
   const [statusMessage, setStatusMessage] = useState('')
+  const [passwordStrength, setPasswordStrength] = useState('')
   const [saving, setSaving] = useState({
     profile: false,
     email: false,
@@ -45,6 +48,8 @@ export default function ProfileClient({
     theme: false,
     deleting: false,
   })
+  const [showPassword, setShowPassword] = useState(false)
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
 
   const applyTheme = (choice: ThemeChoice) => {
     const root = document.documentElement
@@ -65,6 +70,31 @@ export default function ProfileClient({
     setTheme(stored)
     applyTheme(stored)
   }, [themePreference])
+
+  const validatePassword = (password: string) => {
+    if (password.length < 12) {
+      setPasswordStrength('Password must be at least 12 characters')
+      return false
+    }
+    if (!/[A-Z]/.test(password)) {
+      setPasswordStrength('Password must contain an uppercase letter')
+      return false
+    }
+    if (!/[a-z]/.test(password)) {
+      setPasswordStrength('Password must contain a lowercase letter')
+      return false
+    }
+    if (!/[0-9]/.test(password)) {
+      setPasswordStrength('Password must contain a number')
+      return false
+    }
+    if (!/[^A-Za-z0-9]/.test(password)) {
+      setPasswordStrength('Password must contain a special character')
+      return false
+    }
+    setPasswordStrength('Strong password')
+    return true
+  }
 
   const handleSaveProfile = async (event: React.FormEvent) => {
     event.preventDefault()
@@ -108,8 +138,16 @@ export default function ProfileClient({
 
   const handlePasswordChange = async (event: React.FormEvent) => {
     event.preventDefault()
-    if (!newPassword || newPassword.length < 6) {
-      setStatusMessage('Password must be at least 6 characters.')
+    if (!newPassword || !confirmPassword) {
+      setStatusMessage('Please enter and confirm your new password.')
+      return
+    }
+    if (newPassword !== confirmPassword) {
+      setStatusMessage('Passwords do not match.')
+      return
+    }
+    if (!validatePassword(newPassword)) {
+      setStatusMessage(passwordStrength)
       return
     }
 
@@ -123,6 +161,8 @@ export default function ProfileClient({
     } else {
       setStatusMessage('Password updated. You may need to log in again on other devices.')
       setNewPassword('')
+      setConfirmPassword('')
+      setPasswordStrength('')
     }
 
     setSaving((prev) => ({ ...prev, password: false }))
@@ -177,6 +217,29 @@ export default function ProfileClient({
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary-50 via-white to-secondary-50 dark:from-neutral-900 dark:via-neutral-900 dark:to-neutral-800">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12 space-y-8">
+        <div className="flex items-center justify-between border border-neutral-200 dark:border-neutral-800 rounded-2xl bg-white/80 dark:bg-neutral-900/80 backdrop-blur-sm px-4 py-3 shadow-sm">
+          <Link
+            href="/"
+            className="text-sm font-semibold text-neutral-800 dark:text-white hover:text-primary-600 dark:hover:text-primary-300 transition-colors"
+          >
+            ← Back to homepage
+          </Link>
+          <div className="flex gap-3 text-sm">
+            <Link
+              href="/dashboard"
+              className="px-3 py-1.5 rounded-lg border border-neutral-200 dark:border-neutral-700 text-neutral-800 dark:text-white hover:border-primary-400 dark:hover:border-primary-500 transition-colors"
+            >
+              Dashboard
+            </Link>
+            <Link
+              href="/profile"
+              className="px-3 py-1.5 rounded-lg bg-gradient-to-r from-primary-600 to-secondary-600 text-white font-semibold shadow-button hover:shadow-md transition-all"
+            >
+              Profile
+            </Link>
+          </div>
+        </div>
+
         <div className="flex items-center justify-between">
           <div>
             <p className="text-sm text-neutral-500 dark:text-neutral-400 capitalize">
@@ -264,14 +327,101 @@ export default function ProfileClient({
             </div>
             <label className="block space-y-1">
               <span className="text-sm text-neutral-700 dark:text-neutral-300">New password</span>
-              <input
-                type="password"
-                value={newPassword}
-                onChange={(e) => setNewPassword(e.target.value)}
-                minLength={6}
-                className="w-full rounded-lg border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 py-2 text-neutral-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary-500"
-              />
+              <div className="relative">
+                <input
+                  type={showPassword ? 'text' : 'password'}
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  className="w-full rounded-lg border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 py-2 pr-12 text-neutral-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary-500"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword((prev) => !prev)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-500 hover:text-neutral-700 dark:text-neutral-400 dark:hover:text-neutral-200"
+                >
+                  {showPassword ? (
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"
+                      />
+                    </svg>
+                  ) : (
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                      />
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                      />
+                    </svg>
+                  )}
+                </button>
+              </div>
             </label>
+            <label className="block space-y-1">
+              <span className="text-sm text-neutral-700 dark:text-neutral-300">
+                Confirm password
+              </span>
+              <div className="relative">
+                <input
+                  type={showConfirmPassword ? 'text' : 'password'}
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  className="w-full rounded-lg border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 py-2 pr-12 text-neutral-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary-500"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowConfirmPassword((prev) => !prev)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-500 hover:text-neutral-700 dark:text-neutral-400 dark:hover:text-neutral-200"
+                >
+                  {showConfirmPassword ? (
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"
+                      />
+                    </svg>
+                  ) : (
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                      />
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                      />
+                    </svg>
+                  )}
+                </button>
+              </div>
+            </label>
+            {passwordStrength && (
+              <p
+                className={`text-xs ${
+                  passwordStrength === 'Strong password'
+                    ? 'text-success-600 dark:text-success-400'
+                    : 'text-error-600 dark:text-error-400'
+                }`}
+              >
+                {passwordStrength}
+              </p>
+            )}
             <button
               type="submit"
               disabled={saving.password}
