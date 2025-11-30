@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 
@@ -18,6 +18,7 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false)
   const widgetIdRef = useRef<string | null>(null)
   const turnstileRef = useRef<any>(null) // eslint-disable-line @typescript-eslint/no-explicit-any
+  const [pendingSubmit, setPendingSubmit] = useState(false)
 
   // Load and render Turnstile
   const turnstileContainerId = 'turnstile-login-container'
@@ -50,6 +51,10 @@ export default function LoginPage() {
             setTurnstileToken(token)
             setTurnstileLoading(false)
             setError('')
+            if (pendingSubmit) {
+              setPendingSubmit(false)
+              submitLogin(token)
+            }
           },
           'error-callback': () => {
             setTurnstileToken('')
@@ -89,7 +94,40 @@ export default function LoginPage() {
       setTurnstileLoading(false)
       setError('Bot verification failed to load. Please retry.')
     }
-  }, [siteKey])
+  }, [pendingSubmit, siteKey, submitLogin])
+
+  const submitLogin = useCallback(
+    async (token: string) => {
+      setLoading(true)
+      try {
+        const response = await fetch('/api/auth/login', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            ...formData,
+            turnstileToken: token,
+          }),
+        })
+
+        const data = await response.json()
+
+        if (!response.ok) {
+          setError(data.error || 'Login failed')
+          setLoading(false)
+          return
+        }
+
+        router.push('/dashboard')
+      } catch (err) {
+        console.error('Login error:', err)
+        setError('An unexpected error occurred. Please try again.')
+        setLoading(false)
+      }
+    },
+    [formData, router]
+  )
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -100,48 +138,25 @@ export default function LoginPage() {
       return
     }
     if (!turnstileToken) {
-      // Try to execute the invisible widget to fetch a token
+      // Try to execute the invisible widget to fetch a token, then submit when ready
       if (turnstileRef.current && widgetIdRef.current) {
         setTurnstileLoading(true)
+        setPendingSubmit(true)
         try {
+          turnstileRef.current.reset(widgetIdRef.current)
           turnstileRef.current.execute(widgetIdRef.current)
         } catch {
           setTurnstileLoading(false)
+          setPendingSubmit(false)
+          setError('Bot verification failed to start. Please retry.')
         }
+      } else {
+        setError('Bot verification is not ready. Please retry.')
       }
-      setError('Please complete the bot verification.')
       return
     }
 
-    setLoading(true)
-
-    try {
-      const response = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          ...formData,
-          turnstileToken,
-        }),
-      })
-
-      const data = await response.json()
-
-      if (!response.ok) {
-        setError(data.error || 'Login failed')
-        setLoading(false)
-        return
-      }
-
-      // Redirect to dashboard or home
-      router.push('/dashboard')
-    } catch (err) {
-      console.error('Login error:', err)
-      setError('An unexpected error occurred. Please try again.')
-      setLoading(false)
-    }
+    submitLogin(turnstileToken)
   }
 
   return (
