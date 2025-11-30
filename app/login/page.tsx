@@ -7,6 +7,10 @@ import Link from 'next/link'
 export default function LoginPage() {
   const router = useRouter()
   const siteKey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY
+  const formDataRef = useRef({
+    email: '',
+    password: '',
+  })
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -39,7 +43,7 @@ export default function LoginPage() {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            ...formData,
+            ...formDataRef.current,
             turnstileToken: token,
           }),
         })
@@ -59,8 +63,12 @@ export default function LoginPage() {
         setLoading(false)
       }
     },
-    [formData, router]
+    [router]
   )
+
+  useEffect(() => {
+    formDataRef.current = formData
+  }, [formData])
 
   // Load and render Turnstile
   const turnstileContainerId = 'turnstile-login-container'
