@@ -9,7 +9,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { createServerSupabaseClient, getUser } from '@/lib/supabase/client'
 import { calculateBonus } from '@/lib/calculator/engine'
-import type { Database } from '@/types/database'
+import type { Database, TablesInsert } from '@/types/database'
 
 const saveSchema = z.object({
   gradingSystemId: z.string().uuid(),
@@ -107,7 +107,7 @@ export async function POST(request: NextRequest) {
     const childId = payload.childId ?? user.id
 
     // Insert term_grades
-    const termPayload: Database['public']['Tables']['term_grades']['Insert'] = {
+    const termPayload: TablesInsert<'term_grades'> = {
       child_id: childId,
       school_year: payload.schoolYear,
       term_type: payload.termType as Database['public']['Enums']['term_type'],
@@ -118,18 +118,11 @@ export async function POST(request: NextRequest) {
       total_bonus_points: calc.total,
     }
 
-    const termResult = await supabase
+    const { data: term, error: termErr } = await supabase
       .from('term_grades')
-      // Supabase type inference on insert is misaligned with our generated types; explicit cast is safe here
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      .insert(termPayload as any)
+      .insert(termPayload)
       .select('id')
       .single()
-
-    const { data: term, error: termErr } = termResult as {
-      data: { id: string } | null
-      error: unknown
-    }
 
     if (termErr || !term) {
       return NextResponse.json(
@@ -139,23 +132,18 @@ export async function POST(request: NextRequest) {
     }
 
     // Insert subject_grades
-    const subjectRows: Database['public']['Tables']['subject_grades']['Insert'][] =
-      calc.breakdown.map((item, idx) => ({
-        term_grade_id: term.id,
-        subject_id: payload.subjects[idx]?.subjectId,
-        grade_value: payload.subjects[idx]?.grade,
-        grade_numeric: item.normalized,
-        grade_normalized_100: item.normalized,
-        grade_quality_tier: item.tier as Database['public']['Enums']['grade_quality_tier'] | null,
-        subject_weight: item.weight,
-        bonus_points: item.bonus,
-      }))
+    const subjectRows: TablesInsert<'subject_grades'>[] = calc.breakdown.map((item, idx) => ({
+      term_grade_id: term.id,
+      subject_id: payload.subjects[idx]?.subjectId,
+      grade_value: payload.subjects[idx]?.grade,
+      grade_numeric: item.normalized,
+      grade_normalized_100: item.normalized,
+      grade_quality_tier: item.tier as Database['public']['Enums']['grade_quality_tier'] | null,
+      subject_weight: item.weight,
+      bonus_points: item.bonus,
+    }))
 
-    const { error: subErr } = await supabase
-      .from('subject_grades')
-      // Supabase type inference can collapse to never with generated types; explicit cast is safe
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      .insert(subjectRows as any)
+    const { error: subErr } = await supabase.from('subject_grades').insert(subjectRows)
     if (subErr) {
       return NextResponse.json(
         { success: false, error: 'Failed to save subject grades' },

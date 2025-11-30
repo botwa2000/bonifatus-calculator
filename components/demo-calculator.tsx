@@ -2,22 +2,9 @@
 
 import { useEffect, useMemo, useState } from 'react'
 import { createBrowserSupabaseClient } from '@/lib/supabase/browser'
+import type { Tables } from '@/types/database'
 
-type GradingSystem = {
-  id: string
-  code: string
-  name: string | Record<string, string>
-  description?: string | Record<string, string>
-  scale_type: 'letter' | 'numeric' | 'percentage'
-  best_is_highest: boolean
-  grade_definitions: Array<{
-    grade: string
-    numeric_value?: number
-    normalized_100?: number
-    quality_tier?: 'best' | 'second' | 'third' | 'below'
-  }>
-  display_order?: number
-}
+type GradingSystem = Tables<'grading_systems'>
 
 type Factor = {
   factor_type: 'class_level' | 'term_type' | 'grade_tier'
