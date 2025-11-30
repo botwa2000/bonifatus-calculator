@@ -1,5 +1,6 @@
 import { redirect } from 'next/navigation'
 import { createServerSupabaseClient } from '@/lib/supabase/client'
+import type { Tables } from '@/types/database'
 
 export default async function DashboardRouterPage() {
   const supabase = await createServerSupabaseClient()
@@ -20,7 +21,7 @@ export default async function DashboardRouterPage() {
     .eq('id', session.user.id)
     .single()
 
-  const role = profile?.role
+  const role = (profile as Pick<Tables<'user_profiles'>, 'role'> | null)?.role
 
   if (role === 'parent') {
     redirect('/parent/dashboard')
