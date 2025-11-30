@@ -7,6 +7,14 @@ import Link from 'next/link'
 export default function LoginPage() {
   const router = useRouter()
   const siteKey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY
+  const debugEnabled = process.env.NEXT_PUBLIC_TURNSTILE_DEBUG === 'true'
+  const dbg = useCallback(
+    (message: string, meta?: Record<string, unknown>) => {
+      if (!debugEnabled) return
+      console.info('[login-debug]', message, meta ?? '')
+    },
+    [debugEnabled]
+  )
   const formDataRef = useRef({
     email: '',
     password: '',
@@ -36,6 +44,7 @@ export default function LoginPage() {
   const submitLogin = useCallback(
     async (token: string) => {
       setLoading(true)
+      dbg('submitLogin start', { email: formDataRef.current.email })
       try {
         const response = await fetch('/api/auth/login', {
           method: 'POST',
@@ -51,6 +60,7 @@ export default function LoginPage() {
         const data = await response.json()
 
         if (!response.ok) {
+          dbg('submitLogin failed', { status: response.status, body: data })
           setError(data.error || 'Login failed')
           setLoading(false)
           return
@@ -63,7 +73,7 @@ export default function LoginPage() {
         setLoading(false)
       }
     },
-    [router]
+    [router, dbg]
   )
 
   useEffect(() => {
@@ -80,6 +90,7 @@ export default function LoginPage() {
     if (typeof window === 'undefined') return
 
     const renderTurnstile = () => {
+      dbg('renderTurnstile invoked', { hasWidget: Boolean(widgetIdRef.current) })
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const t = (window as any).turnstile
       if (!t) return
@@ -90,6 +101,7 @@ export default function LoginPage() {
       const safeExecute = () => {
         if (!widgetIdRef.current || executingRef.current) return
         executingRef.current = true
+        dbg('turnstile execute', { widgetId: widgetIdRef.current })
         clearExecuteTimeout()
         executeTimeoutRef.current = window.setTimeout(() => {
           executingRef.current = false
@@ -97,6 +109,7 @@ export default function LoginPage() {
           setLoading(false)
           setPendingSubmit(false)
           setError('Bot verification is taking too long. Please retry.')
+          dbg('turnstile execute timeout', { widgetId: widgetIdRef.current })
           try {
             if (widgetIdRef.current) {
               t.reset(widgetIdRef.current)
@@ -125,6 +138,7 @@ export default function LoginPage() {
             clearExecuteTimeout()
             executingRef.current = false
             setError('')
+            dbg('turnstile token received', { pendingSubmit })
             if (pendingSubmit) {
               setPendingSubmit(false)
               submitLogin(token)
@@ -136,6 +150,7 @@ export default function LoginPage() {
             setLoading(false)
             clearExecuteTimeout()
             executingRef.current = false
+            dbg('turnstile error-callback')
           },
           'expired-callback': () => {
             setTurnstileToken('')
@@ -143,6 +158,7 @@ export default function LoginPage() {
             setLoading(false)
             clearExecuteTimeout()
             executingRef.current = false
+            dbg('turnstile expired-callback')
           },
         })
 
@@ -171,17 +187,24 @@ export default function LoginPage() {
     }
     script.onload = () => {
       script.dataset.loaded = 'true'
+      dbg('turnstile script loaded')
       renderTurnstile()
     }
     script.onerror = () => {
       setTurnstileLoading(false)
       setError('Bot verification failed to load. Please retry.')
+      dbg('turnstile script error')
     }
-  }, [pendingSubmit, siteKey, submitLogin])
+  }, [pendingSubmit, siteKey, submitLogin, dbg])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
+    dbg('handleSubmit', {
+      hasToken: Boolean(turnstileToken),
+      pendingSubmit,
+      executing: executingRef.current,
+    })
 
     if (loading) return
 
@@ -206,6 +229,7 @@ export default function LoginPage() {
               setLoading(false)
               setPendingSubmit(false)
               setError('Bot verification is taking too long. Please retry.')
+              dbg('turnstile execute timeout (submit path)', { widgetId: widgetIdRef.current })
               try {
                 turnstileRef.current.reset(widgetIdRef.current)
               } catch {
@@ -214,6 +238,7 @@ export default function LoginPage() {
             }, 12000)
             turnstileRef.current.execute(widgetIdRef.current)
             executingRef.current = true
+            dbg('turnstile execute from submit', { widgetId: widgetIdRef.current })
           }
         } catch {
           setTurnstileLoading(false)
@@ -221,6 +246,7 @@ export default function LoginPage() {
           setLoading(false)
           executingRef.current = false
           setError('Bot verification failed to start. Please retry.')
+          dbg('turnstile execute failed from submit')
         }
       } else {
         setError('Bot verification is not ready. Please retry.')

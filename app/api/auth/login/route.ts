@@ -16,6 +16,9 @@ const loginSchema = z.object({
 })
 
 export async function POST(request: NextRequest) {
+  const debugEnabled =
+    process.env.TURNSTILE_DEBUG === 'true' || process.env.NEXT_PUBLIC_TURNSTILE_DEBUG === 'true'
+
   try {
     // Parse and validate request body
     const body = await request.json()
@@ -37,6 +40,13 @@ export async function POST(request: NextRequest) {
     // Verify Turnstile token (bot protection)
     const clientIp = getClientIp(request.headers)
     const turnstileResult = await verifyTurnstileToken(turnstileToken, clientIp)
+    if (debugEnabled) {
+      console.info('[login-debug] turnstile result', {
+        success: turnstileResult.success,
+        clientIp,
+        email,
+      })
+    }
 
     if (!turnstileResult.success) {
       return NextResponse.json(
@@ -118,6 +128,9 @@ export async function POST(request: NextRequest) {
     })
   } catch (error) {
     console.error('Login error:', error)
+    if (debugEnabled) {
+      console.error('[login-debug] unexpected error', error)
+    }
 
     return NextResponse.json(
       {
