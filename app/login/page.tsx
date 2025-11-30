@@ -14,11 +14,44 @@ export default function LoginPage() {
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
   const [turnstileToken, setTurnstileToken] = useState('')
-  const [turnstileLoading, setTurnstileLoading] = useState(!!siteKey)
+  const [, setTurnstileLoading] = useState(!!siteKey)
   const [showPassword, setShowPassword] = useState(false)
   const widgetIdRef = useRef<string | null>(null)
   const turnstileRef = useRef<any>(null) // eslint-disable-line @typescript-eslint/no-explicit-any
   const [pendingSubmit, setPendingSubmit] = useState(false)
+
+  const submitLogin = useCallback(
+    async (token: string) => {
+      setLoading(true)
+      try {
+        const response = await fetch('/api/auth/login', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            ...formData,
+            turnstileToken: token,
+          }),
+        })
+
+        const data = await response.json()
+
+        if (!response.ok) {
+          setError(data.error || 'Login failed')
+          setLoading(false)
+          return
+        }
+
+        router.push('/dashboard')
+      } catch (err) {
+        console.error('Login error:', err)
+        setError('An unexpected error occurred. Please try again.')
+        setLoading(false)
+      }
+    },
+    [formData, router]
+  )
 
   // Load and render Turnstile
   const turnstileContainerId = 'turnstile-login-container'
@@ -95,39 +128,6 @@ export default function LoginPage() {
       setError('Bot verification failed to load. Please retry.')
     }
   }, [pendingSubmit, siteKey, submitLogin])
-
-  const submitLogin = useCallback(
-    async (token: string) => {
-      setLoading(true)
-      try {
-        const response = await fetch('/api/auth/login', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            ...formData,
-            turnstileToken: token,
-          }),
-        })
-
-        const data = await response.json()
-
-        if (!response.ok) {
-          setError(data.error || 'Login failed')
-          setLoading(false)
-          return
-        }
-
-        router.push('/dashboard')
-      } catch (err) {
-        console.error('Login error:', err)
-        setError('An unexpected error occurred. Please try again.')
-        setLoading(false)
-      }
-    },
-    [formData, router]
-  )
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
