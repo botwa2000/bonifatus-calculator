@@ -20,6 +20,14 @@ export default function LoginPage() {
   const turnstileRef = useRef<any>(null) // eslint-disable-line @typescript-eslint/no-explicit-any
   const [pendingSubmit, setPendingSubmit] = useState(false)
   const executingRef = useRef(false)
+  const executeTimeoutRef = useRef<number | null>(null)
+
+  const clearExecuteTimeout = () => {
+    if (executeTimeoutRef.current) {
+      clearTimeout(executeTimeoutRef.current)
+      executeTimeoutRef.current = null
+    }
+  }
 
   const submitLogin = useCallback(
     async (token: string) => {
@@ -74,6 +82,21 @@ export default function LoginPage() {
       const safeExecute = () => {
         if (!widgetIdRef.current || executingRef.current) return
         executingRef.current = true
+        clearExecuteTimeout()
+        executeTimeoutRef.current = window.setTimeout(() => {
+          executingRef.current = false
+          setTurnstileLoading(false)
+          setLoading(false)
+          setPendingSubmit(false)
+          setError('Bot verification is taking too long. Please retry.')
+          try {
+            if (widgetIdRef.current) {
+              t.reset(widgetIdRef.current)
+            }
+          } catch {
+            // ignore reset error
+          }
+        }, 12000)
         t.execute(widgetIdRef.current)
       }
 
@@ -91,6 +114,7 @@ export default function LoginPage() {
           callback: (token: string) => {
             setTurnstileToken(token)
             setTurnstileLoading(false)
+            clearExecuteTimeout()
             executingRef.current = false
             setError('')
             if (pendingSubmit) {
@@ -102,12 +126,14 @@ export default function LoginPage() {
             setTurnstileToken('')
             setTurnstileLoading(false)
             setLoading(false)
+            clearExecuteTimeout()
             executingRef.current = false
           },
           'expired-callback': () => {
             setTurnstileToken('')
             setTurnstileLoading(false)
             setLoading(false)
+            clearExecuteTimeout()
             executingRef.current = false
           },
         })
@@ -116,6 +142,7 @@ export default function LoginPage() {
       } catch {
         setTurnstileLoading(false)
         setLoading(false)
+        clearExecuteTimeout()
         executingRef.current = false
       }
     }
@@ -164,6 +191,19 @@ export default function LoginPage() {
           if (!executingRef.current) {
             turnstileRef.current.reset(widgetIdRef.current)
             executingRef.current = false
+            clearExecuteTimeout()
+            executeTimeoutRef.current = window.setTimeout(() => {
+              executingRef.current = false
+              setTurnstileLoading(false)
+              setLoading(false)
+              setPendingSubmit(false)
+              setError('Bot verification is taking too long. Please retry.')
+              try {
+                turnstileRef.current.reset(widgetIdRef.current)
+              } catch {
+                // ignore reset error
+              }
+            }, 12000)
             turnstileRef.current.execute(widgetIdRef.current)
             executingRef.current = true
           }
@@ -183,6 +223,12 @@ export default function LoginPage() {
 
     submitLogin(turnstileToken)
   }
+
+  useEffect(() => {
+    return () => {
+      clearExecuteTimeout()
+    }
+  }, [])
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary-50 via-white to-secondary-50 dark:from-neutral-900 dark:via-neutral-800 dark:to-neutral-900 flex items-center justify-center px-4">
