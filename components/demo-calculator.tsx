@@ -67,7 +67,7 @@ function normalizeGrade(system: GradingSystem, grade: string) {
   }
 
   const def = system.grade_definitions?.find(
-    (g) => g.grade.toLowerCase() === grade.trim().toLowerCase()
+    (g) => (g.grade ?? '').toLowerCase() === grade.trim().toLowerCase()
   )
   if (def?.normalized_100 != null) return Number(def.normalized_100)
 
