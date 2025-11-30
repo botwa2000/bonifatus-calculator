@@ -580,8 +580,8 @@ export function DemoCalculator() {
                       >
                         <option value="">Select grade</option>
                         {selectedSystem.grade_definitions.map((g) => (
-                          <option key={g.grade} value={g.grade}>
-                            {g.grade}
+                          <option key={g.grade ?? ''} value={g.grade ?? ''}>
+                            {g.grade ?? ''}
                           </option>
                         ))}
                       </select>
