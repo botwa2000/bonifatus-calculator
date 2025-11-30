@@ -120,7 +120,7 @@ export async function POST(request: NextRequest) {
 
     const { data: term, error: termErr } = await supabase
       .from('term_grades')
-      .insert(termPayload)
+      .insert<Database['public']['Tables']['term_grades']['Insert']>(termPayload)
       .select('id')
       .single()
 
