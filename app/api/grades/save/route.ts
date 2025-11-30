@@ -11,8 +11,6 @@ import { createServerSupabaseClient, getUser } from '@/lib/supabase/client'
 import { calculateBonus } from '@/lib/calculator/engine'
 import type { Database } from '@/types/database'
 
-type Json = Database['public']['Tables']['grading_systems']['Row']['grade_definitions']
-
 const saveSchema = z.object({
   gradingSystemId: z.string().uuid(),
   classLevel: z.number().int().min(1).max(20),
@@ -109,18 +107,20 @@ export async function POST(request: NextRequest) {
     const childId = payload.childId ?? user.id
 
     // Insert term_grades
+    const termPayload: Database['public']['Tables']['term_grades']['Insert'] = {
+      child_id: childId,
+      school_year: payload.schoolYear,
+      term_type: payload.termType as Database['public']['Enums']['term_type'],
+      grading_system_id: payload.gradingSystemId,
+      class_level: payload.classLevel,
+      term_name: payload.termName ?? null,
+      status: 'submitted',
+      total_bonus_points: calc.total,
+    }
+
     const { data: term, error: termErr } = await supabase
       .from('term_grades')
-      .insert({
-        child_id: childId,
-        school_year: payload.schoolYear,
-        term_type: payload.termType as Database['public']['Enums']['term_type'] | undefined,
-        grading_system_id: payload.gradingSystemId,
-        class_level: payload.classLevel,
-        term_name: payload.termName,
-        status: 'submitted',
-        total_bonus_points: calc.total,
-      })
+      .insert(termPayload)
       .select('id')
       .single()
 
