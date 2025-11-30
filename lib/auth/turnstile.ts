@@ -16,6 +16,11 @@ export async function verifyTurnstileToken(
   success: boolean
   error?: string
 }> {
+  // Optional bypass for environments without Turnstile configured
+  if (process.env.TURNSTILE_BYPASS === 'true') {
+    return { success: true }
+  }
+
   const secretKey = process.env.TURNSTILE_SECRET_KEY
 
   if (!secretKey) {
