@@ -19,6 +19,7 @@ export default function LoginPage() {
   const widgetIdRef = useRef<string | null>(null)
   const turnstileRef = useRef<any>(null) // eslint-disable-line @typescript-eslint/no-explicit-any
   const [pendingSubmit, setPendingSubmit] = useState(false)
+  const executingRef = useRef(false)
 
   const submitLogin = useCallback(
     async (token: string) => {
@@ -70,10 +71,17 @@ export default function LoginPage() {
       const container = document.getElementById(turnstileContainerId)
       if (!container) return
 
+      const safeExecute = () => {
+        if (!widgetIdRef.current || executingRef.current) return
+        executingRef.current = true
+        t.execute(widgetIdRef.current)
+      }
+
       try {
         if (widgetIdRef.current) {
           t.reset(widgetIdRef.current)
-          t.execute(widgetIdRef.current)
+          executingRef.current = false
+          safeExecute()
           return
         }
 
@@ -83,6 +91,7 @@ export default function LoginPage() {
           callback: (token: string) => {
             setTurnstileToken(token)
             setTurnstileLoading(false)
+            executingRef.current = false
             setError('')
             if (pendingSubmit) {
               setPendingSubmit(false)
@@ -92,16 +101,22 @@ export default function LoginPage() {
           'error-callback': () => {
             setTurnstileToken('')
             setTurnstileLoading(false)
+            setLoading(false)
+            executingRef.current = false
           },
           'expired-callback': () => {
             setTurnstileToken('')
             setTurnstileLoading(false)
+            setLoading(false)
+            executingRef.current = false
           },
         })
 
-        t.execute(widgetIdRef.current)
+        safeExecute()
       } catch {
         setTurnstileLoading(false)
+        setLoading(false)
+        executingRef.current = false
       }
     }
 
@@ -133,6 +148,8 @@ export default function LoginPage() {
     e.preventDefault()
     setError('')
 
+    if (loading) return
+
     if (!siteKey) {
       setError('Bot protection is not configured. Please try again later.')
       return
@@ -142,16 +159,24 @@ export default function LoginPage() {
       if (turnstileRef.current && widgetIdRef.current) {
         setTurnstileLoading(true)
         setPendingSubmit(true)
+        setLoading(true)
         try {
-          turnstileRef.current.reset(widgetIdRef.current)
-          turnstileRef.current.execute(widgetIdRef.current)
+          if (!executingRef.current) {
+            turnstileRef.current.reset(widgetIdRef.current)
+            executingRef.current = false
+            turnstileRef.current.execute(widgetIdRef.current)
+            executingRef.current = true
+          }
         } catch {
           setTurnstileLoading(false)
           setPendingSubmit(false)
+          setLoading(false)
+          executingRef.current = false
           setError('Bot verification failed to start. Please retry.')
         }
       } else {
         setError('Bot verification is not ready. Please retry.')
+        setLoading(false)
       }
       return
     }
