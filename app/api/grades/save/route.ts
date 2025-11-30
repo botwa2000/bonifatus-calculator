@@ -139,18 +139,23 @@ export async function POST(request: NextRequest) {
     }
 
     // Insert subject_grades
-    const subjectRows = calc.breakdown.map((item, idx) => ({
-      term_grade_id: term.id,
-      subject_id: payload.subjects[idx]?.subjectId,
-      grade_value: payload.subjects[idx]?.grade,
-      grade_numeric: item.normalized,
-      grade_normalized_100: item.normalized,
-      grade_quality_tier: item.tier as Database['public']['Enums']['grade_quality_tier'] | null,
-      subject_weight: item.weight,
-      bonus_points: item.bonus,
-    }))
+    const subjectRows: Database['public']['Tables']['subject_grades']['Insert'][] =
+      calc.breakdown.map((item, idx) => ({
+        term_grade_id: term.id,
+        subject_id: payload.subjects[idx]?.subjectId,
+        grade_value: payload.subjects[idx]?.grade,
+        grade_numeric: item.normalized,
+        grade_normalized_100: item.normalized,
+        grade_quality_tier: item.tier as Database['public']['Enums']['grade_quality_tier'] | null,
+        subject_weight: item.weight,
+        bonus_points: item.bonus,
+      }))
 
-    const { error: subErr } = await supabase.from('subject_grades').insert(subjectRows)
+    const { error: subErr } = await supabase
+      .from('subject_grades')
+      // Supabase type inference can collapse to never with generated types; explicit cast is safe
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      .insert(subjectRows as any)
     if (subErr) {
       return NextResponse.json(
         { success: false, error: 'Failed to save subject grades' },
