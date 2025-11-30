@@ -6,18 +6,67 @@ import Link from 'next/link'
 
 export default function LoginPage() {
   const router = useRouter()
+  const siteKey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY
   const [formData, setFormData] = useState({
     email: '',
     password: '',
   })
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
-  const [turnstileToken] = useState('')
+  const [turnstileToken, setTurnstileToken] = useState('')
+  const [turnstileLoading, setTurnstileLoading] = useState(true)
   const [showPassword, setShowPassword] = useState(false)
+
+  // Load and render Turnstile
+  const turnstileContainerId = 'turnstile-login-container'
+  if (typeof window !== 'undefined' && siteKey && !document.getElementById('turnstile-script')) {
+    const script = document.createElement('script')
+    script.id = 'turnstile-script'
+    script.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit'
+    script.async = true
+    script.defer = true
+    script.onload = () => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const t = (window as any).turnstile
+      if (t && !t.rendered) {
+        try {
+          t.render(`#${turnstileContainerId}`, {
+            sitekey: siteKey,
+            size: 'invisible',
+            callback: (token: string) => {
+              setTurnstileToken(token)
+              setTurnstileLoading(false)
+            },
+            'error-callback': () => {
+              setTurnstileToken('')
+              setTurnstileLoading(false)
+            },
+            'expired-callback': () => {
+              setTurnstileToken('')
+              setTurnstileLoading(false)
+            },
+          })
+        } catch {
+          setTurnstileLoading(false)
+        }
+      }
+    }
+    document.body.appendChild(script)
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
+
+    if (!siteKey) {
+      setError('Bot protection is not configured. Please try again later.')
+      return
+    }
+    if (!turnstileToken) {
+      setError('Please complete the bot verification.')
+      return
+    }
+
     setLoading(true)
 
     try {
@@ -28,7 +77,7 @@ export default function LoginPage() {
         },
         body: JSON.stringify({
           ...formData,
-          turnstileToken: turnstileToken || 'dev-token', // For development
+          turnstileToken,
         }),
       })
 
@@ -73,6 +122,7 @@ export default function LoginPage() {
                 <p className="text-sm text-error-600 dark:text-error-400">{error}</p>
               </div>
             )}
+            <div id={turnstileContainerId} />
 
             {/* Email Field */}
             <div>

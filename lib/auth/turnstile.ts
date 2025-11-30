@@ -16,16 +16,11 @@ export async function verifyTurnstileToken(
   success: boolean
   error?: string
 }> {
-  // Optional bypass for environments without Turnstile configured
-  if (process.env.TURNSTILE_BYPASS === 'true') {
-    return { success: true }
-  }
-
   const secretKey = process.env.TURNSTILE_SECRET_KEY
 
   if (!secretKey) {
     console.error('TURNSTILE_SECRET_KEY not configured')
-    // In development, you might want to allow bypass
+    // Allow a dev-only bypass when secret is missing locally
     if (process.env.NODE_ENV === 'development') {
       console.warn('Turnstile verification skipped in development mode')
       return { success: true }
