@@ -175,6 +175,169 @@ export interface Database {
           updated_at?: string
         }
       }
+      grading_systems: {
+        Row: {
+          id: string
+          name: string | null
+          scale_type: string | null
+          best_is_highest: boolean | null
+          min_value: number | null
+          max_value: number | null
+          grade_definitions: {
+            grade?: string | null
+            normalized_100?: number | null
+            quality_tier?: 'best' | 'second' | 'third' | 'below' | null
+          }[]
+          is_active: boolean | null
+          created_at: string | null
+          updated_at: string | null
+        }
+        Insert: Partial<GradingSystemInsert>
+        Update: Partial<GradingSystemInsert>
+      }
+      bonus_factor_defaults: {
+        Row: {
+          id: string
+          factor_type: string
+          factor_key: string
+          factor_value: number
+          is_active: boolean | null
+          created_at: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          id?: string
+          factor_type: string
+          factor_key: string
+          factor_value: number
+          is_active?: boolean | null
+          created_at?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          id?: string
+          factor_type?: string
+          factor_key?: string
+          factor_value?: number
+          is_active?: boolean | null
+          created_at?: string | null
+          updated_at?: string | null
+        }
+      }
+      user_bonus_factors: {
+        Row: {
+          id: string
+          user_id: string
+          child_id: string | null
+          factor_type: string
+          factor_key: string
+          factor_value: number
+          created_at: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          child_id?: string | null
+          factor_type: string
+          factor_key: string
+          factor_value: number
+          created_at?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          child_id?: string | null
+          factor_type?: string
+          factor_key?: string
+          factor_value?: number
+          created_at?: string | null
+          updated_at?: string | null
+        }
+      }
+      term_grades: {
+        Row: {
+          id: string
+          child_id: string
+          school_year: string
+          term_type: 'midterm' | 'final' | 'semester' | 'quarterly'
+          grading_system_id: string
+          class_level: number
+          term_name: string | null
+          status: string | null
+          total_bonus_points: number | null
+          created_at: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          id?: string
+          child_id: string
+          school_year: string
+          term_type: 'midterm' | 'final' | 'semester' | 'quarterly'
+          grading_system_id: string
+          class_level: number
+          term_name?: string | null
+          status?: string | null
+          total_bonus_points?: number | null
+          created_at?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          id?: string
+          child_id?: string
+          school_year?: string
+          term_type?: 'midterm' | 'final' | 'semester' | 'quarterly'
+          grading_system_id?: string
+          class_level?: number
+          term_name?: string | null
+          status?: string | null
+          total_bonus_points?: number | null
+          created_at?: string | null
+          updated_at?: string | null
+        }
+      }
+      subject_grades: {
+        Row: {
+          id: string
+          term_grade_id: string
+          subject_id: string | null
+          grade_value: string | null
+          grade_numeric: number | null
+          grade_normalized_100: number | null
+          grade_quality_tier: 'best' | 'second' | 'third' | 'below' | null
+          subject_weight: number | null
+          bonus_points: number | null
+          created_at: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          id?: string
+          term_grade_id: string
+          subject_id?: string | null
+          grade_value?: string | null
+          grade_numeric?: number | null
+          grade_normalized_100?: number | null
+          grade_quality_tier?: 'best' | 'second' | 'third' | 'below' | null
+          subject_weight?: number | null
+          bonus_points?: number | null
+          created_at?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          id?: string
+          term_grade_id?: string
+          subject_id?: string | null
+          grade_value?: string | null
+          grade_numeric?: number | null
+          grade_normalized_100?: number | null
+          grade_quality_tier?: 'best' | 'second' | 'third' | 'below' | null
+          subject_weight?: number | null
+          bonus_points?: number | null
+          created_at?: string | null
+          updated_at?: string | null
+        }
+      }
       languages: {
         Row: {
           code: string
@@ -217,6 +380,25 @@ export interface Database {
       verification_purpose: 'email_verification' | 'password_reset' | 'email_change'
       event_severity: 'info' | 'warning' | 'critical'
       text_direction: 'ltr' | 'rtl'
+      grade_quality_tier: 'best' | 'second' | 'third' | 'below'
+      term_type: 'midterm' | 'final' | 'semester' | 'quarterly'
     }
   }
+}
+
+type GradingSystemInsert = {
+  id?: string
+  name?: string | null
+  scale_type?: string | null
+  best_is_highest?: boolean | null
+  min_value?: number | null
+  max_value?: number | null
+  grade_definitions?: {
+    grade?: string | null
+    normalized_100?: number | null
+    quality_tier?: 'best' | 'second' | 'third' | 'below' | null
+  }[]
+  is_active?: boolean | null
+  created_at?: string | null
+  updated_at?: string | null
 }
