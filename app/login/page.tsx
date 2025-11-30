@@ -17,6 +17,7 @@ export default function LoginPage() {
   const [turnstileLoading, setTurnstileLoading] = useState(!!siteKey)
   const [showPassword, setShowPassword] = useState(false)
   const widgetIdRef = useRef<string | null>(null)
+  const turnstileRef = useRef<any>(null) // eslint-disable-line @typescript-eslint/no-explicit-any
 
   // Load and render Turnstile
   const turnstileContainerId = 'turnstile-login-container'
@@ -31,6 +32,7 @@ export default function LoginPage() {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const t = (window as any).turnstile
       if (!t) return
+      turnstileRef.current = t
       const container = document.getElementById(turnstileContainerId)
       if (!container) return
 
@@ -98,6 +100,15 @@ export default function LoginPage() {
       return
     }
     if (!turnstileToken) {
+      // Try to execute the invisible widget to fetch a token
+      if (turnstileRef.current && widgetIdRef.current) {
+        setTurnstileLoading(true)
+        try {
+          turnstileRef.current.execute(widgetIdRef.current)
+        } catch {
+          setTurnstileLoading(false)
+        }
+      }
       setError('Please complete the bot verification.')
       return
     }
