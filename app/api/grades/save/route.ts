@@ -118,13 +118,18 @@ export async function POST(request: NextRequest) {
       total_bonus_points: calc.total,
     }
 
-    const { data: term, error: termErr } = await supabase
+    const termResult = await supabase
       .from('term_grades')
       // Supabase type inference on insert is misaligned with our generated types; explicit cast is safe here
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       .insert(termPayload as any)
       .select('id')
       .single()
+
+    const { data: term, error: termErr } = termResult as {
+      data: { id: string } | null
+      error: unknown
+    }
 
     if (termErr || !term) {
       return NextResponse.json(
