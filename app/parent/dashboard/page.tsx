@@ -1,3 +1,5 @@
+import Link from 'next/link'
+
 const mockChildren = [
   { name: 'Alex', schoolYear: '2025-2026', lastTest: 'Math A (+6.0)', balance: 42.5 },
   { name: 'Mia', schoolYear: '2024-2025', lastTest: 'Science B (+4.5)', balance: 31.0 },
@@ -18,6 +20,28 @@ export default function ParentDashboardPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary-50 via-white to-secondary-50 dark:from-neutral-900 dark:via-neutral-900 dark:to-neutral-800">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 space-y-10">
+        <div className="flex items-center justify-between border border-neutral-200 dark:border-neutral-800 rounded-2xl bg-white/80 dark:bg-neutral-900/80 backdrop-blur-sm px-4 py-3 shadow-sm">
+          <Link
+            href="/"
+            className="text-sm font-semibold text-neutral-800 dark:text-white hover:text-primary-600 dark:hover:text-primary-300 transition-colors"
+          >
+            ← Back to homepage
+          </Link>
+          <div className="flex gap-3 text-sm">
+            <Link
+              href="/profile"
+              className="px-3 py-1.5 rounded-lg border border-neutral-200 dark:border-neutral-700 text-neutral-800 dark:text-white hover:border-primary-400 dark:hover:border-primary-500 transition-colors"
+            >
+              Profile
+            </Link>
+            <Link
+              href="/dashboard"
+              className="px-3 py-1.5 rounded-lg bg-gradient-to-r from-primary-600 to-secondary-600 text-white font-semibold shadow-button hover:shadow-md transition-all"
+            >
+              Dashboard
+            </Link>
+          </div>
+        </div>
         {/* Top bar */}
         <header className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
