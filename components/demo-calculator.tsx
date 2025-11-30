@@ -39,7 +39,7 @@ type CalculationResult = {
   }>
 }
 
-function resolveLocalized(value: string | Record<string, string> | undefined) {
+function resolveLocalized(value: string | Record<string, string> | null | undefined) {
   if (!value) return ''
   if (typeof value === 'string') return value
   return value['en'] || Object.values(value)[0] || ''
