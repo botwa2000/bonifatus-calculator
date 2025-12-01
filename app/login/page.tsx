@@ -121,7 +121,7 @@ export default function LoginPage() {
       setStatusMessage(
         fallbackVisible.current
           ? 'Please check the box to verify you are not a robot.'
-          : 'Verifying you are not a robot…'
+          : 'Verifying you are not a robot...'
       )
       dbg('handleSubmit blocked, missing token')
       return
@@ -212,13 +212,19 @@ export default function LoginPage() {
                 onReady={() => {
                   setTurnstileLoading(false)
                   turnstileStartRef.current = Date.now()
-                  setStatusMessage('Verifying you are not a robot…')
+                  if (fallbackVisible.current) {
+                    setStatusMessage('Please check the box to verify you are not a robot.')
+                    clearFallbackTimer()
+                    dbg('turnstile ready (visible fallback)')
+                    return
+                  }
+                  setStatusMessage('Verifying you are not a robot...')
                   clearFallbackTimer()
                   fallbackTimerRef.current = window.setTimeout(() => {
                     if (!turnstileToken) {
                       triggerFallback()
                     }
-                  }, 3000)
+                  }, 2000)
                   dbg('turnstile ready')
                 }}
                 onError={() => {
@@ -235,7 +241,7 @@ export default function LoginPage() {
                 onExpire={() => {
                   setTurnstileToken('')
                   setTurnstileLoading(true)
-                  setStatusMessage('Re-verifying you are not a robot…')
+                  setStatusMessage('Re-verifying you are not a robot...')
                   clearFallbackTimer()
                   fallbackVisible.current = false
                   forceRender((v) => v + 1)
