@@ -27,6 +27,11 @@ export async function POST(request: NextRequest) {
         email: body?.email,
         hasPassword: Boolean(body?.password),
         hasTurnstileToken: Boolean(body?.turnstileToken),
+        headers: {
+          'cf-connecting-ip': request.headers.get('cf-connecting-ip'),
+          'x-forwarded-for': request.headers.get('x-forwarded-for'),
+          'x-real-ip': request.headers.get('x-real-ip'),
+        },
       })
     }
     const validationResult = loginSchema.safeParse(body)

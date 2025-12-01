@@ -78,6 +78,7 @@ export default function LoginPage() {
     dbg('handleSubmit', {
       hasToken: Boolean(turnstileToken),
       turnstileLoading,
+      emailPresent: Boolean(formData.email),
     })
 
     if (loading) return
@@ -89,6 +90,7 @@ export default function LoginPage() {
 
     if (!turnstileToken) {
       setError('Please complete the bot verification (checkbox).')
+      dbg('handleSubmit blocked, missing token')
       return
     }
 

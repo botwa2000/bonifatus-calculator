@@ -45,6 +45,8 @@ export const Turnstile: React.FC<TurnstileProps> = ({
   theme = 'light',
   size = 'normal',
 }) => {
+  const debugEnabled =
+    process.env.NEXT_PUBLIC_TURNSTILE_DEBUG === 'true' || process.env.TURNSTILE_DEBUG === 'true'
   const containerRef = useRef<HTMLDivElement>(null)
   const widgetIdRef = useRef<string | null>(null)
 
@@ -54,15 +56,28 @@ export const Turnstile: React.FC<TurnstileProps> = ({
     // Load Turnstile script if not already loaded
     const loadTurnstile = () => {
       if (window.turnstile) {
+        if (debugEnabled) console.info('[turnstile-debug] script already loaded')
         renderTurnstile()
         return
+      }
+
+      if (document.getElementById('turnstile-shared-script')) {
+        if (debugEnabled) console.info('[turnstile-debug] script tag already present')
       }
 
       const script = document.createElement('script')
       script.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js'
       script.async = true
       script.defer = true
-      script.onload = renderTurnstile
+      script.id = 'turnstile-shared-script'
+      script.onload = () => {
+        if (debugEnabled) console.info('[turnstile-debug] script loaded')
+        renderTurnstile()
+      }
+      script.onerror = () => {
+        if (debugEnabled) console.error('[turnstile-debug] script failed to load')
+        onError?.()
+      }
       document.head.appendChild(script)
     }
 
@@ -70,6 +85,10 @@ export const Turnstile: React.FC<TurnstileProps> = ({
       if (!containerRef.current || !window.turnstile) return
 
       try {
+        if (widgetIdRef.current) {
+          if (debugEnabled) console.info('[turnstile-debug] removing previous widget')
+          window.turnstile.remove(widgetIdRef.current)
+        }
         widgetIdRef.current = window.turnstile.render(containerRef.current, {
           sitekey: siteKey,
           callback: onSuccess,
@@ -78,8 +97,11 @@ export const Turnstile: React.FC<TurnstileProps> = ({
           theme,
           size,
         })
+        if (debugEnabled)
+          console.info('[turnstile-debug] widget rendered', { widgetId: widgetIdRef.current })
       } catch (error) {
         console.error('Failed to render Turnstile:', error)
+        if (debugEnabled) console.error('[turnstile-debug] render error', error)
         onError?.()
       }
     }
