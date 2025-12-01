@@ -64,6 +64,7 @@ export default function LoginPage() {
         if (!response.ok) {
           dbg('submitLogin failed', { status: response.status, body: data })
           setError(data.error || 'Login failed')
+          setTurnstileToken('')
           setLoading(false)
           return
         }
@@ -72,6 +73,7 @@ export default function LoginPage() {
       } catch (err) {
         console.error('Login error:', err)
         setError('An unexpected error occurred. Please try again.')
+        setTurnstileToken('')
         setLoading(false)
       }
     },
@@ -226,8 +228,8 @@ export default function LoginPage() {
     try {
       // Give Turnstile a moment to settle the reset to avoid "already executing"
       turnstileRef.current.reset(widgetIdRef.current)
-      await new Promise((resolve) => setTimeout(resolve, 25))
-      executingRef.current = false
+      await new Promise((resolve) => setTimeout(resolve, 100))
+      executingRef.current = true
       clearExecuteTimeout()
       executeTimeoutRef.current = window.setTimeout(() => {
         executingRef.current = false
@@ -244,7 +246,6 @@ export default function LoginPage() {
         }
       }, 12000)
       turnstileRef.current.execute(widgetIdRef.current)
-      executingRef.current = true
       dbg('turnstile execute from submit', { widgetId: widgetIdRef.current })
     } catch {
       setTurnstileLoading(false)
