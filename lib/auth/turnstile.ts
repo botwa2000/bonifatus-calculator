@@ -15,8 +15,11 @@ export async function verifyTurnstileToken(
 ): Promise<{
   success: boolean
   error?: string
+  errorCodes?: string[]
 }> {
   const secretKey = process.env.TURNSTILE_SECRET_KEY
+  const debugEnabled =
+    process.env.TURNSTILE_DEBUG === 'true' || process.env.NEXT_PUBLIC_TURNSTILE_DEBUG === 'true'
 
   if (!secretKey) {
     console.error('TURNSTILE_SECRET_KEY not configured')
@@ -51,11 +54,19 @@ export async function verifyTurnstileToken(
     const data = await response.json()
 
     if (!data.success) {
-      console.warn('Turnstile verification failed:', data['error-codes'])
+      const codes = (data['error-codes'] as string[] | undefined) ?? []
+      if (debugEnabled) {
+        console.warn('Turnstile verification failed', { codes, ip })
+      }
       return {
         success: false,
         error: 'Bot verification failed',
+        errorCodes: codes,
       }
+    }
+
+    if (debugEnabled) {
+      console.info('Turnstile verification success', { ip })
     }
 
     return { success: true }

@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import { Turnstile } from '@/components/ui/Turnstile'
 
 export default function LoginPage() {
   const router = useRouter()
@@ -15,6 +16,7 @@ export default function LoginPage() {
     },
     [debugEnabled]
   )
+
   const formDataRef = useRef({
     email: '',
     password: '',
@@ -26,12 +28,12 @@ export default function LoginPage() {
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
   const [turnstileToken, setTurnstileToken] = useState('')
-  const [, setTurnstileLoading] = useState(!!siteKey)
+  const [turnstileLoading, setTurnstileLoading] = useState(!!siteKey)
   const [showPassword, setShowPassword] = useState(false)
-  const widgetIdRef = useRef<string | null>(null)
-  const turnstileRef = useRef<any>(null) // eslint-disable-line @typescript-eslint/no-explicit-any
-  const [turnstileReady, setTurnstileReady] = useState(false)
-  const turnstileContainerId = 'turnstile-login-container'
+
+  useEffect(() => {
+    formDataRef.current = formData
+  }, [formData])
 
   const submitLogin = useCallback(
     async (token: string) => {
@@ -70,106 +72,12 @@ export default function LoginPage() {
     [router, dbg]
   )
 
-  const resetTurnstile = useCallback(() => {
-    if (turnstileRef.current && widgetIdRef.current) {
-      try {
-        turnstileRef.current.reset(widgetIdRef.current)
-      } catch {
-        // ignore reset error
-      }
-    }
-  }, [])
-
-  useEffect(() => {
-    formDataRef.current = formData
-  }, [formData])
-
-  // Load and render Turnstile
-  useEffect(() => {
-    if (!siteKey) {
-      setTurnstileLoading(false)
-      return
-    }
-    if (typeof window === 'undefined') return
-
-    const renderTurnstile = () => {
-      dbg('renderTurnstile invoked', { hasWidget: Boolean(widgetIdRef.current) })
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const t = (window as any).turnstile
-      if (!t) return
-      turnstileRef.current = t
-      const container = document.getElementById(turnstileContainerId)
-      if (!container) return
-
-      try {
-        if (widgetIdRef.current) {
-          t.reset(widgetIdRef.current)
-          return
-        }
-
-        widgetIdRef.current = t.render(`#${turnstileContainerId}`, {
-          sitekey: siteKey,
-          size: 'flexible',
-          theme: 'auto',
-          callback: (token: string) => {
-            setTurnstileToken(token)
-            setTurnstileLoading(false)
-            setError('')
-            dbg('turnstile token received')
-            setLoading(false)
-          },
-          'error-callback': () => {
-            setTurnstileToken('')
-            setTurnstileLoading(false)
-            setLoading(false)
-            setError('Bot verification failed. Please retry.')
-            dbg('turnstile error-callback')
-          },
-          'expired-callback': () => {
-            setTurnstileToken('')
-            setTurnstileLoading(false)
-            setLoading(false)
-            dbg('turnstile expired-callback')
-          },
-        })
-        setTurnstileReady(true)
-      } catch {
-        setTurnstileLoading(false)
-        setLoading(false)
-      }
-    }
-
-    const existing = document.getElementById('turnstile-script') as HTMLScriptElement | null
-    if (existing?.dataset.loaded === 'true') {
-      renderTurnstile()
-      return
-    }
-
-    const script = existing ?? document.createElement('script')
-    if (!existing) {
-      script.id = 'turnstile-script'
-      script.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit'
-      script.async = true
-      script.defer = true
-      document.body.appendChild(script)
-    }
-    script.onload = () => {
-      script.dataset.loaded = 'true'
-      dbg('turnstile script loaded')
-      renderTurnstile()
-    }
-    script.onerror = () => {
-      setTurnstileLoading(false)
-      setError('Bot verification failed to load. Please retry.')
-      dbg('turnstile script error')
-    }
-  }, [siteKey, submitLogin, dbg])
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
     dbg('handleSubmit', {
       hasToken: Boolean(turnstileToken),
+      turnstileLoading,
     })
 
     if (loading) return
@@ -180,18 +88,14 @@ export default function LoginPage() {
     }
 
     if (!turnstileToken) {
-      setError('Please complete the bot verification.')
+      setError('Please complete the bot verification (checkbox).')
       return
     }
 
-    if (!turnstileReady || !turnstileRef.current || !widgetIdRef.current) {
-      setError('Bot verification is not ready. Please retry.')
-      return
-    }
-
-    setLoading(true)
     await submitLogin(turnstileToken)
-    resetTurnstile()
+    // ask Turnstile to refresh token for any next submit
+    setTurnstileToken('')
+    setTurnstileLoading(true)
   }
 
   return (
@@ -218,7 +122,37 @@ export default function LoginPage() {
                 <p className="text-sm text-error-600 dark:text-error-400">{error}</p>
               </div>
             )}
-            <div id={turnstileContainerId} />
+
+            {/* Turnstile */}
+            <div>
+              <Turnstile
+                siteKey={siteKey || ''}
+                onSuccess={(token) => {
+                  setTurnstileToken(token)
+                  setTurnstileLoading(false)
+                  setError('')
+                  dbg('turnstile success', { hasToken: true })
+                }}
+                onError={() => {
+                  setError('Security verification failed. Please refresh the page.')
+                  setTurnstileToken('')
+                  setTurnstileLoading(false)
+                  dbg('turnstile error callback')
+                }}
+                onExpire={() => {
+                  setTurnstileToken('')
+                  setTurnstileLoading(true)
+                  dbg('turnstile expired callback')
+                }}
+                theme="auto"
+                size="normal"
+              />
+              {turnstileLoading && (
+                <p className="text-xs text-neutral-500 dark:text-neutral-400 text-center mt-2">
+                  Loading security verification...
+                </p>
+              )}
+            </div>
 
             {/* Email Field */}
             <div>
@@ -317,7 +251,7 @@ export default function LoginPage() {
             {/* Submit Button */}
             <button
               type="submit"
-              disabled={loading}
+              disabled={loading || turnstileLoading}
               className="w-full px-6 py-3 bg-gradient-to-r from-primary-600 to-secondary-600 text-white rounded-lg font-semibold shadow-button hover:shadow-lg hover:scale-105 transition-all duration-normal disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
             >
               {loading ? 'Signing in...' : 'Sign In'}

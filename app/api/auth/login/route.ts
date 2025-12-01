@@ -22,6 +22,13 @@ export async function POST(request: NextRequest) {
   try {
     // Parse and validate request body
     const body = await request.json()
+    if (debugEnabled) {
+      console.info('[login-debug] request body received', {
+        email: body?.email,
+        hasPassword: Boolean(body?.password),
+        hasTurnstileToken: Boolean(body?.turnstileToken),
+      })
+    }
     const validationResult = loginSchema.safeParse(body)
 
     if (!validationResult.success) {
@@ -45,6 +52,8 @@ export async function POST(request: NextRequest) {
         success: turnstileResult.success,
         clientIp,
         email,
+        error: turnstileResult.error,
+        errorCodes: turnstileResult.errorCodes,
       })
     }
 
