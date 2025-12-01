@@ -17,7 +17,7 @@ export interface TurnstileProps {
   executeOnReady?: boolean
   action?: string
   theme?: 'light' | 'dark' | 'auto'
-  size?: 'normal' | 'compact'
+  size?: 'normal' | 'compact' | 'invisible'
 }
 
 declare global {
@@ -68,15 +68,19 @@ export const Turnstile: React.FC<TurnstileProps> = ({
     if (!executeOnReadyRef.current) return
     if (widgetExecutedRef.current) return
     if (widgetIdRef.current && window.turnstile?.execute) {
-      try {
-        window.turnstile.execute(widgetIdRef.current)
-        widgetExecutedRef.current = true
-        if (debugEnabled)
-          console.info('[turnstile-debug] execute triggered', { widgetId: widgetIdRef.current })
-      } catch (error) {
-        widgetExecutedRef.current = false
-        if (debugEnabled) console.error('[turnstile-debug] execute failed', error)
-      }
+      widgetExecutedRef.current = true
+      // small delay gives Turnstile time to settle, avoiding "already executing"
+      window.setTimeout(() => {
+        try {
+          window.turnstile?.reset?.(widgetIdRef.current as string)
+          window.turnstile?.execute(widgetIdRef.current as string)
+          if (debugEnabled)
+            console.info('[turnstile-debug] execute triggered', { widgetId: widgetIdRef.current })
+        } catch (error) {
+          widgetExecutedRef.current = false
+          if (debugEnabled) console.error('[turnstile-debug] execute failed', error)
+        }
+      }, 50)
     }
   }, [debugEnabled])
 
@@ -162,7 +166,7 @@ export const Turnstile: React.FC<TurnstileProps> = ({
           },
           action,
           theme,
-          size,
+          size: executeOnReady ? 'invisible' : size,
         })
         if (debugEnabled)
           console.info('[turnstile-debug] widget rendered', { widgetId: widgetIdRef.current })
