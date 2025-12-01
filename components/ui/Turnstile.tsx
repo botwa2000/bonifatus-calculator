@@ -82,7 +82,12 @@ export const Turnstile: React.FC<TurnstileProps> = ({
               sinceRenderMs:
                 renderStartRef.current !== null ? Date.now() - renderStartRef.current : undefined,
             })
-        } catch (error) {
+        } catch (error: unknown) {
+          const msg = error?.message ?? ''
+          if (msg.includes('already executing')) {
+            if (debugEnabled) console.warn('[turnstile-debug] execute skipped (already executing)')
+            return
+          }
           widgetExecutedRef.current = false
           if (debugEnabled) console.error('[turnstile-debug] execute failed', error)
         }
