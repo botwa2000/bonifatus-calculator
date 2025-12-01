@@ -31,6 +31,7 @@ export default function LoginPage() {
   const [turnstileToken, setTurnstileToken] = useState('')
   const [turnstileLoading, setTurnstileLoading] = useState(!!siteKey)
   const [showPassword, setShowPassword] = useState(false)
+  const turnstileStartRef = useRef<number | null>(null)
 
   useEffect(() => {
     formDataRef.current = formData
@@ -163,10 +164,20 @@ export default function LoginPage() {
                   setTurnstileLoading(false)
                   setError('')
                   setStatusMessage('')
+                  const durationMs = turnstileStartRef.current
+                    ? Date.now() - turnstileStartRef.current
+                    : undefined
+                  if (durationMs !== undefined) {
+                    dbg('turnstile success', { hasToken: true, durationMs })
+                  } else {
+                    dbg('turnstile success', { hasToken: true })
+                  }
+                  turnstileStartRef.current = null
                   dbg('turnstile success', { hasToken: true })
                 }}
                 onReady={() => {
                   setTurnstileLoading(false)
+                  turnstileStartRef.current = Date.now()
                   setStatusMessage('Verifying you are not a robot…')
                   dbg('turnstile ready')
                 }}
@@ -175,12 +186,14 @@ export default function LoginPage() {
                   setTurnstileToken('')
                   setTurnstileLoading(false)
                   setStatusMessage('')
+                  turnstileStartRef.current = null
                   dbg('turnstile error callback')
                 }}
                 onExpire={() => {
                   setTurnstileToken('')
                   setTurnstileLoading(true)
                   setStatusMessage('Re-verifying you are not a robot…')
+                  turnstileStartRef.current = Date.now()
                   dbg('turnstile expired callback')
                 }}
                 theme="auto"
