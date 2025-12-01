@@ -13,6 +13,7 @@ export interface TurnstileProps {
   onSuccess: (token: string) => void
   onError?: () => void
   onExpire?: () => void
+  onReady?: () => void
   theme?: 'light' | 'dark' | 'auto'
   size?: 'normal' | 'compact'
 }
@@ -42,6 +43,7 @@ export const Turnstile: React.FC<TurnstileProps> = ({
   onSuccess,
   onError,
   onExpire,
+  onReady,
   theme = 'light',
   size = 'normal',
 }) => {
@@ -50,6 +52,17 @@ export const Turnstile: React.FC<TurnstileProps> = ({
   const containerRef = useRef<HTMLDivElement>(null)
   const widgetIdRef = useRef<string | null>(null)
   const scriptLoadedRef = useRef(false)
+  const onSuccessRef = useRef(onSuccess)
+  const onErrorRef = useRef(onError)
+  const onExpireRef = useRef(onExpire)
+  const onReadyRef = useRef(onReady)
+
+  useEffect(() => {
+    onSuccessRef.current = onSuccess
+    onErrorRef.current = onError
+    onExpireRef.current = onExpire
+    onReadyRef.current = onReady
+  }, [onSuccess, onError, onExpire, onReady])
 
   useEffect(() => {
     if (!containerRef.current) return
@@ -110,18 +123,19 @@ export const Turnstile: React.FC<TurnstileProps> = ({
         }
         widgetIdRef.current = window.turnstile.render(containerRef.current, {
           sitekey: siteKey,
-          callback: onSuccess,
-          'error-callback': onError,
-          'expired-callback': onExpire,
+          callback: (token: string) => onSuccessRef.current(token),
+          'error-callback': () => onErrorRef.current?.(),
+          'expired-callback': () => onExpireRef.current?.(),
           theme,
           size,
         })
         if (debugEnabled)
           console.info('[turnstile-debug] widget rendered', { widgetId: widgetIdRef.current })
+        onReadyRef.current?.()
       } catch (error) {
         console.error('Failed to render Turnstile:', error)
         if (debugEnabled) console.error('[turnstile-debug] render error', error)
-        onError?.()
+        onErrorRef.current?.()
       }
     }
 
@@ -137,7 +151,7 @@ export const Turnstile: React.FC<TurnstileProps> = ({
         }
       }
     }
-  }, [siteKey, onSuccess, onError, onExpire, theme, size])
+  }, [siteKey, theme, size, debugEnabled])
 
   return <div ref={containerRef} className="flex justify-center my-4" />
 }

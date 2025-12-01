@@ -135,6 +135,10 @@ export default function LoginPage() {
                   setError('')
                   dbg('turnstile success', { hasToken: true })
                 }}
+                onReady={() => {
+                  setTurnstileLoading(false)
+                  dbg('turnstile ready')
+                }}
                 onError={() => {
                   setError('Security verification failed. Please refresh the page.')
                   setTurnstileToken('')
@@ -253,7 +257,7 @@ export default function LoginPage() {
             {/* Submit Button */}
             <button
               type="submit"
-              disabled={loading || turnstileLoading}
+              disabled={loading}
               className="w-full px-6 py-3 bg-gradient-to-r from-primary-600 to-secondary-600 text-white rounded-lg font-semibold shadow-button hover:shadow-lg hover:scale-105 transition-all duration-normal disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
             >
               {loading ? 'Signing in...' : 'Sign In'}
