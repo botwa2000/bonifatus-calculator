@@ -49,6 +49,7 @@ export const Turnstile: React.FC<TurnstileProps> = ({
     process.env.NEXT_PUBLIC_TURNSTILE_DEBUG === 'true' || process.env.TURNSTILE_DEBUG === 'true'
   const containerRef = useRef<HTMLDivElement>(null)
   const widgetIdRef = useRef<string | null>(null)
+  const scriptLoadedRef = useRef(false)
 
   useEffect(() => {
     if (!containerRef.current) return
@@ -61,8 +62,25 @@ export const Turnstile: React.FC<TurnstileProps> = ({
         return
       }
 
-      if (document.getElementById('turnstile-shared-script')) {
+      const existing = document.getElementById(
+        'turnstile-shared-script'
+      ) as HTMLScriptElement | null
+      if (existing) {
         if (debugEnabled) console.info('[turnstile-debug] script tag already present')
+        if (scriptLoadedRef.current || existing.dataset.loaded === 'true') {
+          renderTurnstile()
+          return
+        }
+        existing.onload = () => {
+          scriptLoadedRef.current = true
+          if (debugEnabled) console.info('[turnstile-debug] script loaded (existing)')
+          renderTurnstile()
+        }
+        existing.onerror = () => {
+          if (debugEnabled) console.error('[turnstile-debug] script failed to load (existing)')
+          onError?.()
+        }
+        return
       }
 
       const script = document.createElement('script')
@@ -71,6 +89,7 @@ export const Turnstile: React.FC<TurnstileProps> = ({
       script.defer = true
       script.id = 'turnstile-shared-script'
       script.onload = () => {
+        scriptLoadedRef.current = true
         if (debugEnabled) console.info('[turnstile-debug] script loaded')
         renderTurnstile()
       }
@@ -86,8 +105,8 @@ export const Turnstile: React.FC<TurnstileProps> = ({
 
       try {
         if (widgetIdRef.current) {
-          if (debugEnabled) console.info('[turnstile-debug] removing previous widget')
-          window.turnstile.remove(widgetIdRef.current)
+          if (debugEnabled) console.info('[turnstile-debug] widget already rendered')
+          return
         }
         widgetIdRef.current = window.turnstile.render(containerRef.current, {
           sitekey: siteKey,
