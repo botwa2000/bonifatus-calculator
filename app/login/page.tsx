@@ -30,18 +30,8 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false)
   const widgetIdRef = useRef<string | null>(null)
   const turnstileRef = useRef<any>(null) // eslint-disable-line @typescript-eslint/no-explicit-any
-  const [pendingSubmit, setPendingSubmit] = useState(false)
   const [turnstileReady, setTurnstileReady] = useState(false)
-  const executingRef = useRef(false)
-  const executeTimeoutRef = useRef<number | null>(null)
-  const pendingSubmitRef = useRef(false)
-
-  const clearExecuteTimeout = () => {
-    if (executeTimeoutRef.current) {
-      clearTimeout(executeTimeoutRef.current)
-      executeTimeoutRef.current = null
-    }
-  }
+  const turnstileContainerId = 'turnstile-login-container'
 
   const submitLogin = useCallback(
     async (token: string) => {
@@ -80,12 +70,21 @@ export default function LoginPage() {
     [router, dbg]
   )
 
+  const resetTurnstile = useCallback(() => {
+    if (turnstileRef.current && widgetIdRef.current) {
+      try {
+        turnstileRef.current.reset(widgetIdRef.current)
+      } catch {
+        // ignore reset error
+      }
+    }
+  }, [])
+
   useEffect(() => {
     formDataRef.current = formData
   }, [formData])
 
   // Load and render Turnstile
-  const turnstileContainerId = 'turnstile-login-container'
   useEffect(() => {
     if (!siteKey) {
       setTurnstileLoading(false)
@@ -105,60 +104,38 @@ export default function LoginPage() {
       try {
         if (widgetIdRef.current) {
           t.reset(widgetIdRef.current)
-          executingRef.current = false
-          pendingSubmitRef.current = false
-          setPendingSubmit(false)
           return
         }
 
         widgetIdRef.current = t.render(`#${turnstileContainerId}`, {
           sitekey: siteKey,
-          size: 'invisible',
+          size: 'flexible',
+          theme: 'auto',
           callback: (token: string) => {
             setTurnstileToken(token)
             setTurnstileLoading(false)
-            clearExecuteTimeout()
-            executingRef.current = false
             setError('')
-            dbg('turnstile token received', { pendingSubmit: pendingSubmitRef.current })
-            if (pendingSubmitRef.current) {
-              pendingSubmitRef.current = false
-              setPendingSubmit(false)
-              submitLogin(token)
-            } else {
-              setLoading(false)
-            }
+            dbg('turnstile token received')
+            setLoading(false)
           },
           'error-callback': () => {
             setTurnstileToken('')
             setTurnstileLoading(false)
             setLoading(false)
-            clearExecuteTimeout()
-            executingRef.current = false
-            pendingSubmitRef.current = false
-            setPendingSubmit(false)
+            setError('Bot verification failed. Please retry.')
             dbg('turnstile error-callback')
           },
           'expired-callback': () => {
             setTurnstileToken('')
             setTurnstileLoading(false)
             setLoading(false)
-            clearExecuteTimeout()
-            executingRef.current = false
-            pendingSubmitRef.current = false
-            setPendingSubmit(false)
             dbg('turnstile expired-callback')
           },
         })
-        executingRef.current = false
         setTurnstileReady(true)
       } catch {
         setTurnstileLoading(false)
         setLoading(false)
-        clearExecuteTimeout()
-        executingRef.current = false
-        pendingSubmitRef.current = false
-        setPendingSubmit(false)
       }
     }
 
@@ -193,74 +170,29 @@ export default function LoginPage() {
     setError('')
     dbg('handleSubmit', {
       hasToken: Boolean(turnstileToken),
-      pendingSubmit,
-      executing: executingRef.current,
     })
 
-    if (loading || executingRef.current || pendingSubmitRef.current) {
-      dbg('handleSubmit blocked due to in-flight state')
-      return
-    }
+    if (loading) return
 
     if (!siteKey) {
       setError('Bot protection is not configured. Please try again later.')
       return
     }
 
-    if (turnstileToken) {
-      pendingSubmitRef.current = false
-      setPendingSubmit(false)
-      setLoading(true)
-      submitLogin(turnstileToken)
+    if (!turnstileToken) {
+      setError('Please complete the bot verification.')
       return
     }
 
     if (!turnstileReady || !turnstileRef.current || !widgetIdRef.current) {
       setError('Bot verification is not ready. Please retry.')
-      setLoading(false)
       return
     }
 
-    pendingSubmitRef.current = true
-    setPendingSubmit(true)
-    setTurnstileLoading(true)
     setLoading(true)
-    try {
-      executingRef.current = true
-      clearExecuteTimeout()
-      executeTimeoutRef.current = window.setTimeout(() => {
-        executingRef.current = false
-        setTurnstileLoading(false)
-        setLoading(false)
-        pendingSubmitRef.current = false
-        setPendingSubmit(false)
-        setError('Bot verification is taking too long. Please retry.')
-        dbg('turnstile execute timeout (submit path)', { widgetId: widgetIdRef.current })
-        try {
-          turnstileRef.current.reset(widgetIdRef.current)
-        } catch {
-          // ignore reset error
-        }
-      }, 12000)
-      turnstileRef.current.reset(widgetIdRef.current)
-      turnstileRef.current.execute(widgetIdRef.current)
-      dbg('turnstile execute from submit', { widgetId: widgetIdRef.current })
-    } catch {
-      setTurnstileLoading(false)
-      setLoading(false)
-      pendingSubmitRef.current = false
-      setPendingSubmit(false)
-      executingRef.current = false
-      setError('Bot verification failed to start. Please retry.')
-      dbg('turnstile execute failed from submit')
-    }
+    await submitLogin(turnstileToken)
+    resetTurnstile()
   }
-
-  useEffect(() => {
-    return () => {
-      clearExecuteTimeout()
-    }
-  }, [])
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary-50 via-white to-secondary-50 dark:from-neutral-900 dark:via-neutral-800 dark:to-neutral-900 flex items-center justify-center px-4">
