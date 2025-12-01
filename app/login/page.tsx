@@ -35,7 +35,6 @@ export default function LoginPage() {
   const executingRef = useRef(false)
   const executeTimeoutRef = useRef<number | null>(null)
   const pendingSubmitRef = useRef(false)
-  const autoPrefetchRef = useRef(false)
 
   const clearExecuteTimeout = () => {
     if (executeTimeoutRef.current) {
@@ -153,17 +152,6 @@ export default function LoginPage() {
         })
         executingRef.current = false
         setTurnstileReady(true)
-        // Prefetch a token once the widget is ready
-        if (!autoPrefetchRef.current) {
-          autoPrefetchRef.current = true
-          try {
-            executingRef.current = true
-            t.execute(widgetIdRef.current)
-            dbg('turnstile auto-prefetch execute', { widgetId: widgetIdRef.current })
-          } catch {
-            executingRef.current = false
-          }
-        }
       } catch {
         setTurnstileLoading(false)
         setLoading(false)
@@ -224,14 +212,6 @@ export default function LoginPage() {
       setPendingSubmit(false)
       setLoading(true)
       submitLogin(turnstileToken)
-      // Prepare the next token
-      try {
-        executingRef.current = true
-        turnstileRef.current?.reset(widgetIdRef.current)
-        turnstileRef.current?.execute(widgetIdRef.current)
-      } catch {
-        executingRef.current = false
-      }
       return
     }
 
@@ -262,6 +242,7 @@ export default function LoginPage() {
           // ignore reset error
         }
       }, 12000)
+      turnstileRef.current.reset(widgetIdRef.current)
       turnstileRef.current.execute(widgetIdRef.current)
       dbg('turnstile execute from submit', { widgetId: widgetIdRef.current })
     } catch {
