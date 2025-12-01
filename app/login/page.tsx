@@ -129,6 +129,8 @@ export default function LoginPage() {
             <div>
               <Turnstile
                 siteKey={siteKey || ''}
+                executeOnReady
+                action="login"
                 onSuccess={(token) => {
                   setTurnstileToken(token)
                   setTurnstileLoading(false)

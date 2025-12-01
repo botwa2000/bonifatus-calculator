@@ -14,6 +14,8 @@ export interface TurnstileProps {
   onError?: () => void
   onExpire?: () => void
   onReady?: () => void
+  executeOnReady?: boolean
+  action?: string
   theme?: 'light' | 'dark' | 'auto'
   size?: 'normal' | 'compact'
 }
@@ -44,6 +46,8 @@ export const Turnstile: React.FC<TurnstileProps> = ({
   onError,
   onExpire,
   onReady,
+  executeOnReady,
+  action,
   theme = 'light',
   size = 'normal',
 }) => {
@@ -56,13 +60,16 @@ export const Turnstile: React.FC<TurnstileProps> = ({
   const onErrorRef = useRef(onError)
   const onExpireRef = useRef(onExpire)
   const onReadyRef = useRef(onReady)
+  const executeOnReadyRef = useRef(executeOnReady)
+  const widgetExecutedRef = useRef(false)
 
   useEffect(() => {
     onSuccessRef.current = onSuccess
     onErrorRef.current = onError
     onExpireRef.current = onExpire
     onReadyRef.current = onReady
-  }, [onSuccess, onError, onExpire, onReady])
+    executeOnReadyRef.current = executeOnReady
+  }, [onSuccess, onError, onExpire, onReady, executeOnReady])
 
   useEffect(() => {
     if (!containerRef.current) return
@@ -123,15 +130,27 @@ export const Turnstile: React.FC<TurnstileProps> = ({
         }
         widgetIdRef.current = window.turnstile.render(containerRef.current, {
           sitekey: siteKey,
-          callback: (token: string) => onSuccessRef.current(token),
-          'error-callback': () => onErrorRef.current?.(),
-          'expired-callback': () => onExpireRef.current?.(),
+          callback: (token: string) => {
+            widgetExecutedRef.current = false
+            onSuccessRef.current(token)
+          },
+          'error-callback': () => {
+            widgetExecutedRef.current = false
+            onErrorRef.current?.()
+          },
+          'expired-callback': () => {
+            widgetExecutedRef.current = false
+            onExpireRef.current?.()
+            executeOnce()
+          },
+          action,
           theme,
           size,
         })
         if (debugEnabled)
           console.info('[turnstile-debug] widget rendered', { widgetId: widgetIdRef.current })
         onReadyRef.current?.()
+        executeOnce()
       } catch (error) {
         console.error('Failed to render Turnstile:', error)
         if (debugEnabled) console.error('[turnstile-debug] render error', error)
@@ -147,11 +166,29 @@ export const Turnstile: React.FC<TurnstileProps> = ({
         try {
           window.turnstile.remove(widgetIdRef.current)
         } catch (error) {
-          console.error('Failed to remove Turnstile widget:', error)
+          if (debugEnabled) console.error('Failed to remove Turnstile widget:', error)
         }
+        widgetIdRef.current = null
+        widgetExecutedRef.current = false
       }
     }
   }, [siteKey, theme, size, debugEnabled])
+
+  const executeOnce = () => {
+    if (!executeOnReadyRef.current) return
+    if (widgetExecutedRef.current) return
+    if (widgetIdRef.current && window.turnstile?.execute) {
+      try {
+        window.turnstile.execute(widgetIdRef.current)
+        widgetExecutedRef.current = true
+        if (debugEnabled)
+          console.info('[turnstile-debug] execute triggered', { widgetId: widgetIdRef.current })
+      } catch (error) {
+        widgetExecutedRef.current = false
+        if (debugEnabled) console.error('[turnstile-debug] execute failed', error)
+      }
+    }
+  }
 
   return <div ref={containerRef} className="flex justify-center my-4" />
 }
