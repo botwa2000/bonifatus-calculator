@@ -30,12 +30,14 @@ declare global {
           callback: (token: string) => void
           'error-callback'?: () => void
           'expired-callback'?: () => void
+          action?: string
           theme?: 'light' | 'dark' | 'auto'
           size?: 'normal' | 'compact'
         }
       ) => string
       remove: (widgetId: string) => void
       reset: (widgetId: string) => void
+      execute: (widgetId: string) => void
     }
   }
 }
@@ -62,6 +64,21 @@ export const Turnstile: React.FC<TurnstileProps> = ({
   const onReadyRef = useRef(onReady)
   const executeOnReadyRef = useRef(executeOnReady)
   const widgetExecutedRef = useRef(false)
+  const executeOnce = React.useCallback(() => {
+    if (!executeOnReadyRef.current) return
+    if (widgetExecutedRef.current) return
+    if (widgetIdRef.current && window.turnstile?.execute) {
+      try {
+        window.turnstile.execute(widgetIdRef.current)
+        widgetExecutedRef.current = true
+        if (debugEnabled)
+          console.info('[turnstile-debug] execute triggered', { widgetId: widgetIdRef.current })
+      } catch (error) {
+        widgetExecutedRef.current = false
+        if (debugEnabled) console.error('[turnstile-debug] execute failed', error)
+      }
+    }
+  }, [debugEnabled])
 
   useEffect(() => {
     onSuccessRef.current = onSuccess
@@ -98,7 +115,7 @@ export const Turnstile: React.FC<TurnstileProps> = ({
         }
         existing.onerror = () => {
           if (debugEnabled) console.error('[turnstile-debug] script failed to load (existing)')
-          onError?.()
+          onErrorRef.current?.()
         }
         return
       }
@@ -115,7 +132,7 @@ export const Turnstile: React.FC<TurnstileProps> = ({
       }
       script.onerror = () => {
         if (debugEnabled) console.error('[turnstile-debug] script failed to load')
-        onError?.()
+        onErrorRef.current?.()
       }
       document.head.appendChild(script)
     }
@@ -172,23 +189,7 @@ export const Turnstile: React.FC<TurnstileProps> = ({
         widgetExecutedRef.current = false
       }
     }
-  }, [siteKey, theme, size, debugEnabled])
-
-  const executeOnce = () => {
-    if (!executeOnReadyRef.current) return
-    if (widgetExecutedRef.current) return
-    if (widgetIdRef.current && window.turnstile?.execute) {
-      try {
-        window.turnstile.execute(widgetIdRef.current)
-        widgetExecutedRef.current = true
-        if (debugEnabled)
-          console.info('[turnstile-debug] execute triggered', { widgetId: widgetIdRef.current })
-      } catch (error) {
-        widgetExecutedRef.current = false
-        if (debugEnabled) console.error('[turnstile-debug] execute failed', error)
-      }
-    }
-  }
+  }, [siteKey, theme, size, action, debugEnabled, executeOnce])
 
   return <div ref={containerRef} className="flex justify-center my-4" />
 }
