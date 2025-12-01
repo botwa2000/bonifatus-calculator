@@ -32,7 +32,7 @@ declare global {
           'expired-callback'?: () => void
           action?: string
           theme?: 'light' | 'dark' | 'auto'
-          size?: 'normal' | 'compact'
+          size?: 'normal' | 'compact' | 'invisible'
         }
       ) => string
       remove: (widgetId: string) => void
@@ -193,7 +193,7 @@ export const Turnstile: React.FC<TurnstileProps> = ({
         widgetExecutedRef.current = false
       }
     }
-  }, [siteKey, theme, size, action, debugEnabled, executeOnce])
+  }, [siteKey, theme, size, action, executeOnReady, debugEnabled, executeOnce])
 
   return <div ref={containerRef} className="flex justify-center my-4" />
 }
