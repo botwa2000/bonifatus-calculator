@@ -83,7 +83,10 @@ export const Turnstile: React.FC<TurnstileProps> = ({
                 renderStartRef.current !== null ? Date.now() - renderStartRef.current : undefined,
             })
         } catch (error: unknown) {
-          const msg = error?.message ?? ''
+          const msg =
+            typeof error === 'object' && error && 'message' in error
+              ? String((error as { message?: string }).message ?? '')
+              : ''
           if (msg.includes('already executing')) {
             if (debugEnabled) console.warn('[turnstile-debug] execute skipped (already executing)')
             return
