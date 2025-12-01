@@ -195,7 +195,10 @@ export default function LoginPage() {
       executing: executingRef.current,
     })
 
-    if (loading) return
+    if (loading || executingRef.current || pendingSubmitRef.current) {
+      dbg('handleSubmit blocked due to in-flight state')
+      return
+    }
 
     if (!siteKey) {
       setError('Bot protection is not configured. Please try again later.')
@@ -221,7 +224,9 @@ export default function LoginPage() {
     setTurnstileLoading(true)
     setLoading(true)
     try {
+      // Give Turnstile a moment to settle the reset to avoid "already executing"
       turnstileRef.current.reset(widgetIdRef.current)
+      await new Promise((resolve) => setTimeout(resolve, 25))
       executingRef.current = false
       clearExecuteTimeout()
       executeTimeoutRef.current = window.setTimeout(() => {
