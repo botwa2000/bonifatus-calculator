@@ -32,6 +32,32 @@ export default function LoginPage() {
   const [turnstileLoading, setTurnstileLoading] = useState(!!siteKey)
   const [showPassword, setShowPassword] = useState(false)
   const turnstileStartRef = useRef<number | null>(null)
+  const fallbackVisible = useRef(false)
+  const [, forceRender] = useState(0)
+  const fallbackTimerRef = useRef<number | null>(null)
+
+  const clearFallbackTimer = () => {
+    if (fallbackTimerRef.current) {
+      clearTimeout(fallbackTimerRef.current)
+      fallbackTimerRef.current = null
+    }
+  }
+
+  const triggerFallback = () => {
+    clearFallbackTimer()
+    fallbackVisible.current = true
+    setTurnstileToken('')
+    setStatusMessage('Please check the box to verify you are not a robot.')
+    setTurnstileLoading(false)
+    forceRender((v) => v + 1) // force re-render to remount Turnstile with visible mode
+    dbg('turnstile fallback to visible widget')
+  }
+
+  useEffect(() => {
+    return () => {
+      clearFallbackTimer()
+    }
+  }, [])
 
   useEffect(() => {
     formDataRef.current = formData
@@ -92,7 +118,11 @@ export default function LoginPage() {
     }
 
     if (!turnstileToken) {
-      setStatusMessage('Verifying you are not a robot…')
+      setStatusMessage(
+        fallbackVisible.current
+          ? 'Please check the box to verify you are not a robot.'
+          : 'Verifying you are not a robot…'
+      )
       dbg('handleSubmit blocked, missing token')
       return
     }
@@ -156,9 +186,11 @@ export default function LoginPage() {
             {/* Turnstile */}
             <div>
               <Turnstile
+                key={fallbackVisible.current ? 'turnstile-visible' : 'turnstile-invisible'}
                 siteKey={siteKey || ''}
-                executeOnReady
+                executeOnReady={!fallbackVisible.current}
                 action="login"
+                size={fallbackVisible.current ? 'normal' : 'invisible'}
                 onSuccess={(token) => {
                   setTurnstileToken(token)
                   setTurnstileLoading(false)
@@ -172,13 +204,21 @@ export default function LoginPage() {
                   } else {
                     dbg('turnstile success', { hasToken: true })
                   }
+                  clearFallbackTimer()
+                  fallbackVisible.current = false
+                  forceRender((v) => v + 1)
                   turnstileStartRef.current = null
-                  dbg('turnstile success', { hasToken: true })
                 }}
                 onReady={() => {
                   setTurnstileLoading(false)
                   turnstileStartRef.current = Date.now()
                   setStatusMessage('Verifying you are not a robot…')
+                  clearFallbackTimer()
+                  fallbackTimerRef.current = window.setTimeout(() => {
+                    if (!turnstileToken) {
+                      triggerFallback()
+                    }
+                  }, 3000)
                   dbg('turnstile ready')
                 }}
                 onError={() => {
@@ -186,6 +226,9 @@ export default function LoginPage() {
                   setTurnstileToken('')
                   setTurnstileLoading(false)
                   setStatusMessage('')
+                  clearFallbackTimer()
+                  fallbackVisible.current = false
+                  forceRender((v) => v + 1)
                   turnstileStartRef.current = null
                   dbg('turnstile error callback')
                 }}
@@ -193,11 +236,13 @@ export default function LoginPage() {
                   setTurnstileToken('')
                   setTurnstileLoading(true)
                   setStatusMessage('Re-verifying you are not a robot…')
+                  clearFallbackTimer()
+                  fallbackVisible.current = false
+                  forceRender((v) => v + 1)
                   turnstileStartRef.current = Date.now()
                   dbg('turnstile expired callback')
                 }}
                 theme="auto"
-                size="normal"
               />
               {turnstileLoading && (
                 <p className="text-xs text-neutral-500 dark:text-neutral-400 text-center mt-2">
