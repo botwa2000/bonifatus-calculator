@@ -188,7 +188,34 @@ function getSampleData(config: CalculatorConfig): {
   }
 }
 
-export function DemoCalculator() {
+type DemoCalculatorProps = {
+  allowSample?: boolean
+  onSaved?: (payload: {
+    termId?: string
+    totalBonusPoints: number
+    schoolYear: string
+    termType: string
+    termName?: string
+  }) => void
+  initialData?: {
+    termId?: string
+    gradingSystemId: string
+    classLevel: number
+    termType: string
+    schoolYear: string
+    termName?: string
+    subjects: SubjectEntry[]
+  }
+}
+
+export function DemoCalculator({
+  allowSample = true,
+  onSaved,
+  initialData,
+}: DemoCalculatorProps = {}) {
+  const currentYear = new Date().getFullYear()
+  const defaultSchoolYear = `${currentYear}-${currentYear + 1}`
+
   const [config, setConfig] = useState<CalculatorConfig>({
     gradingSystems: [],
     bonusFactorDefaults: [],
@@ -202,14 +229,26 @@ export function DemoCalculator() {
   const [saveMessage, setSaveMessage] = useState<string | null>(null)
   const [saveError, setSaveError] = useState<string | null>(null)
 
-  const [selectedSystemId, setSelectedSystemId] = useState<string | undefined>()
-  const [classLevel, setClassLevel] = useState(1)
-  const [termType, setTermType] = useState('final')
-  const [schoolYear, setSchoolYear] = useState('2025-2026')
-  const [termName, setTermName] = useState('')
-  const [subjectRows, setSubjectRows] = useState<SubjectEntry[]>([
-    { id: '0', subjectName: 'Math', grade: '', weight: 1 },
-  ])
+  const [selectedSystemId, setSelectedSystemId] = useState<string | undefined>(
+    initialData?.gradingSystemId
+  )
+  const [classLevel, setClassLevel] = useState(initialData?.classLevel ?? 1)
+  const [termType, setTermType] = useState(initialData?.termType ?? 'final')
+  const [schoolYear, setSchoolYear] = useState(initialData?.schoolYear ?? defaultSchoolYear)
+  const [termName, setTermName] = useState(initialData?.termName ?? '')
+  const [subjectRows, setSubjectRows] = useState<SubjectEntry[]>(
+    initialData?.subjects?.length
+      ? initialData.subjects
+      : [
+          {
+            id: '0',
+            subjectName: '',
+            grade: '',
+            weight: 1,
+          },
+        ]
+  )
+  const [editingTermId, setEditingTermId] = useState<string | undefined>(initialData?.termId)
   const [subjectFilters, setSubjectFilters] = useState<Record<string, string>>({})
   const [pickerOpen, setPickerOpen] = useState<Record<string, boolean>>({})
 
@@ -226,8 +265,9 @@ export function DemoCalculator() {
           subjects: data.subjects || [],
           categories: data.categories || [],
         })
-        if (data.gradingSystems?.[0]?.id) {
-          setSelectedSystemId(data.gradingSystems[0].id)
+        const resolvedSystemId = initialData?.gradingSystemId || data.gradingSystems?.[0]?.id
+        if (resolvedSystemId) {
+          setSelectedSystemId(resolvedSystemId)
         }
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Failed to load calculator config')
@@ -248,7 +288,24 @@ export function DemoCalculator() {
 
     loadConfig()
     loadUser()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
+
+  useEffect(() => {
+    if (!initialData) return
+    setEditingTermId(initialData.termId)
+    setSelectedSystemId(initialData.gradingSystemId)
+    setClassLevel(initialData.classLevel)
+    setTermType(initialData.termType)
+    setSchoolYear(initialData.schoolYear)
+    setTermName(initialData.termName ?? '')
+    setSubjectRows(
+      initialData.subjects.map((s, idx) => ({
+        ...s,
+        id: s.id || `${idx}`,
+      }))
+    )
+  }, [initialData])
 
   const sortedGradingSystems = useMemo(
     () =>
@@ -267,17 +324,16 @@ export function DemoCalculator() {
     [sortedGradingSystems, selectedSystemId]
   )
 
-  const calcResult = useMemo(
-    () =>
-      calculateBonus(
-        selectedSystem!,
-        config.bonusFactorDefaults,
-        classLevel,
-        termType,
-        subjectRows
-      ),
-    [selectedSystem, config.bonusFactorDefaults, classLevel, termType, subjectRows]
-  )
+  const calcResult = useMemo(() => {
+    if (!selectedSystem) return { total: 0, breakdown: [] }
+    return calculateBonus(
+      selectedSystem,
+      config.bonusFactorDefaults,
+      classLevel,
+      termType,
+      subjectRows
+    )
+  }, [selectedSystem, config.bonusFactorDefaults, classLevel, termType, subjectRows])
 
   const addRow = () => {
     setSubjectRows((prev) => [
@@ -340,7 +396,8 @@ export function DemoCalculator() {
     setSubjectRows(sample.subjects)
   }
 
-  const canSave = !!userEmail && subjectRows.every((row) => resolveSubjectId(row.subjectName))
+  const canSave =
+    !!userEmail && !!selectedSystem && subjectRows.every((row) => resolveSubjectId(row.subjectName))
 
   const handleSave = async () => {
     setSaveMessage(null)
@@ -368,10 +425,12 @@ export function DemoCalculator() {
     }
     setSaving(true)
     try {
-      const res = await fetch('/api/grades/save', {
+      const endpoint = editingTermId ? '/api/grades/update' : '/api/grades/save'
+      const res = await fetch(endpoint, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
+          termId: editingTermId,
           gradingSystemId: selectedSystem.id,
           classLevel,
           termType,
@@ -385,7 +444,15 @@ export function DemoCalculator() {
         setSaveError(data.error || 'Failed to save')
         return
       }
-      setSaveMessage('Saved! View your dashboard to see this term.')
+      setSaveMessage('Saved!')
+      setEditingTermId(undefined)
+      onSaved?.({
+        termId: data.termId,
+        totalBonusPoints: data.totalBonusPoints,
+        schoolYear,
+        termType,
+        termName: termName || undefined,
+      })
     } catch (err) {
       setSaveError(err instanceof Error ? err.message : 'Failed to save')
     } finally {
@@ -396,12 +463,14 @@ export function DemoCalculator() {
   return (
     <div className="bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-2xl shadow-xl p-6 sm:p-8 w-full max-w-3xl mx-auto">
       <div className="flex items-center justify-end mb-4">
-        <button
-          onClick={applySample}
-          className="text-sm font-semibold text-primary-600 dark:text-primary-300 hover:underline"
-        >
-          Load sample
-        </button>
+        {allowSample && (
+          <button
+            onClick={applySample}
+            className="text-sm font-semibold text-primary-600 dark:text-primary-300 hover:underline"
+          >
+            Load sample
+          </button>
+        )}
       </div>
 
       {loading && <p className="text-neutral-600 dark:text-neutral-300">Loading settings…</p>}
@@ -562,7 +631,7 @@ export function DemoCalculator() {
                     )}
                   </div>
                   <div className="lg:col-span-3">
-                    {selectedSystem.scale_type === 'percentage' ? (
+                    {selectedSystem?.scale_type === 'percentage' ? (
                       <input
                         type="number"
                         min={0}
@@ -572,14 +641,14 @@ export function DemoCalculator() {
                         onChange={(e) => updateRow(row.id, 'grade', e.target.value)}
                         className="w-full rounded-lg border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 py-2 text-neutral-900 dark:text-white"
                       />
-                    ) : selectedSystem.grade_definitions?.length ? (
+                    ) : selectedSystem?.grade_definitions?.length ? (
                       <select
                         value={row.grade}
                         onChange={(e) => updateRow(row.id, 'grade', e.target.value)}
                         className="w-full rounded-lg border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 py-2 text-neutral-900 dark:text-white"
                       >
                         <option value="">Select grade</option>
-                        {selectedSystem.grade_definitions.map((g) => (
+                        {selectedSystem?.grade_definitions?.map((g) => (
                           <option key={g.grade ?? ''} value={g.grade ?? ''}>
                             {g.grade ?? ''}
                           </option>
