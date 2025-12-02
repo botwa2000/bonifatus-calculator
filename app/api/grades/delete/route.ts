@@ -28,9 +28,8 @@ export async function POST(request: NextRequest) {
 
     const { data: term, error: loadErr } = await supabase
       .from('term_grades')
-      .select('id, child_id, is_deleted')
+      .select('id, child_id')
       .eq('id', termId)
-      .eq('is_deleted', false)
       .single()
 
     if (loadErr || !term) {
@@ -41,16 +40,13 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: false, error: 'Forbidden' }, { status: 403 })
     }
 
-    const { error: termErr } = await supabase
-      .from('term_grades')
-      .update({ is_deleted: true })
-      .eq('id', termId)
+    await supabase.from('subject_grades').delete().eq('term_grade_id', termId)
+
+    const { error: termErr } = await supabase.from('term_grades').delete().eq('id', termId)
 
     if (termErr) {
       return NextResponse.json({ success: false, error: 'Failed to delete term' }, { status: 500 })
     }
-
-    await supabase.from('subject_grades').update({ is_deleted: true }).eq('term_grade_id', termId)
 
     return NextResponse.json({ success: true }, { status: 200 })
   } catch (error) {

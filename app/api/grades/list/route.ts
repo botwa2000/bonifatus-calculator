@@ -25,7 +25,6 @@ export async function GET() {
         total_bonus_points,
         created_at,
         updated_at,
-        is_deleted,
         grading_systems (
           name,
           code,
@@ -39,7 +38,6 @@ export async function GET() {
           subject_weight,
           bonus_points,
           grade_quality_tier,
-          is_deleted,
           subjects (
             name
           )
@@ -47,7 +45,6 @@ export async function GET() {
       `
       )
       .eq('child_id', user.id)
-      .eq('is_deleted', false)
       .order('created_at', { ascending: false })
 
     if (error) {
@@ -57,13 +54,7 @@ export async function GET() {
       )
     }
 
-    const cleaned =
-      data?.map((term) => ({
-        ...term,
-        subject_grades: (term.subject_grades || []).filter((s) => !s.is_deleted),
-      })) || []
-
-    return NextResponse.json({ success: true, terms: cleaned }, { status: 200 })
+    return NextResponse.json({ success: true, terms: data || [] }, { status: 200 })
   } catch (err) {
     console.error('List grades error:', err)
     return NextResponse.json(

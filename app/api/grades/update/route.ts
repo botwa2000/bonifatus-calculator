@@ -46,9 +46,8 @@ export async function POST(request: NextRequest) {
 
     const { data: existingTerm, error: termLoadErr } = await supabase
       .from('term_grades')
-      .select('id, child_id, is_deleted')
+      .select('id, child_id')
       .eq('id', payload.termId)
-      .eq('is_deleted', false)
       .single()
 
     if (termLoadErr || !existingTerm) {
@@ -126,7 +125,6 @@ export async function POST(request: NextRequest) {
       .from('term_grades')
       .update(termPayload)
       .eq('id', payload.termId)
-      .eq('is_deleted', false)
 
     if (updateTermErr) {
       return NextResponse.json(
@@ -135,11 +133,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    await supabase
-      .from('subject_grades')
-      .update({ is_deleted: true })
-      .eq('term_grade_id', payload.termId)
-      .eq('is_deleted', false)
+    await supabase.from('subject_grades').delete().eq('term_grade_id', payload.termId)
 
     const subjectRows: TablesInsert<'subject_grades'>[] = calc.breakdown.map((item, idx) => ({
       term_grade_id: payload.termId,
