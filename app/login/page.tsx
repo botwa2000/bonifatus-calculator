@@ -35,6 +35,7 @@ export default function LoginPage() {
   const fallbackVisible = useRef(false)
   const [, forceRender] = useState(0)
   const fallbackTimerRef = useRef<number | null>(null)
+  const fallbackTimeoutMs = 45000 // allow invisible Turnstile time to finish PAT challenges
 
   const clearFallbackTimer = () => {
     if (fallbackTimerRef.current) {
@@ -218,13 +219,13 @@ export default function LoginPage() {
                     dbg('turnstile ready (visible fallback)')
                     return
                   }
-                  setStatusMessage('Verifying you are not a robot...')
+                  setStatusMessage('Performing a security check... this may take up to a minute.')
                   clearFallbackTimer()
                   fallbackTimerRef.current = window.setTimeout(() => {
                     if (!turnstileToken) {
                       triggerFallback()
                     }
-                  }, 2000)
+                  }, fallbackTimeoutMs)
                   dbg('turnstile ready')
                 }}
                 onError={(reason) => {
