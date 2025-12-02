@@ -228,12 +228,12 @@ export default function LoginPage() {
                   dbg('turnstile ready')
                 }}
                 onError={() => {
-                  setError('Security verification failed. Please refresh the page.')
+                  setError('Security verification failed. Please check the box and try again.')
                   setTurnstileToken('')
                   setTurnstileLoading(false)
-                  setStatusMessage('')
+                  setStatusMessage('Please check the box to verify you are not a robot.')
                   clearFallbackTimer()
-                  fallbackVisible.current = false
+                  fallbackVisible.current = true
                   forceRender((v) => v + 1)
                   turnstileStartRef.current = null
                   dbg('turnstile error callback')

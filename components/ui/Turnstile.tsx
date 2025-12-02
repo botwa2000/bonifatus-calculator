@@ -63,6 +63,7 @@ export const Turnstile: React.FC<TurnstileProps> = ({
   const onExpireRef = useRef(onExpire)
   const onReadyRef = useRef(onReady)
   const executeOnReadyRef = useRef(executeOnReady)
+  const isExecutingRef = useRef(false)
   const widgetExecutedRef = useRef(false)
   const renderStartRef = useRef<number | null>(null)
   const executeStartRef = useRef<number | null>(null)
@@ -70,7 +71,15 @@ export const Turnstile: React.FC<TurnstileProps> = ({
     if (!executeOnReadyRef.current) return
     if (widgetExecutedRef.current) return
     if (widgetIdRef.current && window.turnstile?.execute) {
+      // Reset before executing to avoid "already executing" race conditions
+      if (window.turnstile?.reset) {
+        window.turnstile.reset(widgetIdRef.current)
+        widgetExecutedRef.current = false
+        isExecutingRef.current = false
+        if (debugEnabled) console.info('[turnstile-debug] reset before execute')
+      }
       widgetExecutedRef.current = true
+      isExecutingRef.current = true
       // small delay gives Turnstile time to settle, avoiding "already executing"
       window.setTimeout(() => {
         try {
@@ -92,6 +101,7 @@ export const Turnstile: React.FC<TurnstileProps> = ({
             return
           }
           widgetExecutedRef.current = false
+          isExecutingRef.current = false
           if (debugEnabled) console.error('[turnstile-debug] execute failed', error)
         }
       }, 50)
@@ -168,16 +178,19 @@ export const Turnstile: React.FC<TurnstileProps> = ({
           sitekey: siteKey,
           callback: (token: string) => {
             widgetExecutedRef.current = false
+            isExecutingRef.current = false
             executeStartRef.current = null
             onSuccessRef.current(token)
           },
           'error-callback': () => {
             widgetExecutedRef.current = false
+            isExecutingRef.current = false
             executeStartRef.current = null
             onErrorRef.current?.()
           },
           'expired-callback': () => {
             widgetExecutedRef.current = false
+            isExecutingRef.current = false
             onExpireRef.current?.()
             executeOnce()
           },
@@ -196,6 +209,7 @@ export const Turnstile: React.FC<TurnstileProps> = ({
       } catch (error) {
         console.error('Failed to render Turnstile:', error)
         if (debugEnabled) console.error('[turnstile-debug] render error', error)
+        isExecutingRef.current = false
         onErrorRef.current?.()
       }
     }
@@ -212,6 +226,7 @@ export const Turnstile: React.FC<TurnstileProps> = ({
         }
         widgetIdRef.current = null
         widgetExecutedRef.current = false
+        isExecutingRef.current = false
       }
     }
   }, [siteKey, theme, size, action, executeOnReady, debugEnabled, executeOnce])
