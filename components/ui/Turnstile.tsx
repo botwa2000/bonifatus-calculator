@@ -11,7 +11,7 @@ import React, { useEffect, useRef } from 'react'
 export interface TurnstileProps {
   siteKey: string
   onSuccess: (token: string) => void
-  onError?: () => void
+  onError?: (reason?: string) => void
   onExpire?: () => void
   onReady?: () => void
   executeOnReady?: boolean
@@ -55,6 +55,16 @@ export const Turnstile: React.FC<TurnstileProps> = ({
 }) => {
   const debugEnabled =
     process.env.NEXT_PUBLIC_TURNSTILE_DEBUG === 'true' || process.env.TURNSTILE_DEBUG === 'true'
+  const instanceIdRef = useRef(
+    `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 6)}`
+  )
+  const log = React.useCallback(
+    (message: string, meta?: Record<string, unknown>) => {
+      if (!debugEnabled) return
+      console.info(`[turnstile-debug][${instanceIdRef.current}] ${message}`, meta ?? {})
+    },
+    [debugEnabled]
+  )
   const containerRef = useRef<HTMLDivElement>(null)
   const widgetIdRef = useRef<string | null>(null)
   const scriptLoadedRef = useRef(false)
@@ -77,7 +87,9 @@ export const Turnstile: React.FC<TurnstileProps> = ({
         window.turnstile.reset(widgetIdRef.current)
         widgetExecutedRef.current = false
         isExecutingRef.current = false
-        if (debugEnabled) console.info('[turnstile-debug] reset before execute')
+        log('reset before execute', {
+          executeAttempt: executeAttemptsRef.current,
+        })
       }
       widgetExecutedRef.current = true
       isExecutingRef.current = true
@@ -87,34 +99,39 @@ export const Turnstile: React.FC<TurnstileProps> = ({
         try {
           executeStartRef.current = Date.now()
           window.turnstile?.execute(widgetIdRef.current as string)
-          if (debugEnabled)
-            console.info('[turnstile-debug] execute triggered', {
-              widgetId: widgetIdRef.current,
-              sinceRenderMs:
-                renderStartRef.current !== null ? Date.now() - renderStartRef.current : undefined,
-            })
+          log('execute triggered', {
+            widgetId: widgetIdRef.current,
+            executeAttempt: executeAttemptsRef.current,
+            sinceRenderMs:
+              renderStartRef.current !== null ? Date.now() - renderStartRef.current : undefined,
+          })
         } catch (error: unknown) {
           const msg =
             typeof error === 'object' && error && 'message' in error
               ? String((error as { message?: string }).message ?? '')
               : ''
           if (msg.includes('already executing')) {
-            if (debugEnabled) console.warn('[turnstile-debug] execute skipped (already executing)')
-            // propagate error so UI can fallback to visible checkbox
-            onErrorRef.current?.()
+            log('execute skipped (already executing)', { widgetId: widgetIdRef.current })
+            onErrorRef.current?.('execute-already-executing')
             return
           }
           widgetExecutedRef.current = false
           isExecutingRef.current = false
           // Too many failed attempts? trigger error to force fallback
           if (executeAttemptsRef.current >= 2) {
-            onErrorRef.current?.()
+            onErrorRef.current?.('execute-failed')
           }
-          if (debugEnabled) console.error('[turnstile-debug] execute failed', error)
+          log('execute failed', {
+            widgetId: widgetIdRef.current,
+            error:
+              typeof error === 'object' && error && 'message' in error
+                ? String((error as { message?: string }).message ?? '')
+                : 'unknown',
+          })
         }
       }, 50)
     }
-  }, [debugEnabled])
+  }, [log])
 
   useEffect(() => {
     onSuccessRef.current = onSuccess
@@ -129,9 +146,15 @@ export const Turnstile: React.FC<TurnstileProps> = ({
 
     // Load Turnstile script if not already loaded
     const loadTurnstile = () => {
+      log('init', {
+        executeOnReady: Boolean(executeOnReady),
+        size,
+        action,
+        theme,
+      })
       renderStartRef.current = Date.now()
       if (window.turnstile) {
-        if (debugEnabled) console.info('[turnstile-debug] script already loaded')
+        log('script already loaded')
         renderTurnstile()
         return
       }
@@ -140,19 +163,19 @@ export const Turnstile: React.FC<TurnstileProps> = ({
         'turnstile-shared-script'
       ) as HTMLScriptElement | null
       if (existing) {
-        if (debugEnabled) console.info('[turnstile-debug] script tag already present')
+        log('script tag already present')
         if (scriptLoadedRef.current || existing.dataset.loaded === 'true') {
           renderTurnstile()
           return
         }
         existing.onload = () => {
           scriptLoadedRef.current = true
-          if (debugEnabled) console.info('[turnstile-debug] script loaded (existing)')
+          log('script loaded (existing)')
           renderTurnstile()
         }
         existing.onerror = () => {
-          if (debugEnabled) console.error('[turnstile-debug] script failed to load (existing)')
-          onErrorRef.current?.()
+          log('script failed to load (existing)')
+          onErrorRef.current?.('script-failed-existing')
         }
         return
       }
@@ -164,12 +187,12 @@ export const Turnstile: React.FC<TurnstileProps> = ({
       script.id = 'turnstile-shared-script'
       script.onload = () => {
         scriptLoadedRef.current = true
-        if (debugEnabled) console.info('[turnstile-debug] script loaded')
+        log('script loaded')
         renderTurnstile()
       }
       script.onerror = () => {
-        if (debugEnabled) console.error('[turnstile-debug] script failed to load')
-        onErrorRef.current?.()
+        log('script failed to load')
+        onErrorRef.current?.('script-failed')
       }
       document.head.appendChild(script)
     }
@@ -179,7 +202,7 @@ export const Turnstile: React.FC<TurnstileProps> = ({
 
       try {
         if (widgetIdRef.current) {
-          if (debugEnabled) console.info('[turnstile-debug] widget already rendered')
+          log('widget already rendered', { widgetId: widgetIdRef.current })
           return
         }
         executeAttemptsRef.current = 0
@@ -196,7 +219,8 @@ export const Turnstile: React.FC<TurnstileProps> = ({
             isExecutingRef.current = false
             executeStartRef.current = null
             executeAttemptsRef.current = 0
-            onErrorRef.current?.()
+            log('widget error-callback', { widgetId: widgetIdRef.current })
+            onErrorRef.current?.('widget-error-callback')
           },
           'expired-callback': () => {
             widgetExecutedRef.current = false
@@ -208,19 +232,22 @@ export const Turnstile: React.FC<TurnstileProps> = ({
           theme,
           size: executeOnReady ? 'invisible' : size,
         })
-        if (debugEnabled)
-          console.info('[turnstile-debug] widget rendered', {
-            widgetId: widgetIdRef.current,
-            renderDurationMs:
-              renderStartRef.current !== null ? Date.now() - renderStartRef.current : undefined,
-          })
+        log('widget rendered', {
+          widgetId: widgetIdRef.current,
+          renderDurationMs:
+            renderStartRef.current !== null ? Date.now() - renderStartRef.current : undefined,
+        })
         onReadyRef.current?.()
         executeOnce()
       } catch (error) {
-        console.error('Failed to render Turnstile:', error)
-        if (debugEnabled) console.error('[turnstile-debug] render error', error)
+        log('render error', {
+          error:
+            typeof error === 'object' && error && 'message' in error
+              ? String((error as { message?: string }).message ?? '')
+              : 'unknown',
+        })
         isExecutingRef.current = false
-        onErrorRef.current?.()
+        onErrorRef.current?.('render-error')
       }
     }
 
@@ -232,14 +259,19 @@ export const Turnstile: React.FC<TurnstileProps> = ({
         try {
           window.turnstile.remove(widgetIdRef.current)
         } catch (error) {
-          if (debugEnabled) console.error('Failed to remove Turnstile widget:', error)
+          log('remove widget failed', {
+            error:
+              typeof error === 'object' && error && 'message' in error
+                ? String((error as { message?: string }).message ?? '')
+                : 'unknown',
+          })
         }
         widgetIdRef.current = null
         widgetExecutedRef.current = false
         isExecutingRef.current = false
       }
     }
-  }, [siteKey, theme, size, action, executeOnReady, debugEnabled, executeOnce])
+  }, [siteKey, theme, size, action, executeOnReady, log, executeOnce])
 
   return <div ref={containerRef} className="flex justify-center my-4" />
 }

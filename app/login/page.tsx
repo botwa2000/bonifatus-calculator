@@ -227,7 +227,8 @@ export default function LoginPage() {
                   }, 2000)
                   dbg('turnstile ready')
                 }}
-                onError={() => {
+                onError={(reason) => {
+                  dbg('turnstile error callback', { reason })
                   setError('Security verification failed. Please check the box and try again.')
                   setTurnstileToken('')
                   setTurnstileLoading(false)
@@ -236,7 +237,6 @@ export default function LoginPage() {
                   fallbackVisible.current = true
                   forceRender((v) => v + 1)
                   turnstileStartRef.current = null
-                  dbg('turnstile error callback')
                 }}
                 onExpire={() => {
                   setTurnstileToken('')
