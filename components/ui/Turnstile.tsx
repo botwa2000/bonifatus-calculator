@@ -78,9 +78,24 @@ export const Turnstile: React.FC<TurnstileProps> = ({
   const renderStartRef = useRef<number | null>(null)
   const executeStartRef = useRef<number | null>(null)
   const executeAttemptsRef = useRef(0)
+  const readyAtRef = useRef<number | null>(null)
   const executeOnce = React.useCallback(() => {
     if (!executeOnReadyRef.current) return
     if (widgetExecutedRef.current) return
+    if (isExecutingRef.current) {
+      log('execute skipped (already marked executing)', {
+        widgetId: widgetIdRef.current,
+        executeAttempt: executeAttemptsRef.current,
+      })
+      return
+    }
+    if (!widgetIdRef.current || !window.turnstile?.execute) {
+      log('execute skipped (widget not ready)', {
+        widgetId: widgetIdRef.current,
+        hasTurnstile: Boolean(window.turnstile),
+      })
+      return
+    }
     if (widgetIdRef.current && window.turnstile?.execute) {
       // Reset before executing to avoid "already executing" race conditions
       if (window.turnstile?.reset) {
@@ -104,6 +119,7 @@ export const Turnstile: React.FC<TurnstileProps> = ({
             executeAttempt: executeAttemptsRef.current,
             sinceRenderMs:
               renderStartRef.current !== null ? Date.now() - renderStartRef.current : undefined,
+            sinceReadyMs: readyAtRef.current !== null ? Date.now() - readyAtRef.current : undefined,
           })
         } catch (error: unknown) {
           const msg =
@@ -211,20 +227,43 @@ export const Turnstile: React.FC<TurnstileProps> = ({
           callback: (token: string) => {
             widgetExecutedRef.current = false
             isExecutingRef.current = false
+            const execDuration =
+              executeStartRef.current !== null ? Date.now() - executeStartRef.current : undefined
             executeStartRef.current = null
+            log('widget success', {
+              widgetId: widgetIdRef.current,
+              executeAttempt: executeAttemptsRef.current,
+              sinceReadyMs:
+                readyAtRef.current !== null ? Date.now() - readyAtRef.current : undefined,
+              executeDurationMs: execDuration,
+            })
             onSuccessRef.current(token)
           },
           'error-callback': () => {
             widgetExecutedRef.current = false
             isExecutingRef.current = false
+            const execDuration =
+              executeStartRef.current !== null ? Date.now() - executeStartRef.current : undefined
             executeStartRef.current = null
             executeAttemptsRef.current = 0
-            log('widget error-callback', { widgetId: widgetIdRef.current })
+            log('widget error-callback', {
+              widgetId: widgetIdRef.current,
+              executeAttempt: executeAttemptsRef.current,
+              sinceReadyMs:
+                readyAtRef.current !== null ? Date.now() - readyAtRef.current : undefined,
+              executeDurationMs: execDuration,
+            })
             onErrorRef.current?.('widget-error-callback')
           },
           'expired-callback': () => {
             widgetExecutedRef.current = false
             isExecutingRef.current = false
+            log('widget expired-callback', {
+              widgetId: widgetIdRef.current,
+              executeAttempt: executeAttemptsRef.current,
+              sinceReadyMs:
+                readyAtRef.current !== null ? Date.now() - readyAtRef.current : undefined,
+            })
             onExpireRef.current?.()
             executeOnce()
           },
@@ -236,6 +275,14 @@ export const Turnstile: React.FC<TurnstileProps> = ({
           widgetId: widgetIdRef.current,
           renderDurationMs:
             renderStartRef.current !== null ? Date.now() - renderStartRef.current : undefined,
+        })
+        readyAtRef.current = Date.now()
+        log('widget ready', {
+          widgetId: widgetIdRef.current,
+          renderDurationMs:
+            renderStartRef.current !== null
+              ? readyAtRef.current - renderStartRef.current
+              : undefined,
         })
         onReadyRef.current?.()
         executeOnce()
