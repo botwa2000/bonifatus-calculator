@@ -81,6 +81,13 @@ export const Turnstile: React.FC<TurnstileProps> = ({
   const readyAtRef = useRef<number | null>(null)
   const executeTimerRef = useRef<number | null>(null)
   const executeOnce = React.useCallback(() => {
+    // Invisible widgets auto-execute; skip manual execute to avoid race
+    if (executeOnReadyRef.current && size === 'invisible') {
+      log('execute skipped (auto invisible mode)', {
+        widgetId: widgetIdRef.current,
+      })
+      return
+    }
     if (!executeOnReadyRef.current) return
     if (widgetExecutedRef.current) return
     if (isExecutingRef.current) {
@@ -160,7 +167,7 @@ export const Turnstile: React.FC<TurnstileProps> = ({
 
     // first attempt with a slightly larger delay to let Turnstile settle
     attemptExecute(executeAttemptsRef.current === 0 ? 150 : 50)
-  }, [log])
+  }, [log, size])
 
   useEffect(() => {
     onSuccessRef.current = onSuccess
@@ -315,6 +322,10 @@ export const Turnstile: React.FC<TurnstileProps> = ({
 
     // Cleanup
     return () => {
+      if (executeTimerRef.current) {
+        window.clearTimeout(executeTimerRef.current)
+        executeTimerRef.current = null
+      }
       if (widgetIdRef.current && window.turnstile) {
         try {
           window.turnstile.remove(widgetIdRef.current)
