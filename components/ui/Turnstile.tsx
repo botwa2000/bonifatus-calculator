@@ -79,6 +79,7 @@ export const Turnstile: React.FC<TurnstileProps> = ({
   const executeStartRef = useRef<number | null>(null)
   const executeAttemptsRef = useRef(0)
   const readyAtRef = useRef<number | null>(null)
+  const executeTimerRef = useRef<number | null>(null)
   const executeOnce = React.useCallback(() => {
     if (!executeOnReadyRef.current) return
     if (widgetExecutedRef.current) return
@@ -96,22 +97,23 @@ export const Turnstile: React.FC<TurnstileProps> = ({
       })
       return
     }
-    if (widgetIdRef.current && window.turnstile?.execute) {
-      // Reset before executing to avoid "already executing" race conditions
-      if (window.turnstile?.reset) {
-        window.turnstile.reset(widgetIdRef.current)
-        widgetExecutedRef.current = false
-        isExecutingRef.current = false
-        log('reset before execute', {
-          executeAttempt: executeAttemptsRef.current,
-        })
+
+    const attemptExecute = (delayMs: number) => {
+      if (executeTimerRef.current) {
+        window.clearTimeout(executeTimerRef.current)
       }
-      widgetExecutedRef.current = true
-      isExecutingRef.current = true
-      executeAttemptsRef.current += 1
-      // small delay gives Turnstile time to settle, avoiding "already executing"
-      window.setTimeout(() => {
+      executeTimerRef.current = window.setTimeout(() => {
         try {
+          // Reset only after the first attempt to avoid stepping on Turnstile's initial start
+          if (executeAttemptsRef.current > 0 && window.turnstile?.reset && widgetIdRef.current) {
+            window.turnstile.reset(widgetIdRef.current)
+            log('reset before execute', {
+              executeAttempt: executeAttemptsRef.current,
+            })
+          }
+          widgetExecutedRef.current = true
+          isExecutingRef.current = true
+          executeAttemptsRef.current += 1
           executeStartRef.current = Date.now()
           window.turnstile?.execute(widgetIdRef.current as string)
           log('execute triggered', {
@@ -127,13 +129,21 @@ export const Turnstile: React.FC<TurnstileProps> = ({
               ? String((error as { message?: string }).message ?? '')
               : ''
           if (msg.includes('already executing')) {
-            log('execute skipped (already executing)', { widgetId: widgetIdRef.current })
-            onErrorRef.current?.('execute-already-executing')
+            log('execute skipped (already executing)', {
+              widgetId: widgetIdRef.current,
+              executeAttempt: executeAttemptsRef.current,
+            })
+            isExecutingRef.current = false
+            widgetExecutedRef.current = false
+            if (executeAttemptsRef.current < 3) {
+              attemptExecute(200)
+            } else {
+              onErrorRef.current?.('execute-already-executing')
+            }
             return
           }
           widgetExecutedRef.current = false
           isExecutingRef.current = false
-          // Too many failed attempts? trigger error to force fallback
           if (executeAttemptsRef.current >= 2) {
             onErrorRef.current?.('execute-failed')
           }
@@ -145,8 +155,11 @@ export const Turnstile: React.FC<TurnstileProps> = ({
                 : 'unknown',
           })
         }
-      }, 50)
+      }, delayMs)
     }
+
+    // first attempt with a slightly larger delay to let Turnstile settle
+    attemptExecute(executeAttemptsRef.current === 0 ? 150 : 50)
   }, [log])
 
   useEffect(() => {
