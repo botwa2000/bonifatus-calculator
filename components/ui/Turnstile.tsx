@@ -67,6 +67,7 @@ export const Turnstile: React.FC<TurnstileProps> = ({
   const widgetExecutedRef = useRef(false)
   const renderStartRef = useRef<number | null>(null)
   const executeStartRef = useRef<number | null>(null)
+  const executeAttemptsRef = useRef(0)
   const executeOnce = React.useCallback(() => {
     if (!executeOnReadyRef.current) return
     if (widgetExecutedRef.current) return
@@ -80,6 +81,7 @@ export const Turnstile: React.FC<TurnstileProps> = ({
       }
       widgetExecutedRef.current = true
       isExecutingRef.current = true
+      executeAttemptsRef.current += 1
       // small delay gives Turnstile time to settle, avoiding "already executing"
       window.setTimeout(() => {
         try {
@@ -98,10 +100,16 @@ export const Turnstile: React.FC<TurnstileProps> = ({
               : ''
           if (msg.includes('already executing')) {
             if (debugEnabled) console.warn('[turnstile-debug] execute skipped (already executing)')
+            // propagate error so UI can fallback to visible checkbox
+            onErrorRef.current?.()
             return
           }
           widgetExecutedRef.current = false
           isExecutingRef.current = false
+          // Too many failed attempts? trigger error to force fallback
+          if (executeAttemptsRef.current >= 2) {
+            onErrorRef.current?.()
+          }
           if (debugEnabled) console.error('[turnstile-debug] execute failed', error)
         }
       }, 50)
@@ -174,6 +182,7 @@ export const Turnstile: React.FC<TurnstileProps> = ({
           if (debugEnabled) console.info('[turnstile-debug] widget already rendered')
           return
         }
+        executeAttemptsRef.current = 0
         widgetIdRef.current = window.turnstile.render(containerRef.current, {
           sitekey: siteKey,
           callback: (token: string) => {
@@ -186,6 +195,7 @@ export const Turnstile: React.FC<TurnstileProps> = ({
             widgetExecutedRef.current = false
             isExecutingRef.current = false
             executeStartRef.current = null
+            executeAttemptsRef.current = 0
             onErrorRef.current?.()
           },
           'expired-callback': () => {
