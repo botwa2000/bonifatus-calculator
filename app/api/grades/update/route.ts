@@ -36,6 +36,7 @@ export async function POST(request: NextRequest) {
   }
 
   const payload = parsed.data
+  const normalizedChildId = payload.childId && payload.childId !== 'null' ? payload.childId : null
 
   try {
     const supabase = await createServerSupabaseClient()
@@ -54,7 +55,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: false, error: 'Term not found' }, { status: 404 })
     }
 
-    if (existingTerm.child_id !== (payload.childId ?? user.id)) {
+    if (existingTerm.child_id !== (normalizedChildId ?? user.id)) {
       return NextResponse.json({ success: false, error: 'Forbidden' }, { status: 403 })
     }
 
@@ -72,7 +73,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const childIdForOverrides = payload.childId ?? null
+    const childIdForOverrides = normalizedChildId
     const childOverrideQuery = childIdForOverrides
       ? supabase
           .from('user_bonus_factors')
@@ -113,7 +114,7 @@ export async function POST(request: NextRequest) {
       })),
     })
 
-    const childId = payload.childId ?? user.id
+    const childId = normalizedChildId ?? user.id
 
     const termPayload: TablesInsert<'term_grades'> = {
       child_id: childId,

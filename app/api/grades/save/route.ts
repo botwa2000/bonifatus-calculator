@@ -42,6 +42,7 @@ export async function POST(request: NextRequest) {
   }
 
   const payload = parsed.data
+  const normalizedChildId = payload.childId && payload.childId !== 'null' ? payload.childId : null
 
   try {
     const supabase = await createServerSupabaseClient()
@@ -66,14 +67,19 @@ export async function POST(request: NextRequest) {
     }
 
     // Load factors
-    const [{ data: defaults, error: defaultsErr }, { data: overrides, error: overridesErr }] =
-      await Promise.all([
-        supabase.from('bonus_factor_defaults').select('*').eq('is_active', true),
-        supabase
+    const childId = normalizedChildId
+    const childOverrideQuery = childId
+      ? supabase
           .from('user_bonus_factors')
           .select('*')
           .eq('user_id', user.id)
-          .in('child_id', [payload.childId ?? null]),
+          .eq('child_id', childId)
+      : supabase.from('user_bonus_factors').select('*').eq('user_id', user.id).is('child_id', null)
+
+    const [{ data: defaults, error: defaultsErr }, { data: overrides, error: overridesErr }] =
+      await Promise.all([
+        supabase.from('bonus_factor_defaults').select('*').eq('is_active', true),
+        childOverrideQuery,
       ])
 
     const isMissingTable = (err: unknown) =>
@@ -124,11 +130,11 @@ export async function POST(request: NextRequest) {
     })
 
     // Determine child id (self for student; provided for parent)
-    const childId = payload.childId ?? user.id
+    const targetChildId = normalizedChildId ?? user.id
 
     // Insert term_grades
     const termPayload: TablesInsert<'term_grades'> = {
-      child_id: childId,
+      child_id: targetChildId,
       school_year: payload.schoolYear,
       term_type: payload.termType as Database['public']['Enums']['term_type'],
       grading_system_id: payload.gradingSystemId,
