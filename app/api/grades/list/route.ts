@@ -60,24 +60,38 @@ export async function GET() {
           status,
           code: error.code,
           message: error.message,
+          userId: user.id,
         })
         return NextResponse.json(
           { success: false, error: 'Unauthorized or expired session', details: error.message },
           { status: 401 }
         )
       }
-      console.error('[grades/list] error', { status, code: error.code, message: error.message })
+      console.error('[grades/list] error', {
+        status,
+        code: error.code,
+        message: error.message,
+        userId: user.id,
+      })
       return NextResponse.json(
-        { success: false, error: 'Failed to load grades', details: error.message },
+        {
+          success: false,
+          error: 'Failed to load grades',
+          details: `${error.code ?? ''} ${error.message}`.trim(),
+        },
         { status: 500 }
       )
     }
 
     return NextResponse.json({ success: true, terms: data || [] }, { status: 200 })
   } catch (err) {
-    console.error('List grades error:', err)
+    console.error('[grades/list] unexpected error', err)
     return NextResponse.json(
-      { success: false, error: 'Unexpected error while loading grades' },
+      {
+        success: false,
+        error: 'Unexpected error while loading grades',
+        details: err instanceof Error ? err.message : String(err),
+      },
       { status: 500 }
     )
   }

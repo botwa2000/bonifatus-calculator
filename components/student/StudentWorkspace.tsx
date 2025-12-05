@@ -96,6 +96,7 @@ export function StudentWorkspace() {
   > | null>(null)
   const [profileLoading, setProfileLoading] = useState(true)
   const [sessionExpired, setSessionExpired] = useState(false)
+  const [errorDetails, setErrorDetails] = useState<string | null>(null)
 
   useEffect(() => {
     const applyHashTab = () => {
@@ -120,8 +121,10 @@ export function StudentWorkspace() {
         if (res.status === 401 || res.status === 403) {
           setSessionExpired(true)
           setError('Session expired. Please log in again.')
+          setErrorDetails(data.details || null)
           return
         }
+        setErrorDetails(data.details || null)
         throw new Error(data.error || 'Failed to load saved grades')
       }
       setTerms(data.terms || [])
@@ -309,15 +312,20 @@ export function StudentWorkspace() {
         </div>
 
         {error && (
-          <div className="rounded-lg border border-red-200 bg-red-50 text-red-700 px-4 py-3">
-            {error}{' '}
-            {sessionExpired && (
-              <button
-                onClick={() => (window.location.href = '/login?redirectTo=/dashboard')}
-                className="underline font-semibold"
-              >
-                Sign in
-              </button>
+          <div className="rounded-lg border border-red-200 bg-red-50 text-red-700 px-4 py-3 space-y-1">
+            <div>
+              {error}{' '}
+              {sessionExpired && (
+                <button
+                  onClick={() => (window.location.href = '/login?redirectTo=/dashboard')}
+                  className="underline font-semibold"
+                >
+                  Sign in
+                </button>
+              )}
+            </div>
+            {errorDetails && (
+              <p className="text-xs text-red-500 break-words">Details: {errorDetails}</p>
             )}
           </div>
         )}
