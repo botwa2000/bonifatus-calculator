@@ -97,6 +97,19 @@ export function StudentWorkspace() {
   const [profileLoading, setProfileLoading] = useState(true)
   const [sessionExpired, setSessionExpired] = useState(false)
 
+  useEffect(() => {
+    const applyHashTab = () => {
+      if (typeof window === 'undefined') return
+      const hash = window.location.hash.replace('#', '')
+      if (hash === 'saved') setActiveTab('saved')
+      if (hash === 'insights') setActiveTab('insights')
+      if (hash === 'calculator') setActiveTab('calculator')
+    }
+    applyHashTab()
+    window.addEventListener('hashchange', applyHashTab)
+    return () => window.removeEventListener('hashchange', applyHashTab)
+  }, [])
+
   const loadTerms = async () => {
     setLoading(true)
     setError(null)
@@ -275,7 +288,7 @@ export function StudentWorkspace() {
           </div>
         </header>
 
-        <div className="flex gap-2">
+        <div className="flex gap-2" id="calculator">
           {[
             { key: 'calculator', label: 'Calculator' },
             { key: 'saved', label: 'Saved results' },
@@ -325,6 +338,7 @@ export function StudentWorkspace() {
 
         {activeTab === 'saved' && (
           <div className="rounded-3xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 shadow-card p-4 sm:p-6 space-y-4">
+            <div id="saved" />
             <div className="flex items-center justify-between">
               <div>
                 <h2 className="text-xl font-semibold text-neutral-900 dark:text-white">
@@ -435,6 +449,7 @@ export function StudentWorkspace() {
 
         {activeTab === 'insights' && (
           <div className="rounded-3xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 shadow-card p-4 sm:p-6 space-y-4">
+            <div id="insights" />
             <h2 className="text-xl font-semibold text-neutral-900 dark:text-white">Insights</h2>
             {loading ? (
               <p className="text-neutral-600 dark:text-neutral-300 text-sm">Loading...</p>
