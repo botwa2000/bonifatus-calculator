@@ -51,14 +51,22 @@ export async function GET() {
       // Surface auth-related errors as 401 so the client can refresh the session
       const isAuthError =
         status === 401 ||
+        status === 403 ||
         error.code === 'PGRST301' ||
-        /JWT|auth|permission/i.test(error.message || '')
+        error.code === '42501' ||
+        /JWT|auth|permission|policy|logged in/i.test(error.message || '')
       if (isAuthError) {
+        console.error('[grades/list] auth error', {
+          status,
+          code: error.code,
+          message: error.message,
+        })
         return NextResponse.json(
           { success: false, error: 'Unauthorized or expired session', details: error.message },
           { status: 401 }
         )
       }
+      console.error('[grades/list] error', { status, code: error.code, message: error.message })
       return NextResponse.json(
         { success: false, error: 'Failed to load grades', details: error.message },
         { status: 500 }

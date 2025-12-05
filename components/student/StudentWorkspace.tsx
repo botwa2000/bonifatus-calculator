@@ -117,7 +117,7 @@ export function StudentWorkspace() {
       const res = await fetch('/api/grades/list')
       const data = await res.json()
       if (!res.ok || !data.success) {
-        if (res.status === 401) {
+        if (res.status === 401 || res.status === 403) {
           setSessionExpired(true)
           setError('Session expired. Please log in again.')
           return
