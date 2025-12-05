@@ -72,14 +72,19 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const [{ data: defaults, error: defaultsErr }, { data: overrides, error: overridesErr }] =
-      await Promise.all([
-        supabase.from('bonus_factor_defaults').select('*').eq('is_active', true),
-        supabase
+    const childIdForOverrides = payload.childId ?? null
+    const childOverrideQuery = childIdForOverrides
+      ? supabase
           .from('user_bonus_factors')
           .select('*')
           .eq('user_id', user.id)
-          .in('child_id', [payload.childId ?? null]),
+          .eq('child_id', childIdForOverrides)
+      : supabase.from('user_bonus_factors').select('*').eq('user_id', user.id).is('child_id', null)
+
+    const [{ data: defaults, error: defaultsErr }, { data: overrides, error: overridesErr }] =
+      await Promise.all([
+        supabase.from('bonus_factor_defaults').select('*').eq('is_active', true),
+        childOverrideQuery,
       ])
 
     if (defaultsErr) {
