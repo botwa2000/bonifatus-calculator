@@ -486,24 +486,18 @@ export function DemoCalculator({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [draftKey, initialData, loading, sortedGradingSystems])
 
-  const calcResult = useMemo(() => {
-    if (!selectedSystem) return { total: 0, breakdown: [] }
-    return calculateBonus(
-      selectedSystem,
-      config.bonusFactorDefaults,
-      classLevel,
-      termType,
-      subjectRows,
-      factorOverrides
-    )
-  }, [
-    selectedSystem,
-    config.bonusFactorDefaults,
-    classLevel,
-    termType,
-    subjectRows,
-    factorOverrides,
-  ])
+  const calcResult = useMemo(
+    () =>
+      calculateBonus(
+        selectedSystem ?? null,
+        config.bonusFactorDefaults,
+        classLevel,
+        termType,
+        subjectRows,
+        factorOverrides
+      ),
+    [selectedSystem, config.bonusFactorDefaults, classLevel, termType, subjectRows, factorOverrides]
+  )
 
   useEffect(() => {
     if (loading) return
