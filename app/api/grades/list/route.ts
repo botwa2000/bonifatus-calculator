@@ -28,7 +28,10 @@ export async function GET() {
         grading_systems (
           name,
           code,
-          scale_type
+          scale_type,
+          min_value,
+          max_value,
+          best_is_highest
         ),
         subject_grades (
           id,

@@ -30,6 +30,9 @@ type Term = {
     name: string | Record<string, string> | null
     code?: string | null
     scale_type?: string | null
+    min_value?: number | null
+    max_value?: number | null
+    best_is_highest?: boolean | null
   } | null
 }
 
@@ -79,6 +82,20 @@ function calculateAge(dob?: string | null) {
   }
   if (age < 0 || age > 150) return null
   return age
+}
+
+function convertNormalizedToScale(
+  system: Term['grading_systems'] | null | undefined,
+  normalized: number
+) {
+  if (!system) return normalized
+  const min = Number(system.min_value ?? 0)
+  const max = Number(system.max_value ?? 100)
+  if (max === min) return normalized
+  if (system.best_is_highest === false) {
+    return max - (normalized / 100) * (max - min)
+  }
+  return min + (normalized / 100) * (max - min)
 }
 
 export function StudentWorkspace() {
@@ -415,8 +432,10 @@ export function StudentWorkspace() {
                               },
                               { weighted: 0, weight: 0 }
                             )
-                            const avg = totals.weight > 0 ? totals.weighted / totals.weight : 0
-                            return avg.toFixed(2)
+                            const avgNorm = totals.weight > 0 ? totals.weighted / totals.weight : 0
+                            const avgRaw = convertNormalizedToScale(term.grading_systems, avgNorm)
+                            const max = term.grading_systems?.max_value
+                            return `${avgRaw.toFixed(2)}${max ? ` / ${Number(max)}` : ''}`
                           })()}
                         </p>
                       </div>
@@ -506,7 +525,7 @@ export function StudentWorkspace() {
                   <p className="text-xs text-neutral-500 mt-1">{stats.count} terms saved</p>
                 </div>
                 <div className="rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-neutral-50 dark:bg-neutral-900/70 p-4">
-                  <p className="text-xs text-neutral-500">Average score</p>
+                  <p className="text-xs text-neutral-500">Average score (normalized)</p>
                   <p className="text-2xl font-bold text-primary-600 dark:text-primary-300">
                     {stats.overallAvg.toFixed(2)}
                   </p>

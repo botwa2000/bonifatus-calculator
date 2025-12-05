@@ -129,7 +129,8 @@ export function calculateBonus(input: CalculatorInput): CalculatorResult {
     const classMult =
       factorValue('class_level', `class_${classLevel}`, factors.defaults, factors.overrides) ?? 1
     const termMult = factorValue('term_type', termType, factors.defaults, factors.overrides) ?? 1
-    const bonus = gradeMult * classMult * termMult * weight
+    const rawBonus = gradeMult * classMult * termMult * weight
+    const bonus = Math.max(0, rawBonus)
 
     return {
       subjectId: sub.subjectId,

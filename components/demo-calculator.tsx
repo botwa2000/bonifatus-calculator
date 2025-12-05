@@ -111,6 +111,17 @@ function normalizeGrade(system: GradingSystem, grade: string) {
   return 0
 }
 
+function convertNormalizedToScale(system: GradingSystem | null, normalized: number) {
+  if (!system) return normalized
+  const min = Number(system.min_value ?? 0)
+  const max = Number(system.max_value ?? 100)
+  if (max === min) return normalized
+  if (system.best_is_highest === false) {
+    return max - (normalized / 100) * (max - min)
+  }
+  return min + (normalized / 100) * (max - min)
+}
+
 function getGradeMultiplier(factors: Factor[], tier: string, overrides?: UserFactor[]) {
   const value = getFactorValue(
     factors,
@@ -977,8 +988,17 @@ export function DemoCalculator({
                   {calcResult.total.toFixed(2)} pts
                 </p>
                 <p className="text-xs text-neutral-500 dark:text-neutral-400">
-                  {calcResult.subjectCount} subjects · Avg score{' '}
-                  {calcResult.averageNormalized.toFixed(2)}
+                  {(() => {
+                    const avgRaw = convertNormalizedToScale(
+                      selectedSystem,
+                      calcResult.averageNormalized
+                    )
+                    const max = selectedSystem?.max_value
+                    const scaleLabel = max ? ` / ${Number(max)}` : ''
+                    return `${calcResult.subjectCount} subjects · Avg score ${avgRaw.toFixed(
+                      2
+                    )}${scaleLabel}`
+                  })()}
                 </p>
               </div>
               {userEmail ? (

@@ -148,7 +148,7 @@ export async function POST(request: NextRequest) {
       grade_numeric: item.normalized,
       grade_normalized_100: item.normalized,
       grade_quality_tier: item.tier as Database['public']['Enums']['grade_quality_tier'] | null,
-      subject_weight: item.weight,
+      subject_weight: payload.subjects[idx]?.weight ?? item.weight ?? 1,
       bonus_points: item.bonus,
     }))
 
