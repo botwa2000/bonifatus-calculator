@@ -32,6 +32,8 @@ type CalculatorConfig = {
 
 type CalculationResult = {
   total: number
+  averageNormalized: number
+  subjectCount: number
   breakdown: Array<{
     subject: string
     normalized: number
@@ -140,6 +142,9 @@ function calculateBonus(
 ): CalculationResult {
   if (!system) return { total: 0, breakdown: [] }
 
+  let totalWeightedNormalized = 0
+  let totalWeight = 0
+
   const breakdown = subjects.map((subject) => {
     const normalized = normalizeGrade(system, subject.grade)
     const defTier = deriveTierFromDefinitions(system, subject.grade)
@@ -160,6 +165,10 @@ function calculateBonus(
     const weight = Number(subject.weight) || 1
     const rawBonus = gradeMultiplier * classMult * termMult * weight
     const bonus = Math.max(0, rawBonus)
+
+    totalWeightedNormalized += normalized * weight
+    totalWeight += weight
+
     return {
       subject: subject.subjectName || 'Subject',
       normalized,
@@ -169,8 +178,12 @@ function calculateBonus(
   })
 
   const sum = breakdown.reduce((acc, item) => acc + item.bonus, 0)
+  const averageNormalized =
+    totalWeight > 0 ? Number((totalWeightedNormalized / totalWeight).toFixed(2)) : 0
   return {
     total: Math.max(0, sum),
+    averageNormalized,
+    subjectCount: subjects.length,
     breakdown,
   }
 }
@@ -962,6 +975,10 @@ export function DemoCalculator({
                 <p className="text-sm text-neutral-600 dark:text-neutral-400">Bonus total</p>
                 <p className="text-3xl font-bold text-primary-600 dark:text-primary-300">
                   {calcResult.total.toFixed(2)} pts
+                </p>
+                <p className="text-xs text-neutral-500 dark:text-neutral-400">
+                  {calcResult.subjectCount} subjects · Avg score{' '}
+                  {calcResult.averageNormalized.toFixed(2)}
                 </p>
               </div>
               {userEmail ? (

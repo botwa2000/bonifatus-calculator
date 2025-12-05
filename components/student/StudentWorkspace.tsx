@@ -195,10 +195,24 @@ export function StudentWorkspace() {
       acc[t.school_year] = (acc[t.school_year] || 0) + (Number(t.total_bonus_points) || 0)
       return acc
     }, {})
+    const overallWeights = terms.reduce(
+      (acc, t) => {
+        t.subject_grades.forEach((sg) => {
+          const weight = Number(sg.subject_weight ?? 1)
+          const norm = Number(sg.grade_normalized_100 ?? 0)
+          acc.totalWeighted += norm * weight
+          acc.totalWeight += weight
+        })
+        return acc
+      },
+      { totalWeighted: 0, totalWeight: 0 }
+    )
+    const overallAvg =
+      overallWeights.totalWeight > 0 ? overallWeights.totalWeighted / overallWeights.totalWeight : 0
     const trend = Object.entries(byYear)
       .sort((a, b) => b[0].localeCompare(a[0]))
       .map(([year, value]) => ({ year, value }))
-    return { total, best, trend, count: terms.length }
+    return { total, best, trend, count: terms.length, overallAvg }
   }, [terms])
 
   const handleDelete = async (termId: string) => {
@@ -388,6 +402,23 @@ export function StudentWorkspace() {
                         <p className="text-xs text-neutral-500">
                           Saved {formatDate(term.created_at)}
                         </p>
+                        <p className="text-xs text-neutral-500">
+                          {term.subject_grades.length} subjects • Avg score{' '}
+                          {(() => {
+                            const totals = term.subject_grades.reduce(
+                              (acc, sg) => {
+                                const w = Number(sg.subject_weight ?? 1)
+                                const n = Number(sg.grade_normalized_100 ?? 0)
+                                acc.weighted += n * w
+                                acc.weight += w
+                                return acc
+                              },
+                              { weighted: 0, weight: 0 }
+                            )
+                            const avg = totals.weight > 0 ? totals.weighted / totals.weight : 0
+                            return avg.toFixed(2)
+                          })()}
+                        </p>
                       </div>
                       <div className="flex items-center gap-2">
                         <div className="text-right">
@@ -466,13 +497,20 @@ export function StudentWorkspace() {
                 Add results to see trends and comparisons.
               </p>
             ) : (
-              <div className="grid sm:grid-cols-3 gap-4">
+              <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
                 <div className="rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-neutral-50 dark:bg-neutral-900/70 p-4">
                   <p className="text-xs text-neutral-500">Total bonus points</p>
                   <p className="text-2xl font-bold text-primary-600 dark:text-primary-300">
                     {stats.total.toFixed(2)}
                   </p>
                   <p className="text-xs text-neutral-500 mt-1">{stats.count} terms saved</p>
+                </div>
+                <div className="rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-neutral-50 dark:bg-neutral-900/70 p-4">
+                  <p className="text-xs text-neutral-500">Average score</p>
+                  <p className="text-2xl font-bold text-primary-600 dark:text-primary-300">
+                    {stats.overallAvg.toFixed(2)}
+                  </p>
+                  <p className="text-xs text-neutral-500 mt-1">Weighted across all terms</p>
                 </div>
                 <div className="rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-neutral-50 dark:bg-neutral-900/70 p-4">
                   <p className="text-xs text-neutral-500">Best term</p>
