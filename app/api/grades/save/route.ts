@@ -76,15 +76,32 @@ export async function POST(request: NextRequest) {
           .in('child_id', [payload.childId ?? null]),
       ])
 
-    if (defaultsErr) {
+    const isMissingTable = (err: unknown) =>
+      !!err &&
+      typeof err === 'object' &&
+      'code' in err &&
+      ((err as { code?: string }).code === 'PGRST205' ||
+        /Could not find the table/i.test((err as { message?: string }).message || ''))
+
+    if (defaultsErr && !isMissingTable(defaultsErr)) {
+      console.error('[grades/save] load defaults error', defaultsErr)
       return NextResponse.json(
-        { success: false, error: 'Failed to load bonus factors' },
+        {
+          success: false,
+          error: 'Failed to load bonus factors',
+          details: defaultsErr.message,
+        },
         { status: 500 }
       )
     }
-    if (overridesErr) {
+    if (overridesErr && !isMissingTable(overridesErr)) {
+      console.error('[grades/save] load user factors error', overridesErr)
       return NextResponse.json(
-        { success: false, error: 'Failed to load user factors' },
+        {
+          success: false,
+          error: 'Failed to load user factors',
+          details: overridesErr.message,
+        },
         { status: 500 }
       )
     }
@@ -92,7 +109,10 @@ export async function POST(request: NextRequest) {
     // Calculate bonuses server-side
     const calc = calculateBonus({
       gradingSystem: gradingSystem as Database['public']['Tables']['grading_systems']['Row'],
-      factors: { defaults: defaults || [], overrides: overrides || [] },
+      factors: {
+        defaults: defaults || [],
+        overrides: overrides || [],
+      },
       classLevel: payload.classLevel,
       termType: payload.termType,
       subjects: payload.subjects.map((s) => ({
@@ -163,7 +183,11 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error('Save grades error:', error)
     return NextResponse.json(
-      { success: false, error: 'Unexpected error while saving grades' },
+      {
+        success: false,
+        error: 'Unexpected error while saving grades',
+        details: error instanceof Error ? error.message : String(error),
+      },
       { status: 500 }
     )
   }
