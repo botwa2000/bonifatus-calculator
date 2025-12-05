@@ -7,6 +7,7 @@ import type { Tables } from '@/types/database'
 type GradingSystem = Tables<'grading_systems'>
 
 type Factor = Tables<'bonus_factor_defaults'>
+type UserFactor = Tables<'user_bonus_factors'>
 
 type Subject = {
   id: string
@@ -55,7 +56,23 @@ function resolveLocalized(value: string | Record<string, string> | null | undefi
   return value['en'] || Object.values(value)[0] || ''
 }
 
-function getFactorValue(factors: Factor[], type: Factor['factor_type'], key: string, fallback = 1) {
+function getFactorValue(
+  factors: Factor[],
+  type: Factor['factor_type'],
+  key: string,
+  fallback = 1,
+  overrides?: UserFactor[]
+) {
+  const childOverride = overrides?.find(
+    (f) => f.factor_type === type && f.factor_key === key && f.child_id
+  )
+  if (childOverride) return Number(childOverride.factor_value)
+
+  const userOverride = overrides?.find(
+    (f) => f.factor_type === type && f.factor_key === key && !f.child_id
+  )
+  if (userOverride) return Number(userOverride.factor_value)
+
   const found = factors.find((f) => f.factor_type === type && f.factor_key === key)
   return found ? Number(found.factor_value) : fallback
 }
@@ -92,8 +109,14 @@ function normalizeGrade(system: GradingSystem, grade: string) {
   return 0
 }
 
-function getGradeMultiplier(factors: Factor[], tier: string) {
-  const value = getFactorValue(factors, 'grade_tier', tier, undefined as unknown as number)
+function getGradeMultiplier(factors: Factor[], tier: string, overrides?: UserFactor[]) {
+  const value = getFactorValue(
+    factors,
+    'grade_tier',
+    tier,
+    undefined as unknown as number,
+    overrides
+  )
   if (value !== undefined && !Number.isNaN(value)) return value
   switch (tier) {
     case 'best':
@@ -112,7 +135,8 @@ function calculateBonus(
   factors: Factor[],
   classLevel: number,
   termType: string,
-  subjects: SubjectEntry[]
+  subjects: SubjectEntry[],
+  overrides?: UserFactor[]
 ): CalculationResult {
   if (!system) return { total: 0, breakdown: [] }
 
@@ -130,9 +154,9 @@ function calculateBonus(
         tier = score >= 90 ? 'best' : score >= 75 ? 'second' : score >= 60 ? 'third' : 'below'
       }
     }
-    const gradeMultiplier = getGradeMultiplier(factors, tier)
-    const classMult = getFactorValue(factors, 'class_level', `class_${classLevel}`, 1)
-    const termMult = getFactorValue(factors, 'term_type', termType, 1)
+    const gradeMultiplier = getGradeMultiplier(factors, tier, overrides)
+    const classMult = getFactorValue(factors, 'class_level', `class_${classLevel}`, 1, overrides)
+    const termMult = getFactorValue(factors, 'term_type', termType, 1, overrides)
     const weight = Number(subject.weight) || 1
     const rawBonus = gradeMultiplier * classMult * termMult * weight
     const bonus = Math.max(0, rawBonus)
@@ -246,6 +270,7 @@ export function DemoCalculator({
   const [saving, setSaving] = useState(false)
   const [saveMessage, setSaveMessage] = useState<string | null>(null)
   const [saveError, setSaveError] = useState<string | null>(null)
+  const [factorOverrides, setFactorOverrides] = useState<UserFactor[]>([])
   const [preferredSystemId, setPreferredSystemId] = useState<string | undefined>(undefined)
   const [suggestedSystemId, setSuggestedSystemId] = useState<string | undefined>(undefined)
   const [draftRestored, setDraftRestored] = useState(false)
@@ -264,6 +289,7 @@ export function DemoCalculator({
       : [
           {
             id: '0',
+            subjectId: undefined,
             subjectName: '',
             grade: '',
             weight: 1,
@@ -279,6 +305,10 @@ export function DemoCalculator({
   const defaultSystemKey = useMemo(
     () => `calculator-default-system-${userEmail || 'guest'}`,
     [userEmail]
+  )
+  const selectedSubjectIds = useMemo(
+    () => new Set(subjectRows.map((r) => r.subjectId).filter(Boolean) as string[]),
+    [subjectRows]
   )
 
   const sortedGradingSystems = useMemo(
@@ -346,6 +376,15 @@ export function DemoCalculator({
         const supabase = createBrowserSupabaseClient()
         const { data } = await supabase.auth.getUser()
         setUserEmail(data.user?.email ?? null)
+        try {
+          const factorsRes = await fetch('/api/grades/factors')
+          const factorsData = await factorsRes.json()
+          if (factorsRes.ok && factorsData.success) {
+            setFactorOverrides(factorsData.overrides || [])
+          }
+        } catch {
+          // ignore factor load errors on client
+        }
       } catch {
         setUserEmail(null)
       }
@@ -435,9 +474,17 @@ export function DemoCalculator({
       config.bonusFactorDefaults,
       classLevel,
       termType,
-      subjectRows
+      subjectRows,
+      factorOverrides
     )
-  }, [selectedSystem, config.bonusFactorDefaults, classLevel, termType, subjectRows])
+  }, [
+    selectedSystem,
+    config.bonusFactorDefaults,
+    classLevel,
+    termType,
+    subjectRows,
+    factorOverrides,
+  ])
 
   useEffect(() => {
     if (loading) return
@@ -467,16 +514,7 @@ export function DemoCalculator({
         clearTimeout(draftSaveTimer.current)
       }
     }
-  }, [
-    classLevel,
-    draftKey,
-    loading,
-    schoolYear,
-    selectedSystemId,
-    subjectRows,
-    termName,
-    termType,
-  ])
+  }, [classLevel, draftKey, loading, schoolYear, selectedSystemId, subjectRows, termName, termType])
 
   const addRow = () => {
     setSubjectRows((prev) => [
@@ -536,11 +574,13 @@ export function DemoCalculator({
     setSelectedSystemId(sample.systemId)
     setClassLevel(sample.classLevel)
     setTermType(sample.termType)
-    setSubjectRows(sample.subjects)
+    setSubjectRows(sample.subjects.map((s) => ({ ...s, subjectId: s.subjectId })))
   }
 
   const canSave =
-    !!userEmail && !!selectedSystem && subjectRows.every((row) => resolveSubjectId(row.subjectName))
+    !!userEmail &&
+    !!selectedSystem &&
+    subjectRows.every((row) => row.subjectId || resolveSubjectId(row.subjectName))
 
   const handleSetDefaultSystem = () => {
     if (!selectedSystem) return
@@ -565,7 +605,7 @@ export function DemoCalculator({
       return
     }
     const subjectPayload = subjectRows.map((row) => {
-      const sid = resolveSubjectId(row.subjectName || '')
+      const sid = row.subjectId || resolveSubjectId(row.subjectName || '')
       return {
         subjectId: sid || '',
         subjectName: row.subjectName,
@@ -800,33 +840,58 @@ export function DemoCalculator({
                         <div className="max-h-52 overflow-y-auto overflow-x-hidden space-y-2">
                           {Object.values(
                             getFilteredSubjectsByCategory(subjectFilters[row.id] || '')
-                          ).map((group) => (
-                            <div key={group.categoryName} className="mb-2">
-                              <div className="text-xs font-semibold text-neutral-500 mb-1">
-                                {group.categoryName}
+                          ).map((group) => {
+                            const items = group.items.filter(
+                              (item) =>
+                                !selectedSubjectIds.has(item.id) || row.subjectId === item.id
+                            )
+                            if (!items.length) return null
+                            return (
+                              <div key={group.categoryName} className="mb-2">
+                                <div className="text-xs font-semibold text-neutral-500 mb-1">
+                                  {group.categoryName}
+                                </div>
+                                <div className="grid grid-cols-1 gap-1">
+                                  {items.map((item) => (
+                                    <button
+                                      key={item.id}
+                                      type="button"
+                                      onClick={() => {
+                                        setSubjectRows((prev) =>
+                                          prev.map((p) =>
+                                            p.id === row.id
+                                              ? {
+                                                  ...p,
+                                                  subjectId: item.id,
+                                                  subjectName: item.label,
+                                                }
+                                              : p
+                                          )
+                                        )
+                                        setSubjectFilters((prev) => ({ ...prev, [row.id]: '' }))
+                                        setPickerOpen((prev) => ({ ...prev, [row.id]: false }))
+                                      }}
+                                      disabled={
+                                        selectedSubjectIds.has(item.id) && row.subjectId !== item.id
+                                      }
+                                      className="text-left px-2 py-1 rounded hover:bg-neutral-100 dark:hover:bg-neutral-700 text-sm text-neutral-800 dark:text-neutral-100 disabled:opacity-40"
+                                    >
+                                      {item.label}
+                                    </button>
+                                  ))}
+                                </div>
                               </div>
-                              <div className="grid grid-cols-1 gap-1">
-                                {group.items.map((item) => (
-                                  <button
-                                    key={item.id}
-                                    type="button"
-                                    onClick={() => {
-                                      updateRow(row.id, 'subjectName', item.label)
-                                      setSubjectFilters((prev) => ({ ...prev, [row.id]: '' }))
-                                      setPickerOpen((prev) => ({ ...prev, [row.id]: false }))
-                                    }}
-                                    className="text-left px-2 py-1 rounded hover:bg-neutral-100 dark:hover:bg-neutral-700 text-sm text-neutral-800 dark:text-neutral-100"
-                                  >
-                                    {item.label}
-                                  </button>
-                                ))}
-                              </div>
-                            </div>
-                          ))}
-                          {Object.keys(getFilteredSubjectsByCategory(subjectFilters[row.id] || ''))
-                            .length === 0 && (
-                            <div className="text-xs text-neutral-500 px-2 py-1">No matches</div>
-                          )}
+                            )
+                          })}
+                          {Object.values(
+                            getFilteredSubjectsByCategory(subjectFilters[row.id] || '')
+                          ).every(
+                            (group) =>
+                              group.items.filter(
+                                (item) =>
+                                  !selectedSubjectIds.has(item.id) || row.subjectId === item.id
+                              ).length === 0
+                          ) && <div className="text-xs text-neutral-500 px-2 py-1">No matches</div>}
                         </div>
                       </div>
                     )}
