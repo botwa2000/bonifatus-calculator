@@ -133,14 +133,20 @@ function getGradeMultiplier(factors: Factor[], tier: string, overrides?: UserFac
 }
 
 function calculateBonus(
-  system: GradingSystem,
+  system: GradingSystem | null,
   factors: Factor[],
   classLevel: number,
   termType: string,
   subjects: SubjectEntry[],
   overrides?: UserFactor[]
 ): CalculationResult {
-  if (!system) return { total: 0, breakdown: [] }
+  if (!system)
+    return {
+      total: 0,
+      averageNormalized: 0,
+      subjectCount: subjects.length,
+      breakdown: [],
+    }
 
   let totalWeightedNormalized = 0
   let totalWeight = 0
