@@ -90,8 +90,12 @@ export function StudentWorkspace() {
   const [selectedTermType, setSelectedTermType] = useState<string>('all')
   const [prefill, setPrefill] = useState<TermPrefill | undefined>(undefined)
   const [expandedTerm, setExpandedTerm] = useState<string | null>(null)
-  const [profile, setProfile] = useState<Pick<Tables<'user_profiles'>, 'full_name' | 'date_of_birth' | 'role'> | null>(null)
+  const [profile, setProfile] = useState<Pick<
+    Tables<'user_profiles'>,
+    'full_name' | 'date_of_birth' | 'role'
+  > | null>(null)
   const [profileLoading, setProfileLoading] = useState(true)
+  const [sessionExpired, setSessionExpired] = useState(false)
 
   const loadTerms = async () => {
     setLoading(true)
@@ -100,6 +104,11 @@ export function StudentWorkspace() {
       const res = await fetch('/api/grades/list')
       const data = await res.json()
       if (!res.ok || !data.success) {
+        if (res.status === 401) {
+          setSessionExpired(true)
+          setError('Session expired. Please log in again.')
+          return
+        }
         throw new Error(data.error || 'Failed to load saved grades')
       }
       setTerms(data.terms || [])
@@ -229,7 +238,10 @@ export function StudentWorkspace() {
             </p>
             {!profileLoading && profile && (
               <p className="text-sm text-neutral-500 dark:text-neutral-400 mt-1">
-                Signed in as <span className="font-semibold text-neutral-800 dark:text-white">{profile.full_name}</span>
+                Signed in as{' '}
+                <span className="font-semibold text-neutral-800 dark:text-white">
+                  {profile.full_name}
+                </span>
                 {calculateAge(profile.date_of_birth) !== null && (
                   <> - Age {calculateAge(profile.date_of_birth)} yrs</>
                 )}
@@ -285,7 +297,15 @@ export function StudentWorkspace() {
 
         {error && (
           <div className="rounded-lg border border-red-200 bg-red-50 text-red-700 px-4 py-3">
-            {error}
+            {error}{' '}
+            {sessionExpired && (
+              <button
+                onClick={() => (window.location.href = '/login?redirectTo=/dashboard')}
+                className="underline font-semibold"
+              >
+                Sign in
+              </button>
+            )}
           </div>
         )}
 

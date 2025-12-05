@@ -10,7 +10,7 @@ export async function GET() {
 
     const supabase = await createServerSupabaseClient()
 
-    const { data, error } = await supabase
+    const { data, error, status } = await supabase
       .from('term_grades')
       .select(
         `
@@ -48,6 +48,17 @@ export async function GET() {
       .order('created_at', { ascending: false })
 
     if (error) {
+      // Surface auth-related errors as 401 so the client can refresh the session
+      const isAuthError =
+        status === 401 ||
+        error.code === 'PGRST301' ||
+        /JWT|auth|permission/i.test(error.message || '')
+      if (isAuthError) {
+        return NextResponse.json(
+          { success: false, error: 'Unauthorized or expired session', details: error.message },
+          { status: 401 }
+        )
+      }
       return NextResponse.json(
         { success: false, error: 'Failed to load grades', details: error.message },
         { status: 500 }
