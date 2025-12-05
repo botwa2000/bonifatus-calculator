@@ -63,7 +63,11 @@ export async function GET() {
           userId: user.id,
         })
         return NextResponse.json(
-          { success: false, error: 'Unauthorized or expired session', details: error.message },
+          {
+            success: false,
+            error: 'Unauthorized or expired session',
+            details: `${error.code ?? ''} ${error.message}`.trim(),
+          },
           { status: 401 }
         )
       }
@@ -77,7 +81,8 @@ export async function GET() {
         {
           success: false,
           error: 'Failed to load grades',
-          details: `${error.code ?? ''} ${error.message}`.trim(),
+          details: `${error.code ?? ''} ${error.message}`.trim() || 'unknown_error',
+          status,
         },
         { status: 500 }
       )
