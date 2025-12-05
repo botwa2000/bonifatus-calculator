@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { createBrowserSupabaseClient } from '@/lib/supabase/browser'
 import type { Tables } from '@/types/database'
 
@@ -37,6 +37,16 @@ type CalculationResult = {
     tier: string
     bonus: number
   }>
+}
+
+type CalculatorDraft = {
+  gradingSystemId?: string
+  classLevel: number
+  termType: string
+  schoolYear: string
+  termName?: string
+  subjects: SubjectEntry[]
+  updatedAt: number
 }
 
 function resolveLocalized(value: string | Record<string, string> | null | undefined) {
@@ -188,6 +198,14 @@ function getSampleData(config: CalculatorConfig): {
   }
 }
 
+function guessCountryCode() {
+  if (typeof navigator === 'undefined') return undefined
+  const locale = navigator.language || ''
+  const parts = locale.split('-')
+  if (parts.length > 1) return parts[1]?.toUpperCase()
+  return undefined
+}
+
 type DemoCalculatorProps = {
   allowSample?: boolean
   onSaved?: (payload: {
@@ -228,6 +246,10 @@ export function DemoCalculator({
   const [saving, setSaving] = useState(false)
   const [saveMessage, setSaveMessage] = useState<string | null>(null)
   const [saveError, setSaveError] = useState<string | null>(null)
+  const [preferredSystemId, setPreferredSystemId] = useState<string | undefined>(undefined)
+  const [suggestedSystemId, setSuggestedSystemId] = useState<string | undefined>(undefined)
+  const [draftRestored, setDraftRestored] = useState(false)
+  const [draftStatus, setDraftStatus] = useState<string | null>(null)
 
   const [selectedSystemId, setSelectedSystemId] = useState<string | undefined>(
     initialData?.gradingSystemId
@@ -251,6 +273,30 @@ export function DemoCalculator({
   const [editingTermId, setEditingTermId] = useState<string | undefined>(initialData?.termId)
   const [subjectFilters, setSubjectFilters] = useState<Record<string, string>>({})
   const [pickerOpen, setPickerOpen] = useState<Record<string, boolean>>({})
+  const draftLoadedRef = useRef(false)
+  const draftSaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const draftKey = useMemo(() => `calculator-draft-${userEmail || 'guest'}`, [userEmail])
+  const defaultSystemKey = useMemo(
+    () => `calculator-default-system-${userEmail || 'guest'}`,
+    [userEmail]
+  )
+
+  const sortedGradingSystems = useMemo(
+    () =>
+      config.gradingSystems
+        .slice()
+        .sort(
+          (a, b) =>
+            (a.display_order ?? 0) - (b.display_order ?? 0) ||
+            resolveLocalized(a.name).localeCompare(resolveLocalized(b.name))
+        ),
+    [config.gradingSystems]
+  )
+
+  const selectedSystem = useMemo(
+    () => sortedGradingSystems.find((g) => g.id === selectedSystemId) || sortedGradingSystems[0],
+    [sortedGradingSystems, selectedSystemId]
+  )
 
   useEffect(() => {
     async function loadConfig() {
@@ -259,13 +305,32 @@ export function DemoCalculator({
         if (!res.ok) throw new Error('Failed to load calculator config')
         const data = await res.json()
         if (!data.success) throw new Error(data.error || 'Failed to load calculator config')
+        const countryGuess = guessCountryCode()
+        const storedDefault =
+          typeof window !== 'undefined' ? localStorage.getItem(defaultSystemKey) : null
         setConfig({
           gradingSystems: data.gradingSystems || [],
           bonusFactorDefaults: data.bonusFactorDefaults || [],
           subjects: data.subjects || [],
           categories: data.categories || [],
         })
-        const resolvedSystemId = initialData?.gradingSystemId || data.gradingSystems?.[0]?.id
+        const countrySuggested = countryGuess
+          ? data.gradingSystems?.find(
+              (gs: GradingSystem) =>
+                (gs.country_code || '').toUpperCase() === (countryGuess || '').toUpperCase()
+            )?.id
+          : undefined
+        if (storedDefault) {
+          setPreferredSystemId(storedDefault)
+        }
+        if (countrySuggested) {
+          setSuggestedSystemId(countrySuggested)
+        }
+        const resolvedSystemId =
+          initialData?.gradingSystemId ||
+          storedDefault ||
+          countrySuggested ||
+          data.gradingSystems?.[0]?.id
         if (resolvedSystemId) {
           setSelectedSystemId(resolvedSystemId)
         }
@@ -292,6 +357,22 @@ export function DemoCalculator({
   }, [])
 
   useEffect(() => {
+    draftLoadedRef.current = false
+  }, [draftKey])
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    const storedDefault = localStorage.getItem(defaultSystemKey)
+    if (storedDefault) {
+      setPreferredSystemId(storedDefault)
+      if (!selectedSystemId) {
+        setSelectedSystemId(storedDefault)
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [defaultSystemKey])
+
+  useEffect(() => {
     if (!initialData) return
     setEditingTermId(initialData.termId)
     setSelectedSystemId(initialData.gradingSystemId)
@@ -307,22 +388,45 @@ export function DemoCalculator({
     )
   }, [initialData])
 
-  const sortedGradingSystems = useMemo(
-    () =>
-      config.gradingSystems
-        .slice()
-        .sort(
-          (a, b) =>
-            (a.display_order ?? 0) - (b.display_order ?? 0) ||
-            resolveLocalized(a.name).localeCompare(resolveLocalized(b.name))
-        ),
-    [config.gradingSystems]
-  )
+  useEffect(() => {
+    if (selectedSystemId) return
+    const candidate =
+      initialData?.gradingSystemId ||
+      preferredSystemId ||
+      suggestedSystemId ||
+      sortedGradingSystems[0]?.id
+    if (candidate) {
+      setSelectedSystemId(candidate)
+    }
+  }, [initialData, preferredSystemId, selectedSystemId, sortedGradingSystems, suggestedSystemId])
 
-  const selectedSystem = useMemo(
-    () => sortedGradingSystems.find((g) => g.id === selectedSystemId) || sortedGradingSystems[0],
-    [sortedGradingSystems, selectedSystemId]
-  )
+  useEffect(() => {
+    if (draftLoadedRef.current) return
+    if (initialData?.termId) return
+    if (loading) return
+    if (typeof window === 'undefined') return
+    const raw = localStorage.getItem(draftKey)
+    if (!raw) return
+    try {
+      const parsed: CalculatorDraft = JSON.parse(raw)
+      setSelectedSystemId(
+        parsed.gradingSystemId || selectedSystemId || sortedGradingSystems[0]?.id || undefined
+      )
+      setClassLevel(parsed.classLevel || classLevel)
+      setTermType(parsed.termType || termType)
+      setSchoolYear(parsed.schoolYear || schoolYear)
+      setTermName(parsed.termName || '')
+      if (parsed.subjects?.length) {
+        setSubjectRows(parsed.subjects)
+      }
+      setDraftRestored(true)
+      setDraftStatus('Restored your last draft')
+      draftLoadedRef.current = true
+    } catch {
+      // ignore parse errors
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [draftKey, initialData, loading, sortedGradingSystems])
 
   const calcResult = useMemo(() => {
     if (!selectedSystem) return { total: 0, breakdown: [] }
@@ -334,6 +438,45 @@ export function DemoCalculator({
       subjectRows
     )
   }, [selectedSystem, config.bonusFactorDefaults, classLevel, termType, subjectRows])
+
+  useEffect(() => {
+    if (loading) return
+    if (typeof window === 'undefined') return
+    if (draftSaveTimer.current) {
+      clearTimeout(draftSaveTimer.current)
+    }
+    draftSaveTimer.current = setTimeout(() => {
+      const draft: CalculatorDraft = {
+        gradingSystemId: selectedSystemId,
+        classLevel,
+        termType,
+        schoolYear,
+        termName,
+        subjects: subjectRows,
+        updatedAt: Date.now(),
+      }
+      try {
+        localStorage.setItem(draftKey, JSON.stringify(draft))
+        setDraftStatus('Draft saved locally')
+      } catch {
+        // ignore storage errors
+      }
+    }, 600)
+    return () => {
+      if (draftSaveTimer.current) {
+        clearTimeout(draftSaveTimer.current)
+      }
+    }
+  }, [
+    classLevel,
+    draftKey,
+    loading,
+    schoolYear,
+    selectedSystemId,
+    subjectRows,
+    termName,
+    termType,
+  ])
 
   const addRow = () => {
     setSubjectRows((prev) => [
@@ -399,6 +542,17 @@ export function DemoCalculator({
   const canSave =
     !!userEmail && !!selectedSystem && subjectRows.every((row) => resolveSubjectId(row.subjectName))
 
+  const handleSetDefaultSystem = () => {
+    if (!selectedSystem) return
+    try {
+      localStorage.setItem(defaultSystemKey, selectedSystem.id)
+      setPreferredSystemId(selectedSystem.id)
+      setDraftStatus('Saved as your default grading system')
+    } catch {
+      setSaveError('Could not store your default preference in this browser.')
+    }
+  }
+
   const handleSave = async () => {
     setSaveMessage(null)
     setSaveError(null)
@@ -446,6 +600,13 @@ export function DemoCalculator({
       }
       setSaveMessage('Saved!')
       setEditingTermId(undefined)
+      try {
+        localStorage.removeItem(draftKey)
+        setDraftRestored(false)
+        setDraftStatus(null)
+      } catch {
+        // ignore storage cleanup errors
+      }
       onSaved?.({
         termId: data.termId,
         totalBonusPoints: data.totalBonusPoints,
@@ -462,7 +623,19 @@ export function DemoCalculator({
 
   return (
     <div className="bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-2xl shadow-xl p-6 sm:p-8 w-full max-w-3xl mx-auto">
-      <div className="flex items-center justify-end mb-4">
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between mb-4">
+        <div className="text-xs text-neutral-600 dark:text-neutral-400">
+          {userEmail ? (
+            <span className="font-semibold text-neutral-800 dark:text-white">
+              Logged in as {userEmail}.{' '}
+              <span className="font-normal text-neutral-600 dark:text-neutral-400">
+                Saves go to your profile.
+              </span>
+            </span>
+          ) : (
+            'Demo mode. Sign in to save this calculation to a profile.'
+          )}
+        </div>
         {allowSample && (
           <button
             onClick={applySample}
@@ -480,9 +653,16 @@ export function DemoCalculator({
         <div className="space-y-6">
           <div className="grid sm:grid-cols-3 gap-4">
             <div className="sm:col-span-2">
-              <label className="text-sm font-medium text-neutral-700 dark:text-neutral-200">
-                Grading system
-              </label>
+              <div className="flex items-center justify-between gap-2">
+                <label className="text-sm font-medium text-neutral-700 dark:text-neutral-200">
+                  Grading system
+                </label>
+                {selectedSystem?.country_code && (
+                  <span className="text-xs text-neutral-500 dark:text-neutral-400">
+                    Region: {selectedSystem.country_code}
+                  </span>
+                )}
+              </div>
               <select
                 className="mt-1 w-full rounded-lg border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 py-2 text-neutral-900 dark:text-white"
                 value={selectedSystem?.id}
@@ -494,6 +674,27 @@ export function DemoCalculator({
                   </option>
                 ))}
               </select>
+              <div className="mt-2 flex flex-wrap items-center gap-2 text-xs">
+                <button
+                  type="button"
+                  onClick={handleSetDefaultSystem}
+                  className="rounded-full border border-neutral-300 px-3 py-1 font-semibold text-neutral-700 transition hover:border-primary-400 hover:text-primary-700 dark:border-neutral-700 dark:text-neutral-200 dark:hover:border-primary-500 dark:hover:text-primary-200"
+                >
+                  Set as default
+                </button>
+                {preferredSystemId && preferredSystemId === selectedSystem?.id && (
+                  <span className="rounded-full bg-primary-100 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide text-primary-700 dark:bg-primary-900/30 dark:text-primary-200">
+                    Default
+                  </span>
+                )}
+                {!preferredSystemId &&
+                  suggestedSystemId &&
+                  suggestedSystemId === selectedSystem?.id && (
+                    <span className="rounded-full bg-secondary-100 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide text-secondary-700 dark:bg-secondary-900/30 dark:text-secondary-200">
+                      Suggested
+                    </span>
+                  )}
+              </div>
             </div>
             <div className="space-y-3">
               <div>
@@ -738,6 +939,14 @@ export function DemoCalculator({
             )}
             {saveMessage && (
               <p className="mt-2 text-sm text-green-600 dark:text-green-400">{saveMessage}</p>
+            )}
+            {draftRestored && (
+              <p className="mt-1 text-xs text-secondary-700 dark:text-secondary-300">
+                Restored your last draft. Saving will clear it.
+              </p>
+            )}
+            {draftStatus && (
+              <p className="text-xs text-neutral-500 dark:text-neutral-400">{draftStatus}</p>
             )}
           </div>
         </div>

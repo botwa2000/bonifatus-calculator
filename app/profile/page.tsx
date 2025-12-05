@@ -16,7 +16,7 @@ export default async function ProfilePage() {
 
   const { data: profile } = await supabase
     .from('user_profiles')
-    .select('full_name, theme_preference, role')
+    .select('full_name, theme_preference, role, date_of_birth')
     .eq('id', session!.user.id)
     .single()
 
@@ -25,6 +25,7 @@ export default async function ProfilePage() {
       userId={session!.user.id}
       email={session!.user.email || ''}
       fullName={profile?.full_name || ''}
+      dateOfBirth={profile?.date_of_birth || null}
       themePreference={(profile?.theme_preference as 'light' | 'dark' | 'system') || 'system'}
       role={(profile?.role as 'parent' | 'child') || 'parent'}
     />

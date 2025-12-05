@@ -12,6 +12,7 @@ interface ProfileClientProps {
   userId: string
   email: string
   fullName: string
+  dateOfBirth: string | null
   themePreference: ThemeChoice
   role: 'parent' | 'child'
 }
@@ -20,6 +21,7 @@ export default function ProfileClient({
   userId,
   email,
   fullName,
+  dateOfBirth,
   themePreference,
   role,
 }: ProfileClientProps) {
@@ -35,6 +37,7 @@ export default function ProfileClient({
   const router = useRouter()
 
   const [name, setName] = useState(fullName)
+  const [dob, setDob] = useState(dateOfBirth || '')
   const [newEmail, setNewEmail] = useState(email)
   const [newPassword, setNewPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
@@ -96,6 +99,20 @@ export default function ProfileClient({
     return true
   }
 
+  const calculateAge = (value: string | null) => {
+    if (!value) return null
+    const parsed = new Date(value)
+    if (Number.isNaN(parsed.getTime())) return null
+    const today = new Date()
+    let age = today.getFullYear() - parsed.getFullYear()
+    const m = today.getMonth() - parsed.getMonth()
+    if (m < 0 || (m === 0 && today.getDate() < parsed.getDate())) {
+      age -= 1
+    }
+    if (age < 0 || age > 150) return null
+    return age
+  }
+
   const handleSaveProfile = async (event: React.FormEvent) => {
     event.preventDefault()
     setSaving((prev) => ({ ...prev, profile: true }))
@@ -103,7 +120,10 @@ export default function ProfileClient({
 
     const { error } = await supabase
       .from('user_profiles')
-      .update({ full_name: name.trim() || undefined })
+      .update({
+        full_name: name.trim() || undefined,
+        date_of_birth: dob || null,
+      })
       .eq('id', userId)
 
     if (error) {
@@ -283,6 +303,23 @@ export default function ProfileClient({
                 onChange={(e) => setName(e.target.value)}
                 className="w-full rounded-lg border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 py-2 text-neutral-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary-500"
               />
+            </label>
+            <label className="block space-y-1">
+              <span className="text-sm text-neutral-700 dark:text-neutral-300">
+                Date of birth
+              </span>
+              <input
+                type="date"
+                value={dob}
+                max={new Date().toISOString().split('T')[0]}
+                onChange={(e) => setDob(e.target.value)}
+                className="w-full rounded-lg border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 py-2 text-neutral-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary-500"
+              />
+              {calculateAge(dob) !== null && (
+                <p className="text-xs text-neutral-500 dark:text-neutral-400">
+                  Age: {calculateAge(dob)} years
+                </p>
+              )}
             </label>
             <label className="block space-y-1">
               <span className="text-sm text-neutral-700 dark:text-neutral-300">Email address</span>

@@ -2,6 +2,8 @@
 
 import { useEffect, useMemo, useState } from 'react'
 import { DemoCalculator } from '@/components/demo-calculator'
+import { createBrowserSupabaseClient } from '@/lib/supabase/browser'
+import type { Tables } from '@/types/database'
 
 type Term = {
   id: string
@@ -65,6 +67,20 @@ function formatDate(input: string) {
   }
 }
 
+function calculateAge(dob?: string | null) {
+  if (!dob) return null
+  const parsed = new Date(dob)
+  if (Number.isNaN(parsed.getTime())) return null
+  const today = new Date()
+  let age = today.getFullYear() - parsed.getFullYear()
+  const m = today.getMonth() - parsed.getMonth()
+  if (m < 0 || (m === 0 && today.getDate() < parsed.getDate())) {
+    age -= 1
+  }
+  if (age < 0 || age > 150) return null
+  return age
+}
+
 export function StudentWorkspace() {
   const [activeTab, setActiveTab] = useState<'calculator' | 'saved' | 'insights'>('calculator')
   const [terms, setTerms] = useState<Term[]>([])
@@ -74,6 +90,8 @@ export function StudentWorkspace() {
   const [selectedTermType, setSelectedTermType] = useState<string>('all')
   const [prefill, setPrefill] = useState<TermPrefill | undefined>(undefined)
   const [expandedTerm, setExpandedTerm] = useState<string | null>(null)
+  const [profile, setProfile] = useState<Pick<Tables<'user_profiles'>, 'full_name' | 'date_of_birth' | 'role'> | null>(null)
+  const [profileLoading, setProfileLoading] = useState(true)
 
   const loadTerms = async () => {
     setLoading(true)
@@ -99,6 +117,34 @@ export function StudentWorkspace() {
   useEffect(() => {
     loadTerms()
     // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  useEffect(() => {
+    async function loadProfile() {
+      try {
+        const supabase = createBrowserSupabaseClient()
+        const {
+          data: { user },
+        } = await supabase.auth.getUser()
+        if (!user) {
+          setProfileLoading(false)
+          return
+        }
+        const { data } = await supabase
+          .from('user_profiles')
+          .select('full_name, date_of_birth, role')
+          .eq('id', user.id)
+          .single()
+        if (data) {
+          setProfile(data)
+        }
+      } catch {
+        // ignore profile load failure; calculator still works
+      } finally {
+        setProfileLoading(false)
+      }
+    }
+    loadProfile()
   }, [])
 
   const years = useMemo(() => {
@@ -181,6 +227,14 @@ export function StudentWorkspace() {
             <p className="text-neutral-600 dark:text-neutral-300">
               Run calculations, save terms, and track your progress over years and terms.
             </p>
+            {!profileLoading && profile && (
+              <p className="text-sm text-neutral-500 dark:text-neutral-400 mt-1">
+                Signed in as <span className="font-semibold text-neutral-800 dark:text-white">{profile.full_name}</span>
+                {calculateAge(profile.date_of_birth) !== null && (
+                  <> - Age {calculateAge(profile.date_of_birth)} yrs</>
+                )}
+              </p>
+            )}
           </div>
           <div className="flex gap-2">
             <select

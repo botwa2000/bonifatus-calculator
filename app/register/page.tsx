@@ -55,9 +55,32 @@ export default function RegisterPage() {
     return true
   }
 
+  const calculateAge = (dob: string) => {
+    const parsed = new Date(dob)
+    if (Number.isNaN(parsed.getTime())) return 0
+    const today = new Date()
+    let age = today.getFullYear() - parsed.getFullYear()
+    const m = today.getMonth() - parsed.getMonth()
+    if (m < 0 || (m === 0 && today.getDate() < parsed.getDate())) {
+      age -= 1
+    }
+    return age
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
+
+    if (!formData.dateOfBirth) {
+      setError('Please provide the date of birth.')
+      return
+    }
+
+    const age = calculateAge(formData.dateOfBirth)
+    if (age < 5 || age > 150) {
+      setError('Date of birth looks incorrect. Age must be between 5 and 150.')
+      return
+    }
 
     // Validate passwords match
     if (formData.password !== formData.confirmPassword) {
@@ -89,7 +112,7 @@ export default function RegisterPage() {
           email: formData.email,
           password: formData.password,
           fullName: formData.fullName,
-          dateOfBirth: '2000-01-01', // Temporary placeholder - will be added back later
+          dateOfBirth: formData.dateOfBirth,
           role: formData.role,
           turnstileToken: turnstileToken,
         }),
@@ -404,8 +427,7 @@ export default function RegisterPage() {
               />
             </div>
 
-            {/* Date of Birth - Commented out for now */}
-            {/* <div>
+            <div>
               <label
                 htmlFor="dateOfBirth"
                 className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2"
@@ -416,11 +438,17 @@ export default function RegisterPage() {
                 id="dateOfBirth"
                 type="date"
                 required
+                max={new Date().toISOString().split('T')[0]}
                 value={formData.dateOfBirth}
                 onChange={(e) => setFormData({ ...formData, dateOfBirth: e.target.value })}
                 className="w-full px-4 py-3 rounded-lg border-2 border-neutral-300 dark:border-neutral-600 bg-white dark:bg-neutral-700 text-neutral-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-normal outline-none"
               />
-            </div> */}
+              {formData.dateOfBirth && (
+                <p className="mt-1 text-xs text-neutral-500 dark:text-neutral-400">
+                  Age: {calculateAge(formData.dateOfBirth)} years (must be 5+)
+                </p>
+              )}
+            </div>
 
             {/* Email */}
             <div>
