@@ -48,6 +48,24 @@ export async function GET() {
       .order('created_at', { ascending: false })
 
     if (error) {
+      // If the table isn't present (e.g., migrations not applied yet), avoid crashing the UI
+      if (error.code === 'PGRST205' || /Could not find the table/i.test(error.message || '')) {
+        console.error('[grades/list] table missing', {
+          status,
+          code: error.code,
+          message: error.message,
+          userId: user.id,
+        })
+        return NextResponse.json(
+          {
+            success: true,
+            terms: [],
+            warning: 'Grades table not found; returning empty list.',
+          },
+          { status: 200 }
+        )
+      }
+
       // Surface auth-related errors as 401 so the client can refresh the session
       const isAuthError =
         status === 401 ||
