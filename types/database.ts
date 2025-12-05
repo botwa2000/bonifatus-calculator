@@ -8,6 +8,110 @@ export type Json = string | number | boolean | null | { [key: string]: Json | un
 export interface Database {
   public: {
     Tables: {
+      parent_child_invites: {
+        Row: {
+          id: string
+          parent_id: string
+          child_id: string | null
+          code: string
+          status: 'pending' | 'accepted' | 'cancelled' | 'expired'
+          expires_at: string
+          created_at: string
+          accepted_at: string | null
+        }
+        Insert: {
+          id?: string
+          parent_id: string
+          child_id?: string | null
+          code: string
+          status?: 'pending' | 'accepted' | 'cancelled' | 'expired'
+          expires_at: string
+          created_at?: string
+          accepted_at?: string | null
+        }
+        Update: {
+          id?: string
+          parent_id?: string
+          child_id?: string | null
+          code?: string
+          status?: 'pending' | 'accepted' | 'cancelled' | 'expired'
+          expires_at?: string
+          created_at?: string
+          accepted_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'parent_child_invites_child_id_fkey'
+            columns: ['child_id']
+            referencedRelation: 'user_profiles'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'parent_child_invites_parent_id_fkey'
+            columns: ['parent_id']
+            referencedRelation: 'user_profiles'
+            referencedColumns: ['id']
+          },
+        ]
+      }
+      parent_child_relationships: {
+        Row: {
+          id: string
+          parent_id: string
+          child_id: string
+          relationship_type: 'parent'
+          invitation_status: 'pending' | 'accepted' | 'revoked'
+          invited_at: string
+          responded_at: string | null
+          invited_by: string
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          parent_id: string
+          child_id: string
+          relationship_type?: 'parent'
+          invitation_status?: 'pending' | 'accepted' | 'revoked'
+          invited_at?: string
+          responded_at?: string | null
+          invited_by: string
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          parent_id?: string
+          child_id?: string
+          relationship_type?: 'parent'
+          invitation_status?: 'pending' | 'accepted' | 'revoked'
+          invited_at?: string
+          responded_at?: string | null
+          invited_by?: string
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'parent_child_relationships_child_id_fkey'
+            columns: ['child_id']
+            referencedRelation: 'user_profiles'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'parent_child_relationships_invited_by_fkey'
+            columns: ['invited_by']
+            referencedRelation: 'user_profiles'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'parent_child_relationships_parent_id_fkey'
+            columns: ['parent_id']
+            referencedRelation: 'user_profiles'
+            referencedColumns: ['id']
+          },
+        ]
+      }
       user_profiles: {
         Row: {
           id: string
