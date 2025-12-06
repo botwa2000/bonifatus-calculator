@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
-import { BrowserQRCodeReader } from '@zxing/browser'
+import { BrowserMultiFormatReader } from '@zxing/browser'
 
 type ParentConnection = {
   id: string
@@ -22,7 +22,7 @@ export default function StudentProfilePage() {
   const [scanning, setScanning] = useState(false)
   const [scanError, setScanError] = useState<string | null>(null)
   const videoRef = useRef<HTMLVideoElement | null>(null)
-  const readerRef = useRef<BrowserQRCodeReader | null>(null)
+  const readerRef = useRef<BrowserMultiFormatReader | null>(null)
 
   const loadConnections = async () => {
     setLoading(true)
@@ -49,7 +49,7 @@ export default function StudentProfilePage() {
       return
     }
 
-    const reader = new BrowserQRCodeReader()
+    const reader = new BrowserMultiFormatReader()
     readerRef.current = reader
     setScanError(null)
 
