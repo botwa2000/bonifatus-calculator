@@ -53,7 +53,7 @@ export default function StudentProfilePage() {
     readerRef.current = reader
     setScanError(null)
 
-    reader.decodeFromVideoDevice(null, videoRef.current as HTMLVideoElement, (result, err) => {
+    reader.decodeFromVideoDevice(undefined, videoRef.current as HTMLVideoElement, (result, err) => {
       if (result?.getText()) {
         setCode(result.getText().trim())
         setScanning(false)
