@@ -6,7 +6,7 @@ const schema = z.object({
   expiresInMinutes: z
     .number()
     .int()
-    .min(10)
+    .min(1)
     .max(60 * 24 * 7)
     .optional(),
 })
@@ -33,7 +33,8 @@ export async function POST(request: NextRequest) {
     )
   }
 
-  const expiresInMinutes = parsed.data.expiresInMinutes ?? 60 * 24
+  // Enforce 15-minute expiry for all invites (ignore longer client requests)
+  const expiresInMinutes = Math.min(parsed.data.expiresInMinutes ?? 15, 15)
   const supabase = await createServerSupabaseClient()
 
   // best-effort uniqueness: retry up to 5 times

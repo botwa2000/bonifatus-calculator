@@ -12,6 +12,17 @@ export async function GET() {
   // Determine role to know whether to return invites
   const profile = await getUserProfile()
 
+  // Expire any pending invites that are past their expiration
+  if (profile?.role === 'parent') {
+    const nowIso = new Date().toISOString()
+    await supabase
+      .from('parent_child_invites')
+      .update({ status: 'expired' })
+      .eq('parent_id', user.id)
+      .eq('status', 'pending')
+      .lt('expires_at', nowIso)
+  }
+
   const { data: relationships, error: relError } = await supabase
     .from('parent_child_relationships')
     .select(
