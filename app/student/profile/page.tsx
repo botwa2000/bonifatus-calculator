@@ -132,7 +132,10 @@ export default function StudentProfilePage() {
         </div>
       )}
 
-      <div className="rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-5 shadow-sm space-y-3">
+      <div
+        id="connect-parent"
+        className="rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-5 shadow-sm space-y-3"
+      >
         <div className="flex items-center justify-between gap-3">
           <label className="block text-sm font-semibold text-neutral-800 dark:text-white">
             Enter or scan code

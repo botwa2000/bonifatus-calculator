@@ -1,5 +1,6 @@
 'use client'
 
+import Link from 'next/link'
 import { useEffect, useMemo, useState } from 'react'
 import { DemoCalculator } from '@/components/demo-calculator'
 import { createBrowserSupabaseClient } from '@/lib/supabase/browser'
@@ -295,7 +296,13 @@ export function StudentWorkspace() {
               </p>
             )}
           </div>
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2 justify-end">
+            <Link
+              href="/student/profile#connect-parent"
+              className="rounded-lg border border-primary-200 bg-primary-50 px-3 py-2 text-sm font-semibold text-primary-700 shadow-sm hover:border-primary-400 hover:text-primary-800 dark:border-primary-700/60 dark:bg-primary-900/30 dark:text-primary-200"
+            >
+              Connect to parent
+            </Link>
             <select
               value={selectedYear}
               onChange={(e) => setSelectedYear(e.target.value)}

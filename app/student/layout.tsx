@@ -29,7 +29,7 @@ export default async function StudentLayout({ children }: { children: React.Reac
     { label: 'Calculator', href: '/student/dashboard#calculator' },
     { label: 'Saved', href: '/student/dashboard#saved' },
     { label: 'Insights', href: '/student/dashboard#insights' },
-    { label: 'Profile', href: '/profile' },
+    { label: 'Profile & connections', href: '/student/profile' },
   ]
 
   return (
