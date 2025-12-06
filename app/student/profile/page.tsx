@@ -1,6 +1,7 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
+import { BrowserQRCodeReader } from '@zxing/browser'
 
 type ParentConnection = {
   id: string
@@ -18,6 +19,10 @@ export default function StudentProfilePage() {
   const [connections, setConnections] = useState<ParentConnection[]>([])
   const [loading, setLoading] = useState(true)
   const [removingId, setRemovingId] = useState<string | null>(null)
+  const [scanning, setScanning] = useState(false)
+  const [scanError, setScanError] = useState<string | null>(null)
+  const videoRef = useRef<HTMLVideoElement | null>(null)
+  const readerRef = useRef<BrowserQRCodeReader | null>(null)
 
   const loadConnections = async () => {
     setLoading(true)
@@ -37,6 +42,30 @@ export default function StudentProfilePage() {
   useEffect(() => {
     loadConnections()
   }, [])
+
+  useEffect(() => {
+    if (!scanning) {
+      readerRef.current?.reset()
+      return
+    }
+
+    const reader = new BrowserQRCodeReader()
+    readerRef.current = reader
+    setScanError(null)
+
+    reader.decodeFromVideoDevice(null, videoRef.current as HTMLVideoElement, (result, err) => {
+      if (result?.getText()) {
+        setCode(result.getText().trim())
+        setScanning(false)
+      } else if (err && err.name !== 'NotFoundException') {
+        setScanError('Could not read QR. Try again or enter the code manually.')
+      }
+    })
+
+    return () => {
+      reader.reset()
+    }
+  }, [scanning])
 
   const redeem = async () => {
     setRedeeming(true)
@@ -104,9 +133,32 @@ export default function StudentProfilePage() {
       )}
 
       <div className="rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-5 shadow-sm space-y-3">
-        <label className="block text-sm font-semibold text-neutral-800 dark:text-white">
-          Enter code
-        </label>
+        <div className="flex items-center justify-between gap-3">
+          <label className="block text-sm font-semibold text-neutral-800 dark:text-white">
+            Enter or scan code
+          </label>
+          <button
+            type="button"
+            onClick={() => setScanning((prev) => !prev)}
+            className="text-sm font-semibold text-primary-600 dark:text-primary-300 hover:underline"
+          >
+            {scanning ? 'Stop scanning' : 'Scan QR'}
+          </button>
+        </div>
+
+        {scanning && (
+          <div className="space-y-2 rounded-lg border border-neutral-200 dark:border-neutral-800 p-3">
+            <div className="text-xs text-neutral-600 dark:text-neutral-300">
+              Point your camera at the QR code to capture the invite. Grant camera permission if
+              prompted.
+            </div>
+            <div className="aspect-video overflow-hidden rounded-lg bg-neutral-100 dark:bg-neutral-800">
+              <video ref={videoRef} className="h-full w-full object-cover" />
+            </div>
+            {scanError && <p className="text-xs text-error-600 dark:text-error-400">{scanError}</p>}
+          </div>
+        )}
+
         <input
           value={code}
           onChange={(e) => setCode(e.target.value)}
@@ -114,13 +166,22 @@ export default function StudentProfilePage() {
           placeholder="123456"
           className="w-full rounded-lg border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 py-2 text-lg tracking-widest text-center"
         />
-        <button
-          onClick={redeem}
-          disabled={redeeming || code.trim().length !== 6}
-          className="w-full rounded-lg bg-gradient-to-r from-primary-600 to-secondary-600 text-white font-semibold py-2 shadow-button disabled:opacity-60"
-        >
-          {redeeming ? 'Linking...' : 'Link parent'}
-        </button>
+        <div className="flex gap-2">
+          <button
+            onClick={redeem}
+            disabled={redeeming || code.trim().length !== 6}
+            className="w-full rounded-lg bg-gradient-to-r from-primary-600 to-secondary-600 text-white font-semibold py-2 shadow-button disabled:opacity-60"
+          >
+            {redeeming ? 'Linking...' : 'Link parent'}
+          </button>
+          <button
+            type="button"
+            onClick={loadConnections}
+            className="rounded-lg border border-neutral-200 dark:border-neutral-700 px-3 py-2 text-sm font-semibold text-neutral-800 dark:text-white"
+          >
+            Refresh
+          </button>
+        </div>
       </div>
 
       <div className="rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-5 shadow-sm">
