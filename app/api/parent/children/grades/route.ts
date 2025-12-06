@@ -20,7 +20,7 @@ export async function GET() {
     .select(
       `
       id,
-      child:child_id (
+      child:user_profiles!child_id (
         id,
         full_name,
         role,
