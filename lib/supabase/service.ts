@@ -1,4 +1,4 @@
-import { createClient } from '@supabase/supabase-js'
+import { createClient, type SupabaseClient } from '@supabase/supabase-js'
 import type { Database } from '@/types/database'
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
@@ -9,11 +9,12 @@ if (!supabaseUrl || !serviceRoleKey) {
 }
 
 // Service-role client for trusted server-side operations (bypasses RLS)
-export function createServiceSupabaseClient() {
-  return createClient<Database>(supabaseUrl, serviceRoleKey, {
+export function createServiceSupabaseClient(): SupabaseClient<Database, 'public'> {
+  return createClient<Database, 'public'>(supabaseUrl, serviceRoleKey, {
     auth: {
       autoRefreshToken: false,
       persistSession: false,
     },
+    db: { schema: 'public' },
   })
 }

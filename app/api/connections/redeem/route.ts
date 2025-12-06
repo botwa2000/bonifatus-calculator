@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
-import { createServerSupabaseClient, getUserProfile } from '@/lib/supabase/client'
+import { getUserProfile } from '@/lib/supabase/client'
 import { createServiceSupabaseClient } from '@/lib/supabase/service'
 
 const schema = z.object({
