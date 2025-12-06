@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { createServerSupabaseClient, getUserProfile } from '@/lib/supabase/client'
+import { createServiceSupabaseClient } from '@/lib/supabase/service'
 
 const schema = z.object({
   code: z.string().regex(/^[0-9]{6}$/),
@@ -24,7 +25,9 @@ export async function POST(request: NextRequest) {
     )
   }
 
-  const supabase = await createServerSupabaseClient()
+  // Use service role to avoid RLS blocking child lookups by code
+  const supabase = await createServiceSupabaseClient()
+
   const { data: invite, error: inviteErr } = await supabase
     .from('parent_child_invites')
     .select('id, parent_id, status, expires_at')
