@@ -7,6 +7,8 @@ import { createBrowserSupabaseClient } from '@/lib/supabase/browser'
 const WARNING_MS = 9 * 60 * 1000 // show warning after 9 minutes of inactivity
 const LOGOUT_MS = 10 * 60 * 1000 // auto-logout after 10 minutes
 const IDLE_FLAG_KEY = 'bonifatus-idle-logout'
+const LAST_ACTIVE_KEY = 'bonifatus-last-active'
+const LOGOUT_BROADCAST_KEY = 'bonifatus-idle-logout-broadcast'
 
 export function IdleLogoutGuard() {
   const router = useRouter()
@@ -20,6 +22,30 @@ export function IdleLogoutGuard() {
   const warningTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const logoutTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const countdownIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
+
+  const persistLastActive = (timestamp: number) => {
+    lastActiveRef.current = timestamp
+    try {
+      localStorage.setItem(LAST_ACTIVE_KEY, String(timestamp))
+    } catch {
+      // storage unavailable (e.g. private mode), ignore persistence
+    }
+  }
+
+  const hydrateLastActive = () => {
+    if (typeof window === 'undefined') return
+    try {
+      const raw = localStorage.getItem(LAST_ACTIVE_KEY)
+      const parsed = raw ? Number(raw) : NaN
+      if (Number.isFinite(parsed)) {
+        lastActiveRef.current = parsed
+        return
+      }
+    } catch {
+      // noop
+    }
+    persistLastActive(Date.now())
+  }
 
   const clearTimers = () => {
     if (warningTimerRef.current) {
@@ -49,6 +75,8 @@ export function IdleLogoutGuard() {
   const handleLogout = async () => {
     try {
       sessionStorage.setItem(IDLE_FLAG_KEY, '1')
+      localStorage.setItem(LOGOUT_BROADCAST_KEY, String(Date.now()))
+      localStorage.removeItem(LAST_ACTIVE_KEY)
     } catch {
       // noop
     }
@@ -60,19 +88,41 @@ export function IdleLogoutGuard() {
     router.refresh()
   }
 
-  const resetTimers = () => {
+  const syncTimersFromLastActive = () => {
     if (!hasSession) return
-    lastActiveRef.current = Date.now()
     clearTimers()
     setShowWarning(false)
     setCountdownMs(null)
-    warningTimerRef.current = setTimeout(() => {
+
+    const elapsed = Date.now() - lastActiveRef.current
+
+    if (elapsed >= LOGOUT_MS) {
+      handleLogout()
+      return
+    }
+
+    const remainingWarning = Math.max(0, WARNING_MS - elapsed)
+    const remainingLogout = LOGOUT_MS - elapsed
+
+    if (elapsed >= WARNING_MS) {
       setShowWarning(true)
       resetCountdown()
-    }, WARNING_MS)
+    } else {
+      warningTimerRef.current = setTimeout(() => {
+        setShowWarning(true)
+        resetCountdown()
+      }, remainingWarning)
+    }
+
     logoutTimerRef.current = setTimeout(() => {
       handleLogout()
-    }, LOGOUT_MS)
+    }, remainingLogout)
+  }
+
+  const resetTimers = () => {
+    if (!hasSession) return
+    persistLastActive(Date.now())
+    syncTimersFromLastActive()
   }
 
   useEffect(() => {
@@ -90,14 +140,20 @@ export function IdleLogoutGuard() {
       const active = Boolean(data.session)
       setHasSession(active)
       if (active) {
-        resetTimers()
+        hydrateLastActive()
+        syncTimersFromLastActive()
       }
     })
     const { data: listener } = supabase.auth.onAuthStateChange((event, session) => {
       const active = Boolean(session)
       setHasSession(active)
       if (active) {
-        resetTimers()
+        if (event === 'SIGNED_IN') {
+          persistLastActive(Date.now())
+        } else {
+          hydrateLastActive()
+        }
+        syncTimersFromLastActive()
       } else {
         clearTimers()
         setShowWarning(false)
@@ -136,6 +192,27 @@ export function IdleLogoutGuard() {
     events.forEach((evt) => window.addEventListener(evt, onActivity, { passive: true }))
     return () => {
       events.forEach((evt) => window.removeEventListener(evt, onActivity))
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [hasSession])
+
+  useEffect(() => {
+    if (!hasSession) return
+    const onStorage = (event: StorageEvent) => {
+      if (event.key === LAST_ACTIVE_KEY && event.newValue) {
+        const ts = Number(event.newValue)
+        if (Number.isFinite(ts)) {
+          lastActiveRef.current = ts
+          syncTimersFromLastActive()
+        }
+      }
+      if (event.key === LOGOUT_BROADCAST_KEY && event.newValue) {
+        handleLogout()
+      }
+    }
+    window.addEventListener('storage', onStorage)
+    return () => {
+      window.removeEventListener('storage', onStorage)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [hasSession])

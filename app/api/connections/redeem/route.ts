@@ -55,11 +55,28 @@ export async function POST(request: NextRequest) {
     .eq('child_id', profile.id)
     .maybeSingle()
 
-  if (existingLink?.invitation_status === 'accepted') {
+  if (existingLink) {
+    // Relationship already exists (pending/revoked/accepted) – promote to accepted
+    const { error: updateRelErr } = await supabase
+      .from('parent_child_relationships')
+      .update({
+        invitation_status: 'accepted',
+        responded_at: new Date().toISOString(),
+      })
+      .eq('id', existingLink.id)
+
+    if (updateRelErr) {
+      return NextResponse.json(
+        { success: false, error: 'Failed to update existing link', details: updateRelErr.message },
+        { status: 500 }
+      )
+    }
+
     await supabase
       .from('parent_child_invites')
       .update({ status: 'accepted', child_id: profile.id, accepted_at: new Date().toISOString() })
       .eq('id', invite.id)
+
     return NextResponse.json({ success: true, relationshipId: existingLink.id })
   }
 
@@ -76,6 +93,27 @@ export async function POST(request: NextRequest) {
     .single()
 
   if (relErr || !relationship) {
+    // Handle uniqueness constraint (already linked) gracefully
+    if (relErr?.code === '23505') {
+      const { data: link } = await supabase
+        .from('parent_child_relationships')
+        .select('id')
+        .eq('parent_id', invite.parent_id)
+        .eq('child_id', profile.id)
+        .maybeSingle()
+
+      if (link) {
+        await supabase
+          .from('parent_child_invites')
+          .update({
+            status: 'accepted',
+            child_id: profile.id,
+            accepted_at: new Date().toISOString(),
+          })
+          .eq('id', invite.id)
+        return NextResponse.json({ success: true, relationshipId: link.id })
+      }
+    }
     return NextResponse.json(
       { success: false, error: 'Failed to link accounts', details: relErr?.message },
       { status: 500 }
