@@ -45,7 +45,7 @@ export default function StudentProfilePage() {
 
   useEffect(() => {
     if (!scanning) {
-      readerRef.current?.reset()
+      ;(readerRef.current as unknown as { reset?: () => void })?.reset?.()
       return
     }
 
@@ -63,7 +63,7 @@ export default function StudentProfilePage() {
     })
 
     return () => {
-      reader.reset()
+      ;(reader as unknown as { reset?: () => void })?.reset?.()
     }
   }, [scanning])
 
