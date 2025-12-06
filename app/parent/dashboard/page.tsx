@@ -1,5 +1,6 @@
 'use client'
 
+import Link from 'next/link'
 import { useEffect, useMemo, useState } from 'react'
 
 type ChildWithGrades = {
@@ -90,14 +91,30 @@ export default function ParentDashboardPage() {
     return { totalKids, totalTerms, totalBonus }
   }, [data])
 
+  const childrenHref = '/parent/children'
+
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 space-y-8">
       <header className="space-y-2">
         <p className="text-sm text-neutral-500">Parent dashboard</p>
         <h1 className="text-3xl font-bold text-neutral-900 dark:text-white">Children insights</h1>
         <p className="text-neutral-600 dark:text-neutral-300">
-          View each child’s saved results and subject-level details. Read-only access.
+          View each child&apos;s saved results and subject-level details. Read-only access.
         </p>
+        <div className="flex flex-wrap gap-3 pt-2">
+          <Link
+            href={childrenHref}
+            className="rounded-lg bg-gradient-to-r from-primary-600 to-secondary-600 px-4 py-2 text-sm font-semibold text-white shadow-button"
+          >
+            Children - manage profiles
+          </Link>
+          <Link
+            href={childrenHref}
+            className="rounded-lg border border-neutral-200 px-4 py-2 text-sm font-semibold text-neutral-800 transition hover:border-primary-400 hover:text-primary-700 dark:border-neutral-700 dark:text-white dark:hover:border-primary-500 dark:hover:text-primary-200"
+          >
+            View children
+          </Link>
+        </div>
       </header>
 
       {error && (
@@ -143,7 +160,17 @@ export default function ParentDashboardPage() {
         {loading ? (
           <p className="text-sm text-neutral-500">Loading...</p>
         ) : data.length === 0 ? (
-          <p className="text-sm text-neutral-500">No linked children yet.</p>
+          <div className="space-y-2 rounded-xl border border-dashed border-neutral-300 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-900/60 px-4 py-6 text-sm text-neutral-600 dark:text-neutral-300">
+            <p>
+              No linked children yet. Invite your child with a 6-digit code to start seeing data.
+            </p>
+            <Link
+              href="/parent/children"
+              className="inline-flex w-fit rounded-lg bg-gradient-to-r from-primary-600 to-secondary-600 px-4 py-2 text-sm font-semibold text-white shadow-button"
+            >
+              Go to invites
+            </Link>
+          </div>
         ) : (
           <div className="space-y-3">
             {data.map((child) => {
