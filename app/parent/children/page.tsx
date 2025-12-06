@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import dynamic from 'next/dynamic'
 
-const QRCode = dynamic(() => import('qrcode.react'), { ssr: false })
+const QRCode = dynamic(async () => (await import('qrcode.react')).default, { ssr: false })
 
 type Connection = {
   id: string
