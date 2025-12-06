@@ -9,8 +9,8 @@ if (!supabaseUrl || !serviceRoleKey) {
 }
 
 // Service-role client for trusted server-side operations (bypasses RLS)
-export function createServiceSupabaseClient(): SupabaseClient<Database, 'public'> {
-  return createClient<Database, 'public'>(supabaseUrl, serviceRoleKey, {
+export function createServiceSupabaseClient(): SupabaseClient<Database> {
+  return createClient<Database>(supabaseUrl, serviceRoleKey, {
     auth: {
       autoRefreshToken: false,
       persistSession: false,
