@@ -4,8 +4,8 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createBrowserSupabaseClient } from '@/lib/supabase/browser'
 
-const WARNING_MS = 9 * 60 * 1000 // show warning after 9 minutes of inactivity
-const LOGOUT_MS = 10 * 60 * 1000 // auto-logout after 10 minutes
+const WARNING_MS = 13 * 60 * 1000 // show warning after ~13 minutes (2 minutes before logout)
+const LOGOUT_MS = 15 * 60 * 1000 // auto-logout after 15 minutes
 const IDLE_FLAG_KEY = 'bonifatus-idle-logout'
 const LAST_ACTIVE_KEY = 'bonifatus-last-active'
 const LOGOUT_BROADCAST_KEY = 'bonifatus-idle-logout-broadcast'
@@ -22,6 +22,8 @@ export function IdleLogoutGuard() {
   const warningTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const logoutTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const countdownIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
+
+  const hasExpired = (now: number = Date.now()) => now - lastActiveRef.current >= LOGOUT_MS
 
   const persistLastActive = (timestamp: number) => {
     lastActiveRef.current = timestamp
@@ -178,20 +180,41 @@ export function IdleLogoutGuard() {
   useEffect(() => {
     if (!hasSession) return
     const onActivity = () => {
-      lastActiveRef.current = Date.now()
-      resetTimers()
+      const now = Date.now()
+      if (hasExpired(now)) {
+        handleLogout()
+        return
+      }
+      persistLastActive(now)
+      syncTimersFromLastActive()
     }
-    const events: Array<keyof DocumentEventMap> = [
+
+    const onVisibilityReturn = () => {
+      if (document.visibilityState !== 'visible') return
+      const now = Date.now()
+      if (hasExpired(now)) {
+        handleLogout()
+        return
+      }
+      syncTimersFromLastActive()
+    }
+
+    const activityEvents: Array<keyof DocumentEventMap> = [
       'click',
       'keydown',
       'mousemove',
       'scroll',
       'touchstart',
-      'visibilitychange',
     ]
-    events.forEach((evt) => window.addEventListener(evt, onActivity, { passive: true }))
+
+    activityEvents.forEach((evt) => window.addEventListener(evt, onActivity, { passive: true }))
+    window.addEventListener('visibilitychange', onVisibilityReturn)
+    window.addEventListener('focus', onVisibilityReturn)
+
     return () => {
-      events.forEach((evt) => window.removeEventListener(evt, onActivity))
+      activityEvents.forEach((evt) => window.removeEventListener(evt, onActivity))
+      window.removeEventListener('visibilitychange', onVisibilityReturn)
+      window.removeEventListener('focus', onVisibilityReturn)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [hasSession])

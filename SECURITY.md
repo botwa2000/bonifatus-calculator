@@ -258,7 +258,7 @@ Never trust, always verify - all requests authenticated and authorized.
 
 **Session Properties**:
 
-- **Idle timeout**: 7 days of inactivity
+- **Idle timeout**: 15 minutes of inactivity (forced logout after idle warning)
 - **Absolute timeout**: 30 days from login
 - **Storage**: Secure httpOnly cookies
 - **Refresh**: Automatic silent refresh before expiration

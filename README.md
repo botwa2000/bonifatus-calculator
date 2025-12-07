@@ -201,7 +201,7 @@ Bonifatus is a Progressive Web Application that helps parents motivate their chi
 - Email verification mandatory before account activation
 - OAuth with trusted providers only (Google, Microsoft)
 - Session management with secure tokens
-- Automatic logout after inactivity
+- Automatic logout after 15 minutes of inactivity (with warning prompt)
 - Two-factor authentication for parent accounts
 
 ### Data Protection
