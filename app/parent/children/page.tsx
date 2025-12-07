@@ -38,6 +38,14 @@ type TermPreview = {
   total_bonus_points: number
   created_at: string
   subject_count: number
+  subject_grades: Array<{
+    id: string
+    grade_value: string | null
+    grade_normalized_100: number | null
+    subject_weight: number | null
+    bonus_points: number | null
+    subjects?: { name?: string | Record<string, string> | null } | null
+  }>
 }
 
 type GradesChild = {
@@ -73,6 +81,7 @@ export default function ParentChildrenPage() {
   const [gradeSummaries, setGradeSummaries] = useState<Record<string, ChildGradeSummary>>({})
   const [gradePreviews, setGradePreviews] = useState<Record<string, TermPreview[]>>({})
   const [gradesLoaded, setGradesLoaded] = useState(false)
+  const [expandedTerm, setExpandedTerm] = useState<Record<string, string | null>>({})
 
   useEffect(() => {
     const timer = setInterval(() => setNowMs(Date.now()), 15000)
@@ -143,6 +152,7 @@ export default function ParentChildrenPage() {
               total_bonus_points: Number(t.total_bonus_points ?? 0),
               created_at: t.created_at,
               subject_count: (t.subject_grades || []).length,
+              subject_grades: (t.subject_grades || []) as TermPreview['subject_grades'],
             }))
         })
         setGradeSummaries(summaries)
@@ -206,14 +216,43 @@ export default function ParentChildrenPage() {
   const hasConnections = connections.length > 0
 
   const formatDate = (value?: string | null) => {
-    if (!value) return '—'
+    if (!value) return '-'
     const d = new Date(value)
-    if (Number.isNaN(d.getTime())) return '—'
+    if (Number.isNaN(d.getTime())) return '-'
     return d.toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' })
   }
 
+  const weightedAverage = (subjects: TermPreview['subject_grades']) => {
+    if (!subjects.length) return 0
+    let totalWeight = 0
+    let totalScore = 0
+    subjects.forEach((sg) => {
+      const weight = Number(sg.subject_weight ?? 1)
+      const normalized = Number(sg.grade_normalized_100 ?? 0)
+      totalWeight += weight
+      totalScore += normalized * weight
+    })
+    if (totalWeight === 0) return 0
+    return totalScore / totalWeight
+  }
+
+  const sortSubjects = (subjects: TermPreview['subject_grades']) =>
+    [...subjects].sort((a, b) => {
+      const nameA =
+        (a.subjects?.name && typeof a.subjects.name === 'object'
+          ? a.subjects.name['en'] || Object.values(a.subjects.name)[0]
+          : (a.subjects?.name as string)
+        )?.toString() || ''
+      const nameB =
+        (b.subjects?.name && typeof b.subjects.name === 'object'
+          ? b.subjects.name['en'] || Object.values(b.subjects.name)[0]
+          : (b.subjects?.name as string)
+        )?.toString() || ''
+      return nameA.localeCompare(nameB)
+    })
+
   return (
-    <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-6">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-6">
       <header className="space-y-2">
         <p className="text-sm text-neutral-500">Parent access</p>
         <h1 className="text-3xl font-bold text-neutral-900 dark:text-white">Dashboard</h1>
@@ -234,7 +273,7 @@ export default function ParentChildrenPage() {
         </div>
       )}
 
-      <div className="grid lg:grid-cols-[2fr_1fr] gap-6">
+      <div className="grid lg:grid-cols-[7fr_4fr] gap-6">
         <div className="space-y-4">
           <div className="rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-5 shadow-sm">
             <div className="flex items-center justify-between mb-4">
@@ -266,101 +305,163 @@ export default function ParentChildrenPage() {
               </div>
             ) : (
               <div className="space-y-3">
-                {connections.map((connection) => (
-                  <div
-                    key={connection.id}
-                    className="rounded-xl border border-neutral-100 dark:border-neutral-800 px-4 py-3 bg-neutral-50/80 dark:bg-neutral-900/70"
-                  >
-                    <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-                      <div className="space-y-1">
-                        <p className="text-lg font-semibold text-neutral-900 dark:text-white">
-                          {connection.child?.full_name || 'Child'}
-                        </p>
-                        <div className="flex flex-wrap gap-3 text-xs text-neutral-600 dark:text-neutral-400">
-                          <span className="font-semibold text-primary-600 dark:text-primary-300">
-                            {connection.invitation_status || 'accepted'}
-                          </span>
-                          <span>
-                            Connected:{' '}
-                            {formatDate(connection.responded_at || connection.invited_at)}
-                          </span>
-                        </div>
-                        <div className="flex flex-wrap gap-2 text-xs">
-                          <span className="rounded-full bg-primary-50 text-primary-700 dark:bg-primary-900/40 dark:text-primary-200 px-2 py-1">
-                            {gradesLoaded && gradeSummaries[connection.child_id]
-                              ? gradeSummaries[connection.child_id].savedTerms
-                              : '—'}{' '}
-                            saved results
-                          </span>
-                          <span className="rounded-full bg-amber-50 text-amber-700 dark:bg-amber-900/40 dark:text-amber-200 px-2 py-1">
-                            Bonus{' '}
-                            {gradesLoaded && gradeSummaries[connection.child_id]
-                              ? Number(gradeSummaries[connection.child_id].totalBonus || 0).toFixed(
-                                  2
-                                )
-                              : '—'}
-                          </span>
-                          <span className="rounded-full bg-neutral-100 text-neutral-700 dark:bg-neutral-800 dark:text-neutral-200 px-2 py-1">
-                            Updated{' '}
-                            {gradesLoaded && gradeSummaries[connection.child_id]
-                              ? formatDate(gradeSummaries[connection.child_id].lastUpdated)
-                              : '—'}
-                          </span>
-                        </div>
-                        <div className="rounded-lg border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-950/60 p-3 space-y-2">
-                          <div className="flex items-center justify-between">
-                            <p className="text-sm font-semibold text-neutral-900 dark:text-white">
-                              Saved results
-                            </p>
-                            <a
-                              className="text-xs font-semibold text-primary-600 dark:text-primary-300 hover:underline"
-                              href="https://www.bonifatus.com/parent/children"
-                            >
-                              View all
-                            </a>
-                          </div>
-                          {!gradesLoaded ? (
-                            <p className="text-xs text-neutral-500">Loading saved results...</p>
-                          ) : (gradePreviews[connection.child_id] || []).length === 0 ? (
-                            <p className="text-xs text-neutral-500">No saved results yet.</p>
-                          ) : (
-                            <div className="space-y-1.5">
-                              {(gradePreviews[connection.child_id] || []).map((term) => (
-                                <div
-                                  key={term.id}
-                                  className="flex items-center justify-between rounded-md border border-neutral-100 dark:border-neutral-800 px-3 py-2 text-xs"
+                {connections.map((connection) => {
+                  const savedTerms =
+                    gradesLoaded && gradeSummaries[connection.child_id]
+                      ? gradeSummaries[connection.child_id].savedTerms
+                      : '-'
+                  const totalBonus =
+                    gradesLoaded && gradeSummaries[connection.child_id]
+                      ? Number(gradeSummaries[connection.child_id].totalBonus || 0).toFixed(2)
+                      : '-'
+                  const lastUpdated =
+                    gradesLoaded && gradeSummaries[connection.child_id]
+                      ? formatDate(gradeSummaries[connection.child_id].lastUpdated)
+                      : '-'
+
+                  return (
+                    <div
+                      key={connection.id}
+                      className="rounded-2xl border border-neutral-100 dark:border-neutral-800 px-4 py-4 bg-neutral-50/80 dark:bg-neutral-900/70"
+                    >
+                      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                        <div className="space-y-2 flex-1">
+                          <div className="flex items-start justify-between gap-2">
+                            <div className="space-y-1">
+                              <p className="text-lg font-semibold text-neutral-900 dark:text-white flex items-center gap-2">
+                                {connection.child?.full_name || 'Child'}
+                                <button
+                                  onClick={() => handleRemove(connection.id)}
+                                  disabled={removingId === connection.id}
+                                  className="text-xs text-error-600 hover:text-error-700 disabled:opacity-50"
+                                  title="Break connection"
                                 >
-                                  <div>
-                                    <p className="font-semibold text-neutral-900 dark:text-white">
-                                      {term.school_year} · {term.term_type}
-                                      {term.term_name ? ` · ${term.term_name}` : ''}
-                                    </p>
-                                    <p className="text-neutral-500">
-                                      {term.subject_count} subjects · Bonus{' '}
-                                      {term.total_bonus_points.toFixed(2)}
-                                    </p>
-                                  </div>
-                                  <span className="text-neutral-500">
-                                    {formatDate(term.created_at)}
-                                  </span>
-                                </div>
-                              ))}
+                                  ✕
+                                </button>
+                              </p>
+                              <div className="flex flex-wrap gap-3 text-xs text-neutral-600 dark:text-neutral-400">
+                                <span className="font-semibold text-primary-600 dark:text-primary-300">
+                                  {connection.invitation_status || 'accepted'}
+                                </span>
+                                <span>
+                                  Connected:{' '}
+                                  {formatDate(connection.responded_at || connection.invited_at)}
+                                </span>
+                              </div>
+                              <div className="flex flex-wrap gap-2 text-xs">
+                                <span className="rounded-full bg-primary-50 text-primary-700 dark:bg-primary-900/40 dark:text-primary-200 px-2 py-1">
+                                  {savedTerms} saved results
+                                </span>
+                                <span className="rounded-full bg-amber-50 text-amber-700 dark:bg-amber-900/40 dark:text-amber-200 px-2 py-1">
+                                  Bonus {totalBonus}
+                                </span>
+                                <span className="rounded-full bg-neutral-100 text-neutral-700 dark:bg-neutral-800 dark:text-neutral-200 px-2 py-1">
+                                  Updated {lastUpdated}
+                                </span>
+                              </div>
                             </div>
-                          )}
+                          </div>
+
+                          <div className="rounded-lg border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-950/60 p-3 space-y-2">
+                            <div className="flex items-center justify-between">
+                              <p className="text-sm font-semibold text-neutral-900 dark:text-white">
+                                Saved results
+                              </p>
+                            </div>
+                            {!gradesLoaded ? (
+                              <p className="text-xs text-neutral-500">Loading saved results...</p>
+                            ) : (gradePreviews[connection.child_id] || []).length === 0 ? (
+                              <p className="text-xs text-neutral-500">No saved results yet.</p>
+                            ) : (
+                              <div className="space-y-2">
+                                {(gradePreviews[connection.child_id] || []).map((term) => {
+                                  const isOpen = expandedTerm[connection.child_id] === term.id
+                                  const subjects = sortSubjects(term.subject_grades)
+                                  const avg = weightedAverage(subjects)
+                                  return (
+                                    <div
+                                      key={term.id}
+                                      className="rounded-md border border-neutral-100 dark:border-neutral-800 px-3 py-2 text-xs space-y-1 bg-neutral-50/60 dark:bg-neutral-900/60"
+                                    >
+                                      <div className="flex items-center justify-between gap-2">
+                                        <div className="space-y-0.5">
+                                          <p className="font-semibold text-neutral-900 dark:text-white">
+                                            {term.school_year} · {term.term_type}
+                                            {term.term_name ? ` · ${term.term_name}` : ''}
+                                          </p>
+                                          <p className="text-neutral-500">
+                                            {term.subject_count} subjects · Avg {avg.toFixed(2)} ·
+                                            Bonus {term.total_bonus_points.toFixed(2)}
+                                          </p>
+                                        </div>
+                                        <button
+                                          onClick={() =>
+                                            setExpandedTerm((prev) => ({
+                                              ...prev,
+                                              [connection.child_id]: isOpen ? null : term.id,
+                                            }))
+                                          }
+                                          className="text-xs font-semibold text-primary-600 dark:text-primary-300"
+                                        >
+                                          {isOpen ? 'Hide' : 'View'}
+                                        </button>
+                                      </div>
+                                      {isOpen && (
+                                        <div className="space-y-1.5 pt-1">
+                                          {subjects.length === 0 ? (
+                                            <p className="text-neutral-500">
+                                              No subjects recorded.
+                                            </p>
+                                          ) : (
+                                            subjects.map((sg) => {
+                                              const name =
+                                                typeof sg.subjects?.name === 'object'
+                                                  ? sg.subjects?.name?.['en'] ||
+                                                    Object.values(sg.subjects?.name || {})[0]
+                                                  : sg.subjects?.name
+                                              return (
+                                                <div
+                                                  key={sg.id}
+                                                  className="flex items-center justify-between rounded border border-neutral-200 dark:border-neutral-800 px-2 py-1 bg-white dark:bg-neutral-950 text-[11px]"
+                                                >
+                                                  <div className="space-y-0.5">
+                                                    <p className="font-semibold text-neutral-900 dark:text-white">
+                                                      {name || 'Subject'}
+                                                    </p>
+                                                    <p className="text-neutral-500">
+                                                      Grade {sg.grade_value ?? '-'} · Weight{' '}
+                                                      {Number(sg.subject_weight ?? 1).toFixed(1)}
+                                                    </p>
+                                                  </div>
+                                                  <div className="text-right text-neutral-700 dark:text-neutral-200">
+                                                    <p>
+                                                      Norm{' '}
+                                                      {Number(sg.grade_normalized_100 ?? 0).toFixed(
+                                                        1
+                                                      )}
+                                                    </p>
+                                                    <p className="text-primary-600 dark:text-primary-300">
+                                                      Bonus{' '}
+                                                      {Number(sg.bonus_points ?? 0).toFixed(2)}
+                                                    </p>
+                                                  </div>
+                                                </div>
+                                              )
+                                            })
+                                          )}
+                                        </div>
+                                      )}
+                                    </div>
+                                  )
+                                })}
+                              </div>
+                            )}
+                          </div>
                         </div>
-                      </div>
-                      <div className="flex gap-2 self-start sm:self-center">
-                        <button
-                          onClick={() => handleRemove(connection.id)}
-                          disabled={removingId === connection.id}
-                          className="rounded-lg border border-error-200 bg-error-50 px-3 py-1.5 text-sm font-semibold text-error-700 hover:bg-error-100 disabled:opacity-60 dark:border-error-800 dark:bg-error-950 dark:text-error-200"
-                        >
-                          {removingId === connection.id ? 'Removing...' : 'Remove'}
-                        </button>
                       </div>
                     </div>
-                  </div>
-                ))}
+                  )
+                })}
               </div>
             )}
           </div>
@@ -449,6 +550,18 @@ export default function ParentChildrenPage() {
               profile page.
             </p>
           )}
+          <div className="rounded-lg border border-dashed border-neutral-300 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-900/60 p-4 space-y-2 text-sm text-neutral-700 dark:text-neutral-200">
+            <p className="font-semibold text-neutral-900 dark:text-white">How to connect</p>
+            <ol className="list-decimal list-inside space-y-1">
+              <li>Tap Generate code to create a 6-digit invite.</li>
+              <li>Share the code or QR with your child.</li>
+              <li>The child opens their Profile & Connections page and enters the code.</li>
+              <li>Once linked, you can see their saved test results here.</li>
+            </ol>
+            <p className="text-xs text-neutral-500 dark:text-neutral-400">
+              A connection is required to view grades and insights for a child.
+            </p>
+          </div>
         </div>
       </div>
     </div>
