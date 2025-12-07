@@ -91,8 +91,6 @@ export default function ParentDashboardPage() {
     return { totalKids, totalTerms, totalBonus }
   }, [data])
 
-  const childrenHref = '/parent/children'
-
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 space-y-8">
       <header className="space-y-2">

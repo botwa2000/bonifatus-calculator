@@ -40,6 +40,26 @@ type TermPreview = {
   subject_count: number
 }
 
+type GradesChild = {
+  relationshipId: string
+  child?: { id: string; full_name?: string | null }
+  terms: Array<{
+    id: string
+    school_year: string
+    term_type: string
+    term_name?: string | null
+    total_bonus_points: number | null
+    created_at: string
+    subject_grades?: Array<unknown>
+  }>
+}
+
+type GradesResponse = {
+  success: boolean
+  children?: GradesChild[]
+  error?: string
+}
+
 export default function ParentChildrenPage() {
   const [connections, setConnections] = useState<Connection[]>([])
   const [invites, setInvites] = useState<Invite[]>([])
@@ -51,7 +71,6 @@ export default function ParentChildrenPage() {
   const [removingId, setRemovingId] = useState<string | null>(null)
   const [nowMs, setNowMs] = useState(() => Date.now())
   const [gradeSummaries, setGradeSummaries] = useState<Record<string, ChildGradeSummary>>({})
-  const [loadingGrades, setLoadingGrades] = useState(false)
   const [gradePreviews, setGradePreviews] = useState<Record<string, TermPreview[]>>({})
 
   useEffect(() => {
@@ -72,7 +91,7 @@ export default function ParentChildrenPage() {
         fetch('/api/connections/list'),
         fetch('/api/parent/children/grades'),
       ])
-      const [connJson, gradesJson] = await Promise.all([connRes.json(), gradesRes.json()])
+      const [connJson, gradesJson] = await Promise.all([connRes.json(), gradesRes.json() as Promise<GradesResponse>])
 
       if (!connRes.ok || !connJson.success) {
         throw new Error(connJson.error || 'Failed to load connections')
@@ -84,18 +103,17 @@ export default function ParentChildrenPage() {
       )
       setActiveCode(newestPending || null)
 
-      setLoadingGrades(true)
-      if (gradesRes.ok && gradesJson.success) {
+      if (gradesRes.ok && (gradesJson as GradesResponse).success) {
         const summaries: Record<string, ChildGradeSummary> = {}
         const previews: Record<string, TermPreview[]> = {}
-        ;(gradesJson.children || []).forEach((child: any) => {
+        ;((gradesJson as GradesResponse).children || []).forEach((child: GradesChild) => {
           const terms = child.terms || []
           const totalBonus = terms.reduce(
-            (acc: number, term: any) => acc + (Number(term.total_bonus_points) || 0),
+            (acc: number, term) => acc + (Number(term.total_bonus_points) || 0),
             0
           )
           const lastUpdated = terms
-            .map((t: any) => t.created_at)
+            .map((t) => t.created_at)
             .filter(Boolean)
             .sort()
             .pop()
@@ -107,12 +125,9 @@ export default function ParentChildrenPage() {
           }
           previews[childKey] = terms
             .slice()
-            .sort(
-              (a: any, b: any) =>
-                new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime()
-            )
+            .sort((a, b) => new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime())
             .slice(0, 3)
-            .map((t: any) => ({
+            .map((t) => ({
               id: t.id,
               school_year: t.school_year,
               term_type: t.term_type,
@@ -129,7 +144,6 @@ export default function ParentChildrenPage() {
       setError(err instanceof Error ? err.message : 'Failed to load connections')
     } finally {
       setLoading(false)
-      setLoadingGrades(false)
     }
   }
 
