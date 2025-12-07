@@ -350,12 +350,6 @@ export default function ParentChildrenPage() {
                         </div>
                       </div>
                       <div className="flex gap-2 self-start sm:self-center">
-                        <a
-                          href="/parent/children"
-                          className="rounded-lg border border-neutral-200 dark:border-neutral-700 px-3 py-1.5 text-sm font-semibold text-neutral-800 dark:text-white hover:border-primary-400 hover:text-primary-700 dark:hover:border-primary-400 dark:hover:text-primary-200"
-                        >
-                          Dashboard
-                        </a>
                         <button
                           onClick={() => handleRemove(connection.id)}
                           disabled={removingId === connection.id}

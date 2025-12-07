@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { createServerSupabaseClient, getUserProfile } from '@/lib/supabase/client'
+import { createServiceSupabaseClient, getUserProfile } from '@/lib/supabase/client'
 
 export async function GET() {
   const profile = await getUserProfile()
@@ -13,7 +13,18 @@ export async function GET() {
     )
   }
 
-  const supabase = await createServerSupabaseClient()
+  if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
+    return NextResponse.json(
+      {
+        success: false,
+        error: 'Service key missing',
+        details: 'Server misconfiguration: SUPABASE_SERVICE_ROLE_KEY is not set.',
+      },
+      { status: 500 }
+    )
+  }
+
+  const supabase = await createServiceSupabaseClient()
 
   const { data: relationships, error: relErr } = await supabase
     .from('parent_child_relationships')
