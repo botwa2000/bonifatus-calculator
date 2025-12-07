@@ -97,7 +97,11 @@ export async function POST(request: NextRequest) {
       await supabase.from('parent_child_invites').update({ status: 'expired' }).eq('id', invite.id)
       console.warn(`[redeem:${requestId}] Invite expired, marked expired`)
       return NextResponse.json(
-        { success: false, error: 'Invite expired. Ask your parent to generate a new code.' },
+        {
+          success: false,
+          error: 'Invite expired. Ask your parent to generate a new code.',
+          debug: requestId,
+        },
         { status: 410 }
       )
     }

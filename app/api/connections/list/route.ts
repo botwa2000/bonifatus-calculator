@@ -15,12 +15,15 @@ export async function GET() {
   // Expire any pending invites that are past their expiration
   if (profile?.role === 'parent') {
     const nowIso = new Date().toISOString()
+    const maxLifetimeMs = 16 * 60 * 1000 // expire anything older than 16 minutes even if expiry was longer
+    const cutoffIso = new Date(Date.now() - maxLifetimeMs).toISOString()
+
     await supabase
       .from('parent_child_invites')
       .update({ status: 'expired' })
       .eq('parent_id', user.id)
       .eq('status', 'pending')
-      .lt('expires_at', nowIso)
+      .or(`expires_at.lt.${nowIso},created_at.lt.${cutoffIso}`)
   }
 
   const { data: relationships, error: relError } = await supabase
@@ -56,12 +59,15 @@ export async function GET() {
 
   let invites: unknown[] = []
   if (profile?.role === 'parent') {
+    const nowIso = new Date().toISOString()
+    const cutoffIso = new Date(Date.now() - 16 * 60 * 1000).toISOString()
     const { data: inviteRows, error: inviteErr } = await supabase
       .from('parent_child_invites')
       .select('id, code, status, expires_at, created_at, child_id')
       .eq('parent_id', user.id)
       .eq('status', 'pending')
-      .gt('expires_at', new Date().toISOString())
+      .gt('expires_at', nowIso)
+      .gt('created_at', cutoffIso)
       .order('expires_at', { ascending: false })
 
     if (inviteErr) {
