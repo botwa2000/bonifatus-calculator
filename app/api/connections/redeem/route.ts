@@ -57,7 +57,7 @@ export async function POST(request: NextRequest) {
 
     const { data: invite, error: inviteErr } = await supabase
       .from('parent_child_invites')
-      .select('id, parent_id, status, expires_at')
+      .select('id, parent_id, status, expires_at, created_at')
       .eq('code', parsed.data.code)
       .eq('status', 'pending')
       .single()
@@ -93,6 +93,9 @@ export async function POST(request: NextRequest) {
       `[redeem:${requestId}] Invite ${invite.id} status=${invite.status} expires=${invite.expires_at}`
     )
 
+    const respondedAt = new Date().toISOString()
+    const invitedAt = invite.created_at ?? respondedAt
+
     if (new Date(invite.expires_at).getTime() < Date.now()) {
       await supabase.from('parent_child_invites').update({ status: 'expired' }).eq('id', invite.id)
       console.warn(`[redeem:${requestId}] Invite expired, marked expired`)
@@ -121,7 +124,7 @@ export async function POST(request: NextRequest) {
         .from('parent_child_relationships')
         .update({
           invitation_status: 'accepted',
-          responded_at: new Date().toISOString(),
+          responded_at: respondedAt,
         })
         .eq('id', existingLink.id)
 
@@ -140,7 +143,7 @@ export async function POST(request: NextRequest) {
 
       await supabase
         .from('parent_child_invites')
-        .update({ status: 'accepted', child_id: profile.id, accepted_at: new Date().toISOString() })
+        .update({ status: 'accepted', child_id: profile.id, accepted_at: respondedAt })
         .eq('id', invite.id)
 
       return NextResponse.json({ success: true, relationshipId: existingLink.id })
@@ -153,7 +156,8 @@ export async function POST(request: NextRequest) {
         child_id: profile.id,
         invited_by: invite.parent_id,
         invitation_status: 'accepted',
-        responded_at: new Date().toISOString(),
+        invited_at: invitedAt,
+        responded_at: respondedAt,
       })
       .select('id')
       .single()
@@ -173,12 +177,15 @@ export async function POST(request: NextRequest) {
             `[redeem:${requestId}] Unique constraint hit; using existing link ${link.id}`
           )
           await supabase
-            .from('parent_child_invites')
+            .from('parent_child_relationships')
             .update({
-              status: 'accepted',
-              child_id: profile.id,
-              accepted_at: new Date().toISOString(),
+              invitation_status: 'accepted',
+              responded_at: respondedAt,
             })
+            .eq('id', link.id)
+          await supabase
+            .from('parent_child_invites')
+            .update({ status: 'accepted', child_id: profile.id, accepted_at: respondedAt })
             .eq('id', invite.id)
           return NextResponse.json({ success: true, relationshipId: link.id })
         }
@@ -197,7 +204,7 @@ export async function POST(request: NextRequest) {
 
     await supabase
       .from('parent_child_invites')
-      .update({ status: 'accepted', child_id: profile.id, accepted_at: new Date().toISOString() })
+      .update({ status: 'accepted', child_id: profile.id, accepted_at: respondedAt })
       .eq('id', invite.id)
     console.info(`[redeem:${requestId}] Linked ${relationship.id} and marked invite accepted`)
     return NextResponse.json({ success: true, relationshipId: relationship.id })
