@@ -8,6 +8,8 @@ type ParentConnection = {
   parent_id: string
   child_id: string
   invitation_status: string
+  invited_at?: string
+  responded_at?: string | null
   parent?: { id: string; full_name: string; role?: string }
 }
 
@@ -87,6 +89,13 @@ export default function StudentProfilePage() {
     } finally {
       setRedeeming(false)
     }
+  }
+
+  const formatDate = (value?: string | null) => {
+    if (!value) return '—'
+    const d = new Date(value)
+    if (Number.isNaN(d.getTime())) return '—'
+    return d.toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' })
   }
 
   const remove = async (relationshipId: string) => {
@@ -202,24 +211,28 @@ export default function StudentProfilePage() {
         ) : connections.length === 0 ? (
           <p className="text-sm text-neutral-500">No linked parents yet.</p>
         ) : (
-          <div className="space-y-2">
+          <div className="space-y-3">
             {connections.map((conn) => (
               <div
                 key={conn.id}
-                className="flex items-center justify-between rounded-lg border border-neutral-100 dark:border-neutral-800 px-3 py-2"
+                className="flex items-center justify-between rounded-xl border border-neutral-100 dark:border-neutral-800 px-4 py-3 bg-neutral-50/80 dark:bg-neutral-900/70"
               >
-                <div>
-                  <p className="font-semibold text-neutral-900 dark:text-white">
+                <div className="space-y-0.5">
+                  <p className="text-sm text-neutral-500 uppercase tracking-wide">Parent</p>
+                  <p className="text-lg font-semibold text-neutral-900 dark:text-white">
                     {conn.parent?.full_name || 'Parent'}
                   </p>
-                  <p className="text-xs text-neutral-500">
-                    Status: {conn.invitation_status || 'accepted'}
-                  </p>
+                  <div className="flex gap-4 text-xs text-neutral-600 dark:text-neutral-400">
+                    <span className="font-semibold text-primary-600 dark:text-primary-300">
+                      {conn.invitation_status || 'accepted'}
+                    </span>
+                    <span>Connected: {formatDate(conn.responded_at || conn.invited_at)}</span>
+                  </div>
                 </div>
                 <button
                   onClick={() => remove(conn.id)}
                   disabled={removingId === conn.id}
-                  className="text-sm text-error-600 hover:text-error-700 disabled:opacity-60"
+                  className="text-sm font-semibold text-error-600 hover:text-error-700 disabled:opacity-60"
                 >
                   {removingId === conn.id ? 'Removing...' : 'Remove'}
                 </button>

@@ -24,6 +24,12 @@ type Invite = {
   child_id?: string | null
 }
 
+type ChildGradeSummary = {
+  savedTerms: number
+  totalBonus: number
+  lastUpdated?: string
+}
+
 export default function ParentChildrenPage() {
   const [connections, setConnections] = useState<Connection[]>([])
   const [invites, setInvites] = useState<Invite[]>([])
@@ -34,6 +40,8 @@ export default function ParentChildrenPage() {
   const [activeCode, setActiveCode] = useState<Invite | null>(null)
   const [removingId, setRemovingId] = useState<string | null>(null)
   const [nowMs, setNowMs] = useState(() => Date.now())
+  const [gradeSummaries, setGradeSummaries] = useState<Record<string, ChildGradeSummary>>({})
+  const [loadingGrades, setLoadingGrades] = useState(false)
 
   useEffect(() => {
     const timer = setInterval(() => setNowMs(Date.now()), 15000)
@@ -49,21 +57,49 @@ export default function ParentChildrenPage() {
     setLoading(true)
     setError(null)
     try {
-      const res = await fetch('/api/connections/list')
-      const data = await res.json()
-      if (!res.ok || !data.success) {
-        throw new Error(data.error || 'Failed to load connections')
+      const [connRes, gradesRes] = await Promise.all([
+        fetch('/api/connections/list'),
+        fetch('/api/parent/children/grades'),
+      ])
+      const [connJson, gradesJson] = await Promise.all([connRes.json(), gradesRes.json()])
+
+      if (!connRes.ok || !connJson.success) {
+        throw new Error(connJson.error || 'Failed to load connections')
       }
-      setConnections(data.asParent || [])
-      setInvites(data.invites || [])
-      const newestPending = (data.invites || []).find(
+      setConnections(connJson.asParent || [])
+      setInvites(connJson.invites || [])
+      const newestPending = (connJson.invites || []).find(
         (i: Invite) => i.status === 'pending' && new Date(i.expires_at) > new Date()
       )
       setActiveCode(newestPending || null)
+
+      setLoadingGrades(true)
+      if (gradesRes.ok && gradesJson.success) {
+        const summaries: Record<string, ChildGradeSummary> = {}
+        ;(gradesJson.children || []).forEach((child: any) => {
+          const terms = child.terms || []
+          const totalBonus = terms.reduce(
+            (acc: number, term: any) => acc + (Number(term.total_bonus_points) || 0),
+            0
+          )
+          const lastUpdated = terms
+            .map((t: any) => t.created_at)
+            .filter(Boolean)
+            .sort()
+            .pop()
+          summaries[child.child?.id || child.relationshipId] = {
+            savedTerms: terms.length,
+            totalBonus,
+            lastUpdated,
+          }
+        })
+        setGradeSummaries(summaries)
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load connections')
     } finally {
       setLoading(false)
+      setLoadingGrades(false)
     }
   }
 
@@ -115,6 +151,13 @@ export default function ParentChildrenPage() {
   }
 
   const hasConnections = connections.length > 0
+
+  const formatDate = (value?: string | null) => {
+    if (!value) return '—'
+    const d = new Date(value)
+    if (Number.isNaN(d.getTime())) return '—'
+    return d.toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' })
+  }
 
   return (
     <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-6">
@@ -173,23 +216,47 @@ export default function ParentChildrenPage() {
                 {connections.map((connection) => (
                   <div
                     key={connection.id}
-                    className="flex items-center justify-between rounded-lg border border-neutral-100 dark:border-neutral-800 px-3 py-2"
+                    className="rounded-xl border border-neutral-100 dark:border-neutral-800 px-4 py-3 bg-neutral-50/80 dark:bg-neutral-900/70"
                   >
-                    <div>
-                      <p className="font-semibold text-neutral-900 dark:text-white">
-                        {connection.child?.full_name || 'Child'}
-                      </p>
-                      <p className="text-xs text-neutral-500">
-                        Status: {connection.invitation_status || 'accepted'}
-                      </p>
+                    <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                      <div className="space-y-1">
+                        <p className="text-lg font-semibold text-neutral-900 dark:text-white">
+                          {connection.child?.full_name || 'Child'}
+                        </p>
+                        <div className="flex flex-wrap gap-3 text-xs text-neutral-600 dark:text-neutral-400">
+                          <span className="font-semibold text-primary-600 dark:text-primary-300">
+                            {connection.invitation_status || 'accepted'}
+                          </span>
+                          <span>Connected: {formatDate(connection.responded_at || connection.invited_at)}</span>
+                        </div>
+                        <div className="flex flex-wrap gap-2 text-xs">
+                          <span className="rounded-full bg-primary-50 text-primary-700 dark:bg-primary-900/40 dark:text-primary-200 px-2 py-1">
+                            {gradeSummaries[connection.child_id]?.savedTerms ?? 0} saved results
+                          </span>
+                          <span className="rounded-full bg-amber-50 text-amber-700 dark:bg-amber-900/40 dark:text-amber-200 px-2 py-1">
+                            Bonus {Number(gradeSummaries[connection.child_id]?.totalBonus ?? 0).toFixed(2)}
+                          </span>
+                          <span className="rounded-full bg-neutral-100 text-neutral-700 dark:bg-neutral-800 dark:text-neutral-200 px-2 py-1">
+                            Updated {formatDate(gradeSummaries[connection.child_id]?.lastUpdated)}
+                          </span>
+                        </div>
+                      </div>
+                      <div className="flex gap-2 self-start sm:self-center">
+                        <a
+                          href="/parent/dashboard"
+                          className="rounded-lg border border-neutral-200 dark:border-neutral-700 px-3 py-1.5 text-sm font-semibold text-neutral-800 dark:text-white hover:border-primary-400 hover:text-primary-700 dark:hover:border-primary-400 dark:hover:text-primary-200"
+                        >
+                          Insights
+                        </a>
+                        <button
+                          onClick={() => handleRemove(connection.id)}
+                          disabled={removingId === connection.id}
+                          className="rounded-lg border border-error-200 bg-error-50 px-3 py-1.5 text-sm font-semibold text-error-700 hover:bg-error-100 disabled:opacity-60 dark:border-error-800 dark:bg-error-950 dark:text-error-200"
+                        >
+                          {removingId === connection.id ? 'Removing...' : 'Remove'}
+                        </button>
+                      </div>
                     </div>
-                    <button
-                      onClick={() => handleRemove(connection.id)}
-                      disabled={removingId === connection.id}
-                      className="text-sm text-error-600 hover:text-error-700 disabled:opacity-60"
-                    >
-                      {removingId === connection.id ? 'Removing...' : 'Remove'}
-                    </button>
                   </div>
                 ))}
               </div>
