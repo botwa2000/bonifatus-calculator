@@ -32,10 +32,16 @@ export default function ParentProfilePage() {
   const [creating, setCreating] = useState(false)
   const [activeCode, setActiveCode] = useState<Invite | null>(null)
   const [removingId, setRemovingId] = useState<string | null>(null)
+  const [nowMs, setNowMs] = useState(() => Date.now())
+
+  useEffect(() => {
+    const timer = setInterval(() => setNowMs(Date.now()), 15000)
+    return () => clearInterval(timer)
+  }, [])
 
   const activeInvites = useMemo(
-    () => invites.filter((i) => i.status === 'pending' && new Date(i.expires_at) > new Date()),
-    [invites]
+    () => invites.filter((i) => i.status === 'pending' && new Date(i.expires_at).getTime() > nowMs),
+    [invites, nowMs]
   )
 
   const loadConnections = async () => {
