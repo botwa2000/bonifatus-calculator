@@ -45,6 +45,17 @@ export async function POST(request: NextRequest) {
       .single()
 
     if (inviteErr || !invite) {
+      if (inviteErr?.code === '42P01') {
+        console.error(
+          'Redeem error: parent_child_invites table missing. Run migrations.',
+          inviteErr
+        )
+        return NextResponse.json(
+          { success: false, error: 'Service unavailable. Please try again shortly.' },
+          { status: 500 }
+        )
+      }
+      console.error('Redeem error loading invite', inviteErr)
       return NextResponse.json(
         { success: false, error: 'Invite not found or already used', details: inviteErr?.message },
         { status: 404 }
