@@ -8,8 +8,10 @@ const schema = z.object({
 })
 
 export async function POST(request: NextRequest) {
+  const requestId = Math.random().toString(36).slice(2, 8)
+
   if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
-    console.error('Redeem error: SUPABASE_SERVICE_ROLE_KEY is not configured')
+    console.error(`[redeem:${requestId}] Service role key is not configured`)
     return NextResponse.json(
       { success: false, error: 'Server misconfiguration: service key missing' },
       { status: 500 }
@@ -27,6 +29,7 @@ export async function POST(request: NextRequest) {
   const body = await request.json().catch(() => ({}))
   const parsed = schema.safeParse(body)
   if (!parsed.success) {
+    console.warn(`[redeem:${requestId}] Invalid code payload`, body)
     return NextResponse.json(
       { success: false, error: 'Invalid code', details: parsed.error.issues },
       { status: 400 }
@@ -34,6 +37,7 @@ export async function POST(request: NextRequest) {
   }
 
   try {
+    console.info(`[redeem:${requestId}] Child ${profile.id} redeeming code ${parsed.data.code}`)
     // Use service role to avoid RLS blocking child lookups by code
     const supabase = await createServiceSupabaseClient()
 
@@ -47,7 +51,7 @@ export async function POST(request: NextRequest) {
     if (inviteErr || !invite) {
       if (inviteErr?.code === '42P01') {
         console.error(
-          'Redeem error: parent_child_invites table missing. Run migrations.',
+          `[redeem:${requestId}] parent_child_invites table missing. Run migrations.`,
           inviteErr
         )
         return NextResponse.json(
@@ -55,15 +59,20 @@ export async function POST(request: NextRequest) {
           { status: 500 }
         )
       }
-      console.error('Redeem error loading invite', inviteErr)
+      console.warn(`[redeem:${requestId}] Invite not found or already used`, inviteErr)
       return NextResponse.json(
         { success: false, error: 'Invite not found or already used', details: inviteErr?.message },
         { status: 404 }
       )
     }
 
+    console.info(
+      `[redeem:${requestId}] Invite ${invite.id} status=${invite.status} expires=${invite.expires_at}`
+    )
+
     if (new Date(invite.expires_at).getTime() < Date.now()) {
       await supabase.from('parent_child_invites').update({ status: 'expired' }).eq('id', invite.id)
+      console.warn(`[redeem:${requestId}] Invite expired, marked expired`)
       return NextResponse.json(
         { success: false, error: 'Invite expired. Ask your parent to generate a new code.' },
         { status: 410 }
@@ -79,7 +88,8 @@ export async function POST(request: NextRequest) {
       .maybeSingle()
 
     if (existingLink) {
-      // Relationship already exists (pending/revoked/accepted) – promote to accepted
+      console.info(`[redeem:${requestId}] Existing link ${existingLink.id}; promoting to accepted`)
+      // Relationship already exists (pending/revoked/accepted) - promote to accepted
       const { error: updateRelErr } = await supabase
         .from('parent_child_relationships')
         .update({
@@ -89,7 +99,7 @@ export async function POST(request: NextRequest) {
         .eq('id', existingLink.id)
 
       if (updateRelErr) {
-        console.error('Redeem error updating existing link', updateRelErr)
+        console.error(`[redeem:${requestId}] Error updating existing link`, updateRelErr)
         return NextResponse.json(
           {
             success: false,
@@ -131,6 +141,9 @@ export async function POST(request: NextRequest) {
           .maybeSingle()
 
         if (link) {
+          console.info(
+            `[redeem:${requestId}] Unique constraint hit; using existing link ${link.id}`
+          )
           await supabase
             .from('parent_child_invites')
             .update({
@@ -142,6 +155,7 @@ export async function POST(request: NextRequest) {
           return NextResponse.json({ success: true, relationshipId: link.id })
         }
       }
+      console.error(`[redeem:${requestId}] Failed to link accounts`, relErr)
       return NextResponse.json(
         { success: false, error: 'Failed to link accounts', details: relErr?.message },
         { status: 500 }
@@ -152,14 +166,16 @@ export async function POST(request: NextRequest) {
       .from('parent_child_invites')
       .update({ status: 'accepted', child_id: profile.id, accepted_at: new Date().toISOString() })
       .eq('id', invite.id)
+    console.info(`[redeem:${requestId}] Linked ${relationship.id} and marked invite accepted`)
     return NextResponse.json({ success: true, relationshipId: relationship.id })
   } catch (error) {
-    console.error('Redeem error unexpected', error)
+    console.error(`[redeem:${requestId}] Redeem error unexpected`, error)
     return NextResponse.json(
       {
         success: false,
         error: 'Failed to redeem code',
         details: error instanceof Error ? error.message : 'Unknown error',
+        debug: requestId,
       },
       { status: 500 }
     )
