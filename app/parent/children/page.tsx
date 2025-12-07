@@ -30,6 +30,16 @@ type ChildGradeSummary = {
   lastUpdated?: string
 }
 
+type TermPreview = {
+  id: string
+  school_year: string
+  term_type: string
+  term_name?: string | null
+  total_bonus_points: number
+  created_at: string
+  subject_count: number
+}
+
 export default function ParentChildrenPage() {
   const [connections, setConnections] = useState<Connection[]>([])
   const [invites, setInvites] = useState<Invite[]>([])
@@ -42,6 +52,7 @@ export default function ParentChildrenPage() {
   const [nowMs, setNowMs] = useState(() => Date.now())
   const [gradeSummaries, setGradeSummaries] = useState<Record<string, ChildGradeSummary>>({})
   const [loadingGrades, setLoadingGrades] = useState(false)
+  const [gradePreviews, setGradePreviews] = useState<Record<string, TermPreview[]>>({})
 
   useEffect(() => {
     const timer = setInterval(() => setNowMs(Date.now()), 15000)
@@ -76,6 +87,7 @@ export default function ParentChildrenPage() {
       setLoadingGrades(true)
       if (gradesRes.ok && gradesJson.success) {
         const summaries: Record<string, ChildGradeSummary> = {}
+        const previews: Record<string, TermPreview[]> = {}
         ;(gradesJson.children || []).forEach((child: any) => {
           const terms = child.terms || []
           const totalBonus = terms.reduce(
@@ -87,13 +99,31 @@ export default function ParentChildrenPage() {
             .filter(Boolean)
             .sort()
             .pop()
-          summaries[child.child?.id || child.relationshipId] = {
+          const childKey = child.child?.id || child.relationshipId
+          summaries[childKey] = {
             savedTerms: terms.length,
             totalBonus,
             lastUpdated,
           }
+          previews[childKey] = terms
+            .slice()
+            .sort(
+              (a: any, b: any) =>
+                new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime()
+            )
+            .slice(0, 3)
+            .map((t: any) => ({
+              id: t.id,
+              school_year: t.school_year,
+              term_type: t.term_type,
+              term_name: t.term_name,
+              total_bonus_points: Number(t.total_bonus_points ?? 0),
+              created_at: t.created_at,
+              subject_count: (t.subject_grades || []).length,
+            }))
         })
         setGradeSummaries(summaries)
+        setGradePreviews(previews)
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load connections')
@@ -239,6 +269,42 @@ export default function ParentChildrenPage() {
                           <span className="rounded-full bg-neutral-100 text-neutral-700 dark:bg-neutral-800 dark:text-neutral-200 px-2 py-1">
                             Updated {formatDate(gradeSummaries[connection.child_id]?.lastUpdated)}
                           </span>
+                        </div>
+                        <div className="rounded-lg border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-950/60 p-3 space-y-2">
+                          <div className="flex items-center justify-between">
+                            <p className="text-sm font-semibold text-neutral-900 dark:text-white">
+                              Saved results
+                            </p>
+                            <a
+                              className="text-xs font-semibold text-primary-600 dark:text-primary-300 hover:underline"
+                              href="https://www.bonifatus.com/parent/dashboard"
+                            >
+                              View all
+                            </a>
+                          </div>
+                          {(gradePreviews[connection.child_id] || []).length === 0 ? (
+                            <p className="text-xs text-neutral-500">No saved results yet.</p>
+                          ) : (
+                            <div className="space-y-1.5">
+                              {(gradePreviews[connection.child_id] || []).map((term) => (
+                                <div
+                                  key={term.id}
+                                  className="flex items-center justify-between rounded-md border border-neutral-100 dark:border-neutral-800 px-3 py-2 text-xs"
+                                >
+                                  <div>
+                                    <p className="font-semibold text-neutral-900 dark:text-white">
+                                      {term.school_year} · {term.term_type}
+                                      {term.term_name ? ` · ${term.term_name}` : ''}
+                                    </p>
+                                    <p className="text-neutral-500">
+                                      {term.subject_count} subjects · Bonus {term.total_bonus_points.toFixed(2)}
+                                    </p>
+                                  </div>
+                                  <span className="text-neutral-500">{formatDate(term.created_at)}</span>
+                                </div>
+                              ))}
+                            </div>
+                          )}
                         </div>
                       </div>
                       <div className="flex gap-2 self-start sm:self-center">

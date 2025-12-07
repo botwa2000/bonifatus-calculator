@@ -103,13 +103,13 @@ export default function ParentDashboardPage() {
         </p>
         <div className="flex flex-wrap gap-3 pt-2">
           <Link
-            href={childrenHref}
+            href="https://www.bonifatus.com/parent/children"
             className="rounded-lg bg-gradient-to-r from-primary-600 to-secondary-600 px-4 py-2 text-sm font-semibold text-white shadow-button"
           >
             Children - manage profiles
           </Link>
           <Link
-            href={childrenHref}
+            href="https://www.bonifatus.com/parent/children"
             className="rounded-lg border border-neutral-200 px-4 py-2 text-sm font-semibold text-neutral-800 transition hover:border-primary-400 hover:text-primary-700 dark:border-neutral-700 dark:text-white dark:hover:border-primary-500 dark:hover:text-primary-200"
           >
             View children
