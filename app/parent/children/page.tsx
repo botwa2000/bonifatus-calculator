@@ -93,7 +93,10 @@ export default function ParentChildrenPage() {
         fetch('/api/connections/list'),
         fetch('/api/parent/children/grades'),
       ])
-      const [connJson, gradesJson] = await Promise.all([connRes.json(), gradesRes.json() as Promise<GradesResponse>])
+      const [connJson, gradesJson] = await Promise.all([
+        connRes.json(),
+        gradesRes.json() as Promise<GradesResponse>,
+      ])
 
       if (!connRes.ok || !connJson.success) {
         throw new Error(connJson.error || 'Failed to load connections')
@@ -127,7 +130,10 @@ export default function ParentChildrenPage() {
           }
           previews[childKey] = terms
             .slice()
-            .sort((a, b) => new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime())
+            .sort(
+              (a, b) =>
+                new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime()
+            )
             .slice(0, 3)
             .map((t) => ({
               id: t.id,
@@ -230,16 +236,16 @@ export default function ParentChildrenPage() {
 
       <div className="grid lg:grid-cols-[2fr_1fr] gap-6">
         <div className="space-y-4">
-            <div className="rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-5 shadow-sm">
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-lg font-semibold text-neutral-900 dark:text-white">
-                  Connected children
-                </h2>
-                <button
-                  onClick={loadConnections}
-                  className="text-sm font-semibold text-primary-600 dark:text-primary-300 hover:underline"
-                >
-                  Refresh
+          <div className="rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-5 shadow-sm">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-semibold text-neutral-900 dark:text-white">
+                Connected children
+              </h2>
+              <button
+                onClick={loadConnections}
+                className="text-sm font-semibold text-primary-600 dark:text-primary-300 hover:underline"
+              >
+                Refresh
               </button>
             </div>
             {loading ? (
@@ -274,7 +280,10 @@ export default function ParentChildrenPage() {
                           <span className="font-semibold text-primary-600 dark:text-primary-300">
                             {connection.invitation_status || 'accepted'}
                           </span>
-                          <span>Connected: {formatDate(connection.responded_at || connection.invited_at)}</span>
+                          <span>
+                            Connected:{' '}
+                            {formatDate(connection.responded_at || connection.invited_at)}
+                          </span>
                         </div>
                         <div className="flex flex-wrap gap-2 text-xs">
                           <span className="rounded-full bg-primary-50 text-primary-700 dark:bg-primary-900/40 dark:text-primary-200 px-2 py-1">
@@ -286,7 +295,9 @@ export default function ParentChildrenPage() {
                           <span className="rounded-full bg-amber-50 text-amber-700 dark:bg-amber-900/40 dark:text-amber-200 px-2 py-1">
                             Bonus{' '}
                             {gradesLoaded && gradeSummaries[connection.child_id]
-                              ? Number(gradeSummaries[connection.child_id].totalBonus || 0).toFixed(2)
+                              ? Number(gradeSummaries[connection.child_id].totalBonus || 0).toFixed(
+                                  2
+                                )
                               : '—'}
                           </span>
                           <span className="rounded-full bg-neutral-100 text-neutral-700 dark:bg-neutral-800 dark:text-neutral-200 px-2 py-1">
@@ -325,10 +336,13 @@ export default function ParentChildrenPage() {
                                       {term.term_name ? ` · ${term.term_name}` : ''}
                                     </p>
                                     <p className="text-neutral-500">
-                                      {term.subject_count} subjects · Bonus {term.total_bonus_points.toFixed(2)}
+                                      {term.subject_count} subjects · Bonus{' '}
+                                      {term.total_bonus_points.toFixed(2)}
                                     </p>
                                   </div>
-                                  <span className="text-neutral-500">{formatDate(term.created_at)}</span>
+                                  <span className="text-neutral-500">
+                                    {formatDate(term.created_at)}
+                                  </span>
                                 </div>
                               ))}
                             </div>
