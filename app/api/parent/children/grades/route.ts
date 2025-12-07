@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
-import { createServiceSupabaseClient, getUserProfile } from '@/lib/supabase/client'
+import { getUserProfile } from '@/lib/supabase/client'
+import { createServiceSupabaseClient } from '@/lib/supabase/service'
 
 export async function GET() {
   const profile = await getUserProfile()
