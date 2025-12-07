@@ -13,7 +13,7 @@ export async function POST(request: NextRequest) {
   if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
     console.error(`[redeem:${requestId}] Service role key is not configured`)
     return NextResponse.json(
-      { success: false, error: 'Server misconfiguration: service key missing' },
+      { success: false, error: 'Server misconfiguration: service key missing', debug: requestId },
       { status: 500 }
     )
   }
@@ -31,7 +31,7 @@ export async function POST(request: NextRequest) {
   if (!parsed.success) {
     console.warn(`[redeem:${requestId}] Invalid code payload`, body)
     return NextResponse.json(
-      { success: false, error: 'Invalid code', details: parsed.error.issues },
+      { success: false, error: 'Invalid code', details: parsed.error.issues, debug: requestId },
       { status: 400 }
     )
   }
@@ -39,7 +39,21 @@ export async function POST(request: NextRequest) {
   try {
     console.info(`[redeem:${requestId}] Child ${profile.id} redeeming code ${parsed.data.code}`)
     // Use service role to avoid RLS blocking child lookups by code
-    const supabase = await createServiceSupabaseClient()
+    let supabase
+    try {
+      supabase = await createServiceSupabaseClient()
+    } catch (err) {
+      console.error(`[redeem:${requestId}] Failed to init service client`, err)
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'Service unavailable. Please try again shortly.',
+          details: err instanceof Error ? err.message : String(err),
+          debug: requestId,
+        },
+        { status: 500 }
+      )
+    }
 
     const { data: invite, error: inviteErr } = await supabase
       .from('parent_child_invites')
@@ -55,13 +69,22 @@ export async function POST(request: NextRequest) {
           inviteErr
         )
         return NextResponse.json(
-          { success: false, error: 'Service unavailable. Please try again shortly.' },
+          {
+            success: false,
+            error: 'Service unavailable. Please try again shortly.',
+            debug: requestId,
+          },
           { status: 500 }
         )
       }
       console.warn(`[redeem:${requestId}] Invite not found or already used`, inviteErr)
       return NextResponse.json(
-        { success: false, error: 'Invite not found or already used', details: inviteErr?.message },
+        {
+          success: false,
+          error: 'Invite not found or already used',
+          details: inviteErr?.message,
+          debug: requestId,
+        },
         { status: 404 }
       )
     }
@@ -105,6 +128,7 @@ export async function POST(request: NextRequest) {
             success: false,
             error: 'Failed to update existing link',
             details: updateRelErr.message,
+            debug: requestId,
           },
           { status: 500 }
         )
@@ -157,7 +181,12 @@ export async function POST(request: NextRequest) {
       }
       console.error(`[redeem:${requestId}] Failed to link accounts`, relErr)
       return NextResponse.json(
-        { success: false, error: 'Failed to link accounts', details: relErr?.message },
+        {
+          success: false,
+          error: 'Failed to link accounts',
+          details: relErr?.message,
+          debug: requestId,
+        },
         { status: 500 }
       )
     }
