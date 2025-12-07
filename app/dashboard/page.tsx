@@ -24,7 +24,7 @@ export default async function DashboardRouterPage() {
   const role = (profile as Pick<Tables<'user_profiles'>, 'role'> | null)?.role
 
   if (role === 'parent') {
-    redirect('/parent/dashboard')
+    redirect('/parent/children')
   }
 
   if (role === 'child') {

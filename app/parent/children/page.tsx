@@ -72,6 +72,7 @@ export default function ParentChildrenPage() {
   const [nowMs, setNowMs] = useState(() => Date.now())
   const [gradeSummaries, setGradeSummaries] = useState<Record<string, ChildGradeSummary>>({})
   const [gradePreviews, setGradePreviews] = useState<Record<string, TermPreview[]>>({})
+  const [gradesLoaded, setGradesLoaded] = useState(false)
 
   useEffect(() => {
     const timer = setInterval(() => setNowMs(Date.now()), 15000)
@@ -85,6 +86,7 @@ export default function ParentChildrenPage() {
 
   const loadConnections = async () => {
     setLoading(true)
+    setGradesLoaded(false)
     setError(null)
     try {
       const [connRes, gradesRes] = await Promise.all([
@@ -144,6 +146,7 @@ export default function ParentChildrenPage() {
       setError(err instanceof Error ? err.message : 'Failed to load connections')
     } finally {
       setLoading(false)
+      setGradesLoaded(true)
     }
   }
 
@@ -207,7 +210,7 @@ export default function ParentChildrenPage() {
     <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-6">
       <header className="space-y-2">
         <p className="text-sm text-neutral-500">Parent access</p>
-        <h1 className="text-3xl font-bold text-neutral-900 dark:text-white">View children</h1>
+        <h1 className="text-3xl font-bold text-neutral-900 dark:text-white">Dashboard</h1>
         <p className="text-neutral-600 dark:text-neutral-300">
           See which children are linked to your account. If no one is connected yet, share a 6-digit
           code or QR for them to join.
@@ -227,16 +230,16 @@ export default function ParentChildrenPage() {
 
       <div className="grid lg:grid-cols-[2fr_1fr] gap-6">
         <div className="space-y-4">
-          <div className="rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-5 shadow-sm">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-semibold text-neutral-900 dark:text-white">
-                Connected children
-              </h2>
-              <button
-                onClick={loadConnections}
-                className="text-sm font-semibold text-primary-600 dark:text-primary-300 hover:underline"
-              >
-                Refresh
+            <div className="rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-5 shadow-sm">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-lg font-semibold text-neutral-900 dark:text-white">
+                  Connected children
+                </h2>
+                <button
+                  onClick={loadConnections}
+                  className="text-sm font-semibold text-primary-600 dark:text-primary-300 hover:underline"
+                >
+                  Refresh
               </button>
             </div>
             {loading ? (
@@ -275,13 +278,22 @@ export default function ParentChildrenPage() {
                         </div>
                         <div className="flex flex-wrap gap-2 text-xs">
                           <span className="rounded-full bg-primary-50 text-primary-700 dark:bg-primary-900/40 dark:text-primary-200 px-2 py-1">
-                            {gradeSummaries[connection.child_id]?.savedTerms ?? 0} saved results
+                            {gradesLoaded && gradeSummaries[connection.child_id]
+                              ? gradeSummaries[connection.child_id].savedTerms
+                              : '—'}{' '}
+                            saved results
                           </span>
                           <span className="rounded-full bg-amber-50 text-amber-700 dark:bg-amber-900/40 dark:text-amber-200 px-2 py-1">
-                            Bonus {Number(gradeSummaries[connection.child_id]?.totalBonus ?? 0).toFixed(2)}
+                            Bonus{' '}
+                            {gradesLoaded && gradeSummaries[connection.child_id]
+                              ? Number(gradeSummaries[connection.child_id].totalBonus || 0).toFixed(2)
+                              : '—'}
                           </span>
                           <span className="rounded-full bg-neutral-100 text-neutral-700 dark:bg-neutral-800 dark:text-neutral-200 px-2 py-1">
-                            Updated {formatDate(gradeSummaries[connection.child_id]?.lastUpdated)}
+                            Updated{' '}
+                            {gradesLoaded && gradeSummaries[connection.child_id]
+                              ? formatDate(gradeSummaries[connection.child_id].lastUpdated)
+                              : '—'}
                           </span>
                         </div>
                         <div className="rounded-lg border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-950/60 p-3 space-y-2">
@@ -291,12 +303,14 @@ export default function ParentChildrenPage() {
                             </p>
                             <a
                               className="text-xs font-semibold text-primary-600 dark:text-primary-300 hover:underline"
-                              href="https://www.bonifatus.com/parent/dashboard"
+                              href="https://www.bonifatus.com/parent/children"
                             >
                               View all
                             </a>
                           </div>
-                          {(gradePreviews[connection.child_id] || []).length === 0 ? (
+                          {!gradesLoaded ? (
+                            <p className="text-xs text-neutral-500">Loading saved results...</p>
+                          ) : (gradePreviews[connection.child_id] || []).length === 0 ? (
                             <p className="text-xs text-neutral-500">No saved results yet.</p>
                           ) : (
                             <div className="space-y-1.5">
@@ -323,10 +337,10 @@ export default function ParentChildrenPage() {
                       </div>
                       <div className="flex gap-2 self-start sm:self-center">
                         <a
-                          href="/parent/dashboard"
+                          href="/parent/children"
                           className="rounded-lg border border-neutral-200 dark:border-neutral-700 px-3 py-1.5 text-sm font-semibold text-neutral-800 dark:text-white hover:border-primary-400 hover:text-primary-700 dark:hover:border-primary-400 dark:hover:text-primary-200"
                         >
-                          Insights
+                          Dashboard
                         </a>
                         <button
                           onClick={() => handleRemove(connection.id)}

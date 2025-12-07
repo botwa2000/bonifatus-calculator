@@ -21,7 +21,7 @@ export default async function StudentLayout({ children }: { children: React.Reac
     .single()
 
   if (profile?.role === 'parent') {
-    redirect('/parent/dashboard')
+    redirect('/parent/children')
   }
 
   const navItems = [

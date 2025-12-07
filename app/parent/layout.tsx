@@ -11,7 +11,7 @@ export default async function ParentLayout({ children }: { children: React.React
   } = await supabase.auth.getSession()
 
   if (!session) {
-    redirect('/login?redirectTo=/parent/dashboard')
+    redirect('/login?redirectTo=/parent/children')
   }
 
   const { data: profile } = await supabase
@@ -25,8 +25,7 @@ export default async function ParentLayout({ children }: { children: React.React
   }
 
   const navItems = [
-    { label: 'Dashboard', href: '/parent/dashboard' },
-    { label: 'View children', href: '/parent/children' },
+    { label: 'Dashboard', href: '/parent/children' },
     { label: 'Profile', href: '/parent/profile' },
   ]
 
