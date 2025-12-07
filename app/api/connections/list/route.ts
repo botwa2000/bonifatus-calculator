@@ -60,7 +60,9 @@ export async function GET() {
       .from('parent_child_invites')
       .select('id, code, status, expires_at, created_at, child_id')
       .eq('parent_id', user.id)
-      .order('created_at', { ascending: false })
+      .eq('status', 'pending')
+      .gt('expires_at', new Date().toISOString())
+      .order('expires_at', { ascending: false })
 
     if (inviteErr) {
       return NextResponse.json(
