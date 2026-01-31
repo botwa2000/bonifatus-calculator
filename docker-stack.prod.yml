@@ -1,0 +1,53 @@
+version: "3.8"
+
+services:
+  app:
+    image: bonifatus:latest
+    ports:
+      - "3000:3000"
+    secrets:
+      - prod_DATABASE_URL
+      - prod_NEXTAUTH_SECRET
+      - prod_TURNSTILE_SECRET_KEY
+      - prod_EMAIL_HOST
+      - prod_EMAIL_PORT
+      - prod_EMAIL_SECURE
+      - prod_EMAIL_USER
+      - prod_EMAIL_PASSWORD
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      - NEXTAUTH_URL=https://bonifatus.com
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+      update_config:
+        parallelism: 1
+        delay: 10s
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+secrets:
+  prod_DATABASE_URL:
+    external: true
+  prod_NEXTAUTH_SECRET:
+    external: true
+  prod_TURNSTILE_SECRET_KEY:
+    external: true
+  prod_EMAIL_HOST:
+    external: true
+  prod_EMAIL_PORT:
+    external: true
+  prod_EMAIL_SECURE:
+    external: true
+  prod_EMAIL_USER:
+    external: true
+  prod_EMAIL_PASSWORD:
+    external: true

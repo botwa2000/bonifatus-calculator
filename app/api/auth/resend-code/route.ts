@@ -1,168 +1,139 @@
-/**
- * Resend Verification Code API Route
- * Handles resending verification codes (rate-limited)
- */
-
 import { NextRequest, NextResponse } from 'next/server'
-import { createServerSupabaseClient } from '@/lib/supabase/client'
-import { createClient } from '@supabase/supabase-js'
-import { sendVerificationCode, getVerificationCodeStatus } from '@/lib/auth/verification'
-import { getClientIp } from '@/lib/auth/turnstile'
 import { z } from 'zod'
+import { db } from '@/lib/db/client'
+import { users } from '@/drizzle/schema/auth'
+import { userProfiles } from '@/drizzle/schema/users'
+import { verificationCodes } from '@/drizzle/schema/security'
+import { eq, and, isNull, desc, gt } from 'drizzle-orm'
+import { getClientIp } from '@/lib/auth/turnstile'
+import { sendEmail } from '@/lib/email/service'
+import { getVerificationCodeEmail, getPasswordResetCodeEmail } from '@/lib/email/templates'
 
-// Request validation schema
-const resendCodeSchema = z.object({
+const resendSchema = z.object({
   userId: z.string().uuid('Invalid user ID'),
   purpose: z.enum(['email_verification', 'password_reset']).default('email_verification'),
 })
 
+function generateCode(): string {
+  return Math.floor(100000 + Math.random() * 900000).toString()
+}
+
 export async function POST(request: NextRequest) {
   try {
-    // Parse and validate request body
     const body = await request.json()
-    const validationResult = resendCodeSchema.safeParse(body)
+    const parsed = resendSchema.safeParse(body)
 
-    if (!validationResult.success) {
+    if (!parsed.success) {
       return NextResponse.json(
-        {
-          success: false,
-          error: 'Validation failed',
-          details: validationResult.error.issues,
-        },
+        { success: false, error: 'Validation failed', details: parsed.error.issues },
         { status: 400 }
       )
     }
 
-    const { userId, purpose } = validationResult.data
+    const { userId, purpose } = parsed.data
 
-    const supabase = await createServerSupabaseClient()
-
-    // Admin client for privileged lookup (requires service role key)
-    const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
-    if (!serviceRoleKey) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: 'Server configuration error',
-        },
-        { status: 500 }
-      )
+    // Get user info
+    const [user] = await db.select().from(users).where(eq(users.id, userId)).limit(1)
+    if (!user) {
+      return NextResponse.json({ success: false, error: 'User not found' }, { status: 404 })
     }
-    const supabaseAdmin = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, serviceRoleKey)
 
-    // Get user information
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const { data: profile } = await (supabase as any)
-      .from('user_profiles')
-      .select('full_name')
-      .eq('id', userId)
-      .single()
+    const [profile] = await db
+      .select({ fullName: userProfiles.fullName })
+      .from(userProfiles)
+      .where(eq(userProfiles.id, userId))
+      .limit(1)
 
     if (!profile) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: 'User not found',
-        },
-        { status: 404 }
-      )
+      return NextResponse.json({ success: false, error: 'User not found' }, { status: 404 })
     }
 
-    // Get user email from auth.users
-    const { data: userData, error: userError } = await supabaseAdmin.auth.admin.getUserById(userId)
-
-    if (userError || !userData.user?.email) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: 'User email not found',
-        },
-        { status: 404 }
+    // Check for existing active code
+    const [activeCode] = await db
+      .select()
+      .from(verificationCodes)
+      .where(
+        and(
+          eq(verificationCodes.userId, userId),
+          eq(verificationCodes.purpose, purpose),
+          isNull(verificationCodes.verifiedAt),
+          gt(verificationCodes.expiresAt, new Date())
+        )
       )
-    }
+      .orderBy(desc(verificationCodes.createdAt))
+      .limit(1)
 
-    // Check if there's already an active code
-    const status = await getVerificationCodeStatus(userId, purpose)
-
-    if (status.hasActiveCode && status.expiresAt) {
-      const now = new Date()
-      const timeRemaining = status.expiresAt.getTime() - now.getTime()
-
-      // If code expires in more than 30 seconds, don't allow resend yet
+    if (activeCode) {
+      const timeRemaining = activeCode.expiresAt.getTime() - Date.now()
       if (timeRemaining > 30000) {
         const minutesRemaining = Math.ceil(timeRemaining / 60000)
         return NextResponse.json(
           {
             success: false,
             error: `A verification code was already sent. Please wait ${minutesRemaining} minute(s) before requesting a new one.`,
-            expiresAt: status.expiresAt,
+            expiresAt: activeCode.expiresAt,
           },
           { status: 429 }
         )
       }
     }
 
-    // Send new verification code
+    // Invalidate old codes
+    await db
+      .update(verificationCodes)
+      .set({ verifiedAt: new Date() })
+      .where(
+        and(
+          eq(verificationCodes.userId, userId),
+          eq(verificationCodes.purpose, purpose),
+          isNull(verificationCodes.verifiedAt)
+        )
+      )
+
+    // Generate new code
+    const code = generateCode()
+    const expiresAt = new Date(Date.now() + 15 * 60 * 1000)
     const clientIp = getClientIp(request.headers)
     const userAgent = request.headers.get('user-agent') || undefined
 
-    const result = await sendVerificationCode(
+    await db.insert(verificationCodes).values({
       userId,
-      userData.user.email,
-      profile.full_name,
+      email: user.email,
+      code,
       purpose,
-      clientIp,
-      userAgent
-    )
+      expiresAt,
+      ipAddress: clientIp || '0.0.0.0',
+      userAgent: userAgent || null,
+    })
 
-    if (!result.success) {
-      // Check if it's a rate limit error
-      if (result.error?.includes('Rate limit')) {
-        return NextResponse.json(
-          {
-            success: false,
-            error: result.error,
-          },
-          { status: 429 }
-        )
-      }
+    const template =
+      purpose === 'password_reset'
+        ? getPasswordResetCodeEmail(code, profile.fullName, 15)
+        : getVerificationCodeEmail(code, profile.fullName, 15)
 
+    const emailSent = await sendEmail({
+      to: user.email,
+      subject: template.subject,
+      text: template.text,
+      html: template.html,
+    })
+
+    if (!emailSent) {
       return NextResponse.json(
-        {
-          success: false,
-          error: result.error || 'Failed to send verification code',
-        },
+        { success: false, error: 'Failed to send verification code' },
         { status: 500 }
       )
     }
 
-    // Log resend action
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    await (supabase as any).rpc('log_security_event', {
-      p_event_type: 'login_success',
-      p_severity: 'info',
-      p_user_id: userId,
-      p_ip_address: clientIp || null,
-      p_user_agent: userAgent || null,
-      p_metadata: {
-        action: 'resend_verification_code',
-        purpose: purpose,
-      },
-    })
-
     return NextResponse.json({
       success: true,
       message: 'Verification code sent successfully',
-      expiresAt: result.expiresAt,
+      expiresAt: expiresAt.toISOString(),
     })
   } catch (error) {
     console.error('Resend code error:', error)
-
     return NextResponse.json(
-      {
-        success: false,
-        error: 'An unexpected error occurred. Please try again.',
-      },
+      { success: false, error: 'An unexpected error occurred. Please try again.' },
       { status: 500 }
     )
   }

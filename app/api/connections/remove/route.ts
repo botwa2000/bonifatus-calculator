@@ -1,13 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
-import { createServerSupabaseClient, getUser } from '@/lib/supabase/client'
+import { requireAuthApi } from '@/lib/auth/session'
+import { db } from '@/lib/db/client'
+import { parentChildRelationships } from '@/drizzle/schema/relationships'
+import { eq } from 'drizzle-orm'
 
 const schema = z.object({
   relationshipId: z.string().uuid(),
 })
 
 export async function POST(request: NextRequest) {
-  const user = await getUser()
+  const user = await requireAuthApi()
   if (!user) {
     return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
   }
@@ -21,35 +24,29 @@ export async function POST(request: NextRequest) {
     )
   }
 
-  const supabase = await createServerSupabaseClient()
-  const { data: rel, error: relErr } = await supabase
-    .from('parent_child_relationships')
-    .select('id, parent_id, child_id')
-    .eq('id', parsed.data.relationshipId)
-    .single()
+  try {
+    const [rel] = await db
+      .select()
+      .from(parentChildRelationships)
+      .where(eq(parentChildRelationships.id, parsed.data.relationshipId))
+      .limit(1)
 
-  if (relErr || !rel) {
+    if (!rel) {
+      return NextResponse.json({ success: false, error: 'Connection not found' }, { status: 404 })
+    }
+
+    if (rel.parentId !== user.id && rel.childId !== user.id) {
+      return NextResponse.json({ success: false, error: 'Forbidden' }, { status: 403 })
+    }
+
+    await db.delete(parentChildRelationships).where(eq(parentChildRelationships.id, rel.id))
+
+    return NextResponse.json({ success: true }, { status: 200 })
+  } catch (error) {
+    console.error('Remove connection error:', error)
     return NextResponse.json(
-      { success: false, error: 'Connection not found', details: relErr?.message },
-      { status: 404 }
-    )
-  }
-
-  if (rel.parent_id !== user.id && rel.child_id !== user.id) {
-    return NextResponse.json({ success: false, error: 'Forbidden' }, { status: 403 })
-  }
-
-  const { error: deleteErr } = await supabase
-    .from('parent_child_relationships')
-    .delete()
-    .eq('id', rel.id)
-
-  if (deleteErr) {
-    return NextResponse.json(
-      { success: false, error: 'Failed to remove connection', details: deleteErr.message },
+      { success: false, error: 'Failed to remove connection' },
       { status: 500 }
     )
   }
-
-  return NextResponse.json({ success: true }, { status: 200 })
 }

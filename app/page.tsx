@@ -2,16 +2,13 @@ import Link from 'next/link'
 import { DemoSection } from '@/components/demo-section'
 import { HeroCta } from '@/components/hero-cta'
 import { DemoLinkButton } from '@/components/demo-link-button'
-import { createServerSupabaseClient } from '@/lib/supabase/client'
+import { auth } from '@/auth'
 
 export const dynamic = 'force-dynamic'
 
 export default async function Home() {
-  const supabase = await createServerSupabaseClient()
-  const {
-    data: { session },
-  } = await supabase.auth.getSession()
-  const isAuthed = Boolean(session)
+  const session = await auth()
+  const isAuthed = Boolean(session?.user)
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary-50 via-white to-secondary-50 dark:from-neutral-900 dark:via-neutral-800 dark:to-neutral-900">

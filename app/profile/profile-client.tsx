@@ -1,15 +1,13 @@
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { createBrowserClient } from '@supabase/ssr'
-import type { Database } from '@/types/database'
+import { signOut } from 'next-auth/react'
 
 type ThemeChoice = 'light' | 'dark' | 'system'
 
 interface ProfileClientProps {
-  userId: string
   email: string
   fullName: string
   dateOfBirth: string | null
@@ -18,27 +16,16 @@ interface ProfileClientProps {
 }
 
 export default function ProfileClient({
-  userId,
   email,
   fullName,
   dateOfBirth,
   themePreference,
   role,
 }: ProfileClientProps) {
-  const supabase = useMemo(() => {
-    if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
-      throw new Error('Missing Supabase environment variables')
-    }
-    return createBrowserClient<Database>(
-      process.env.NEXT_PUBLIC_SUPABASE_URL,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-    )
-  }, [])
   const router = useRouter()
 
   const [name, setName] = useState(fullName)
   const [dob, setDob] = useState(dateOfBirth || '')
-  const [newEmail, setNewEmail] = useState(email)
   const [newPassword, setNewPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [theme, setTheme] = useState<ThemeChoice>(themePreference)
@@ -46,7 +33,6 @@ export default function ProfileClient({
   const [passwordStrength, setPasswordStrength] = useState('')
   const [saving, setSaving] = useState({
     profile: false,
-    email: false,
     password: false,
     theme: false,
     deleting: false,
@@ -68,7 +54,6 @@ export default function ProfileClient({
   }
 
   useEffect(() => {
-    // respect previously chosen theme if it exists
     const stored = (localStorage.getItem('theme') as ThemeChoice | null) || themePreference
     setTheme(stored)
     applyTheme(stored)
@@ -118,42 +103,26 @@ export default function ProfileClient({
     setSaving((prev) => ({ ...prev, profile: true }))
     setStatusMessage('')
 
-    const { error } = await supabase
-      .from('user_profiles')
-      .update({
-        full_name: name.trim() || undefined,
-        date_of_birth: dob || null,
+    try {
+      const res = await fetch('/api/profile/update', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          fullName: name.trim() || undefined,
+          dateOfBirth: dob || null,
+        }),
       })
-      .eq('id', userId)
-
-    if (error) {
-      setStatusMessage(error.message || 'Failed to update profile')
-    } else {
-      setStatusMessage('Profile updated')
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}))
+        setStatusMessage(data.error || 'Failed to update profile')
+      } else {
+        setStatusMessage('Profile updated')
+      }
+    } catch {
+      setStatusMessage('Failed to update profile')
     }
 
     setSaving((prev) => ({ ...prev, profile: false }))
-  }
-
-  const handleEmailChange = async (event: React.FormEvent) => {
-    event.preventDefault()
-    if (!newEmail || newEmail === email) {
-      setStatusMessage('Enter a new email to update.')
-      return
-    }
-
-    setSaving((prev) => ({ ...prev, email: true }))
-    setStatusMessage('')
-
-    const { error } = await supabase.auth.updateUser({ email: newEmail.trim() })
-
-    if (error) {
-      setStatusMessage(error.message || 'Failed to start email change')
-    } else {
-      setStatusMessage('Check your new inbox to confirm the email change.')
-    }
-
-    setSaving((prev) => ({ ...prev, email: false }))
   }
 
   const handlePasswordChange = async (event: React.FormEvent) => {
@@ -174,15 +143,23 @@ export default function ProfileClient({
     setSaving((prev) => ({ ...prev, password: true }))
     setStatusMessage('')
 
-    const { error } = await supabase.auth.updateUser({ password: newPassword })
-
-    if (error) {
-      setStatusMessage(error.message || 'Failed to update password')
-    } else {
-      setStatusMessage('Password updated. You may need to log in again on other devices.')
-      setNewPassword('')
-      setConfirmPassword('')
-      setPasswordStrength('')
+    try {
+      const res = await fetch('/api/profile/password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ newPassword }),
+      })
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}))
+        setStatusMessage(data.error || 'Failed to update password')
+      } else {
+        setStatusMessage('Password updated.')
+        setNewPassword('')
+        setConfirmPassword('')
+        setPasswordStrength('')
+      }
+    } catch {
+      setStatusMessage('Failed to update password')
     }
 
     setSaving((prev) => ({ ...prev, password: false }))
@@ -194,15 +171,20 @@ export default function ProfileClient({
     setSaving((prev) => ({ ...prev, theme: true }))
     setStatusMessage('')
 
-    const { error } = await supabase
-      .from('user_profiles')
-      .update({ theme_preference: choice })
-      .eq('id', userId)
-
-    if (error) {
-      setStatusMessage(error.message || 'Failed to save theme preference')
-    } else {
-      setStatusMessage(`Theme set to ${choice}.`)
+    try {
+      const res = await fetch('/api/profile/update', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ themePreference: choice }),
+      })
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}))
+        setStatusMessage(data.error || 'Failed to save theme preference')
+      } else {
+        setStatusMessage(`Theme set to ${choice}.`)
+      }
+    } catch {
+      setStatusMessage('Failed to save theme preference')
     }
 
     setSaving((prev) => ({ ...prev, theme: false }))
@@ -218,6 +200,7 @@ export default function ProfileClient({
         throw new Error(data.error || 'Failed to delete account')
       }
       setStatusMessage('Account deleted. Signing you out...')
+      await signOut({ redirect: false })
       router.push('/')
       router.refresh()
     } catch (error) {
@@ -229,7 +212,7 @@ export default function ProfileClient({
   }
 
   const handleLogout = async () => {
-    await supabase.auth.signOut()
+    await signOut({ redirect: false })
     router.push('/')
     router.refresh()
   }
@@ -242,7 +225,7 @@ export default function ProfileClient({
             href="/"
             className="text-sm font-semibold text-neutral-800 dark:text-white hover:text-primary-600 dark:hover:text-primary-300 transition-colors"
           >
-            ← Back to homepage
+            &larr; Back to homepage
           </Link>
           <div className="flex gap-3 text-sm">
             <Link
@@ -292,7 +275,7 @@ export default function ProfileClient({
             <div>
               <h2 className="text-lg font-semibold text-neutral-900 dark:text-white">Basic info</h2>
               <p className="text-sm text-neutral-500 dark:text-neutral-400">
-                Update your display name and email.
+                Update your display name.
               </p>
             </div>
             <label className="block space-y-1">
@@ -305,9 +288,7 @@ export default function ProfileClient({
               />
             </label>
             <label className="block space-y-1">
-              <span className="text-sm text-neutral-700 dark:text-neutral-300">
-                Date of birth
-              </span>
+              <span className="text-sm text-neutral-700 dark:text-neutral-300">Date of birth</span>
               <input
                 type="date"
                 value={dob}
@@ -325,31 +306,21 @@ export default function ProfileClient({
               <span className="text-sm text-neutral-700 dark:text-neutral-300">Email address</span>
               <input
                 type="email"
-                value={newEmail}
-                onChange={(e) => setNewEmail(e.target.value)}
-                className="w-full rounded-lg border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 py-2 text-neutral-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary-500"
+                value={email}
+                disabled
+                className="w-full rounded-lg border border-neutral-200 dark:border-neutral-700 bg-neutral-100 dark:bg-neutral-800 px-3 py-2 text-neutral-500 dark:text-neutral-400 cursor-not-allowed"
               />
               <p className="text-xs text-neutral-500 dark:text-neutral-400">
-                Changing email sends a confirmation link to the new address.
+                Email cannot be changed at this time.
               </p>
             </label>
-            <div className="flex gap-2">
-              <button
-                type="submit"
-                disabled={saving.profile}
-                className="px-4 py-2 rounded-lg bg-gradient-to-r from-primary-600 to-secondary-600 text-white font-semibold shadow-button hover:shadow-lg transition-all disabled:opacity-60"
-              >
-                {saving.profile ? 'Saving...' : 'Save profile'}
-              </button>
-              <button
-                type="button"
-                onClick={handleEmailChange}
-                disabled={saving.email}
-                className="px-4 py-2 rounded-lg border border-neutral-200 dark:border-neutral-700 text-neutral-800 dark:text-white hover:border-primary-400 dark:hover:border-primary-500 transition-colors disabled:opacity-60"
-              >
-                {saving.email ? 'Sending...' : 'Change email'}
-              </button>
-            </div>
+            <button
+              type="submit"
+              disabled={saving.profile}
+              className="px-4 py-2 rounded-lg bg-gradient-to-r from-primary-600 to-secondary-600 text-white font-semibold shadow-button hover:shadow-lg transition-all disabled:opacity-60"
+            >
+              {saving.profile ? 'Saving...' : 'Save profile'}
+            </button>
           </form>
 
           <form
@@ -376,31 +347,7 @@ export default function ProfileClient({
                   onClick={() => setShowPassword((prev) => !prev)}
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-500 hover:text-neutral-700 dark:text-neutral-400 dark:hover:text-neutral-200"
                 >
-                  {showPassword ? (
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"
-                      />
-                    </svg>
-                  ) : (
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-                      />
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
-                      />
-                    </svg>
-                  )}
+                  {showPassword ? 'Hide' : 'Show'}
                 </button>
               </div>
             </label>
@@ -420,31 +367,7 @@ export default function ProfileClient({
                   onClick={() => setShowConfirmPassword((prev) => !prev)}
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-500 hover:text-neutral-700 dark:text-neutral-400 dark:hover:text-neutral-200"
                 >
-                  {showConfirmPassword ? (
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"
-                      />
-                    </svg>
-                  ) : (
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-                      />
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
-                      />
-                    </svg>
-                  )}
+                  {showConfirmPassword ? 'Hide' : 'Show'}
                 </button>
               </div>
             </label>

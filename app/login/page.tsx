@@ -69,28 +69,26 @@ export default function LoginPage() {
       setLoading(true)
       dbg('submitLogin start', { email: formDataRef.current.email })
       try {
-        const response = await fetch('/api/auth/login', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            ...formDataRef.current,
-            turnstileToken: token,
-          }),
+        const { signIn } = await import('next-auth/react')
+        const result = await signIn('credentials', {
+          redirect: false,
+          email: formDataRef.current.email,
+          password: formDataRef.current.password,
+          turnstileToken: token,
         })
 
-        const data = await response.json()
-
-        if (!response.ok) {
-          dbg('submitLogin failed', { status: response.status, body: data })
-          setError(data.error || 'Login failed')
+        if (result?.error) {
+          dbg('submitLogin failed', { error: result.error })
+          setError(
+            result.error === 'CredentialsSignin' ? 'Invalid email or password' : result.error
+          )
           setTurnstileToken('')
           setLoading(false)
           return
         }
 
         router.push('/dashboard')
+        router.refresh()
       } catch (err) {
         console.error('Login error:', err)
         setError('An unexpected error occurred. Please try again.')

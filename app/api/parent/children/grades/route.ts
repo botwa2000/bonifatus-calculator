@@ -1,116 +1,52 @@
 import { NextResponse } from 'next/server'
-import { getUserProfile } from '@/lib/supabase/client'
-import { createServiceSupabaseClient } from '@/lib/supabase/service'
+import { requireAuthApi, getUserProfile } from '@/lib/auth/session'
+import { getAcceptedChildren } from '@/lib/db/queries/relationships'
+import { getChildrenGrades } from '@/lib/db/queries/grades'
 
 export async function GET() {
-  const profile = await getUserProfile()
-  if (!profile) {
+  const user = await requireAuthApi()
+  if (!user) {
     return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
   }
-  if (profile.role !== 'parent') {
+
+  const profile = await getUserProfile()
+  if (!profile || profile.role !== 'parent') {
     return NextResponse.json(
       { success: false, error: 'Only parents can view this data' },
       { status: 403 }
     )
   }
 
-  if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
-    return NextResponse.json(
-      {
-        success: false,
-        error: 'Service key missing',
-        details: 'Server misconfiguration: SUPABASE_SERVICE_ROLE_KEY is not set.',
-      },
-      { status: 500 }
-    )
-  }
+  try {
+    const { relationships, profiles } = await getAcceptedChildren(profile.id)
 
-  const supabase = await createServiceSupabaseClient()
+    const childIds = profiles.map((p) => p.id)
+    if (childIds.length === 0) {
+      return NextResponse.json({ success: true, children: [] }, { status: 200 })
+    }
 
-  const { data: relationships, error: relErr } = await supabase
-    .from('parent_child_relationships')
-    .select(
-      `
-      id,
-      child:user_profiles!child_id (
-        id,
-        full_name,
-        role,
-        date_of_birth
-      )
-    `
-    )
-    .eq('parent_id', profile.id)
-    .eq('invitation_status', 'accepted')
+    const terms = await getChildrenGrades(childIds)
 
-  if (relErr) {
-    return NextResponse.json(
-      { success: false, error: 'Failed to load children', details: relErr.message },
-      { status: 500 }
-    )
-  }
-
-  const childIds = (relationships || []).map((r) => r.child?.id).filter(Boolean) as string[]
-  if (childIds.length === 0) {
-    return NextResponse.json({ success: true, children: [] }, { status: 200 })
-  }
-
-  const { data: terms, error: termsErr } = await supabase
-    .from('term_grades')
-    .select(
-      `
-      id,
-      child_id,
-      school_year,
-      term_type,
-      term_name,
-      class_level,
-      grading_system_id,
-      total_bonus_points,
-      created_at,
-      grading_systems (
-        name,
-        code,
-        scale_type,
-        min_value,
-        max_value,
-        best_is_highest
-      ),
-      subject_grades (
-        id,
-        subject_id,
-        grade_value,
-        grade_normalized_100,
-        subject_weight,
-        bonus_points,
-        grade_quality_tier,
-        subjects ( name )
-      )
-    `
-    )
-    .in('child_id', childIds)
-    .order('created_at', { ascending: false })
-
-  if (termsErr) {
-    return NextResponse.json(
-      { success: false, error: 'Failed to load grades', details: termsErr.message },
-      { status: 500 }
-    )
-  }
-
-  const termsByChild =
-    terms?.reduce<Record<string, typeof terms>>((acc, term) => {
-      const childId = term.child_id
-      if (!acc[childId]) acc[childId] = []
-      acc[childId].push(term)
+    const profileMap = Object.fromEntries(profiles.map((p) => [p.id, p]))
+    const termsByChild = terms.reduce<Record<string, typeof terms>>((acc, term) => {
+      const cid = term.childId
+      if (!acc[cid]) acc[cid] = []
+      acc[cid].push(term)
       return acc
-    }, {}) ?? {}
+    }, {})
 
-  const childrenWithGrades = (relationships || []).map((rel) => ({
-    relationshipId: rel.id,
-    child: rel.child,
-    terms: termsByChild[rel.child?.id ?? ''] || [],
-  }))
+    const childrenWithGrades = relationships.map((rel) => ({
+      relationshipId: rel.id,
+      child: profileMap[rel.childId] || null,
+      terms: termsByChild[rel.childId] || [],
+    }))
 
-  return NextResponse.json({ success: true, children: childrenWithGrades }, { status: 200 })
+    return NextResponse.json({ success: true, children: childrenWithGrades }, { status: 200 })
+  } catch (error) {
+    console.error('[parent/children/grades] unexpected error', error)
+    return NextResponse.json(
+      { success: false, error: 'Failed to load children grades' },
+      { status: 500 }
+    )
+  }
 }

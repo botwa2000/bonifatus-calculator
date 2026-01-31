@@ -1,8 +1,10 @@
-import type { Database } from '@/types/database'
+import type { InferSelectModel } from 'drizzle-orm'
+import type { gradingSystems } from '@/drizzle/schema/grades'
+import type { bonusFactorDefaults, userBonusFactors } from '@/drizzle/schema/bonuses'
 
-type GradingSystemRow = Database['public']['Tables']['grading_systems']['Row']
-type BonusFactor = Database['public']['Tables']['bonus_factor_defaults']['Row']
-type UserBonusFactor = Database['public']['Tables']['user_bonus_factors']['Row']
+type GradingSystemRow = InferSelectModel<typeof gradingSystems>
+type BonusFactor = InferSelectModel<typeof bonusFactorDefaults>
+type UserBonusFactor = InferSelectModel<typeof userBonusFactors>
 
 export type CalculatorInputSubject = {
   subjectId: string
@@ -38,24 +40,24 @@ export type CalculatorResult = {
 }
 
 function factorValue(
-  type: BonusFactor['factor_type'],
+  type: BonusFactor['factorType'],
   key: string,
   defaults: BonusFactor[],
   overrides?: UserBonusFactor[]
 ) {
   // Priority: child override > user override > default
   const childOverride = overrides?.find(
-    (f) => f.factor_type === type && f.factor_key === key && f.child_id
+    (f) => f.factorType === type && f.factorKey === key && f.childId
   )
-  if (childOverride) return Number(childOverride.factor_value)
+  if (childOverride) return Number(childOverride.factorValue)
 
   const userOverride = overrides?.find(
-    (f) => f.factor_type === type && f.factor_key === key && !f.child_id
+    (f) => f.factorType === type && f.factorKey === key && !f.childId
   )
-  if (userOverride) return Number(userOverride.factor_value)
+  if (userOverride) return Number(userOverride.factorValue)
 
-  const def = defaults.find((f) => f.factor_type === type && f.factor_key === key)
-  if (def) return Number(def.factor_value)
+  const def = defaults.find((f) => f.factorType === type && f.factorKey === key)
+  if (def) return Number(def.factorValue)
 
   return undefined
 }
@@ -64,13 +66,16 @@ function normalizeGrade(system: GradingSystemRow, grade: string): number {
   if (!grade) return 0
 
   // Try direct match in grade_definitions
-  const def = (system.grade_definitions || []).find(
-    (g) => g.grade?.toLowerCase() === grade.trim().toLowerCase()
-  )
+  const defs = (system.gradeDefinitions || []) as Array<{
+    grade?: string
+    normalized_100?: number
+    quality_tier?: string
+  }>
+  const def = defs.find((g) => g.grade?.toLowerCase() === grade.trim().toLowerCase())
   if (def?.normalized_100 != null) return Number(def.normalized_100)
 
   // Percentages: clamp 0-100
-  if (system.scale_type === 'percentage') {
+  if (system.scaleType === 'percentage') {
     const val = Number(grade)
     if (Number.isNaN(val)) return 0
     return Math.min(Math.max(val, 0), 100)
@@ -79,21 +84,20 @@ function normalizeGrade(system: GradingSystemRow, grade: string): number {
   // Numeric fallback
   const num = Number(grade)
   if (!Number.isNaN(num)) {
-    const min = Number(system.min_value ?? 0)
-    const max = Number(system.max_value ?? 100)
+    const min = Number(system.minValue ?? 0)
+    const max = Number(system.maxValue ?? 100)
     const clamped = Math.min(Math.max(num, min), max)
     if (max === min) return 0
     const normalized = ((clamped - min) / (max - min)) * 100
-    return system.best_is_highest ? normalized : 100 - normalized
+    return system.bestIsHighest ? normalized : 100 - normalized
   }
 
   return 0
 }
 
 function deriveTier(system: GradingSystemRow, grade: string): CalculatorSubjectResult['tier'] {
-  const def = (system.grade_definitions || []).find(
-    (g) => g.grade?.toLowerCase() === grade.trim().toLowerCase()
-  )
+  const defs = (system.gradeDefinitions || []) as Array<{ grade?: string; quality_tier?: string }>
+  const def = defs.find((g) => g.grade?.toLowerCase() === grade.trim().toLowerCase())
   if (def?.quality_tier) return def.quality_tier as CalculatorSubjectResult['tier']
   return 'below'
 }

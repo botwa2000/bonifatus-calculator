@@ -45,6 +45,7 @@ debug-supabase.js
 .yarnrc
 creds bonifatus calculator.docx
 creds*.docx
+.secrets
 
 # vercel
 .vercel

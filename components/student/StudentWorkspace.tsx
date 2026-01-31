@@ -3,8 +3,7 @@
 import Link from 'next/link'
 import { useEffect, useMemo, useState } from 'react'
 import { DemoCalculator } from '@/components/demo-calculator'
-import { createBrowserSupabaseClient } from '@/lib/supabase/browser'
-import type { Tables } from '@/types/database'
+import { useSession } from 'next-auth/react'
 
 type Term = {
   id: string
@@ -108,10 +107,11 @@ export function StudentWorkspace() {
   const [selectedTermType, setSelectedTermType] = useState<string>('all')
   const [prefill, setPrefill] = useState<TermPrefill | undefined>(undefined)
   const [expandedTerm, setExpandedTerm] = useState<string | null>(null)
-  const [profile, setProfile] = useState<Pick<
-    Tables<'user_profiles'>,
-    'full_name' | 'date_of_birth' | 'role'
-  > | null>(null)
+  const [profile, setProfile] = useState<{
+    full_name?: string | null
+    date_of_birth?: string | null
+    role?: string | null
+  } | null>(null)
   const [profileLoading, setProfileLoading] = useState(true)
   const [sessionExpired, setSessionExpired] = useState(false)
   const [errorDetails, setErrorDetails] = useState<string | null>(null)
@@ -165,21 +165,14 @@ export function StudentWorkspace() {
   useEffect(() => {
     async function loadProfile() {
       try {
-        const supabase = createBrowserSupabaseClient()
-        const {
-          data: { user },
-        } = await supabase.auth.getUser()
-        if (!user) {
-          setProfileLoading(false)
-          return
-        }
-        const { data } = await supabase
-          .from('user_profiles')
-          .select('full_name, date_of_birth, role')
-          .eq('id', user.id)
-          .single()
-        if (data) {
-          setProfile(data)
+        const res = await fetch('/api/profile/update')
+        const data = await res.json()
+        if (res.ok && data.success && data.profile) {
+          setProfile({
+            full_name: data.profile.fullName,
+            date_of_birth: data.profile.dateOfBirth,
+            role: data.profile.role,
+          })
         }
       } catch {
         // ignore profile load failure; calculator still works

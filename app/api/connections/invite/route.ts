@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
-import { createServerSupabaseClient, getUserProfile } from '@/lib/supabase/client'
+import { requireAuthApi, getUserProfile } from '@/lib/auth/session'
+import { db } from '@/lib/db/client'
+import { parentChildInvites } from '@/drizzle/schema/relationships'
+import { eq, and } from 'drizzle-orm'
 
 const schema = z.object({
   expiresInMinutes: z
@@ -16,11 +19,13 @@ function generateCode() {
 }
 
 export async function POST(request: NextRequest) {
-  const profile = await getUserProfile()
-  if (!profile) {
+  const user = await requireAuthApi()
+  if (!user) {
     return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
   }
-  if (profile.role !== 'parent') {
+
+  const profile = await getUserProfile()
+  if (!profile || profile.role !== 'parent') {
     return NextResponse.json({ success: false, error: 'Only parents can invite' }, { status: 403 })
   }
 
@@ -33,48 +38,41 @@ export async function POST(request: NextRequest) {
     )
   }
 
-  // Enforce 15-minute expiry for all invites (ignore longer client requests)
   const expiresInMinutes = Math.min(parsed.data.expiresInMinutes ?? 15, 15)
-  const supabase = await createServerSupabaseClient()
 
   // best-effort uniqueness: retry up to 5 times
   let code = generateCode()
   for (let i = 0; i < 5; i += 1) {
-    const { data: existing } = await supabase
-      .from('parent_child_invites')
-      .select('id')
-      .eq('code', code)
-      .eq('status', 'pending')
-      .maybeSingle()
+    const [existing] = await db
+      .select({ id: parentChildInvites.id })
+      .from(parentChildInvites)
+      .where(and(eq(parentChildInvites.code, code), eq(parentChildInvites.status, 'pending')))
+      .limit(1)
     if (!existing) break
     code = generateCode()
   }
 
-  const expiresAt = new Date(Date.now() + expiresInMinutes * 60 * 1000).toISOString()
+  const expiresAt = new Date(Date.now() + expiresInMinutes * 60 * 1000)
 
-  const { data, error } = await supabase
-    .from('parent_child_invites')
-    .insert({
-      parent_id: profile.id,
-      code,
-      status: 'pending',
-      expires_at: expiresAt,
-    })
-    .select('id, code, expires_at, status')
-    .single()
+  try {
+    const [invite] = await db
+      .insert(parentChildInvites)
+      .values({
+        parentId: profile.id,
+        code,
+        status: 'pending',
+        expiresAt,
+      })
+      .returning({
+        id: parentChildInvites.id,
+        code: parentChildInvites.code,
+        expiresAt: parentChildInvites.expiresAt,
+        status: parentChildInvites.status,
+      })
 
-  if (error) {
-    return NextResponse.json(
-      { success: false, error: 'Failed to create invite', details: error.message },
-      { status: 500 }
-    )
+    return NextResponse.json({ success: true, invite }, { status: 200 })
+  } catch (error) {
+    console.error('Create invite error:', error)
+    return NextResponse.json({ success: false, error: 'Failed to create invite' }, { status: 500 })
   }
-
-  return NextResponse.json(
-    {
-      success: true,
-      invite: data,
-    },
-    { status: 200 }
-  )
 }

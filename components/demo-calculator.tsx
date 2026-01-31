@@ -1,13 +1,45 @@
 'use client'
 
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { createBrowserSupabaseClient } from '@/lib/supabase/browser'
-import type { Tables } from '@/types/database'
+type GradingSystem = {
+  id: string
+  code: string | null
+  name: unknown
+  description: unknown
+  country_code: string | null
+  scale_type: string
+  best_is_highest: boolean
+  min_value: number | null
+  max_value: number | null
+  passing_threshold: number | null
+  grade_definitions: unknown
+  display_order: number | null
+  is_active: boolean
+  created_at: string | null
+  updated_at: string | null
+}
 
-type GradingSystem = Tables<'grading_systems'>
+type Factor = {
+  id: string
+  factor_type: string
+  factor_key: string
+  factor_value: number
+  description: string | null
+  is_active: boolean | null
+  created_at: string | null
+  updated_at: string | null
+}
 
-type Factor = Tables<'bonus_factor_defaults'>
-type UserFactor = Tables<'user_bonus_factors'>
+type UserFactor = {
+  id: string
+  user_id: string
+  child_id: string | null
+  factor_type: string
+  factor_key: string
+  factor_value: number
+  created_at: string | null
+  updated_at: string | null
+}
 
 type Subject = {
   id: string
@@ -403,17 +435,19 @@ export function DemoCalculator({
 
     async function loadUser() {
       try {
-        const supabase = createBrowserSupabaseClient()
-        const { data } = await supabase.auth.getUser()
-        setUserEmail(data.user?.email ?? null)
-        try {
-          const factorsRes = await fetch('/api/grades/factors')
-          const factorsData = await factorsRes.json()
-          if (factorsRes.ok && factorsData.success) {
-            setFactorOverrides(factorsData.overrides || [])
+        const { getSession } = await import('next-auth/react')
+        const session = await getSession()
+        setUserEmail(session?.user?.email ?? null)
+        if (session?.user) {
+          try {
+            const factorsRes = await fetch('/api/grades/factors')
+            const factorsData = await factorsRes.json()
+            if (factorsRes.ok && factorsData.success) {
+              setFactorOverrides(factorsData.overrides || [])
+            }
+          } catch {
+            // ignore factor load errors on client
           }
-        } catch {
-          // ignore factor load errors on client
         }
       } catch {
         setUserEmail(null)

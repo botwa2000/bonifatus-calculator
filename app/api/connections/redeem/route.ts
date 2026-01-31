@@ -1,223 +1,137 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
-import { getUserProfile } from '@/lib/supabase/client'
-import { createServiceSupabaseClient } from '@/lib/supabase/service'
+import { requireAuthApi, getUserProfile } from '@/lib/auth/session'
+import { db } from '@/lib/db/client'
+import { parentChildInvites, parentChildRelationships } from '@/drizzle/schema/relationships'
+import { eq, and } from 'drizzle-orm'
 
 const schema = z.object({
   code: z.string().regex(/^[0-9]{6}$/),
 })
 
 export async function POST(request: NextRequest) {
-  const requestId = Math.random().toString(36).slice(2, 8)
-
-  if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
-    console.error(`[redeem:${requestId}] Service role key is not configured`)
-    return NextResponse.json(
-      { success: false, error: 'Server misconfiguration: service key missing', debug: requestId },
-      { status: 500 }
-    )
+  const user = await requireAuthApi()
+  if (!user) {
+    return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
   }
 
   const profile = await getUserProfile()
-  if (!profile) {
-    return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
-  }
-  if (profile.role !== 'child') {
+  if (!profile || profile.role !== 'child') {
     return NextResponse.json({ success: false, error: 'Only children can redeem' }, { status: 403 })
   }
 
   const body = await request.json().catch(() => ({}))
   const parsed = schema.safeParse(body)
   if (!parsed.success) {
-    console.warn(`[redeem:${requestId}] Invalid code payload`, body)
     return NextResponse.json(
-      { success: false, error: 'Invalid code', details: parsed.error.issues, debug: requestId },
+      { success: false, error: 'Invalid code', details: parsed.error.issues },
       { status: 400 }
     )
   }
 
   try {
-    console.info(`[redeem:${requestId}] Child ${profile.id} redeeming code ${parsed.data.code}`)
-    // Use service role to avoid RLS blocking child lookups by code
-    let supabase
-    try {
-      supabase = await createServiceSupabaseClient()
-    } catch (err) {
-      console.error(`[redeem:${requestId}] Failed to init service client`, err)
-      return NextResponse.json(
-        {
-          success: false,
-          error: 'Service unavailable. Please try again shortly.',
-          details: err instanceof Error ? err.message : String(err),
-          debug: requestId,
-        },
-        { status: 500 }
+    const [invite] = await db
+      .select()
+      .from(parentChildInvites)
+      .where(
+        and(eq(parentChildInvites.code, parsed.data.code), eq(parentChildInvites.status, 'pending'))
       )
-    }
+      .limit(1)
 
-    const { data: invite, error: inviteErr } = await supabase
-      .from('parent_child_invites')
-      .select('id, parent_id, status, expires_at, created_at')
-      .eq('code', parsed.data.code)
-      .eq('status', 'pending')
-      .single()
-
-    if (inviteErr || !invite) {
-      if (inviteErr?.code === '42P01') {
-        console.error(
-          `[redeem:${requestId}] parent_child_invites table missing. Run migrations.`,
-          inviteErr
-        )
-        return NextResponse.json(
-          {
-            success: false,
-            error: 'Service unavailable. Please try again shortly.',
-            debug: requestId,
-          },
-          { status: 500 }
-        )
-      }
-      console.warn(`[redeem:${requestId}] Invite not found or already used`, inviteErr)
+    if (!invite) {
       return NextResponse.json(
-        {
-          success: false,
-          error: 'Invite not found or already used',
-          details: inviteErr?.message,
-          debug: requestId,
-        },
+        { success: false, error: 'Invite not found or already used' },
         { status: 404 }
       )
     }
 
-    console.info(
-      `[redeem:${requestId}] Invite ${invite.id} status=${invite.status} expires=${invite.expires_at}`
-    )
+    const now = new Date()
 
-    const respondedAt = new Date().toISOString()
-    const invitedAt = invite.created_at ?? respondedAt
-
-    if (new Date(invite.expires_at).getTime() < Date.now()) {
-      await supabase.from('parent_child_invites').update({ status: 'expired' }).eq('id', invite.id)
-      console.warn(`[redeem:${requestId}] Invite expired, marked expired`)
+    if (invite.expiresAt.getTime() < Date.now()) {
+      await db
+        .update(parentChildInvites)
+        .set({ status: 'expired' })
+        .where(eq(parentChildInvites.id, invite.id))
       return NextResponse.json(
-        {
-          success: false,
-          error: 'Invite expired. Ask your parent to generate a new code.',
-          debug: requestId,
-        },
+        { success: false, error: 'Invite expired. Ask your parent to generate a new code.' },
         { status: 410 }
       )
     }
 
     // Check if link already exists
-    const { data: existingLink } = await supabase
-      .from('parent_child_relationships')
-      .select('id, invitation_status')
-      .eq('parent_id', invite.parent_id)
-      .eq('child_id', profile.id)
-      .maybeSingle()
+    const [existingLink] = await db
+      .select()
+      .from(parentChildRelationships)
+      .where(
+        and(
+          eq(parentChildRelationships.parentId, invite.parentId),
+          eq(parentChildRelationships.childId, profile.id)
+        )
+      )
+      .limit(1)
 
     if (existingLink) {
-      console.info(`[redeem:${requestId}] Existing link ${existingLink.id}; promoting to accepted`)
-      // Relationship already exists (pending/revoked/accepted) - promote to accepted
-      const { error: updateRelErr } = await supabase
-        .from('parent_child_relationships')
-        .update({
-          invitation_status: 'accepted',
-          responded_at: respondedAt,
-        })
-        .eq('id', existingLink.id)
-
-      if (updateRelErr) {
-        console.error(`[redeem:${requestId}] Error updating existing link`, updateRelErr)
-        return NextResponse.json(
-          {
-            success: false,
-            error: 'Failed to update existing link',
-            details: updateRelErr.message,
-            debug: requestId,
-          },
-          { status: 500 }
-        )
-      }
-
-      await supabase
-        .from('parent_child_invites')
-        .update({ status: 'accepted', child_id: profile.id, accepted_at: respondedAt })
-        .eq('id', invite.id)
-
+      await db.transaction(async (tx) => {
+        await tx
+          .update(parentChildRelationships)
+          .set({ invitationStatus: 'accepted', respondedAt: now })
+          .where(eq(parentChildRelationships.id, existingLink.id))
+        await tx
+          .update(parentChildInvites)
+          .set({ status: 'accepted', childId: profile.id, acceptedAt: now })
+          .where(eq(parentChildInvites.id, invite.id))
+      })
       return NextResponse.json({ success: true, relationshipId: existingLink.id })
     }
 
-    const { data: relationship, error: relErr } = await supabase
-      .from('parent_child_relationships')
-      .insert({
-        parent_id: invite.parent_id,
-        child_id: profile.id,
-        invited_by: invite.parent_id,
-        invitation_status: 'accepted',
-        invited_at: invitedAt,
-        responded_at: respondedAt,
+    // Create new relationship
+    const relationshipId = crypto.randomUUID()
+    await db.transaction(async (tx) => {
+      await tx.insert(parentChildRelationships).values({
+        id: relationshipId,
+        parentId: invite.parentId,
+        childId: profile.id,
+        invitedBy: invite.parentId,
+        invitationStatus: 'accepted',
+        invitedAt: invite.createdAt,
+        respondedAt: now,
       })
-      .select('id')
-      .single()
+      await tx
+        .update(parentChildInvites)
+        .set({ status: 'accepted', childId: profile.id, acceptedAt: now })
+        .where(eq(parentChildInvites.id, invite.id))
+    })
 
-    if (relErr || !relationship) {
-      // Handle uniqueness constraint (already linked) gracefully
-      if (relErr?.code === '23505') {
-        const { data: link } = await supabase
-          .from('parent_child_relationships')
-          .select('id')
-          .eq('parent_id', invite.parent_id)
-          .eq('child_id', profile.id)
-          .maybeSingle()
-
-        if (link) {
-          console.info(
-            `[redeem:${requestId}] Unique constraint hit; using existing link ${link.id}`
+    return NextResponse.json({ success: true, relationshipId })
+  } catch (error: unknown) {
+    // Handle uniqueness constraint gracefully
+    if (error instanceof Error && 'code' in error && (error as { code: string }).code === '23505') {
+      const [link] = await db
+        .select({ id: parentChildRelationships.id })
+        .from(parentChildRelationships)
+        .where(
+          and(
+            eq(
+              parentChildRelationships.parentId,
+              (
+                await db
+                  .select({ parentId: parentChildInvites.parentId })
+                  .from(parentChildInvites)
+                  .where(eq(parentChildInvites.code, parsed.data.code))
+                  .limit(1)
+              )[0]?.parentId ?? ''
+            ),
+            eq(parentChildRelationships.childId, profile.id)
           )
-          await supabase
-            .from('parent_child_relationships')
-            .update({
-              invitation_status: 'accepted',
-              responded_at: respondedAt,
-            })
-            .eq('id', link.id)
-          await supabase
-            .from('parent_child_invites')
-            .update({ status: 'accepted', child_id: profile.id, accepted_at: respondedAt })
-            .eq('id', invite.id)
-          return NextResponse.json({ success: true, relationshipId: link.id })
-        }
+        )
+        .limit(1)
+
+      if (link) {
+        return NextResponse.json({ success: true, relationshipId: link.id })
       }
-      console.error(`[redeem:${requestId}] Failed to link accounts`, relErr)
-      return NextResponse.json(
-        {
-          success: false,
-          error: 'Failed to link accounts',
-          details: relErr?.message,
-          debug: requestId,
-        },
-        { status: 500 }
-      )
     }
 
-    await supabase
-      .from('parent_child_invites')
-      .update({ status: 'accepted', child_id: profile.id, accepted_at: respondedAt })
-      .eq('id', invite.id)
-    console.info(`[redeem:${requestId}] Linked ${relationship.id} and marked invite accepted`)
-    return NextResponse.json({ success: true, relationshipId: relationship.id })
-  } catch (error) {
-    console.error(`[redeem:${requestId}] Redeem error unexpected`, error)
-    return NextResponse.json(
-      {
-        success: false,
-        error: 'Failed to redeem code',
-        details: error instanceof Error ? error.message : 'Unknown error',
-        debug: requestId,
-      },
-      { status: 500 }
-    )
+    console.error('Redeem error:', error)
+    return NextResponse.json({ success: false, error: 'Failed to redeem code' }, { status: 500 })
   }
 }

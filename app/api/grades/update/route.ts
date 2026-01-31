@@ -1,8 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
-import { calculateBonus } from '@/lib/calculator/engine'
-import { createServerSupabaseClient, getUser } from '@/lib/supabase/client'
-import type { Database, TablesInsert } from '@/types/database'
+import { db } from '@/lib/db/client'
+import { termGrades, subjectGrades, gradingSystems } from '@/drizzle/schema/grades'
+import { requireAuthApi } from '@/lib/auth/session'
+import { getBonusFactors } from '@/lib/db/queries/config'
+import {
+  calculateBonus,
+  type CalculatorInput,
+  type CalculatorSubjectResult,
+} from '@/lib/calculator/engine'
+import { eq, and } from 'drizzle-orm'
 
 const updateSchema = z.object({
   termId: z.string().uuid(),
@@ -39,71 +46,46 @@ export async function POST(request: NextRequest) {
   const normalizedChildId = payload.childId && payload.childId !== 'null' ? payload.childId : null
 
   try {
-    const supabase = await createServerSupabaseClient()
-    const user = await getUser()
+    const user = await requireAuthApi()
     if (!user) {
       return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
     }
 
-    const { data: existingTerm, error: termLoadErr } = await supabase
-      .from('term_grades')
-      .select('id, child_id')
-      .eq('id', payload.termId)
-      .single()
+    const [existingTerm] = await db
+      .select()
+      .from(termGrades)
+      .where(eq(termGrades.id, payload.termId))
+      .limit(1)
 
-    if (termLoadErr || !existingTerm) {
+    if (!existingTerm) {
       return NextResponse.json({ success: false, error: 'Term not found' }, { status: 404 })
     }
 
-    if (existingTerm.child_id !== (normalizedChildId ?? user.id)) {
+    if (existingTerm.childId !== (normalizedChildId ?? user.id)) {
       return NextResponse.json({ success: false, error: 'Forbidden' }, { status: 403 })
     }
 
-    const { data: gradingSystem, error: gsError } = await supabase
-      .from('grading_systems')
-      .select('*')
-      .eq('id', payload.gradingSystemId)
-      .eq('is_active', true)
-      .single()
+    const [gradingSystem] = await db
+      .select()
+      .from(gradingSystems)
+      .where(and(eq(gradingSystems.id, payload.gradingSystemId), eq(gradingSystems.isActive, true)))
+      .limit(1)
 
-    if (gsError || !gradingSystem) {
+    if (!gradingSystem) {
       return NextResponse.json(
         { success: false, error: 'Grading system not found' },
         { status: 404 }
       )
     }
 
-    const childIdForOverrides = normalizedChildId
-    const childOverrideQuery = childIdForOverrides
-      ? supabase
-          .from('user_bonus_factors')
-          .select('*')
-          .eq('user_id', user.id)
-          .eq('child_id', childIdForOverrides)
-      : supabase.from('user_bonus_factors').select('*').eq('user_id', user.id).is('child_id', null)
-
-    const [{ data: defaults, error: defaultsErr }, { data: overrides, error: overridesErr }] =
-      await Promise.all([
-        supabase.from('bonus_factor_defaults').select('*').eq('is_active', true),
-        childOverrideQuery,
-      ])
-
-    if (defaultsErr) {
-      return NextResponse.json(
-        { success: false, error: 'Failed to load bonus factors' },
-        { status: 500 }
-      )
-    }
-    if (overridesErr) {
-      return NextResponse.json(
-        { success: false, error: 'Failed to load user factors' },
-        { status: 500 }
-      )
-    }
+    const { defaults, overrides } = await getBonusFactors(user.id, normalizedChildId)
 
     const calc = calculateBonus({
-      gradingSystem: gradingSystem as Database['public']['Tables']['grading_systems']['Row'],
-      factors: { defaults: defaults || [], overrides: overrides || [] },
+      gradingSystem: gradingSystem as CalculatorInput['gradingSystem'],
+      factors: {
+        defaults: defaults as CalculatorInput['factors']['defaults'],
+        overrides: overrides as CalculatorInput['factors']['overrides'],
+      },
       classLevel: payload.classLevel,
       termType: payload.termType,
       subjects: payload.subjects.map((s) => ({
@@ -114,61 +96,43 @@ export async function POST(request: NextRequest) {
       })),
     })
 
-    const childId = normalizedChildId ?? user.id
+    await db.transaction(async (tx) => {
+      await tx
+        .update(termGrades)
+        .set({
+          schoolYear: payload.schoolYear,
+          termType: payload.termType,
+          gradingSystemId: payload.gradingSystemId,
+          classLevel: payload.classLevel,
+          termName: payload.termName ?? null,
+          status: 'submitted',
+          totalBonusPoints: calc.total,
+          updatedAt: new Date(),
+        })
+        .where(eq(termGrades.id, payload.termId))
 
-    const termPayload: TablesInsert<'term_grades'> = {
-      child_id: childId,
-      school_year: payload.schoolYear,
-      term_type: payload.termType as Database['public']['Enums']['term_type'],
-      grading_system_id: payload.gradingSystemId,
-      class_level: payload.classLevel,
-      term_name: payload.termName ?? null,
-      status: 'submitted',
-      total_bonus_points: calc.total,
-    }
+      await tx.delete(subjectGrades).where(eq(subjectGrades.termGradeId, payload.termId))
 
-    const { error: updateTermErr } = await supabase
-      .from('term_grades')
-      .update(termPayload)
-      .eq('id', payload.termId)
+      const subjectRows = calc.breakdown.map((item: CalculatorSubjectResult, idx: number) => ({
+        termGradeId: payload.termId,
+        subjectId: payload.subjects[idx]?.subjectId,
+        gradeValue: payload.subjects[idx]?.grade,
+        gradeNumeric: item.normalized,
+        gradeNormalized100: item.normalized,
+        gradeQualityTier: item.tier ?? null,
+        subjectWeight: payload.subjects[idx]?.weight ?? item.weight ?? 1,
+        bonusPoints: item.bonus,
+      }))
 
-    if (updateTermErr) {
-      return NextResponse.json(
-        { success: false, error: 'Failed to update term grades' },
-        { status: 500 }
-      )
-    }
+      await tx.insert(subjectGrades).values(subjectRows)
+    })
 
-    await supabase.from('subject_grades').delete().eq('term_grade_id', payload.termId)
-
-    const subjectRows: TablesInsert<'subject_grades'>[] = calc.breakdown.map((item, idx) => ({
-      term_grade_id: payload.termId,
-      subject_id: payload.subjects[idx]?.subjectId,
-      grade_value: payload.subjects[idx]?.grade,
-      grade_numeric: item.normalized,
-      grade_normalized_100: item.normalized,
-      grade_quality_tier: item.tier as Database['public']['Enums']['grade_quality_tier'] | null,
-      subject_weight: payload.subjects[idx]?.weight ?? item.weight ?? 1,
-      bonus_points: item.bonus,
-    }))
-
-    const { error: insertErr } = await supabase.from('subject_grades').insert(subjectRows)
-    if (insertErr) {
-      return NextResponse.json(
-        { success: false, error: 'Failed to save subject grades' },
-        { status: 500 }
-      )
-    }
-
-    return NextResponse.json(
-      {
-        success: true,
-        termId: payload.termId,
-        totalBonusPoints: calc.total,
-        subjects: calc.breakdown,
-      },
-      { status: 200 }
-    )
+    return NextResponse.json({
+      success: true,
+      termId: payload.termId,
+      totalBonusPoints: calc.total,
+      subjects: calc.breakdown,
+    })
   } catch (error) {
     console.error('Update grades error:', error)
     return NextResponse.json(

@@ -2,8 +2,8 @@
 
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
-import { useMemo, useState } from 'react'
-import { createBrowserSupabaseClient } from '@/lib/supabase/browser'
+import { useState } from 'react'
+import { signOut } from 'next-auth/react'
 
 type NavItem = { label: string; href: string }
 
@@ -16,7 +16,6 @@ type AppHeaderProps = {
 export function AppHeader({ navItems, userName, userRole }: AppHeaderProps) {
   const pathname = usePathname()
   const router = useRouter()
-  const supabase = useMemo(() => createBrowserSupabaseClient(), [])
   const [signingOut, setSigningOut] = useState(false)
 
   const isActive = (href: string) => {
@@ -29,7 +28,7 @@ export function AppHeader({ navItems, userName, userRole }: AppHeaderProps) {
   const handleLogout = async () => {
     setSigningOut(true)
     try {
-      await supabase.auth.signOut()
+      await signOut({ redirect: false })
       router.push('/login')
       router.refresh()
     } finally {
@@ -79,7 +78,7 @@ export function AppHeader({ navItems, userName, userRole }: AppHeaderProps) {
             disabled={signingOut}
             className="rounded-lg border border-neutral-300 px-3 py-2 text-sm font-semibold text-neutral-800 transition hover:border-primary-400 hover:text-primary-700 disabled:opacity-60 dark:border-neutral-700 dark:text-white dark:hover:border-primary-500 dark:hover:text-primary-200"
           >
-            {signingOut ? 'Signing out…' : 'Logout'}
+            {signingOut ? 'Signing out\u2026' : 'Logout'}
           </button>
         </div>
       </div>

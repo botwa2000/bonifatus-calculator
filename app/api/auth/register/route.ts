@@ -1,17 +1,17 @@
-/**
- * Registration API Route
- * Handles user registration with email and password
- * Validates input, checks Turnstile, creates account, sends verification code
- */
-
 import { NextRequest, NextResponse } from 'next/server'
-import { createServerSupabaseClient } from '@/lib/supabase/client'
+import { z } from 'zod'
+import bcrypt from 'bcryptjs'
+import { db } from '@/lib/db/client'
+import { users } from '@/drizzle/schema/auth'
+import { userProfiles } from '@/drizzle/schema/users'
+import { verificationCodes } from '@/drizzle/schema/security'
+import { eq } from 'drizzle-orm'
 import { validatePassword } from '@/lib/auth/password-validation'
 import { verifyTurnstileToken, getClientIp } from '@/lib/auth/turnstile'
-import { sendVerificationCode } from '@/lib/auth/verification'
-import { z } from 'zod'
+import { logSecurityEvent } from '@/lib/db/queries/security'
+import { sendEmail } from '@/lib/email/service'
+import { getVerificationCodeEmail } from '@/lib/email/templates'
 
-// Request validation schema
 const registerSchema = z.object({
   email: z.string().email('Invalid email address'),
   password: z.string().min(12, 'Password must be at least 12 characters'),
@@ -21,45 +21,34 @@ const registerSchema = z.object({
   turnstileToken: z.string().min(1, 'Bot verification required'),
 })
 
+function generateCode(): string {
+  return Math.floor(100000 + Math.random() * 900000).toString()
+}
+
 export async function POST(request: NextRequest) {
   try {
-    // Parse and validate request body
     const body = await request.json()
     const validationResult = registerSchema.safeParse(body)
 
     if (!validationResult.success) {
       return NextResponse.json(
-        {
-          success: false,
-          error: 'Validation failed',
-          details: validationResult.error.issues,
-        },
+        { success: false, error: 'Validation failed', details: validationResult.error.issues },
         { status: 400 }
       )
     }
 
     const { email, password, fullName, dateOfBirth, role, turnstileToken } = validationResult.data
 
-    // Verify Turnstile token (bot protection)
     const clientIp = getClientIp(request.headers)
     const turnstileResult = await verifyTurnstileToken(turnstileToken, clientIp)
-
     if (!turnstileResult.success) {
       return NextResponse.json(
-        {
-          success: false,
-          error: 'Bot verification failed. Please try again.',
-        },
+        { success: false, error: 'Bot verification failed. Please try again.' },
         { status: 400 }
       )
     }
 
-    // Validate password strength and check for breaches
-    const passwordValidation = await validatePassword(password, {
-      email,
-      name: fullName,
-    })
-
+    const passwordValidation = await validatePassword(password, { email, name: fullName })
     if (!passwordValidation.isValid) {
       return NextResponse.json(
         {
@@ -71,133 +60,90 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Validate age (must be at least 5 years old, max 150 years)
     const dob = new Date(dateOfBirth)
     const today = new Date()
     const age = today.getFullYear() - dob.getFullYear()
-
     if (age < 5 || age > 150 || dob > today) {
+      return NextResponse.json({ success: false, error: 'Invalid date of birth' }, { status: 400 })
+    }
+
+    // Check if email already exists
+    const [existing] = await db
+      .select({ id: users.id })
+      .from(users)
+      .where(eq(users.email, email))
+      .limit(1)
+    if (existing) {
       return NextResponse.json(
-        {
-          success: false,
-          error: 'Invalid date of birth',
-        },
+        { success: false, error: 'An account with this email already exists' },
         { status: 400 }
       )
     }
 
-    // Check if child is under 13 (COPPA compliance - will require parental consent)
-    const isUnder13 = age < 13
-    if (role === 'child' && isUnder13) {
-      // Note: Parental consent will be required in the next step
-      // For now, we'll allow registration but flag for consent requirement
-    }
+    const hashedPassword = await bcrypt.hash(password, 12)
+    const userId = crypto.randomUUID()
 
-    // Create Supabase auth user
-    const supabase = await createServerSupabaseClient()
+    // Create user + profile in transaction
+    await db.transaction(async (tx) => {
+      await tx.insert(users).values({
+        id: userId,
+        email,
+        name: fullName,
+        password: hashedPassword,
+      })
 
-    const { data: authData, error: authError } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        // Email confirmation will be handled by our custom verification code system
-        emailRedirectTo: `${process.env.NEXT_PUBLIC_APP_URL}/verify-email`,
-        data: {
-          full_name: fullName,
-          date_of_birth: dateOfBirth,
-          role: role,
-        },
-      },
+      await tx.insert(userProfiles).values({
+        id: userId,
+        role,
+        fullName,
+        dateOfBirth,
+      })
     })
 
-    if (authError) {
-      console.error('Supabase auth error:', authError)
-
-      // Handle specific errors
-      if (authError.message.includes('already registered')) {
-        return NextResponse.json(
-          {
-            success: false,
-            error: 'An account with this email already exists',
-          },
-          { status: 400 }
-        )
-      }
-
-      return NextResponse.json(
-        {
-          success: false,
-          error: 'Failed to create account. Please try again.',
-        },
-        { status: 500 }
-      )
-    }
-
-    if (!authData.user) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: 'Failed to create account',
-        },
-        { status: 500 }
-      )
-    }
-
-    // Send verification code
+    // Generate verification code
+    const code = generateCode()
+    const expiresAt = new Date(Date.now() + 15 * 60 * 1000)
     const userAgent = request.headers.get('user-agent') || undefined
-    const verificationResult = await sendVerificationCode(
-      authData.user.id,
+
+    await db.insert(verificationCodes).values({
+      userId,
       email,
-      fullName,
-      'email_verification',
-      clientIp,
-      userAgent
-    )
+      code,
+      purpose: 'email_verification',
+      expiresAt,
+      ipAddress: clientIp || '0.0.0.0',
+      userAgent: userAgent || null,
+    })
 
-    if (!verificationResult.success) {
-      // Account created but verification email failed
-      // Log this but don't fail the request - user can resend code
-      console.error('Failed to send verification code:', verificationResult.error)
+    // Send verification email
+    const emailTemplate = getVerificationCodeEmail(code, fullName, 15)
+    const emailSent = await sendEmail({
+      to: email,
+      subject: emailTemplate.subject,
+      text: emailTemplate.text,
+      html: emailTemplate.html,
+    })
 
-      return NextResponse.json({
-        success: true,
-        userId: authData.user.id,
-        email: email,
-        verificationEmailSent: false,
-        warning: 'Account created but verification email failed. Please use resend option.',
-      })
-    }
-
-    // Log security event
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    await (supabase as any).rpc('log_security_event', {
-      p_event_type: 'login_success',
-      p_severity: 'info',
-      p_user_id: authData.user.id,
-      p_ip_address: clientIp || null,
-      p_user_agent: userAgent || null,
-      p_metadata: {
-        action: 'registration',
-        role: role,
-      },
+    await logSecurityEvent({
+      eventType: 'login_success',
+      severity: 'info',
+      userId,
+      ipAddress: clientIp || '0.0.0.0',
+      userAgent: userAgent || null,
+      metadata: { action: 'registration', role },
     })
 
     return NextResponse.json({
       success: true,
-      userId: authData.user.id,
-      email: email,
-      verificationEmailSent: true,
-      expiresAt: verificationResult.expiresAt,
-      requiresParentalConsent: role === 'child' && isUnder13,
+      userId,
+      email,
+      verificationEmailSent: emailSent,
+      expiresAt: expiresAt.toISOString(),
     })
   } catch (error) {
     console.error('Registration error:', error)
-
     return NextResponse.json(
-      {
-        success: false,
-        error: 'An unexpected error occurred. Please try again.',
-      },
+      { success: false, error: 'An unexpected error occurred. Please try again.' },
       { status: 500 }
     )
   }

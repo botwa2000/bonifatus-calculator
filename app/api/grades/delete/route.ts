@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
-import { createServerSupabaseClient, getUser } from '@/lib/supabase/client'
+import { requireAuthApi } from '@/lib/auth/session'
+import { getTermGrade, deleteTermGrade } from '@/lib/db/queries/grades'
 
 const schema = z.object({
   termId: z.string().uuid(),
@@ -17,37 +18,22 @@ export async function POST(request: NextRequest) {
     )
   }
 
-  const { termId } = parsed.data
-
   try {
-    const supabase = await createServerSupabaseClient()
-    const user = await getUser()
+    const user = await requireAuthApi()
     if (!user) {
       return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
     }
 
-    const { data: term, error: loadErr } = await supabase
-      .from('term_grades')
-      .select('id, child_id')
-      .eq('id', termId)
-      .single()
-
-    if (loadErr || !term) {
+    const term = await getTermGrade(parsed.data.termId)
+    if (!term) {
       return NextResponse.json({ success: false, error: 'Term not found' }, { status: 404 })
     }
 
-    if (term.child_id !== user.id) {
+    if (term.childId !== user.id) {
       return NextResponse.json({ success: false, error: 'Forbidden' }, { status: 403 })
     }
 
-    await supabase.from('subject_grades').delete().eq('term_grade_id', termId)
-
-    const { error: termErr } = await supabase.from('term_grades').delete().eq('id', termId)
-
-    if (termErr) {
-      return NextResponse.json({ success: false, error: 'Failed to delete term' }, { status: 500 })
-    }
-
+    await deleteTermGrade(parsed.data.termId)
     return NextResponse.json({ success: true }, { status: 200 })
   } catch (error) {
     console.error('Delete term error:', error)

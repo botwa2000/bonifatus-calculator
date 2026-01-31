@@ -1,19 +1,19 @@
 'use client'
 
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { createBrowserSupabaseClient } from '@/lib/supabase/browser'
+import { useSession, signOut } from 'next-auth/react'
 
-const WARNING_MS = 13 * 60 * 1000 // show warning after ~13 minutes (2 minutes before logout)
-const LOGOUT_MS = 15 * 60 * 1000 // auto-logout after 15 minutes
+const WARNING_MS = 13 * 60 * 1000
+const LOGOUT_MS = 15 * 60 * 1000
 const IDLE_FLAG_KEY = 'bonifatus-idle-logout'
 const LAST_ACTIVE_KEY = 'bonifatus-last-active'
 const LOGOUT_BROADCAST_KEY = 'bonifatus-idle-logout-broadcast'
 
 export function IdleLogoutGuard() {
   const router = useRouter()
-  const supabase = useMemo(() => createBrowserSupabaseClient(), [])
-  const [hasSession, setHasSession] = useState(false)
+  const { status } = useSession()
+  const hasSession = status === 'authenticated'
   const [showWarning, setShowWarning] = useState(false)
   const [countdownMs, setCountdownMs] = useState<number | null>(null)
   const [notice, setNotice] = useState<string | null>(null)
@@ -30,7 +30,7 @@ export function IdleLogoutGuard() {
     try {
       localStorage.setItem(LAST_ACTIVE_KEY, String(timestamp))
     } catch {
-      // storage unavailable (e.g. private mode), ignore persistence
+      // storage unavailable
     }
   }
 
@@ -85,7 +85,7 @@ export function IdleLogoutGuard() {
     clearTimers()
     setShowWarning(false)
     setCountdownMs(null)
-    await supabase.auth.signOut()
+    await signOut({ redirect: false })
     router.push('/login?timeout=1')
     router.refresh()
   }
@@ -136,46 +136,17 @@ export function IdleLogoutGuard() {
   }, [])
 
   useEffect(() => {
-    let mounted = true
-    supabase.auth.getSession().then(({ data }) => {
-      if (!mounted) return
-      const active = Boolean(data.session)
-      setHasSession(active)
-      if (active) {
-        hydrateLastActive()
-        syncTimersFromLastActive()
-      }
-    })
-    const { data: listener } = supabase.auth.onAuthStateChange((event, session) => {
-      const active = Boolean(session)
-      setHasSession(active)
-      if (active) {
-        if (event === 'SIGNED_IN') {
-          persistLastActive(Date.now())
-        } else {
-          hydrateLastActive()
-        }
-        syncTimersFromLastActive()
-      } else {
-        clearTimers()
-        setShowWarning(false)
-        setCountdownMs(null)
-      }
-      if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
-        try {
-          sessionStorage.removeItem(IDLE_FLAG_KEY)
-        } catch {
-          // noop
-        }
-      }
-    })
-    return () => {
-      mounted = false
-      listener?.subscription.unsubscribe()
+    if (!hasSession) {
       clearTimers()
+      setShowWarning(false)
+      setCountdownMs(null)
+      return
     }
+    hydrateLastActive()
+    syncTimersFromLastActive()
+    return () => clearTimers()
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+  }, [hasSession])
 
   useEffect(() => {
     if (!hasSession) return
