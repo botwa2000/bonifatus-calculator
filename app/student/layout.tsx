@@ -12,6 +12,10 @@ export default async function StudentLayout({ children }: { children: React.Reac
     redirect('/parent/children')
   }
 
+  if (profile?.role === 'admin') {
+    redirect('/admin/dashboard')
+  }
+
   const navItems = [
     { label: 'Dashboard', href: '/student/dashboard' },
     { label: 'Calculator', href: '/student/dashboard#calculator' },
