@@ -220,7 +220,8 @@ export default function StudentProfilePage() {
                 <div className="space-y-0.5">
                   <p className="text-sm text-neutral-500 uppercase tracking-wide">Parent</p>
                   <p className="text-lg font-semibold text-neutral-900 dark:text-white">
-                    {conn.parent?.full_name?.trim() || `Parent ${conn.parent_id.slice(0, 6)}…`}
+                    {conn.parent?.full_name?.trim() ||
+                      `Parent ${conn.parent_id?.slice(0, 6) ?? ''}…`}
                   </p>
                   <div className="flex gap-4 text-xs text-neutral-600 dark:text-neutral-400">
                     <span className="font-semibold text-primary-600 dark:text-primary-300">
