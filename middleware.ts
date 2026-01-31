@@ -1,6 +1,8 @@
 import { auth } from '@/auth'
 import { NextResponse } from 'next/server'
 
+export const runtime = 'nodejs'
+
 const publicRoutes = ['/', '/login', '/register', '/forgot-password', '/privacy', '/terms']
 
 const publicApiPrefixes = ['/api/health', '/api/auth']
