@@ -11,7 +11,7 @@ import {
 import { relations } from 'drizzle-orm'
 import { users } from './auth'
 
-export const userRoleEnum = pgEnum('user_role', ['parent', 'child'])
+export const userRoleEnum = pgEnum('user_role', ['parent', 'child', 'admin'])
 export const themePreferenceEnum = pgEnum('theme_preference', ['light', 'dark', 'system'])
 export const textDirectionEnum = pgEnum('text_direction', ['ltr', 'rtl'])
 

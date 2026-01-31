@@ -40,6 +40,17 @@ export async function requireRole(role: 'parent' | 'child') {
   return profile
 }
 
+export async function requireAdmin() {
+  const profile = await getUserProfile()
+  if (!profile) {
+    redirect('/login')
+  }
+  if (profile.role !== 'admin') {
+    redirect('/dashboard')
+  }
+  return profile
+}
+
 export async function requireAuthApi() {
   const session = await auth()
   if (!session?.user) {

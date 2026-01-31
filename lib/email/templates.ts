@@ -117,7 +117,7 @@ https://bonifatus.com
  */
 export function getWelcomeEmail(
   userName: string,
-  userRole: 'parent' | 'child'
+  userRole: 'parent' | 'child' | 'admin'
 ): { subject: string; text: string; html: string } {
   const subject = 'Welcome to Bonifatus!'
 

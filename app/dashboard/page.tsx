@@ -5,6 +5,10 @@ export default async function DashboardRouterPage() {
   await requireAuth()
   const profile = await getUserProfile()
 
+  if (profile?.role === 'admin') {
+    redirect('/admin/dashboard')
+  }
+
   if (profile?.role === 'parent') {
     redirect('/parent/children')
   }
