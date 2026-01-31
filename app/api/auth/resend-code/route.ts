@@ -64,13 +64,14 @@ export async function POST(request: NextRequest) {
       .limit(1)
 
     if (activeCode) {
-      const timeRemaining = activeCode.expiresAt.getTime() - Date.now()
-      if (timeRemaining > 30000) {
-        const minutesRemaining = Math.ceil(timeRemaining / 60000)
+      const timeSinceCreated = Date.now() - activeCode.createdAt.getTime()
+      const cooldownMs = 60 * 1000 // 1 minute cooldown between resends
+      if (timeSinceCreated < cooldownMs) {
+        const secondsRemaining = Math.ceil((cooldownMs - timeSinceCreated) / 1000)
         return NextResponse.json(
           {
             success: false,
-            error: `A verification code was already sent. Please wait ${minutesRemaining} minute(s) before requesting a new one.`,
+            error: `Please wait ${secondsRemaining} second(s) before requesting a new code.`,
             expiresAt: activeCode.expiresAt,
           },
           { status: 429 }
