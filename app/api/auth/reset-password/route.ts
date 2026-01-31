@@ -9,7 +9,7 @@ import { logSecurityEvent } from '@/lib/db/queries/security'
 import { getClientIp } from '@/lib/auth/turnstile'
 
 const schema = z.object({
-  userId: z.string().uuid('Invalid user ID'),
+  email: z.string().email('Invalid email address'),
   code: z.string().regex(/^\d{6}$/, 'Code must be 6 digits'),
   newPassword: z.string().min(12, 'Password must be at least 12 characters'),
 })
@@ -26,9 +26,19 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const { userId, code, newPassword } = parsed.data
+    const { email, code, newPassword } = parsed.data
     const clientIp = getClientIp(request.headers)
     const userAgent = request.headers.get('user-agent') || undefined
+
+    // Find user by email
+    const [user] = await db.select().from(users).where(eq(users.email, email)).limit(1)
+    if (!user) {
+      return NextResponse.json(
+        { success: false, error: 'Invalid or expired code' },
+        { status: 400 }
+      )
+    }
+    const userId = user.id
 
     // Find the active reset code
     const [record] = await db
