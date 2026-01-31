@@ -40,7 +40,10 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    await updateProfile(user.id, parsed.data)
+    await updateProfile(user.id, {
+      ...parsed.data,
+      dateOfBirth: parsed.data.dateOfBirth ?? undefined,
+    })
 
     return NextResponse.json({ success: true })
   } catch (error) {
