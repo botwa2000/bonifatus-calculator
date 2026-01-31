@@ -3,7 +3,6 @@
 import Link from 'next/link'
 import { useEffect, useMemo, useState } from 'react'
 import { DemoCalculator } from '@/components/demo-calculator'
-import { useSession } from 'next-auth/react'
 
 type Term = {
   id: string

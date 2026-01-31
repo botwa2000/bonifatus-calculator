@@ -1,6 +1,6 @@
 import { db } from '@/lib/db/client'
 import { termGrades, subjectGrades, gradingSystems, subjects } from '@/drizzle/schema/grades'
-import { eq, and, inArray } from 'drizzle-orm'
+import { eq, inArray } from 'drizzle-orm'
 
 export async function getUserGrades(childId: string) {
   const terms = await db

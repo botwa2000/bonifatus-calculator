@@ -1,50 +1,51 @@
 'use client'
 
 import { useEffect, useMemo, useRef, useState } from 'react'
+type GradeDefinition = {
+  grade?: string
+  normalized_100?: number
+  numeric_value?: number
+  quality_tier?: string
+}
+
 type GradingSystem = {
   id: string
   code: string | null
   name: unknown
   description: unknown
-  country_code: string | null
-  scale_type: string
-  best_is_highest: boolean
-  min_value: number | null
-  max_value: number | null
-  passing_threshold: number | null
-  grade_definitions: unknown
-  display_order: number | null
-  is_active: boolean
-  created_at: string | null
-  updated_at: string | null
+  countryCode: string | null
+  scaleType: string
+  bestIsHighest: boolean
+  minValue: number | null
+  maxValue: number | null
+  passingThreshold: number | null
+  gradeDefinitions: GradeDefinition[] | null
+  displayOrder: number | null
+  isActive: boolean
+  createdAt: string | null
+  updatedAt: string | null
 }
 
 type Factor = {
-  id: string
-  factor_type: string
-  factor_key: string
-  factor_value: number
+  factorType: string
+  factorKey: string
+  factorValue: number
   description: string | null
-  is_active: boolean | null
-  created_at: string | null
-  updated_at: string | null
 }
 
 type UserFactor = {
   id: string
-  user_id: string
-  child_id: string | null
-  factor_type: string
-  factor_key: string
-  factor_value: number
-  created_at: string | null
-  updated_at: string | null
+  userId: string
+  childId: string | null
+  factorType: string
+  factorKey: string
+  factorValue: number
 }
 
 type Subject = {
   id: string
   name: string | Record<string, string>
-  category_id?: string
+  categoryId?: string
 }
 
 type SubjectEntry = {
@@ -92,27 +93,27 @@ function resolveLocalized(value: string | Record<string, string> | null | undefi
 
 function getFactorValue(
   factors: Factor[],
-  type: Factor['factor_type'],
+  type: Factor['factorType'],
   key: string,
   fallback = 1,
   overrides?: UserFactor[]
 ) {
   const childOverride = overrides?.find(
-    (f) => f.factor_type === type && f.factor_key === key && f.child_id
+    (f) => f.factorType === type && f.factorKey === key && f.childId
   )
-  if (childOverride) return Number(childOverride.factor_value)
+  if (childOverride) return Number(childOverride.factorValue)
 
   const userOverride = overrides?.find(
-    (f) => f.factor_type === type && f.factor_key === key && !f.child_id
+    (f) => f.factorType === type && f.factorKey === key && !f.childId
   )
-  if (userOverride) return Number(userOverride.factor_value)
+  if (userOverride) return Number(userOverride.factorValue)
 
-  const found = factors.find((f) => f.factor_type === type && f.factor_key === key)
-  return found ? Number(found.factor_value) : fallback
+  const found = factors.find((f) => f.factorType === type && f.factorKey === key)
+  return found ? Number(found.factorValue) : fallback
 }
 
 function deriveTierFromDefinitions(system: GradingSystem, grade: string) {
-  const def = system.grade_definitions?.find(
+  const def = system.gradeDefinitions?.find(
     (g) => (g.grade ?? '').toLowerCase() === grade.trim().toLowerCase()
   )
   if (def?.quality_tier) return def.quality_tier
@@ -121,22 +122,22 @@ function deriveTierFromDefinitions(system: GradingSystem, grade: string) {
 
 function normalizeGrade(system: GradingSystem, grade: string) {
   if (!grade) return 0
-  if (system.scale_type === 'percentage') {
+  if (system.scaleType === 'percentage') {
     const val = Number(grade)
     if (Number.isNaN(val)) return 0
     return Math.min(Math.max(val, 0), 100)
   }
 
-  const def = system.grade_definitions?.find(
+  const def = system.gradeDefinitions?.find(
     (g) => (g.grade ?? '').toLowerCase() === grade.trim().toLowerCase()
   )
   if (def?.normalized_100 != null) return Number(def.normalized_100)
 
   // Fallback: use numeric_value if provided
   if (def?.numeric_value != null) {
-    const first = system.grade_definitions[0]?.numeric_value ?? 100
-    const last = system.grade_definitions[system.grade_definitions.length - 1]?.numeric_value ?? 0
-    const range = system.best_is_highest ? Number(first) : Number(last)
+    const first = system.gradeDefinitions[0]?.numeric_value ?? 100
+    const last = system.gradeDefinitions[system.gradeDefinitions.length - 1]?.numeric_value ?? 0
+    const range = system.bestIsHighest ? Number(first) : Number(last)
     return Math.min(Math.max((Number(def.numeric_value) / range) * 100, 0), 100)
   }
 
@@ -145,10 +146,10 @@ function normalizeGrade(system: GradingSystem, grade: string) {
 
 function convertNormalizedToScale(system: GradingSystem | null, normalized: number) {
   if (!system) return normalized
-  const min = Number(system.min_value ?? 0)
-  const max = Number(system.max_value ?? 100)
+  const min = Number(system.minValue ?? 0)
+  const max = Number(system.maxValue ?? 100)
   if (max === min) return normalized
-  if (system.best_is_highest === false) {
+  if (system.bestIsHighest === false) {
     return max - (normalized / 100) * (max - min)
   }
   return min + (normalized / 100) * (max - min)
@@ -201,7 +202,7 @@ function calculateBonus(
     let tier = defTier
     if (!tier || tier === 'below') {
       const score = normalized
-      if (!system.best_is_highest) {
+      if (!system.bestIsHighest) {
         // invert thresholds: lower is better
         tier = score <= 10 ? 'best' : score <= 30 ? 'second' : score <= 60 ? 'third' : 'below'
       } else {
@@ -253,17 +254,17 @@ function getSampleData(config: CalculatorConfig): {
 
   const randomGrade = (system: GradingSystem | undefined) => {
     if (!system) return ''
-    if (system.scale_type === 'percentage') {
+    if (system.scaleType === 'percentage') {
       return Math.floor(60 + Math.random() * 40).toString()
     }
-    const defs = system.grade_definitions || []
+    const defs = system.gradeDefinitions || []
     if (defs.length) {
       return pickRandom(defs)?.grade || ''
     }
-    if (system.min_value != null && system.max_value != null) {
+    if (system.minValue != null && system.maxValue != null) {
       const val = Math.floor(
-        Number(system.min_value) +
-          Math.random() * (Number(system.max_value) - Number(system.min_value))
+        Number(system.minValue) +
+          Math.random() * (Number(system.maxValue) - Number(system.minValue))
       )
       return val.toString()
     }
@@ -379,7 +380,7 @@ export function DemoCalculator({
         .slice()
         .sort(
           (a, b) =>
-            (a.display_order ?? 0) - (b.display_order ?? 0) ||
+            (a.displayOrder ?? 0) - (b.displayOrder ?? 0) ||
             resolveLocalized(a.name).localeCompare(resolveLocalized(b.name))
         ),
     [config.gradingSystems]
@@ -409,7 +410,7 @@ export function DemoCalculator({
         const countrySuggested = countryGuess
           ? data.gradingSystems?.find(
               (gs: GradingSystem) =>
-                (gs.country_code || '').toUpperCase() === (countryGuess || '').toUpperCase()
+                (gs.countryCode || '').toUpperCase() === (countryGuess || '').toUpperCase()
             )?.id
           : undefined
         if (storedDefault) {
@@ -600,7 +601,7 @@ export function DemoCalculator({
       config.categories.forEach((cat) => {
         const catName = resolveLocalized(cat.name)
         const items = config.subjects
-          .filter((s) => s.category_id === cat.id)
+          .filter((s) => s.categoryId === cat.id)
           .map((s) => ({
             id: s.id,
             label: resolveLocalized(s.name),
@@ -755,9 +756,9 @@ export function DemoCalculator({
                 <label className="text-sm font-medium text-neutral-700 dark:text-neutral-200">
                   Grading system
                 </label>
-                {selectedSystem?.country_code && (
+                {selectedSystem?.countryCode && (
                   <span className="text-xs text-neutral-500 dark:text-neutral-400">
-                    Region: {selectedSystem.country_code}
+                    Region: {selectedSystem.countryCode}
                   </span>
                 )}
               </div>
@@ -955,7 +956,7 @@ export function DemoCalculator({
                     )}
                   </div>
                   <div className="lg:col-span-3">
-                    {selectedSystem?.scale_type === 'percentage' ? (
+                    {selectedSystem?.scaleType === 'percentage' ? (
                       <input
                         type="number"
                         min={0}
@@ -965,14 +966,14 @@ export function DemoCalculator({
                         onChange={(e) => updateRow(row.id, 'grade', e.target.value)}
                         className="w-full rounded-lg border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 py-2 text-neutral-900 dark:text-white"
                       />
-                    ) : selectedSystem?.grade_definitions?.length ? (
+                    ) : selectedSystem?.gradeDefinitions?.length ? (
                       <select
                         value={row.grade}
                         onChange={(e) => updateRow(row.id, 'grade', e.target.value)}
                         className="w-full rounded-lg border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 py-2 text-neutral-900 dark:text-white"
                       >
                         <option value="">Select grade</option>
-                        {selectedSystem?.grade_definitions?.map((g) => (
+                        {selectedSystem?.gradeDefinitions?.map((g) => (
                           <option key={g.grade ?? ''} value={g.grade ?? ''}>
                             {g.grade ?? ''}
                           </option>
@@ -1027,7 +1028,7 @@ export function DemoCalculator({
                       selectedSystem,
                       calcResult.averageNormalized
                     )
-                    const max = selectedSystem?.max_value
+                    const max = selectedSystem?.maxValue
                     const scaleLabel = max ? ` / ${Number(max)}` : ''
                     return `${calcResult.subjectCount} subjects · Avg score ${avgRaw.toFixed(
                       2
