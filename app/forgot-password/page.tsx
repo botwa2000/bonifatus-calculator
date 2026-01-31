@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
+import { Turnstile } from '@/components/ui/Turnstile'
 
 type Step = 'email' | 'code' | 'done'
 
@@ -14,6 +15,8 @@ export default function ForgotPasswordPage() {
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
+  const [turnstileToken, setTurnstileToken] = useState('')
+  const [turnstileLoading, setTurnstileLoading] = useState(true)
 
   const handleSendCode = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -23,7 +26,7 @@ export default function ForgotPasswordPage() {
       const res = await fetch('/api/auth/forgot-password', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email }),
+        body: JSON.stringify({ email, turnstileToken }),
       })
       const data = await res.json()
       if (!res.ok) {
@@ -229,12 +232,41 @@ export default function ForgotPasswordPage() {
                 placeholder="you@example.com"
               />
             </div>
+            <div>
+              <Turnstile
+                siteKey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY || ''}
+                onSuccess={(token) => {
+                  setTurnstileToken(token)
+                  setTurnstileLoading(false)
+                }}
+                onError={() => {
+                  setError('Security verification failed. Please refresh the page.')
+                  setTurnstileToken('')
+                  setTurnstileLoading(false)
+                }}
+                onExpire={() => {
+                  setTurnstileToken('')
+                  setTurnstileLoading(true)
+                }}
+                theme="auto"
+                size="normal"
+              />
+              {turnstileLoading && (
+                <p className="text-xs text-neutral-500 dark:text-neutral-400 text-center mt-2">
+                  Loading security verification...
+                </p>
+              )}
+            </div>
             <button
               type="submit"
-              disabled={loading}
+              disabled={loading || !turnstileToken || turnstileLoading}
               className="w-full px-6 py-3 bg-gradient-to-r from-primary-600 to-secondary-600 text-white rounded-lg font-semibold shadow-button hover:shadow-lg hover:scale-105 transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
             >
-              {loading ? 'Sending...' : 'Send Reset Code'}
+              {loading
+                ? 'Sending...'
+                : turnstileLoading
+                  ? 'Loading verification...'
+                  : 'Send Reset Code'}
             </button>
           </form>
           <div className="mt-6 text-center">

@@ -11,7 +11,7 @@ import { getPasswordResetCodeEmail } from '@/lib/email/templates'
 
 const schema = z.object({
   email: z.string().email('Invalid email address'),
-  turnstileToken: z.string().min(1).optional(),
+  turnstileToken: z.string().min(1, 'Bot verification required'),
 })
 
 function generateCode(): string {
@@ -33,14 +33,12 @@ export async function POST(request: NextRequest) {
     const { email, turnstileToken } = parsed.data
     const clientIp = getClientIp(request.headers)
 
-    if (turnstileToken) {
-      const turnstileResult = await verifyTurnstileToken(turnstileToken, clientIp)
-      if (!turnstileResult.success) {
-        return NextResponse.json(
-          { success: false, error: 'Bot verification failed. Please try again.' },
-          { status: 400 }
-        )
-      }
+    const turnstileResult = await verifyTurnstileToken(turnstileToken, clientIp)
+    if (!turnstileResult.success) {
+      return NextResponse.json(
+        { success: false, error: 'Bot verification failed. Please try again.' },
+        { status: 400 }
+      )
     }
 
     // Always return success to prevent email enumeration
