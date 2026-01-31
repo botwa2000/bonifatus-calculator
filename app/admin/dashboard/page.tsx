@@ -20,7 +20,7 @@ export default async function AdminDashboardPage() {
   }
   const defaultGradeStats = {
     avgBonusPoints: 0,
-    mostUsedGradingSystem: null,
+    mostUsedGradingSystem: null as string | null,
     termsBySchoolYear: [] as { schoolYear: string; count: number }[],
   }
 
