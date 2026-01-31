@@ -179,7 +179,7 @@ function SortHeader({
   onSort,
 }: {
   label: string
-  field: string
+  field: 'fullName' | 'createdAt' | 'termsCount'
   current: string
   dir: string
   onSort: (f: 'fullName' | 'createdAt' | 'termsCount') => void
