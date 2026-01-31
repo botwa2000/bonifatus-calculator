@@ -11,8 +11,8 @@ type GradeDefinition = {
 type GradingSystem = {
   id: string
   code: string | null
-  name: unknown
-  description: unknown
+  name: string | Record<string, string> | null
+  description: string | Record<string, string> | null
   countryCode: string | null
   scaleType: string
   bestIsHighest: boolean
