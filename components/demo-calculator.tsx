@@ -134,7 +134,7 @@ function normalizeGrade(system: GradingSystem, grade: string) {
   if (def?.normalized_100 != null) return Number(def.normalized_100)
 
   // Fallback: use numeric_value if provided
-  if (def?.numeric_value != null) {
+  if (def?.numeric_value != null && system.gradeDefinitions) {
     const first = system.gradeDefinitions[0]?.numeric_value ?? 100
     const last = system.gradeDefinitions[system.gradeDefinitions.length - 1]?.numeric_value ?? 0
     const range = system.bestIsHighest ? Number(first) : Number(last)
