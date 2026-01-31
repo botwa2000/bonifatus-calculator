@@ -8,6 +8,7 @@ import { userProfiles } from '@/drizzle/schema/users'
 import bcrypt from 'bcryptjs'
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
+  trustHost: true,
   adapter: DrizzleAdapter(db),
   session: { strategy: 'jwt', maxAge: 30 * 24 * 60 * 60 },
   pages: {
