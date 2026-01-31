@@ -6,7 +6,28 @@ import {
 } from '@/lib/db/queries/admin'
 
 export default async function AdminDashboardPage() {
-  let stats, gradeStats, users, securityEvents
+  const defaultStats = {
+    totalUsers: 0,
+    parents: 0,
+    children: 0,
+    admins: 0,
+    totalTerms: 0,
+    totalBonusPoints: 0,
+    activeRelationships: 0,
+    registrationsThisWeek: 0,
+    registrationsThisMonth: 0,
+    pendingVerifications: 0,
+  }
+  const defaultGradeStats = {
+    avgBonusPoints: 0,
+    mostUsedGradingSystem: null,
+    termsBySchoolYear: [] as { schoolYear: string; count: number }[],
+  }
+
+  let stats = defaultStats
+  let gradeStats = defaultGradeStats
+  let users: Awaited<ReturnType<typeof getAllUsers>> = []
+  let securityEvents: Awaited<ReturnType<typeof getRecentSecurityEvents>> = []
 
   try {
     ;[stats, gradeStats, users, securityEvents] = await Promise.all([
@@ -17,24 +38,9 @@ export default async function AdminDashboardPage() {
     ])
   } catch (error) {
     console.error('[Admin Dashboard] Failed to load data:', error)
-    stats = {
-      totalUsers: 0,
-      parents: 0,
-      children: 0,
-      admins: 0,
-      totalTerms: 0,
-      totalBonusPoints: 0,
-      activeRelationships: 0,
-      registrationsThisWeek: 0,
-      registrationsThisMonth: 0,
-      pendingVerifications: 0,
-    }
-    gradeStats = { avgBonusPoints: 0, mostUsedGradingSystem: null, termsBySchoolYear: [] }
-    users = []
-    securityEvents = []
   }
 
-  const recentUsers = (users ?? []).slice(0, 10)
+  const recentUsers = users.slice(0, 10)
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
