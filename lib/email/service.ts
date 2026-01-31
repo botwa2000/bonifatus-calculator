@@ -13,6 +13,7 @@ const EMAIL_PORT = process.env.EMAIL_PORT
 const EMAIL_SECURE = process.env.EMAIL_SECURE === 'true'
 const EMAIL_USER = process.env.EMAIL_USER
 const EMAIL_PASSWORD = process.env.EMAIL_PASSWORD
+const EMAIL_FROM = process.env.EMAIL_FROM || 'no-reply@bonifatus.com'
 
 if (!EMAIL_HOST || !EMAIL_PORT || !EMAIL_USER || !EMAIL_PASSWORD) {
   console.error('Missing email configuration. Please check environment variables:')
@@ -74,7 +75,7 @@ export async function sendEmail(options: EmailOptions): Promise<boolean> {
     const transport = getTransporter()
 
     const info = await transport.sendMail({
-      from: `"Bonifatus" <${EMAIL_USER}>`, // Sender name and address
+      from: `"Bonifatus" <${EMAIL_FROM}>`,
       to: Array.isArray(options.to) ? options.to.join(', ') : options.to,
       subject: options.subject,
       text: options.text, // Plain text version
