@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from 'next/font/google'
 import './globals.css'
 import { SessionProvider } from 'next-auth/react'
 import { IdleLogoutGuard } from '@/components/auth/IdleLogoutGuard'
+import { ThemeProvider } from '@/components/providers/ThemeProvider'
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -26,11 +27,20 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(function(){try{var t=localStorage.getItem('theme-preference');var d=t==='dark'||(t!=='light'&&matchMedia('(prefers-color-scheme:dark)').matches);if(d)document.documentElement.classList.add('dark')}catch(e){}})()`,
+          }}
+        />
+      </head>
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
         <SessionProvider>
-          <IdleLogoutGuard />
-          {children}
+          <ThemeProvider>
+            <IdleLogoutGuard />
+            {children}
+          </ThemeProvider>
         </SessionProvider>
       </body>
     </html>

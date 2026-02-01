@@ -16,7 +16,12 @@ export default async function AdminLayout({ children }: { children: React.ReactN
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary-50 via-white to-secondary-50 dark:from-neutral-900 dark:via-neutral-900 dark:to-neutral-800">
-      <AppHeader navItems={navItems} userName={profile.fullName || user.email} userRole="admin" />
+      <AppHeader
+        variant="auth"
+        navItems={navItems}
+        userName={profile.fullName || user.email}
+        userRole="admin"
+      />
       <main className="pt-4">{children}</main>
     </div>
   )

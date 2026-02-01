@@ -1,8 +1,8 @@
-import Link from 'next/link'
 import { DemoSection } from '@/components/demo-section'
 import { HeroCta } from '@/components/hero-cta'
 import { DemoLinkButton } from '@/components/demo-link-button'
 import { auth } from '@/auth'
+import { AppHeader } from '@/components/layout/AppHeader'
 
 export const dynamic = 'force-dynamic'
 
@@ -12,61 +12,7 @@ export default async function Home() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary-50 via-white to-secondary-50 dark:from-neutral-900 dark:via-neutral-800 dark:to-neutral-900">
-      {/* Header */}
-      <header className="border-b border-neutral-200 dark:border-neutral-700 bg-white/80 dark:bg-neutral-900/80 backdrop-blur-sm sticky top-0 z-sticky">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex justify-between items-center">
-            <h1 className="text-2xl font-bold bg-gradient-to-r from-primary-600 to-secondary-600 bg-clip-text text-transparent">
-              Bonifatus
-            </h1>
-            <nav className="flex gap-4 items-center">
-              <a
-                href="#features"
-                className="text-neutral-600 hover:text-neutral-900 dark:text-neutral-300 dark:hover:text-white transition-colors duration-normal"
-              >
-                Features
-              </a>
-              <a
-                href="#benefits"
-                className="text-neutral-600 hover:text-neutral-900 dark:text-neutral-300 dark:hover:text-white transition-colors duration-normal"
-              >
-                Benefits
-              </a>
-              {isAuthed ? (
-                <>
-                  <Link
-                    href="/dashboard"
-                    className="text-neutral-600 hover:text-neutral-900 dark:text-neutral-300 dark:hover:text-white transition-colors duration-normal"
-                  >
-                    Dashboard
-                  </Link>
-                  <Link
-                    href="/profile"
-                    className="px-4 py-2 bg-gradient-to-r from-primary-600 to-secondary-600 text-white rounded-lg font-semibold shadow-button hover:shadow-lg hover:scale-105 transition-all duration-normal"
-                  >
-                    Profile
-                  </Link>
-                </>
-              ) : (
-                <>
-                  <Link
-                    href="/login"
-                    className="text-neutral-600 hover:text-neutral-900 dark:text-neutral-300 dark:hover:text-white transition-colors duration-normal"
-                  >
-                    Login
-                  </Link>
-                  <Link
-                    href="/register"
-                    className="px-4 py-2 bg-gradient-to-r from-primary-600 to-secondary-600 text-white rounded-lg font-semibold shadow-button hover:shadow-lg hover:scale-105 transition-all duration-normal"
-                  >
-                    Sign Up
-                  </Link>
-                </>
-              )}
-            </nav>
-          </div>
-        </div>
-      </header>
+      <AppHeader variant="public" isAuthed={isAuthed} />
 
       {/* Hero Section */}
       <section className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-24 text-left space-y-6">
@@ -394,12 +340,12 @@ export default async function Home() {
           <div className="bg-gradient-to-br from-primary-100 to-secondary-100 dark:from-primary-900/30 dark:to-secondary-900/30 rounded-2xl p-8 h-full flex items-center justify-center">
             <div className="text-center">
               <div className="text-6xl font-bold bg-gradient-to-r from-primary-600 to-secondary-600 bg-clip-text text-transparent mb-4">
-                100% Free
+                Free Tier
               </div>
-              <p className="text-xl text-neutral-700 dark:text-neutral-300 mb-2">
-                No credit card required
+              <p className="text-xl text-neutral-700 dark:text-neutral-300 mb-2">Pro coming soon</p>
+              <p className="text-neutral-600 dark:text-neutral-400">
+                Free core features for every family, with Pro upgrades on the way
               </p>
-              <p className="text-neutral-600 dark:text-neutral-400">Forever free for families</p>
             </div>
           </div>
         </div>
@@ -518,7 +464,7 @@ export default async function Home() {
             </div>
           </div>
           <div className="border-t mt-8 pt-8 text-center text-neutral-600 dark:text-neutral-400 text-sm">
-            <p>&copy; 2025 Bonifatus. All rights reserved.</p>
+            <p>&copy; 2026 Bonifatus. All rights reserved.</p>
           </div>
         </div>
       </footer>

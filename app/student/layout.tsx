@@ -22,11 +22,13 @@ export default async function StudentLayout({ children }: { children: React.Reac
     { label: 'Saved', href: '/student/dashboard#saved' },
     { label: 'Insights', href: '/student/dashboard#insights' },
     { label: 'Profile & connections', href: '/student/profile' },
+    { label: 'Settings', href: '/settings' },
   ]
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary-50 via-white to-secondary-50 dark:from-neutral-900 dark:via-neutral-900 dark:to-neutral-800">
       <AppHeader
+        variant="auth"
         navItems={navItems}
         userName={profile?.fullName || user.email}
         userRole={profile?.role || 'student'}

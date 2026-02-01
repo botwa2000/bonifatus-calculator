@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { useEffect, useMemo, useState } from 'react'
 import { DemoCalculator } from '@/components/demo-calculator'
+import { QuickGradeForm } from '@/components/quick-grade-form'
 
 type Term = {
   id: string
@@ -320,6 +321,8 @@ export function StudentWorkspace() {
             </select>
           </div>
         </header>
+
+        <QuickGradeForm />
 
         <div className="flex gap-2" id="calculator">
           {[

@@ -11,6 +11,7 @@ export type CalculatorInputSubject = {
   subjectName?: string
   grade: string
   weight?: number
+  isCoreSubject?: boolean
 }
 
 export type CalculatorInput = {
@@ -109,21 +110,52 @@ function gradeMultiplier(
 ) {
   const value = factorValue('grade_tier', tier, defaults, overrides)
   if (value !== undefined && !Number.isNaN(value)) return value
-  // Conservative fallback
-  switch (tier) {
-    case 'best':
-      return 2
-    case 'second':
-      return 1
-    case 'third':
-      return 0
-    default:
-      return -1
+  throw new Error(`Missing grade_tier factor for tier "${tier}" in bonus factor defaults`)
+}
+
+export type SingleGradeInput = {
+  gradingSystem: CalculatorInput['gradingSystem']
+  factors: CalculatorInput['factors']
+  classLevel: number
+  subject: CalculatorInputSubject
+}
+
+export function calculateSingleGradeBonus(input: SingleGradeInput): CalculatorSubjectResult {
+  const { gradingSystem, factors, classLevel, subject } = input
+  const baseAmount = factorValue('base_amount', 'per_subject', factors.defaults, factors.overrides)
+  if (baseAmount === undefined) {
+    throw new Error('Missing base_amount/per_subject factor in bonus factor defaults')
+  }
+  const weight = Number(subject.weight ?? 1) || 1
+  const normalized = normalizeGrade(gradingSystem, subject.grade)
+  const tier = deriveTier(gradingSystem, subject.grade)
+  const gradeMult = gradeMultiplier(tier, factors.defaults, factors.overrides)
+  const classMult =
+    factorValue('class_level', `class_${classLevel}`, factors.defaults, factors.overrides) ?? 1
+  const coreMult = subject.isCoreSubject
+    ? (factorValue('core_subject_bonus', 'multiplier', factors.defaults, factors.overrides) ?? 1)
+    : 1
+  const rawBonus = baseAmount * gradeMult * classMult * coreMult * weight
+  const bonus = Math.max(0, rawBonus)
+
+  return {
+    subjectId: subject.subjectId,
+    subjectName: subject.subjectName || 'Subject',
+    rawGrade: subject.grade,
+    normalized,
+    tier,
+    weight,
+    bonus,
   }
 }
 
 export function calculateBonus(input: CalculatorInput): CalculatorResult {
   const { gradingSystem, factors, classLevel, termType, subjects } = input
+
+  const baseAmount = factorValue('base_amount', 'per_subject', factors.defaults, factors.overrides)
+  if (baseAmount === undefined) {
+    throw new Error('Missing base_amount/per_subject factor in bonus factor defaults')
+  }
 
   const breakdown: CalculatorSubjectResult[] = subjects.map((sub) => {
     const weight = Number(sub.weight ?? 1) || 1
@@ -133,7 +165,10 @@ export function calculateBonus(input: CalculatorInput): CalculatorResult {
     const classMult =
       factorValue('class_level', `class_${classLevel}`, factors.defaults, factors.overrides) ?? 1
     const termMult = factorValue('term_type', termType, factors.defaults, factors.overrides) ?? 1
-    const rawBonus = gradeMult * classMult * termMult * weight
+    const coreMult = sub.isCoreSubject
+      ? (factorValue('core_subject_bonus', 'multiplier', factors.defaults, factors.overrides) ?? 1)
+      : 1
+    const rawBonus = baseAmount * gradeMult * classMult * termMult * coreMult * weight
     const bonus = Math.max(0, rawBonus)
 
     return {

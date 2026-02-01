@@ -45,14 +45,17 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
       }
       ${leftIcon ? 'pl-12' : ''}
       ${rightIcon ? 'pr-12' : ''}
-      ${props.disabled ? 'bg-neutral-100 cursor-not-allowed opacity-60' : 'bg-white'}
+      ${props.disabled ? 'bg-neutral-100 dark:bg-neutral-800 cursor-not-allowed opacity-60' : 'bg-white dark:bg-neutral-800 dark:border-neutral-700 dark:text-white'}
       ${className}
     `
 
     return (
       <div className={`${fullWidth ? 'w-full' : ''}`}>
         {label && (
-          <label htmlFor={inputId} className="block text-sm font-medium text-neutral-700 mb-2">
+          <label
+            htmlFor={inputId}
+            className="block text-sm font-medium text-neutral-700 dark:text-neutral-200 mb-2"
+          >
             {label}
             {props.required && <span className="text-error-500 ml-1">*</span>}
           </label>

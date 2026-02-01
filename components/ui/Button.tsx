@@ -43,11 +43,11 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
         shadow-md hover:shadow-lg
       `,
       secondary: `
-        bg-white
-        text-primary-600
-        border-2 border-primary-500
-        hover:bg-primary-50
-        active:bg-primary-100
+        bg-white dark:bg-neutral-800
+        text-primary-600 dark:text-primary-300
+        border-2 border-primary-500 dark:border-primary-600
+        hover:bg-primary-50 dark:hover:bg-neutral-700
+        active:bg-primary-100 dark:active:bg-neutral-600
         shadow-md hover:shadow-lg
       `,
       ghost: `

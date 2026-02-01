@@ -28,7 +28,7 @@ export const Card: React.FC<CardProps> = ({
   }
 
   const baseClasses = `
-    bg-white rounded-2xl shadow-md border border-neutral-100
+    bg-white dark:bg-neutral-900 rounded-2xl shadow-md border border-neutral-100 dark:border-neutral-800
     ${paddingClasses[padding]}
     ${hover ? 'hover:shadow-lg hover:-translate-y-1 transition-all duration-200 cursor-pointer' : ''}
     ${className}
@@ -56,7 +56,11 @@ export interface CardTitleProps {
 }
 
 export const CardTitle: React.FC<CardTitleProps> = ({ children, className = '' }) => {
-  return <h3 className={`text-2xl font-semibold text-neutral-900 ${className}`}>{children}</h3>
+  return (
+    <h3 className={`text-2xl font-semibold text-neutral-900 dark:text-white ${className}`}>
+      {children}
+    </h3>
+  )
 }
 
 export interface CardDescriptionProps {
@@ -65,7 +69,11 @@ export interface CardDescriptionProps {
 }
 
 export const CardDescription: React.FC<CardDescriptionProps> = ({ children, className = '' }) => {
-  return <p className={`text-neutral-600 leading-relaxed ${className}`}>{children}</p>
+  return (
+    <p className={`text-neutral-600 dark:text-neutral-300 leading-relaxed ${className}`}>
+      {children}
+    </p>
+  )
 }
 
 export interface CardContentProps {

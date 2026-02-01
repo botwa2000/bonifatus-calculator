@@ -46,6 +46,7 @@ type Subject = {
   id: string
   name: string | Record<string, string>
   categoryId?: string
+  isCoreSubject?: boolean
 }
 
 type SubjectEntry = {
@@ -54,6 +55,7 @@ type SubjectEntry = {
   subjectName: string
   grade: string
   weight: number
+  isCoreSubject?: boolean
 }
 
 type CalculatorConfig = {
@@ -164,16 +166,7 @@ function getGradeMultiplier(factors: Factor[], tier: string, overrides?: UserFac
     overrides
   )
   if (value !== undefined && !Number.isNaN(value)) return value
-  switch (tier) {
-    case 'best':
-      return 2
-    case 'second':
-      return 1
-    case 'third':
-      return 0
-    default:
-      return -1
-  }
+  throw new Error(`Missing grade_tier factor for tier "${tier}" in bonus factor defaults`)
 }
 
 function calculateBonus(
@@ -195,6 +188,8 @@ function calculateBonus(
   let totalWeightedNormalized = 0
   let totalWeight = 0
 
+  const baseAmount = getFactorValue(factors, 'base_amount', 'per_subject', 1, overrides)
+
   const breakdown = subjects.map((subject) => {
     const normalized = normalizeGrade(system, subject.grade)
     const defTier = deriveTierFromDefinitions(system, subject.grade)
@@ -212,8 +207,11 @@ function calculateBonus(
     const gradeMultiplier = getGradeMultiplier(factors, tier, overrides)
     const classMult = getFactorValue(factors, 'class_level', `class_${classLevel}`, 1, overrides)
     const termMult = getFactorValue(factors, 'term_type', termType, 1, overrides)
+    const coreMult = subject.isCoreSubject
+      ? getFactorValue(factors, 'core_subject_bonus', 'multiplier', 1, overrides)
+      : 1
     const weight = Number(subject.weight) || 1
-    const rawBonus = gradeMultiplier * classMult * termMult * weight
+    const rawBonus = baseAmount * gradeMultiplier * classMult * termMult * coreMult * weight
     const bonus = Math.max(0, rawBonus)
 
     totalWeightedNormalized += normalized * weight
@@ -281,6 +279,7 @@ function getSampleData(config: CalculatorConfig): {
       subjectName: resolveLocalized(s.name) || `Subject ${idx + 1}`,
       grade: randomGrade(sampleSystem),
       weight: Number((0.5 + Math.random() * 1.5).toFixed(1)),
+      isCoreSubject: s.isCoreSubject ?? false,
     })),
   }
 }
@@ -313,6 +312,46 @@ type DemoCalculatorProps = {
   }
 }
 
+function AccordionSection({
+  title,
+  open,
+  onToggle,
+  children,
+}: {
+  title: string
+  open: boolean
+  onToggle: () => void
+  children: React.ReactNode
+}) {
+  return (
+    <div className="rounded-xl border border-neutral-200 dark:border-neutral-800 overflow-hidden">
+      <button
+        type="button"
+        onClick={onToggle}
+        className="w-full flex items-center justify-between px-4 py-3 bg-neutral-50 dark:bg-neutral-800/60 text-sm font-semibold text-neutral-800 dark:text-neutral-100 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition"
+      >
+        {title}
+        <svg
+          className={`w-4 h-4 transition-transform ${open ? 'rotate-180' : ''}`}
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+        </svg>
+      </button>
+      <div
+        className="grid transition-[grid-template-rows] duration-300"
+        style={{ gridTemplateRows: open ? '1fr' : '0fr' }}
+      >
+        <div className="overflow-hidden">
+          <div className="p-4">{children}</div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 export function DemoCalculator({
   allowSample = true,
   onSaved,
@@ -320,6 +359,10 @@ export function DemoCalculator({
 }: DemoCalculatorProps = {}) {
   const currentYear = new Date().getFullYear()
   const defaultSchoolYear = `${currentYear}-${currentYear + 1}`
+
+  const [settingsOpen, setSettingsOpen] = useState(true)
+  const [subjectsOpen, setSubjectsOpen] = useState(true)
+  const [resultsOpen, setResultsOpen] = useState(true)
 
   const [config, setConfig] = useState<CalculatorConfig>({
     gradingSystems: [],
@@ -525,6 +568,7 @@ export function DemoCalculator({
       }
       setDraftRestored(true)
       setDraftStatus('Restored your last draft')
+      setSettingsOpen(false)
       draftLoadedRef.current = true
     } catch {
       // ignore parse errors
@@ -749,343 +793,373 @@ export function DemoCalculator({
       {error && <p className="text-sm text-red-600 dark:text-red-400 mb-4">Error: {error}</p>}
 
       {!loading && !error && selectedSystem && (
-        <div className="space-y-6">
-          <div className="grid sm:grid-cols-3 gap-4">
-            <div className="sm:col-span-2">
-              <div className="flex items-center justify-between gap-2">
-                <label className="text-sm font-medium text-neutral-700 dark:text-neutral-200">
-                  Grading system
-                </label>
-                {selectedSystem?.countryCode && (
-                  <span className="text-xs text-neutral-500 dark:text-neutral-400">
-                    Region: {selectedSystem.countryCode}
-                  </span>
-                )}
-              </div>
-              <select
-                className="mt-1 w-full rounded-lg border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 py-2 text-neutral-900 dark:text-white"
-                value={selectedSystem?.id}
-                onChange={(e) => setSelectedSystemId(e.target.value)}
-              >
-                {sortedGradingSystems.map((gs) => (
-                  <option key={gs.id} value={gs.id}>
-                    {resolveLocalized(gs.name)}
-                  </option>
-                ))}
-              </select>
-              <div className="mt-2 flex flex-wrap items-center gap-2 text-xs">
-                <button
-                  type="button"
-                  onClick={handleSetDefaultSystem}
-                  className="rounded-full border border-neutral-300 px-3 py-1 font-semibold text-neutral-700 transition hover:border-primary-400 hover:text-primary-700 dark:border-neutral-700 dark:text-neutral-200 dark:hover:border-primary-500 dark:hover:text-primary-200"
-                >
-                  Set as default
-                </button>
-                {preferredSystemId && preferredSystemId === selectedSystem?.id && (
-                  <span className="rounded-full bg-primary-100 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide text-primary-700 dark:bg-primary-900/30 dark:text-primary-200">
-                    Default
-                  </span>
-                )}
-                {!preferredSystemId &&
-                  suggestedSystemId &&
-                  suggestedSystemId === selectedSystem?.id && (
-                    <span className="rounded-full bg-secondary-100 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide text-secondary-700 dark:bg-secondary-900/30 dark:text-secondary-200">
-                      Suggested
-                    </span>
-                  )}
-              </div>
-            </div>
-            <div className="space-y-3">
-              <div>
-                <label className="text-sm font-medium text-neutral-700 dark:text-neutral-200">
-                  Class level
-                </label>
-                <input
-                  type="number"
-                  min={1}
-                  max={12}
-                  value={classLevel}
-                  onChange={(e) => setClassLevel(Number(e.target.value) || 1)}
-                  className="mt-1 w-full rounded-lg border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 py-2 text-neutral-900 dark:text-white"
-                />
-              </div>
-              <div>
-                <label className="text-sm font-medium text-neutral-700 dark:text-neutral-200">
-                  Term type
-                </label>
-                <select
-                  value={termType}
-                  onChange={(e) => setTermType(e.target.value)}
-                  className="mt-1 w-full rounded-lg border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 py-2 text-neutral-900 dark:text-white"
-                >
-                  <option value="midterm">Midterm</option>
-                  <option value="final">Final</option>
-                  <option value="semester">Semester</option>
-                  <option value="quarterly">Quarter</option>
-                </select>
-              </div>
-            </div>
-          </div>
-
-          <div className="grid sm:grid-cols-3 gap-4">
-            <div>
-              <label className="text-sm font-medium text-neutral-700 dark:text-neutral-200">
-                School year
-              </label>
-              <input
-                value={schoolYear}
-                onChange={(e) => setSchoolYear(e.target.value)}
-                placeholder="e.g. 2025-2026"
-                className="mt-1 w-full rounded-lg border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 py-2 text-neutral-900 dark:text-white"
-              />
-            </div>
-            <div>
-              <label className="text-sm font-medium text-neutral-700 dark:text-neutral-200">
-                Term name (optional)
-              </label>
-              <input
-                value={termName}
-                onChange={(e) => setTermName(e.target.value)}
-                placeholder="e.g. Spring"
-                className="mt-1 w-full rounded-lg border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 py-2 text-neutral-900 dark:text-white"
-              />
-            </div>
-          </div>
-
-          <div className="space-y-3">
-            <div className="flex items-center justify-between">
-              <h4 className="text-sm font-semibold text-neutral-800 dark:text-neutral-100">
-                Subjects & grades
-              </h4>
-              <button
-                onClick={addRow}
-                className="text-sm font-semibold text-primary-600 dark:text-primary-300 hover:underline"
-              >
-                Add subject
-              </button>
-            </div>
-            <div className="space-y-2">
-              {subjectRows.map((row) => (
-                <div
-                  key={row.id}
-                  className="grid grid-cols-1 lg:grid-cols-12 gap-3 items-start rounded-xl border border-neutral-200 dark:border-neutral-800 bg-neutral-50 dark:bg-neutral-900 px-3 py-3 overflow-hidden"
-                >
-                  <div className="lg:col-span-6 space-y-2">
-                    <div className="flex items-center gap-2">
-                      <input
-                        placeholder={row.subjectName || 'Search subject'}
-                        value={subjectFilters[row.id] ?? ''}
-                        onChange={(e) =>
-                          setSubjectFilters((prev) => ({ ...prev, [row.id]: e.target.value }))
-                        }
-                        onFocus={() => setPickerOpen((prev) => ({ ...prev, [row.id]: true }))}
-                        className="w-full rounded-lg border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 py-2 text-neutral-900 dark:text-white"
-                      />
-                      <button
-                        type="button"
-                        className="text-xs text-neutral-600 dark:text-neutral-300 underline"
-                        onClick={() =>
-                          setPickerOpen((prev) => ({ ...prev, [row.id]: !prev[row.id] }))
-                        }
-                      >
-                        {pickerOpen[row.id] ? 'Hide' : 'Browse'}
-                      </button>
-                    </div>
-                    {pickerOpen[row.id] && (
-                      <div className="w-full rounded-lg border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 py-2">
-                        <div className="text-sm font-semibold text-neutral-800 dark:text-neutral-100 mb-1">
-                          {row.subjectName || 'Select a subject'}
-                        </div>
-                        <div className="max-h-52 overflow-y-auto overflow-x-hidden space-y-2">
-                          {Object.values(
-                            getFilteredSubjectsByCategory(subjectFilters[row.id] || '')
-                          ).map((group) => {
-                            const items = group.items.filter(
-                              (item) =>
-                                !selectedSubjectIds.has(item.id) || row.subjectId === item.id
-                            )
-                            if (!items.length) return null
-                            return (
-                              <div key={group.categoryName} className="mb-2">
-                                <div className="text-xs font-semibold text-neutral-500 mb-1">
-                                  {group.categoryName}
-                                </div>
-                                <div className="grid grid-cols-1 gap-1">
-                                  {items.map((item) => (
-                                    <button
-                                      key={item.id}
-                                      type="button"
-                                      onClick={() => {
-                                        setSubjectRows((prev) =>
-                                          prev.map((p) =>
-                                            p.id === row.id
-                                              ? {
-                                                  ...p,
-                                                  subjectId: item.id,
-                                                  subjectName: item.label,
-                                                }
-                                              : p
-                                          )
-                                        )
-                                        setSubjectFilters((prev) => ({ ...prev, [row.id]: '' }))
-                                        setPickerOpen((prev) => ({ ...prev, [row.id]: false }))
-                                      }}
-                                      disabled={
-                                        selectedSubjectIds.has(item.id) && row.subjectId !== item.id
-                                      }
-                                      className="text-left px-2 py-1 rounded hover:bg-neutral-100 dark:hover:bg-neutral-700 text-sm text-neutral-800 dark:text-neutral-100 disabled:opacity-40"
-                                    >
-                                      {item.label}
-                                    </button>
-                                  ))}
-                                </div>
-                              </div>
-                            )
-                          })}
-                          {Object.values(
-                            getFilteredSubjectsByCategory(subjectFilters[row.id] || '')
-                          ).every(
-                            (group) =>
-                              group.items.filter(
-                                (item) =>
-                                  !selectedSubjectIds.has(item.id) || row.subjectId === item.id
-                              ).length === 0
-                          ) && <div className="text-xs text-neutral-500 px-2 py-1">No matches</div>}
-                        </div>
-                      </div>
+        <div className="space-y-4">
+          <AccordionSection
+            title="Settings"
+            open={settingsOpen}
+            onToggle={() => setSettingsOpen((v) => !v)}
+          >
+            <div className="space-y-4">
+              <div className="grid sm:grid-cols-3 gap-4">
+                <div className="sm:col-span-2">
+                  <div className="flex items-center justify-between gap-2">
+                    <label className="text-sm font-medium text-neutral-700 dark:text-neutral-200">
+                      Grading system
+                    </label>
+                    {selectedSystem?.countryCode && (
+                      <span className="text-xs text-neutral-500 dark:text-neutral-400">
+                        Region: {selectedSystem.countryCode}
+                      </span>
                     )}
                   </div>
-                  <div className="lg:col-span-3">
-                    {selectedSystem?.scaleType === 'percentage' ? (
-                      <input
-                        type="number"
-                        min={0}
-                        max={100}
-                        placeholder="e.g. 85"
-                        value={row.grade}
-                        onChange={(e) => updateRow(row.id, 'grade', e.target.value)}
-                        className="w-full rounded-lg border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 py-2 text-neutral-900 dark:text-white"
-                      />
-                    ) : selectedSystem?.gradeDefinitions?.length ? (
-                      <select
-                        value={row.grade}
-                        onChange={(e) => updateRow(row.id, 'grade', e.target.value)}
-                        className="w-full rounded-lg border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 py-2 text-neutral-900 dark:text-white"
-                      >
-                        <option value="">Select grade</option>
-                        {selectedSystem?.gradeDefinitions?.map((g) => (
-                          <option key={g.grade ?? ''} value={g.grade ?? ''}>
-                            {g.grade ?? ''}
-                          </option>
-                        ))}
-                      </select>
-                    ) : (
-                      <input
-                        placeholder="Grade"
-                        value={row.grade}
-                        onChange={(e) => updateRow(row.id, 'grade', e.target.value)}
-                        className="w-full rounded-lg border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 py-2 text-neutral-900 dark:text-white"
-                      />
+                  <select
+                    className="mt-1 w-full rounded-lg border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 py-2 text-neutral-900 dark:text-white"
+                    value={selectedSystem?.id}
+                    onChange={(e) => setSelectedSystemId(e.target.value)}
+                  >
+                    {sortedGradingSystems.map((gs) => (
+                      <option key={gs.id} value={gs.id}>
+                        {resolveLocalized(gs.name)}
+                      </option>
+                    ))}
+                  </select>
+                  <div className="mt-2 flex flex-wrap items-center gap-2 text-xs">
+                    <button
+                      type="button"
+                      onClick={handleSetDefaultSystem}
+                      className="rounded-full border border-neutral-300 px-3 py-1 font-semibold text-neutral-700 transition hover:border-primary-400 hover:text-primary-700 dark:border-neutral-700 dark:text-neutral-200 dark:hover:border-primary-500 dark:hover:text-primary-200"
+                    >
+                      Set as default
+                    </button>
+                    {preferredSystemId && preferredSystemId === selectedSystem?.id && (
+                      <span className="rounded-full bg-primary-100 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide text-primary-700 dark:bg-primary-900/30 dark:text-primary-200">
+                        Default
+                      </span>
                     )}
+                    {!preferredSystemId &&
+                      suggestedSystemId &&
+                      suggestedSystemId === selectedSystem?.id && (
+                        <span className="rounded-full bg-secondary-100 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide text-secondary-700 dark:bg-secondary-900/30 dark:text-secondary-200">
+                          Suggested
+                        </span>
+                      )}
                   </div>
-                  <div className="lg:col-span-2">
+                </div>
+                <div className="space-y-3">
+                  <div>
+                    <label className="text-sm font-medium text-neutral-700 dark:text-neutral-200">
+                      Class level
+                    </label>
                     <input
                       type="number"
-                      min={0.1}
-                      step={0.1}
-                      value={row.weight}
-                      onChange={(e) => updateRow(row.id, 'weight', Number(e.target.value) || 1)}
-                      className="w-full rounded-lg border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 py-2 text-neutral-900 dark:text-white"
+                      min={1}
+                      max={12}
+                      value={classLevel}
+                      onChange={(e) => setClassLevel(Number(e.target.value) || 1)}
+                      className="mt-1 w-full rounded-lg border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 py-2 text-neutral-900 dark:text-white"
                     />
-                    <p className="text-xs text-neutral-500 mt-1">
-                      Subject importance multiplier (default 1).
-                    </p>
                   </div>
-                  <div className="lg:col-span-1 flex justify-end">
-                    <button
-                      onClick={() => removeRow(row.id)}
-                      className="text-sm text-neutral-500 hover:text-red-500"
-                      aria-label="Remove subject"
+                  <div>
+                    <label className="text-sm font-medium text-neutral-700 dark:text-neutral-200">
+                      Term type
+                    </label>
+                    <select
+                      value={termType}
+                      onChange={(e) => setTermType(e.target.value)}
+                      className="mt-1 w-full rounded-lg border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 py-2 text-neutral-900 dark:text-white"
                     >
-                      ×
-                    </button>
+                      <option value="midterm">Midterm</option>
+                      <option value="final">Final</option>
+                      <option value="semester">Semester</option>
+                      <option value="quarterly">Quarter</option>
+                    </select>
                   </div>
                 </div>
-              ))}
-            </div>
-          </div>
-
-          <div className="rounded-xl border border-neutral-200 dark:border-neutral-800 bg-neutral-50 dark:bg-neutral-900 px-4 py-3">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-neutral-600 dark:text-neutral-400">Bonus total</p>
-                <p className="text-3xl font-bold text-primary-600 dark:text-primary-300">
-                  {calcResult.total.toFixed(2)} pts
-                </p>
-                <p className="text-xs text-neutral-500 dark:text-neutral-400">
-                  {(() => {
-                    const avgRaw = convertNormalizedToScale(
-                      selectedSystem,
-                      calcResult.averageNormalized
-                    )
-                    const max = selectedSystem?.maxValue
-                    const scaleLabel = max ? ` / ${Number(max)}` : ''
-                    return `${calcResult.subjectCount} subjects · Avg score ${avgRaw.toFixed(
-                      2
-                    )}${scaleLabel}`
-                  })()}
-                </p>
               </div>
-              {userEmail ? (
-                <button
-                  onClick={handleSave}
-                  disabled={saving || !canSave}
-                  className="px-4 py-2 text-sm font-semibold rounded-lg bg-gradient-to-r from-primary-600 to-secondary-600 text-white shadow-button hover:shadow-lg hover:scale-105 transition-all disabled:opacity-60 disabled:hover:scale-100"
-                >
-                  {saving ? 'Saving…' : 'Save term'}
-                </button>
-              ) : (
-                <a
-                  href="/register"
-                  className="px-4 py-2 text-sm font-semibold rounded-lg bg-gradient-to-r from-primary-600 to-secondary-600 text-white shadow-button hover:shadow-lg hover:scale-105 transition-all"
-                >
-                  Save & Track
-                </a>
-              )}
-            </div>
-            <div className="mt-3 space-y-2 text-sm text-neutral-700 dark:text-neutral-300">
-              {calcResult.breakdown.map((item, idx) => (
-                <div key={`${item.subject}-${idx}`} className="flex justify-between">
-                  <span>
-                    {item.subject} — {item.tier} tier
-                  </span>
-                  <span className="font-semibold">{item.bonus.toFixed(2)} pts</span>
+              <div className="grid sm:grid-cols-3 gap-4">
+                <div>
+                  <label className="text-sm font-medium text-neutral-700 dark:text-neutral-200">
+                    School year
+                  </label>
+                  <input
+                    value={schoolYear}
+                    onChange={(e) => setSchoolYear(e.target.value)}
+                    placeholder="e.g. 2025-2026"
+                    className="mt-1 w-full rounded-lg border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 py-2 text-neutral-900 dark:text-white"
+                  />
                 </div>
-              ))}
-              {calcResult.breakdown.length === 0 && (
-                <p className="text-neutral-500">Add subjects and grades to see the calculation.</p>
+                <div>
+                  <label className="text-sm font-medium text-neutral-700 dark:text-neutral-200">
+                    Term name (optional)
+                  </label>
+                  <input
+                    value={termName}
+                    onChange={(e) => setTermName(e.target.value)}
+                    placeholder="e.g. Spring"
+                    className="mt-1 w-full rounded-lg border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 py-2 text-neutral-900 dark:text-white"
+                  />
+                </div>
+              </div>
+            </div>
+          </AccordionSection>
+
+          <AccordionSection
+            title="Subjects & Grades"
+            open={subjectsOpen}
+            onToggle={() => setSubjectsOpen((v) => !v)}
+          >
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <h4 className="text-sm font-semibold text-neutral-800 dark:text-neutral-100">
+                  Subject rows
+                </h4>
+                <button
+                  onClick={addRow}
+                  className="text-sm font-semibold text-primary-600 dark:text-primary-300 hover:underline"
+                >
+                  Add subject
+                </button>
+              </div>
+              <div className="space-y-2">
+                {subjectRows.map((row) => (
+                  <div
+                    key={row.id}
+                    className="grid grid-cols-1 lg:grid-cols-12 gap-3 items-start rounded-xl border border-neutral-200 dark:border-neutral-800 bg-neutral-50 dark:bg-neutral-900 px-3 py-3 overflow-hidden"
+                  >
+                    <div className="lg:col-span-5 space-y-2">
+                      <div className="flex items-center gap-2">
+                        <input
+                          placeholder={row.subjectName || 'Search subject'}
+                          value={subjectFilters[row.id] ?? ''}
+                          onChange={(e) =>
+                            setSubjectFilters((prev) => ({ ...prev, [row.id]: e.target.value }))
+                          }
+                          onFocus={() => setPickerOpen((prev) => ({ ...prev, [row.id]: true }))}
+                          className="w-full rounded-lg border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 py-2 text-neutral-900 dark:text-white"
+                        />
+                        {row.isCoreSubject && (
+                          <span className="shrink-0 rounded bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300 px-1.5 py-0.5 text-[10px] font-semibold uppercase">
+                            Core
+                          </span>
+                        )}
+                        <button
+                          type="button"
+                          className="text-xs text-neutral-600 dark:text-neutral-300 underline shrink-0"
+                          onClick={() =>
+                            setPickerOpen((prev) => ({ ...prev, [row.id]: !prev[row.id] }))
+                          }
+                        >
+                          {pickerOpen[row.id] ? 'Hide' : 'Browse'}
+                        </button>
+                      </div>
+                      {pickerOpen[row.id] && (
+                        <div className="w-full rounded-lg border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 py-2">
+                          <div className="text-sm font-semibold text-neutral-800 dark:text-neutral-100 mb-1">
+                            {row.subjectName || 'Select a subject'}
+                          </div>
+                          <div className="max-h-52 overflow-y-auto overflow-x-hidden space-y-2">
+                            {Object.values(
+                              getFilteredSubjectsByCategory(subjectFilters[row.id] || '')
+                            ).map((group) => {
+                              const items = group.items.filter(
+                                (item) =>
+                                  !selectedSubjectIds.has(item.id) || row.subjectId === item.id
+                              )
+                              if (!items.length) return null
+                              return (
+                                <div key={group.categoryName} className="mb-2">
+                                  <div className="text-xs font-semibold text-neutral-500 mb-1">
+                                    {group.categoryName}
+                                  </div>
+                                  <div className="grid grid-cols-1 gap-1">
+                                    {items.map((item) => (
+                                      <button
+                                        key={item.id}
+                                        type="button"
+                                        onClick={() => {
+                                          const subjectConfig = config.subjects.find(
+                                            (s) => s.id === item.id
+                                          )
+                                          setSubjectRows((prev) =>
+                                            prev.map((p) =>
+                                              p.id === row.id
+                                                ? {
+                                                    ...p,
+                                                    subjectId: item.id,
+                                                    subjectName: item.label,
+                                                    isCoreSubject:
+                                                      subjectConfig?.isCoreSubject ?? false,
+                                                  }
+                                                : p
+                                            )
+                                          )
+                                          setSubjectFilters((prev) => ({ ...prev, [row.id]: '' }))
+                                          setPickerOpen((prev) => ({ ...prev, [row.id]: false }))
+                                        }}
+                                        disabled={
+                                          selectedSubjectIds.has(item.id) &&
+                                          row.subjectId !== item.id
+                                        }
+                                        className="text-left px-2 py-1 rounded hover:bg-neutral-100 dark:hover:bg-neutral-700 text-sm text-neutral-800 dark:text-neutral-100 disabled:opacity-40"
+                                      >
+                                        {item.label}
+                                      </button>
+                                    ))}
+                                  </div>
+                                </div>
+                              )
+                            })}
+                            {Object.values(
+                              getFilteredSubjectsByCategory(subjectFilters[row.id] || '')
+                            ).every(
+                              (group) =>
+                                group.items.filter(
+                                  (item) =>
+                                    !selectedSubjectIds.has(item.id) || row.subjectId === item.id
+                                ).length === 0
+                            ) && (
+                              <div className="text-xs text-neutral-500 px-2 py-1">No matches</div>
+                            )}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                    <div className="lg:col-span-3">
+                      {selectedSystem?.scaleType === 'percentage' ? (
+                        <input
+                          type="number"
+                          min={0}
+                          max={100}
+                          placeholder="e.g. 85"
+                          value={row.grade}
+                          onChange={(e) => updateRow(row.id, 'grade', e.target.value)}
+                          className="w-full rounded-lg border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 py-2 text-neutral-900 dark:text-white"
+                        />
+                      ) : selectedSystem?.gradeDefinitions?.length ? (
+                        <select
+                          value={row.grade}
+                          onChange={(e) => updateRow(row.id, 'grade', e.target.value)}
+                          className="w-full rounded-lg border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 py-2 text-neutral-900 dark:text-white"
+                        >
+                          <option value="">Select grade</option>
+                          {selectedSystem?.gradeDefinitions?.map((g) => (
+                            <option key={g.grade ?? ''} value={g.grade ?? ''}>
+                              {g.grade ?? ''}
+                            </option>
+                          ))}
+                        </select>
+                      ) : (
+                        <input
+                          placeholder="Grade"
+                          value={row.grade}
+                          onChange={(e) => updateRow(row.id, 'grade', e.target.value)}
+                          className="w-full rounded-lg border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 py-2 text-neutral-900 dark:text-white"
+                        />
+                      )}
+                    </div>
+                    <div className="lg:col-span-3">
+                      <input
+                        type="number"
+                        min={0.1}
+                        step={0.1}
+                        value={row.weight}
+                        onChange={(e) => updateRow(row.id, 'weight', Number(e.target.value) || 1)}
+                        className="w-full rounded-lg border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 py-2 text-neutral-900 dark:text-white"
+                      />
+                    </div>
+                    <div className="lg:col-span-1 flex justify-end">
+                      <button
+                        onClick={() => removeRow(row.id)}
+                        className="text-sm text-neutral-500 hover:text-red-500"
+                        aria-label="Remove subject"
+                      >
+                        ×
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </AccordionSection>
+
+          <AccordionSection
+            title="Results"
+            open={resultsOpen}
+            onToggle={() => setResultsOpen((v) => !v)}
+          >
+            <div>
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-neutral-600 dark:text-neutral-400">Bonus total</p>
+                  <p className="text-3xl font-bold text-primary-600 dark:text-primary-300">
+                    {calcResult.total.toFixed(2)} pts
+                  </p>
+                  <p className="text-xs text-neutral-500 dark:text-neutral-400">
+                    {(() => {
+                      const avgRaw = convertNormalizedToScale(
+                        selectedSystem,
+                        calcResult.averageNormalized
+                      )
+                      const max = selectedSystem?.maxValue
+                      const scaleLabel = max ? ` / ${Number(max)}` : ''
+                      return `${calcResult.subjectCount} subjects · Avg score ${avgRaw.toFixed(
+                        2
+                      )}${scaleLabel}`
+                    })()}
+                  </p>
+                </div>
+                {userEmail ? (
+                  <button
+                    onClick={handleSave}
+                    disabled={saving || !canSave}
+                    className="px-4 py-2 text-sm font-semibold rounded-lg bg-gradient-to-r from-primary-600 to-secondary-600 text-white shadow-button hover:shadow-lg hover:scale-105 transition-all disabled:opacity-60 disabled:hover:scale-100"
+                  >
+                    {saving ? 'Saving…' : 'Save term'}
+                  </button>
+                ) : (
+                  <a
+                    href="/register"
+                    className="px-4 py-2 text-sm font-semibold rounded-lg bg-gradient-to-r from-primary-600 to-secondary-600 text-white shadow-button hover:shadow-lg hover:scale-105 transition-all"
+                  >
+                    Save & Track
+                  </a>
+                )}
+              </div>
+              <div className="mt-3 space-y-2 text-sm text-neutral-700 dark:text-neutral-300">
+                {calcResult.breakdown.map((item, idx) => (
+                  <div key={`${item.subject}-${idx}`} className="flex justify-between">
+                    <span>
+                      {item.subject} — {item.tier} tier
+                    </span>
+                    <span className="font-semibold">{item.bonus.toFixed(2)} pts</span>
+                  </div>
+                ))}
+                {calcResult.breakdown.length === 0 && (
+                  <p className="text-neutral-500">
+                    Add subjects and grades to see the calculation.
+                  </p>
+                )}
+              </div>
+              <p className="mt-3 text-xs text-neutral-500 dark:text-neutral-500">
+                Calculation: grade tier multiplier × class level × term type × subject weight,
+                floored at zero total.
+              </p>
+              {saveError && (
+                <p className="mt-2 text-sm text-red-600 dark:text-red-400">{saveError}</p>
+              )}
+              {saveMessage && (
+                <p className="mt-2 text-sm text-green-600 dark:text-green-400">{saveMessage}</p>
+              )}
+              {draftRestored && (
+                <p className="mt-1 text-xs text-secondary-700 dark:text-secondary-300">
+                  Restored your last draft. Saving will clear it.
+                </p>
+              )}
+              {draftStatus && (
+                <p className="text-xs text-neutral-500 dark:text-neutral-400">{draftStatus}</p>
               )}
             </div>
-            <p className="mt-3 text-xs text-neutral-500 dark:text-neutral-500">
-              Calculation: grade tier multiplier × class level × term type × subject weight, floored
-              at zero total. For exact conversion, we use our proprietary grading system
-              definitions.
-            </p>
-            {saveError && (
-              <p className="mt-2 text-sm text-red-600 dark:text-red-400">{saveError}</p>
-            )}
-            {saveMessage && (
-              <p className="mt-2 text-sm text-green-600 dark:text-green-400">{saveMessage}</p>
-            )}
-            {draftRestored && (
-              <p className="mt-1 text-xs text-secondary-700 dark:text-secondary-300">
-                Restored your last draft. Saving will clear it.
-              </p>
-            )}
-            {draftStatus && (
-              <p className="text-xs text-neutral-500 dark:text-neutral-400">{draftStatus}</p>
-            )}
-          </div>
+          </AccordionSection>
         </div>
       )}
     </div>
