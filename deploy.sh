@@ -1,13 +1,12 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Bonifatus deploy script
+# Bonifatus deploy script — Docker Swarm edition
 # Usage: ./deploy.sh <prod|dev> [--secrets-file path]
 
 ENV="${1:-}"
-SECRETS_FILE="${3:-}"
+SECRETS_FILE=""
 SERVER="deploy@159.69.180.183"
-REPO_DIR="/var/www/bonifatus"
 
 if [[ "$ENV" != "prod" && "$ENV" != "dev" ]]; then
   echo "Usage: ./deploy.sh <prod|dev> [--secrets-file path]"
@@ -33,10 +32,20 @@ if [[ "$ENV" == "prod" ]]; then
   PORT=3000
   STACK_FILE="docker-stack.prod.yml"
   DOMAIN="bonifatus.com"
+  REPO_DIR="/home/deploy/bonifatus-calculator"
+  BRANCH="main"
+  IMAGE_TAG="bonifatus:prod"
+  APP_URL="https://bonifatus.com"
+  TURNSTILE_SITE_KEY="0x4AAAAAABDjRdBlNTg4MBt3"
 else
   PORT=3001
   STACK_FILE="docker-stack.dev.yml"
   DOMAIN="dev.bonifatus.com"
+  REPO_DIR="/home/deploy/bonifatus-dev"
+  BRANCH="dev"
+  IMAGE_TAG="bonifatus:dev"
+  APP_URL="https://dev.bonifatus.com"
+  TURNSTILE_SITE_KEY="1x00000000000000000000AA"
 fi
 
 STACK_NAME="bonifatus-${ENV}"
@@ -63,9 +72,18 @@ if [[ -n "$SECRETS_FILE" ]]; then
   done < "$SECRETS_FILE"
 fi
 
-# Step 2: Pull latest code and build
+# Step 2: Pull latest code and build image with build args
 echo "==> Pulling latest code and building image"
-ssh "$SERVER" "cd ${REPO_DIR} && git pull && docker build -t bonifatus:latest ."
+ssh "$SERVER" bash -s <<EOF
+  cd ${REPO_DIR}
+  git fetch origin
+  git checkout ${BRANCH}
+  git pull origin ${BRANCH}
+  docker build \
+    --build-arg NEXT_PUBLIC_TURNSTILE_SITE_KEY=${TURNSTILE_SITE_KEY} \
+    --build-arg NEXT_PUBLIC_APP_URL=${APP_URL} \
+    -t ${IMAGE_TAG} .
+EOF
 
 # Step 3: Deploy stack
 echo "==> Deploying stack: ${STACK_NAME}"
