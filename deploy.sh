@@ -38,7 +38,7 @@ if [[ "$ENV" == "prod" ]]; then
   BRANCH="main"
   IMAGE_TAG="bonifatus:prod"
   APP_URL="https://bonifatus.com"
-  TURNSTILE_SITE_KEY="0x4AAAAAABDjRdBlNTg4MBt3"
+  TURNSTILE_SITE_KEY="0x4AAAAAAB7cH7pweCPsYnpL"
 else
   PORT=3001
   STACK_FILE="docker-stack.dev.yml"
@@ -47,7 +47,7 @@ else
   BRANCH="dev"
   IMAGE_TAG="bonifatus:dev"
   APP_URL="https://dev.bonifatus.com"
-  TURNSTILE_SITE_KEY="1x00000000000000000000AA"
+  TURNSTILE_SITE_KEY="0x4AAAAAACWJz491rhjNxKNi"
 fi
 
 STACK_NAME="bonifatus-${ENV}"
