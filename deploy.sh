@@ -6,7 +6,9 @@ set -euo pipefail
 
 ENV="${1:-}"
 SECRETS_FILE=""
+SSH_KEY="${HOME}/.ssh/bonifatus_hetzner"
 SERVER="deploy@159.69.180.183"
+SSH_OPTS="-i ${SSH_KEY} -o BatchMode=yes"
 
 if [[ "$ENV" != "prod" && "$ENV" != "dev" ]]; then
   echo "Usage: ./deploy.sh <prod|dev> [--secrets-file path]"
@@ -65,16 +67,16 @@ if [[ -n "$SECRETS_FILE" ]]; then
     [[ -z "$key" || "$key" == \#* ]] && continue
     secret_name="${ENV}_${key}"
     # Remove existing secret (ignore errors if it doesn't exist)
-    ssh "$SERVER" "docker secret rm ${secret_name} 2>/dev/null || true"
+    ssh $SSH_OPTS "$SERVER" "docker secret rm ${secret_name} 2>/dev/null || true"
     # Create new secret
-    echo -n "$value" | ssh "$SERVER" "docker secret create ${secret_name} -"
+    echo -n "$value" | ssh $SSH_OPTS "$SERVER" "docker secret create ${secret_name} -"
     echo "   Secret: ${secret_name}"
   done < "$SECRETS_FILE"
 fi
 
 # Step 2: Pull latest code and build image with build args
 echo "==> Pulling latest code and building image"
-ssh "$SERVER" bash -s <<EOF
+ssh $SSH_OPTS "$SERVER" bash -s <<EOF
   cd ${REPO_DIR}
   git fetch origin
   git checkout ${BRANCH}
@@ -87,7 +89,7 @@ EOF
 
 # Step 3: Deploy stack
 echo "==> Deploying stack: ${STACK_NAME}"
-ssh "$SERVER" "cd ${REPO_DIR} && docker stack deploy -c ${STACK_FILE} ${STACK_NAME}"
+ssh $SSH_OPTS "$SERVER" "cd ${REPO_DIR} && docker stack deploy -c ${STACK_FILE} ${STACK_NAME}"
 
 # Step 4: Wait for service to be ready
 echo "==> Waiting for service to start..."
@@ -95,7 +97,7 @@ sleep 15
 
 # Step 5: Health check
 echo "==> Running health check on port ${PORT}"
-HEALTH=$(ssh "$SERVER" "curl -sf http://localhost:${PORT}/api/health || echo 'FAIL'")
+HEALTH=$(ssh $SSH_OPTS "$SERVER" "curl -sf http://localhost:${PORT}/api/health || echo 'FAIL'")
 
 if echo "$HEALTH" | grep -q '"status":"ok"'; then
   echo "==> Deployment successful! ${DOMAIN} is healthy."
