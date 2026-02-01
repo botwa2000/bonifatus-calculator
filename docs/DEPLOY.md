@@ -130,11 +130,12 @@ ssh -i "$USERPROFILE/.ssh/bonifatus_hetzner" deploy@159.69.180.183 "sudo -u post
 
 ### Applied migrations
 
-| Date       | File                                    | Description                                              |
-| ---------- | --------------------------------------- | -------------------------------------------------------- |
-| 2025-10-22 | `20251022_001_initial_schema.sql`       | Initial schema                                           |
-| 2025-12-07 | `20251207_add_parent_child_invites.sql` | Parent-child invites                                     |
-| 2026-01-31 | `add-admin-role.sql`                    | Add `admin` role, set `bonifatus.app@gmail.com` as admin |
+| Date       | File                                    | Description                                                 |
+| ---------- | --------------------------------------- | ----------------------------------------------------------- |
+| 2025-10-22 | `20251022_001_initial_schema.sql`       | Initial schema                                              |
+| 2025-12-07 | `20251207_add_parent_child_invites.sql` | Parent-child invites                                        |
+| 2026-01-31 | `add-admin-role.sql`                    | Add `admin` role, set `bonifatus.app@gmail.com` as admin    |
+| 2026-02-01 | `add-international-grading-systems.sql` | Add 14 international grading systems, fix bonus factor keys |
 
 ---
 
