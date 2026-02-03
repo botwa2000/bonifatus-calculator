@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { db } from '@/lib/db/client'
-import { termGrades, subjectGrades, gradingSystems } from '@/drizzle/schema/grades'
+import { termGrades, subjectGrades, gradingSystems, subjects } from '@/drizzle/schema/grades'
 import { requireAuthApi } from '@/lib/auth/session'
 import { getBonusFactors } from '@/lib/db/queries/config'
 import {
@@ -9,7 +9,7 @@ import {
   type CalculatorInput,
   type CalculatorSubjectResult,
 } from '@/lib/calculator/engine'
-import { eq, and } from 'drizzle-orm'
+import { eq, and, inArray } from 'drizzle-orm'
 
 const saveSchema = z.object({
   gradingSystemId: z.string().uuid(),
@@ -65,6 +65,13 @@ export async function POST(request: NextRequest) {
 
     const { defaults, overrides } = await getBonusFactors(user.id, normalizedChildId)
 
+    const subjectIds = payload.subjects.map((s) => s.subjectId)
+    const subjectRows = await db
+      .select({ id: subjects.id, isCoreSubject: subjects.isCoreSubject })
+      .from(subjects)
+      .where(inArray(subjects.id, subjectIds))
+    const coreMap = new Map(subjectRows.map((s) => [s.id, s.isCoreSubject ?? false]))
+
     const calc = calculateBonus({
       gradingSystem: gradingSystem as CalculatorInput['gradingSystem'],
       factors: {
@@ -78,6 +85,7 @@ export async function POST(request: NextRequest) {
         subjectName: s.subjectName,
         grade: s.grade,
         weight: s.weight,
+        isCoreSubject: coreMap.get(s.subjectId) ?? false,
       })),
     })
 
