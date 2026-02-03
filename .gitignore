@@ -65,3 +65,4 @@ coverage/
 # Supabase
 supabase/.branches
 supabase/.temp
+.claude/
