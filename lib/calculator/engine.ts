@@ -103,14 +103,21 @@ function deriveTier(system: GradingSystemRow, grade: string): CalculatorSubjectR
   return 'below'
 }
 
-function gradeMultiplier(
+function gradeFactorForTier(
   tier: CalculatorSubjectResult['tier'],
   defaults: BonusFactor[],
   overrides?: UserBonusFactor[]
-) {
+): number {
   const value = factorValue('grade_tier', tier, defaults, overrides)
   if (value !== undefined && !Number.isNaN(value)) return value
-  throw new Error(`Missing grade_tier factor for tier "${tier}" in bonus factor defaults`)
+  // Default grade factors: best=2, second=1, third=0, below=-1
+  const defaultFactors: Record<CalculatorSubjectResult['tier'], number> = {
+    best: 2,
+    second: 1,
+    third: 0,
+    below: -1,
+  }
+  return defaultFactors[tier]
 }
 
 export type SingleGradeInput = {
@@ -122,20 +129,18 @@ export type SingleGradeInput = {
 
 export function calculateSingleGradeBonus(input: SingleGradeInput): CalculatorSubjectResult {
   const { gradingSystem, factors, classLevel, subject } = input
-  const baseAmount = factorValue('base_amount', 'per_subject', factors.defaults, factors.overrides)
-  if (baseAmount === undefined) {
-    throw new Error('Missing base_amount/per_subject factor in bonus factor defaults')
-  }
   const weight = Number(subject.weight ?? 1) || 1
   const normalized = normalizeGrade(gradingSystem, subject.grade)
   const tier = deriveTier(gradingSystem, subject.grade)
-  const gradeMult = gradeMultiplier(tier, factors.defaults, factors.overrides)
-  const classMult =
-    factorValue('class_level', `class_${classLevel}`, factors.defaults, factors.overrides) ?? 1
-  const coreMult = subject.isCoreSubject
-    ? (factorValue('core_subject_bonus', 'multiplier', factors.defaults, factors.overrides) ?? 1)
-    : 1
-  const rawBonus = baseAmount * gradeMult * classMult * coreMult * weight
+
+  // Formula: class_level × semester_factor × grade_factor, floored at 0
+  // For single grade calculation, semester_factor defaults to 1
+  const classLevelValue = classLevel
+  const semesterFactor =
+    factorValue('term_type', 'semester', factors.defaults, factors.overrides) ?? 1
+  const gradeFactor = gradeFactorForTier(tier, factors.defaults, factors.overrides)
+
+  const rawBonus = classLevelValue * semesterFactor * gradeFactor * weight
   const bonus = Math.max(0, rawBonus)
 
   return {
@@ -152,23 +157,17 @@ export function calculateSingleGradeBonus(input: SingleGradeInput): CalculatorSu
 export function calculateBonus(input: CalculatorInput): CalculatorResult {
   const { gradingSystem, factors, classLevel, termType, subjects } = input
 
-  const baseAmount = factorValue('base_amount', 'per_subject', factors.defaults, factors.overrides)
-  if (baseAmount === undefined) {
-    throw new Error('Missing base_amount/per_subject factor in bonus factor defaults')
-  }
+  // Formula: class_level × term_factor × grade_factor, floored at 0
+  const classLevelValue = classLevel
+  const termFactor = factorValue('term_type', termType, factors.defaults, factors.overrides) ?? 1
 
   const breakdown: CalculatorSubjectResult[] = subjects.map((sub) => {
     const weight = Number(sub.weight ?? 1) || 1
     const normalized = normalizeGrade(gradingSystem, sub.grade)
     const tier = deriveTier(gradingSystem, sub.grade)
-    const gradeMult = gradeMultiplier(tier, factors.defaults, factors.overrides)
-    const classMult =
-      factorValue('class_level', `class_${classLevel}`, factors.defaults, factors.overrides) ?? 1
-    const termMult = factorValue('term_type', termType, factors.defaults, factors.overrides) ?? 1
-    const coreMult = sub.isCoreSubject
-      ? (factorValue('core_subject_bonus', 'multiplier', factors.defaults, factors.overrides) ?? 1)
-      : 1
-    const rawBonus = baseAmount * gradeMult * classMult * termMult * coreMult * weight
+    const gradeFactor = gradeFactorForTier(tier, factors.defaults, factors.overrides)
+
+    const rawBonus = classLevelValue * termFactor * gradeFactor * weight
     const bonus = Math.max(0, rawBonus)
 
     return {
@@ -182,10 +181,7 @@ export function calculateBonus(input: CalculatorInput): CalculatorResult {
     }
   })
 
-  const total = Math.max(
-    0,
-    breakdown.reduce((acc, item) => acc + item.bonus, 0)
-  )
+  const total = breakdown.reduce((acc, item) => acc + item.bonus, 0)
 
   return { total, breakdown }
 }
