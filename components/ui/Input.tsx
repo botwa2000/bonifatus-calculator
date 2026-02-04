@@ -7,9 +7,11 @@
 'use client'
 
 import React, { forwardRef } from 'react'
+import { Label } from './Label'
 
 export interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
   label?: string
+  tooltip?: string
   error?: string
   helperText?: string
   leftIcon?: React.ReactNode
@@ -21,6 +23,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
   (
     {
       label,
+      tooltip,
       error,
       helperText,
       leftIcon,
@@ -52,13 +55,11 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
     return (
       <div className={`${fullWidth ? 'w-full' : ''}`}>
         {label && (
-          <label
-            htmlFor={inputId}
-            className="block text-sm font-medium text-neutral-700 dark:text-neutral-200 mb-2"
-          >
-            {label}
-            {props.required && <span className="text-error-500 ml-1">*</span>}
-          </label>
+          <div className="mb-2">
+            <Label htmlFor={inputId} required={props.required} tooltip={tooltip}>
+              {label}
+            </Label>
+          </div>
         )}
 
         <div className="relative">

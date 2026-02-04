@@ -1,6 +1,8 @@
 'use client'
 
 import { useEffect, useMemo, useRef, useState } from 'react'
+import { Button, Select, Accordion, FormField, Tooltip } from '@/components/ui'
+
 type GradeDefinition = {
   grade?: string
   normalized_100?: number
@@ -31,15 +33,6 @@ type Factor = {
   factorKey: string
   factorValue: number
   description: string | null
-}
-
-type UserFactor = {
-  id: string
-  userId: string
-  childId: string | null
-  factorType: string
-  factorKey: string
-  factorValue: number
 }
 
 type Subject = {
@@ -93,23 +86,7 @@ function resolveLocalized(value: string | Record<string, string> | null | undefi
   return value['en'] || Object.values(value)[0] || ''
 }
 
-function getFactorValue(
-  factors: Factor[],
-  type: Factor['factorType'],
-  key: string,
-  fallback = 1,
-  overrides?: UserFactor[]
-) {
-  const childOverride = overrides?.find(
-    (f) => f.factorType === type && f.factorKey === key && f.childId
-  )
-  if (childOverride) return Number(childOverride.factorValue)
-
-  const userOverride = overrides?.find(
-    (f) => f.factorType === type && f.factorKey === key && !f.childId
-  )
-  if (userOverride) return Number(userOverride.factorValue)
-
+function getFactorValue(factors: Factor[], type: string, key: string, fallback?: number) {
   const found = factors.find((f) => f.factorType === type && f.factorKey === key)
   return found ? Number(found.factorValue) : fallback
 }
@@ -135,14 +112,6 @@ function normalizeGrade(system: GradingSystem, grade: string) {
   )
   if (def?.normalized_100 != null) return Number(def.normalized_100)
 
-  // Fallback: use numeric_value if provided
-  if (def?.numeric_value != null && system.gradeDefinitions) {
-    const first = system.gradeDefinitions[0]?.numeric_value ?? 100
-    const last = system.gradeDefinitions[system.gradeDefinitions.length - 1]?.numeric_value ?? 0
-    const range = system.bestIsHighest ? Number(first) : Number(last)
-    return Math.min(Math.max((Number(def.numeric_value) / range) * 100, 0), 100)
-  }
-
   return 0
 }
 
@@ -157,25 +126,13 @@ function convertNormalizedToScale(system: GradingSystem | null, normalized: numb
   return min + (normalized / 100) * (max - min)
 }
 
-function getGradeMultiplier(factors: Factor[], tier: string, overrides?: UserFactor[]) {
-  const value = getFactorValue(
-    factors,
-    'grade_tier',
-    tier,
-    undefined as unknown as number,
-    overrides
-  )
-  if (value !== undefined && !Number.isNaN(value)) return value
-  throw new Error(`Missing grade_tier factor for tier "${tier}" in bonus factor defaults`)
-}
-
+// NEW SIMPLIFIED FORMULA: class_level × term_factor × grade_factor, floored at 0
 function calculateBonus(
   system: GradingSystem | null,
   factors: Factor[],
   classLevel: number,
   termType: string,
-  subjects: SubjectEntry[],
-  overrides?: UserFactor[]
+  subjects: SubjectEntry[]
 ): CalculationResult {
   if (!system)
     return {
@@ -188,30 +145,25 @@ function calculateBonus(
   let totalWeightedNormalized = 0
   let totalWeight = 0
 
-  const baseAmount = getFactorValue(factors, 'base_amount', 'per_subject', 1, overrides)
+  // Get term factor from DB or use defaults
+  const termFactor = getFactorValue(factors, 'term_type', termType, 1) ?? 1
+
+  // Grade factors: best=2, second=1, third=0, below=-1
+  const getGradeFactor = (tier: string) => {
+    const value = getFactorValue(factors, 'grade_tier', tier)
+    if (value !== undefined) return value
+    const defaults: Record<string, number> = { best: 2, second: 1, third: 0, below: -1 }
+    return defaults[tier] ?? -1
+  }
 
   const breakdown = subjects.map((subject) => {
     const normalized = normalizeGrade(system, subject.grade)
-    const defTier = deriveTierFromDefinitions(system, subject.grade)
-    // Fallback tier by normalized value if not found in definitions
-    let tier = defTier
-    if (!tier || tier === 'below') {
-      const score = normalized
-      if (!system.bestIsHighest) {
-        // invert thresholds: lower is better
-        tier = score <= 10 ? 'best' : score <= 30 ? 'second' : score <= 60 ? 'third' : 'below'
-      } else {
-        tier = score >= 90 ? 'best' : score >= 75 ? 'second' : score >= 60 ? 'third' : 'below'
-      }
-    }
-    const gradeMultiplier = getGradeMultiplier(factors, tier, overrides)
-    const classMult = getFactorValue(factors, 'class_level', `class_${classLevel}`, 1, overrides)
-    const termMult = getFactorValue(factors, 'term_type', termType, 1, overrides)
-    const coreMult = subject.isCoreSubject
-      ? getFactorValue(factors, 'core_subject_bonus', 'multiplier', 1, overrides)
-      : 1
+    const tier = deriveTierFromDefinitions(system, subject.grade)
+    const gradeFactor = getGradeFactor(tier)
     const weight = Number(subject.weight) || 1
-    const rawBonus = baseAmount * gradeMultiplier * classMult * termMult * coreMult * weight
+
+    // Formula: class_level × term_factor × grade_factor × weight
+    const rawBonus = classLevel * termFactor * gradeFactor * weight
     const bonus = Math.max(0, rawBonus)
 
     totalWeightedNormalized += normalized * weight
@@ -229,7 +181,7 @@ function calculateBonus(
   const averageNormalized =
     totalWeight > 0 ? Number((totalWeightedNormalized / totalWeight).toFixed(2)) : 0
   return {
-    total: Math.max(0, sum),
+    total: sum,
     averageNormalized,
     subjectCount: subjects.length,
     breakdown,
@@ -259,13 +211,6 @@ function getSampleData(config: CalculatorConfig): {
     if (defs.length) {
       return pickRandom(defs)?.grade || ''
     }
-    if (system.minValue != null && system.maxValue != null) {
-      const val = Math.floor(
-        Number(system.minValue) +
-          Math.random() * (Number(system.maxValue) - Number(system.minValue))
-      )
-      return val.toString()
-    }
     return ''
   }
 
@@ -278,7 +223,7 @@ function getSampleData(config: CalculatorConfig): {
       subjectId: s.id,
       subjectName: resolveLocalized(s.name) || `Subject ${idx + 1}`,
       grade: randomGrade(sampleSystem),
-      weight: Number((0.5 + Math.random() * 1.5).toFixed(1)),
+      weight: 1, // Always 1 for demo
       isCoreSubject: s.isCoreSubject ?? false,
     })),
   }
@@ -294,6 +239,7 @@ function guessCountryCode() {
 
 type DemoCalculatorProps = {
   allowSample?: boolean
+  isDemo?: boolean // Demo mode: weights are fixed at 1 and not editable
   onSaved?: (payload: {
     termId?: string
     totalBonusPoints: number
@@ -312,48 +258,9 @@ type DemoCalculatorProps = {
   }
 }
 
-function AccordionSection({
-  title,
-  open,
-  onToggle,
-  children,
-}: {
-  title: string
-  open: boolean
-  onToggle: () => void
-  children: React.ReactNode
-}) {
-  return (
-    <div className="rounded-xl border border-neutral-200 dark:border-neutral-800 overflow-hidden">
-      <button
-        type="button"
-        onClick={onToggle}
-        className="w-full flex items-center justify-between px-4 py-3 bg-neutral-50 dark:bg-neutral-800/60 text-sm font-semibold text-neutral-800 dark:text-neutral-100 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition"
-      >
-        {title}
-        <svg
-          className={`w-4 h-4 transition-transform ${open ? 'rotate-180' : ''}`}
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-        >
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-        </svg>
-      </button>
-      <div
-        className="grid transition-[grid-template-rows] duration-300"
-        style={{ gridTemplateRows: open ? '1fr' : '0fr' }}
-      >
-        <div className="overflow-hidden">
-          <div className="p-4">{children}</div>
-        </div>
-      </div>
-    </div>
-  )
-}
-
 export function DemoCalculator({
   allowSample = true,
+  isDemo = true,
   onSaved,
   initialData,
 }: DemoCalculatorProps = {}) {
@@ -376,7 +283,6 @@ export function DemoCalculator({
   const [saving, setSaving] = useState(false)
   const [saveMessage, setSaveMessage] = useState<string | null>(null)
   const [saveError, setSaveError] = useState<string | null>(null)
-  const [factorOverrides, setFactorOverrides] = useState<UserFactor[]>([])
   const [preferredSystemId, setPreferredSystemId] = useState<string | undefined>(undefined)
   const [suggestedSystemId, setSuggestedSystemId] = useState<string | undefined>(undefined)
   const [draftRestored, setDraftRestored] = useState(false)
@@ -482,17 +388,6 @@ export function DemoCalculator({
         const { getSession } = await import('next-auth/react')
         const session = await getSession()
         setUserEmail(session?.user?.email ?? null)
-        if (session?.user) {
-          try {
-            const factorsRes = await fetch('/api/grades/factors')
-            const factorsData = await factorsRes.json()
-            if (factorsRes.ok && factorsData.success) {
-              setFactorOverrides(factorsData.overrides || [])
-            }
-          } catch {
-            // ignore factor load errors on client
-          }
-        }
       } catch {
         setUserEmail(null)
       }
@@ -564,7 +459,7 @@ export function DemoCalculator({
       setSchoolYear(parsed.schoolYear || schoolYear)
       setTermName(parsed.termName || '')
       if (parsed.subjects?.length) {
-        setSubjectRows(parsed.subjects)
+        setSubjectRows(parsed.subjects.map((s) => ({ ...s, weight: isDemo ? 1 : s.weight })))
       }
       setDraftRestored(true)
       setDraftStatus('Restored your last draft')
@@ -574,7 +469,7 @@ export function DemoCalculator({
       // ignore parse errors
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [draftKey, initialData, loading, sortedGradingSystems])
+  }, [draftKey, initialData, loading, sortedGradingSystems, isDemo])
 
   const calcResult = useMemo(
     () =>
@@ -583,10 +478,9 @@ export function DemoCalculator({
         config.bonusFactorDefaults,
         classLevel,
         termType,
-        subjectRows,
-        factorOverrides
+        subjectRows
       ),
-    [selectedSystem, config.bonusFactorDefaults, classLevel, termType, subjectRows, factorOverrides]
+    [selectedSystem, config.bonusFactorDefaults, classLevel, termType, subjectRows]
   )
 
   useEffect(() => {
@@ -764,6 +658,24 @@ export function DemoCalculator({
     }
   }
 
+  // Select options
+  const gradingSystemOptions = sortedGradingSystems.map((gs) => ({
+    value: gs.id,
+    label: resolveLocalized(gs.name),
+  }))
+
+  const termTypeOptions = [
+    { value: 'midterm', label: 'Midterm' },
+    { value: 'final', label: 'Final' },
+    { value: 'semester', label: 'Semester' },
+    { value: 'quarterly', label: 'Quarter' },
+  ]
+
+  const classLevelOptions = Array.from({ length: 13 }, (_, i) => ({
+    value: String(i + 1),
+    label: `Class ${i + 1}`,
+  }))
+
   return (
     <div className="bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-2xl shadow-xl p-6 sm:p-8 w-full max-w-3xl mx-auto">
       <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between mb-4">
@@ -789,12 +701,12 @@ export function DemoCalculator({
         )}
       </div>
 
-      {loading && <p className="text-neutral-600 dark:text-neutral-300">Loading settings…</p>}
+      {loading && <p className="text-neutral-600 dark:text-neutral-300">Loading settings...</p>}
       {error && <p className="text-sm text-red-600 dark:text-red-400 mb-4">Error: {error}</p>}
 
       {!loading && !error && selectedSystem && (
         <div className="space-y-4">
-          <AccordionSection
+          <Accordion
             title="Settings"
             open={settingsOpen}
             onToggle={() => setSettingsOpen((v) => !v)}
@@ -802,27 +714,13 @@ export function DemoCalculator({
             <div className="space-y-4">
               <div className="grid sm:grid-cols-3 gap-4">
                 <div className="sm:col-span-2">
-                  <div className="flex items-center justify-between gap-2">
-                    <label className="text-sm font-medium text-neutral-700 dark:text-neutral-200">
-                      Grading system
-                    </label>
-                    {selectedSystem?.countryCode && (
-                      <span className="text-xs text-neutral-500 dark:text-neutral-400">
-                        Region: {selectedSystem.countryCode}
-                      </span>
-                    )}
-                  </div>
-                  <select
-                    className="mt-1 w-full rounded-lg border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 py-2 text-neutral-900 dark:text-white"
+                  <Select
+                    label="Grading system"
+                    tooltip="The grading scale used by your school. Different countries use different systems."
                     value={selectedSystem?.id}
                     onChange={(e) => setSelectedSystemId(e.target.value)}
-                  >
-                    {sortedGradingSystems.map((gs) => (
-                      <option key={gs.id} value={gs.id}>
-                        {resolveLocalized(gs.name)}
-                      </option>
-                    ))}
-                  </select>
+                    options={gradingSystemOptions}
+                  />
                   <div className="mt-2 flex flex-wrap items-center gap-2 text-xs">
                     <button
                       type="button"
@@ -836,74 +734,50 @@ export function DemoCalculator({
                         Default
                       </span>
                     )}
-                    {!preferredSystemId &&
-                      suggestedSystemId &&
-                      suggestedSystemId === selectedSystem?.id && (
-                        <span className="rounded-full bg-secondary-100 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide text-secondary-700 dark:bg-secondary-900/30 dark:text-secondary-200">
-                          Suggested
-                        </span>
-                      )}
                   </div>
                 </div>
                 <div className="space-y-3">
-                  <div>
-                    <label className="text-sm font-medium text-neutral-700 dark:text-neutral-200">
-                      Class level
-                    </label>
-                    <input
-                      type="number"
-                      min={1}
-                      max={12}
-                      value={classLevel}
-                      onChange={(e) => setClassLevel(Number(e.target.value) || 1)}
-                      className="mt-1 w-full rounded-lg border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 py-2 text-neutral-900 dark:text-white"
-                    />
-                  </div>
-                  <div>
-                    <label className="text-sm font-medium text-neutral-700 dark:text-neutral-200">
-                      Term type
-                    </label>
-                    <select
-                      value={termType}
-                      onChange={(e) => setTermType(e.target.value)}
-                      className="mt-1 w-full rounded-lg border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 py-2 text-neutral-900 dark:text-white"
-                    >
-                      <option value="midterm">Midterm</option>
-                      <option value="final">Final</option>
-                      <option value="semester">Semester</option>
-                      <option value="quarterly">Quarter</option>
-                    </select>
-                  </div>
+                  <Select
+                    label="Class level"
+                    tooltip="The grade/year level of the student (1-13)."
+                    value={String(classLevel)}
+                    onChange={(e) => setClassLevel(Number(e.target.value) || 1)}
+                    options={classLevelOptions}
+                  />
+                  <Select
+                    label="Term type"
+                    tooltip="The type of grading period. Final terms have higher bonus multipliers."
+                    value={termType}
+                    onChange={(e) => setTermType(e.target.value)}
+                    options={termTypeOptions}
+                  />
                 </div>
               </div>
               <div className="grid sm:grid-cols-3 gap-4">
-                <div>
-                  <label className="text-sm font-medium text-neutral-700 dark:text-neutral-200">
-                    School year
-                  </label>
+                <FormField label="School year" tooltip="The academic year (e.g., 2025-2026).">
                   <input
                     value={schoolYear}
                     onChange={(e) => setSchoolYear(e.target.value)}
                     placeholder="e.g. 2025-2026"
-                    className="mt-1 w-full rounded-lg border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 py-2 text-neutral-900 dark:text-white"
+                    className="w-full rounded-lg border-2 border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-4 py-3 text-neutral-900 dark:text-white focus:border-primary-500 focus:ring-4 focus:ring-primary-100 outline-none transition-all"
                   />
-                </div>
-                <div>
-                  <label className="text-sm font-medium text-neutral-700 dark:text-neutral-200">
-                    Term name (optional)
-                  </label>
+                </FormField>
+                <FormField
+                  label="Term name"
+                  tooltip="Optional name for this term (e.g., Spring, Fall)."
+                >
                   <input
                     value={termName}
                     onChange={(e) => setTermName(e.target.value)}
                     placeholder="e.g. Spring"
-                    className="mt-1 w-full rounded-lg border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 py-2 text-neutral-900 dark:text-white"
+                    className="w-full rounded-lg border-2 border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-4 py-3 text-neutral-900 dark:text-white focus:border-primary-500 focus:ring-4 focus:ring-primary-100 outline-none transition-all"
                   />
-                </div>
+                </FormField>
               </div>
             </div>
-          </AccordionSection>
+          </Accordion>
 
-          <AccordionSection
+          <Accordion
             title="Subjects & Grades"
             open={subjectsOpen}
             onToggle={() => setSubjectsOpen((v) => !v)}
@@ -920,6 +794,24 @@ export function DemoCalculator({
                   Add subject
                 </button>
               </div>
+
+              {/* Column headers */}
+              <div className="hidden lg:grid lg:grid-cols-12 gap-3 px-3 text-xs font-medium text-neutral-500 dark:text-neutral-400">
+                <div className="lg:col-span-5 flex items-center gap-1">
+                  Subject
+                  <Tooltip content="Select a subject from the list. Type to filter." />
+                </div>
+                <div className="lg:col-span-3 flex items-center gap-1">
+                  Grade
+                  <Tooltip content="The grade received for this subject." />
+                </div>
+                <div className="lg:col-span-3 flex items-center gap-1">
+                  Weight
+                  <Tooltip content="Subject weight for average calculation. Default is 1." />
+                </div>
+                <div className="lg:col-span-1"></div>
+              </div>
+
               <div className="space-y-2">
                 {subjectRows.map((row) => (
                   <div
@@ -927,6 +819,10 @@ export function DemoCalculator({
                     className="grid grid-cols-1 lg:grid-cols-12 gap-3 items-start rounded-xl border border-neutral-200 dark:border-neutral-800 bg-neutral-50 dark:bg-neutral-900 px-3 py-3 overflow-hidden"
                   >
                     <div className="lg:col-span-5 space-y-2">
+                      <div className="lg:hidden flex items-center gap-1 text-xs font-medium text-neutral-500 dark:text-neutral-400 mb-1">
+                        Subject
+                        <Tooltip content="Select a subject from the list. Type to filter." />
+                      </div>
                       <div className="flex items-center gap-2">
                         <input
                           placeholder={row.subjectName || 'Search subject'}
@@ -935,7 +831,7 @@ export function DemoCalculator({
                             setSubjectFilters((prev) => ({ ...prev, [row.id]: e.target.value }))
                           }
                           onFocus={() => setPickerOpen((prev) => ({ ...prev, [row.id]: true }))}
-                          className="w-full rounded-lg border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 py-2 text-neutral-900 dark:text-white"
+                          className="w-full rounded-lg border-2 border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 py-2 text-neutral-900 dark:text-white focus:border-primary-500 outline-none transition-all"
                         />
                         {row.isCoreSubject && (
                           <span className="shrink-0 rounded bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300 px-1.5 py-0.5 text-[10px] font-semibold uppercase">
@@ -1025,6 +921,10 @@ export function DemoCalculator({
                       )}
                     </div>
                     <div className="lg:col-span-3">
+                      <div className="lg:hidden flex items-center gap-1 text-xs font-medium text-neutral-500 dark:text-neutral-400 mb-1">
+                        Grade
+                        <Tooltip content="The grade received for this subject." />
+                      </div>
                       {selectedSystem?.scaleType === 'percentage' ? (
                         <input
                           type="number"
@@ -1033,13 +933,13 @@ export function DemoCalculator({
                           placeholder="e.g. 85"
                           value={row.grade}
                           onChange={(e) => updateRow(row.id, 'grade', e.target.value)}
-                          className="w-full rounded-lg border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 py-2 text-neutral-900 dark:text-white"
+                          className="w-full rounded-lg border-2 border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 py-2 text-neutral-900 dark:text-white focus:border-primary-500 outline-none transition-all"
                         />
                       ) : selectedSystem?.gradeDefinitions?.length ? (
                         <select
                           value={row.grade}
                           onChange={(e) => updateRow(row.id, 'grade', e.target.value)}
-                          className="w-full rounded-lg border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 py-2 text-neutral-900 dark:text-white"
+                          className="w-full rounded-lg border-2 border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 py-2 text-neutral-900 dark:text-white focus:border-primary-500 outline-none transition-all"
                         >
                           <option value="">Select grade</option>
                           {selectedSystem?.gradeDefinitions?.map((g) => (
@@ -1053,19 +953,29 @@ export function DemoCalculator({
                           placeholder="Grade"
                           value={row.grade}
                           onChange={(e) => updateRow(row.id, 'grade', e.target.value)}
-                          className="w-full rounded-lg border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 py-2 text-neutral-900 dark:text-white"
+                          className="w-full rounded-lg border-2 border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 py-2 text-neutral-900 dark:text-white focus:border-primary-500 outline-none transition-all"
                         />
                       )}
                     </div>
                     <div className="lg:col-span-3">
-                      <input
-                        type="number"
-                        min={0.1}
-                        step={0.1}
-                        value={row.weight}
-                        onChange={(e) => updateRow(row.id, 'weight', Number(e.target.value) || 1)}
-                        className="w-full rounded-lg border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 py-2 text-neutral-900 dark:text-white"
-                      />
+                      <div className="lg:hidden flex items-center gap-1 text-xs font-medium text-neutral-500 dark:text-neutral-400 mb-1">
+                        Weight
+                        <Tooltip content="Subject weight for average calculation. Default is 1." />
+                      </div>
+                      {isDemo ? (
+                        <div className="w-full rounded-lg border-2 border-neutral-200 dark:border-neutral-700 bg-neutral-100 dark:bg-neutral-800 px-3 py-2 text-neutral-500 dark:text-neutral-400 cursor-not-allowed">
+                          1
+                        </div>
+                      ) : (
+                        <input
+                          type="number"
+                          min={0.1}
+                          step={0.1}
+                          value={row.weight}
+                          onChange={(e) => updateRow(row.id, 'weight', Number(e.target.value) || 1)}
+                          className="w-full rounded-lg border-2 border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 py-2 text-neutral-900 dark:text-white focus:border-primary-500 outline-none transition-all"
+                        />
+                      )}
                     </div>
                     <div className="lg:col-span-1 flex justify-end">
                       <button
@@ -1080,13 +990,9 @@ export function DemoCalculator({
                 ))}
               </div>
             </div>
-          </AccordionSection>
+          </Accordion>
 
-          <AccordionSection
-            title="Results"
-            open={resultsOpen}
-            onToggle={() => setResultsOpen((v) => !v)}
-          >
+          <Accordion title="Results" open={resultsOpen} onToggle={() => setResultsOpen((v) => !v)}>
             <div>
               <div className="flex items-center justify-between">
                 <div>
@@ -1109,20 +1015,11 @@ export function DemoCalculator({
                   </p>
                 </div>
                 {userEmail ? (
-                  <button
-                    onClick={handleSave}
-                    disabled={saving || !canSave}
-                    className="px-4 py-2 text-sm font-semibold rounded-lg bg-gradient-to-r from-primary-600 to-secondary-600 text-white shadow-button hover:shadow-lg hover:scale-105 transition-all disabled:opacity-60 disabled:hover:scale-100"
-                  >
-                    {saving ? 'Saving…' : 'Save term'}
-                  </button>
+                  <Button onClick={handleSave} disabled={saving || !canSave} isLoading={saving}>
+                    Save term
+                  </Button>
                 ) : (
-                  <a
-                    href="/register"
-                    className="px-4 py-2 text-sm font-semibold rounded-lg bg-gradient-to-r from-primary-600 to-secondary-600 text-white shadow-button hover:shadow-lg hover:scale-105 transition-all"
-                  >
-                    Save & Track
-                  </a>
+                  <Button onClick={() => (window.location.href = '/register')}>Save & Track</Button>
                 )}
               </div>
               <div className="mt-3 space-y-2 text-sm text-neutral-700 dark:text-neutral-300">
@@ -1141,8 +1038,8 @@ export function DemoCalculator({
                 )}
               </div>
               <p className="mt-3 text-xs text-neutral-500 dark:text-neutral-500">
-                Calculation: grade tier multiplier × class level × term type × subject weight,
-                floored at zero total.
+                Formula: class level × term factor × grade factor (best=2, second=1, third=0,
+                below=-1), floored at zero.
               </p>
               {saveError && (
                 <p className="mt-2 text-sm text-red-600 dark:text-red-400">{saveError}</p>
@@ -1159,7 +1056,7 @@ export function DemoCalculator({
                 <p className="text-xs text-neutral-500 dark:text-neutral-400">{draftStatus}</p>
               )}
             </div>
-          </AccordionSection>
+          </Accordion>
         </div>
       )}
     </div>

@@ -31,11 +31,12 @@ function resolve(theme: Theme): 'light' | 'dark' {
 }
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const [theme, setThemeState] = useState<Theme>('system')
+  const [theme, setThemeState] = useState<Theme>('light')
 
   useEffect(() => {
     const stored = localStorage.getItem('theme-preference') as Theme | null
-    const t = stored && ['system', 'light', 'dark'].includes(stored) ? stored : 'system'
+    // Default to 'light' for new users; only use 'dark' if explicitly set
+    const t = stored && ['system', 'light', 'dark'].includes(stored) ? stored : 'light'
     setThemeState(t)
     applyClass(resolve(t))
   }, [])
