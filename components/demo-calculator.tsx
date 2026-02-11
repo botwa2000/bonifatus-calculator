@@ -671,11 +671,6 @@ export function DemoCalculator({
     { value: 'quarterly', label: 'Quarter' },
   ]
 
-  const classLevelOptions = Array.from({ length: 13 }, (_, i) => ({
-    value: String(i + 1),
-    label: `Class ${i + 1}`,
-  }))
-
   return (
     <div className="bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-2xl shadow-xl p-6 sm:p-8 w-full max-w-3xl mx-auto">
       <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between mb-4">
@@ -737,13 +732,20 @@ export function DemoCalculator({
                   </div>
                 </div>
                 <div className="space-y-3">
-                  <Select
+                  <FormField
                     label="Class level"
                     tooltip="The grade/year level of the student (1-13)."
-                    value={String(classLevel)}
-                    onChange={(e) => setClassLevel(Number(e.target.value) || 1)}
-                    options={classLevelOptions}
-                  />
+                  >
+                    <input
+                      type="number"
+                      min={1}
+                      max={13}
+                      step={1}
+                      value={classLevel}
+                      onChange={(e) => setClassLevel(Number(e.target.value) || 1)}
+                      className="w-full rounded-lg border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-900 focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 dark:border-neutral-700 dark:bg-neutral-800 dark:text-white"
+                    />
+                  </FormField>
                   <Select
                     label="Term type"
                     tooltip="The type of grading period. Final terms have higher bonus multipliers."

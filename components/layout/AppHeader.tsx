@@ -70,11 +70,15 @@ export function AppHeader(props: AppHeaderProps) {
     setSigningOut(true)
     try {
       await signOut({ redirect: false })
-      router.push('/login')
-      router.refresh()
-    } finally {
-      setSigningOut(false)
+    } catch {
+      // signOut may fail if CSRF fetch is blocked — clear cookie manually
+      document.cookie = 'next-auth.session-token=;path=/;expires=Thu, 01 Jan 1970 00:00:00 GMT'
+      document.cookie =
+        '__Secure-next-auth.session-token=;path=/;expires=Thu, 01 Jan 1970 00:00:00 GMT'
     }
+    // Always redirect regardless of signOut outcome
+    router.push('/login')
+    router.refresh()
   }
 
   if (props.variant === 'public') {
