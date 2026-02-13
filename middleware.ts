@@ -1,7 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getToken } from 'next-auth/jwt'
 import { routing } from '@/i18n/routing'
 import { dbg, dbgWarn } from '@/lib/debug'
+
+// Check for session cookie presence (no JWT decoding needed for routing)
+// NextAuth v5 uses authjs.* cookie names; secure prefix when NEXTAUTH_URL is https
+const SESSION_COOKIE_NAMES = [
+  '__Secure-authjs.session-token',
+  'authjs.session-token',
+  '__Secure-next-auth.session-token',
+  'next-auth.session-token',
+]
+
+function hasSessionCookie(req: NextRequest): boolean {
+  return SESSION_COOKIE_NAMES.some((name) => !!req.cookies.get(name)?.value)
+}
 
 const locales = routing.locales
 const defaultLocale = routing.defaultLocale
@@ -63,9 +75,7 @@ export default async function middleware(req: NextRequest) {
       dbg('mw', `public API pass-through: ${pathname}`)
       return NextResponse.next()
     }
-    const apiSecure = process.env.NEXTAUTH_URL?.startsWith('https://') ?? false
-    const token = await getToken({ req, secureCookie: apiSecure })
-    if (!token) {
+    if (!hasSessionCookie(req)) {
       dbgWarn('mw', `protected API 401: ${pathname}`)
       return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
     }
@@ -89,13 +99,11 @@ export default async function middleware(req: NextRequest) {
     return res
   }
 
-  // Auth checks — secureCookie must be true because NEXTAUTH_URL is https
-  // but middleware receives requests via http (behind reverse proxy)
-  const useSecureCookie = process.env.NEXTAUTH_URL?.startsWith('https://') ?? false
-  const token = await getToken({ req, secureCookie: useSecureCookie })
-  const isLoggedIn = !!token
+  // Auth check — just check for session cookie presence (no JWT decode needed)
+  // Actual JWT validation happens server-side in API routes and auth callbacks
+  const isLoggedIn = hasSessionCookie(req)
 
-  dbg('mw', `auth check`, { isLoggedIn, barePath, hasToken: !!token, useSecureCookie })
+  dbg('mw', `auth check`, { isLoggedIn, barePath })
 
   // Public pages
   if (publicRoutes.includes(barePath)) {
