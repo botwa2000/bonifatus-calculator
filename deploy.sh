@@ -91,11 +91,16 @@ EOF
 echo "==> Deploying stack: ${STACK_NAME}"
 ssh $SSH_OPTS "$SERVER" "cd ${REPO_DIR} && docker stack deploy -c ${STACK_FILE} ${STACK_NAME}"
 
-# Step 4: Wait for service to be ready
-echo "==> Waiting for service to start..."
-sleep 15
+# Step 4: Force container replacement (local images have no registry digest,
+# so docker stack deploy alone won't detect image changes)
+echo "==> Forcing service update to pick up new image"
+ssh $SSH_OPTS "$SERVER" "docker service update --force --image ${IMAGE_TAG} ${STACK_NAME}_app"
 
-# Step 5: Health check
+# Step 5: Wait for service to be ready
+echo "==> Waiting for service to start..."
+sleep 10
+
+# Step 6: Health check
 echo "==> Running health check on port ${PORT}"
 HEALTH=$(ssh $SSH_OPTS "$SERVER" "curl -sf http://localhost:${PORT}/api/health || echo 'FAIL'")
 
