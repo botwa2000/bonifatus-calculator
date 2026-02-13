@@ -63,7 +63,8 @@ export default async function middleware(req: NextRequest) {
       dbg('mw', `public API pass-through: ${pathname}`)
       return NextResponse.next()
     }
-    const token = await getToken({ req })
+    const apiSecure = process.env.NEXTAUTH_URL?.startsWith('https://') ?? false
+    const token = await getToken({ req, secureCookie: apiSecure })
     if (!token) {
       dbgWarn('mw', `protected API 401: ${pathname}`)
       return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
@@ -88,13 +89,13 @@ export default async function middleware(req: NextRequest) {
     return res
   }
 
-  // Auth checks
-  const secret = process.env.NEXTAUTH_SECRET || process.env.AUTH_SECRET
-  dbg('mw', `getToken attempt`, { hasSecret: !!secret, barePath })
-  const token = await getToken({ req, secret: secret || undefined })
+  // Auth checks — secureCookie must be true because NEXTAUTH_URL is https
+  // but middleware receives requests via http (behind reverse proxy)
+  const useSecureCookie = process.env.NEXTAUTH_URL?.startsWith('https://') ?? false
+  const token = await getToken({ req, secureCookie: useSecureCookie })
   const isLoggedIn = !!token
 
-  dbg('mw', `auth check`, { isLoggedIn, barePath, hasToken: !!token })
+  dbg('mw', `auth check`, { isLoggedIn, barePath, hasToken: !!token, useSecureCookie })
 
   // Public pages
   if (publicRoutes.includes(barePath)) {
