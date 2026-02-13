@@ -1,10 +1,11 @@
 'use client'
 
-import Link from 'next/link'
-import { usePathname, useRouter } from 'next/navigation'
+import { Link, usePathname, useRouter } from '@/i18n/navigation'
 import { useState } from 'react'
 import { signOut } from 'next-auth/react'
 import { useTheme } from '@/components/providers/ThemeProvider'
+import { useTranslations, useLocale } from 'next-intl'
+import { routing } from '@/i18n/routing'
 
 type NavItem = { label: string; href: string }
 
@@ -53,9 +54,34 @@ function ThemeToggle() {
   )
 }
 
+function LocaleSwitcher() {
+  const locale = useLocale()
+  const router = useRouter()
+  const pathname = usePathname()
+  const t = useTranslations('nav')
+
+  return (
+    <select
+      value={locale}
+      onChange={(e) => {
+        router.replace(pathname, { locale: e.target.value })
+      }}
+      title={t('language')}
+      className="rounded-lg border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 text-sm text-neutral-700 dark:text-neutral-200 px-2 py-1.5 outline-none focus:ring-2 focus:ring-primary-500 cursor-pointer"
+    >
+      {routing.locales.map((loc) => (
+        <option key={loc} value={loc}>
+          {loc.toUpperCase()}
+        </option>
+      ))}
+    </select>
+  )
+}
+
 export function AppHeader(props: AppHeaderProps) {
   const pathname = usePathname()
   const router = useRouter()
+  const t = useTranslations('nav')
   const [signingOut, setSigningOut] = useState(false)
   const [mobileOpen, setMobileOpen] = useState(false)
 
@@ -71,12 +97,10 @@ export function AppHeader(props: AppHeaderProps) {
     try {
       await signOut({ redirect: false })
     } catch {
-      // signOut may fail if CSRF fetch is blocked — clear cookie manually
       document.cookie = 'next-auth.session-token=;path=/;expires=Thu, 01 Jan 1970 00:00:00 GMT'
       document.cookie =
         '__Secure-next-auth.session-token=;path=/;expires=Thu, 01 Jan 1970 00:00:00 GMT'
     }
-    // Always redirect regardless of signOut outcome
     router.push('/login')
     router.refresh()
   }
@@ -96,14 +120,15 @@ export function AppHeader(props: AppHeaderProps) {
               href="#features"
               className="text-neutral-600 hover:text-neutral-900 dark:text-neutral-300 dark:hover:text-white transition-colors"
             >
-              Features
+              {t('features')}
             </a>
             <a
               href="#benefits"
               className="text-neutral-600 hover:text-neutral-900 dark:text-neutral-300 dark:hover:text-white transition-colors"
             >
-              Benefits
+              {t('benefits')}
             </a>
+            <LocaleSwitcher />
             <ThemeToggle />
             {props.isAuthed ? (
               <>
@@ -111,13 +136,13 @@ export function AppHeader(props: AppHeaderProps) {
                   href="/dashboard"
                   className="text-neutral-600 hover:text-neutral-900 dark:text-neutral-300 dark:hover:text-white transition-colors"
                 >
-                  Dashboard
+                  {t('dashboard')}
                 </Link>
                 <Link
                   href="/profile"
                   className="px-4 py-2 bg-gradient-to-r from-primary-600 to-secondary-600 text-white rounded-lg font-semibold shadow-button hover:shadow-lg hover:scale-105 transition-all"
                 >
-                  Profile
+                  {t('profile')}
                 </Link>
               </>
             ) : (
@@ -126,13 +151,13 @@ export function AppHeader(props: AppHeaderProps) {
                   href="/login"
                   className="text-neutral-600 hover:text-neutral-900 dark:text-neutral-300 dark:hover:text-white transition-colors"
                 >
-                  Login
+                  {t('login')}
                 </Link>
                 <Link
                   href="/register"
                   className="px-4 py-2 bg-gradient-to-r from-primary-600 to-secondary-600 text-white rounded-lg font-semibold shadow-button hover:shadow-lg hover:scale-105 transition-all"
                 >
-                  Sign Up
+                  {t('signUp')}
                 </Link>
               </>
             )}
@@ -184,7 +209,7 @@ export function AppHeader(props: AppHeaderProps) {
           <Link
             href="/settings"
             className="rounded-lg p-2 text-neutral-600 hover:bg-neutral-100 dark:text-neutral-300 dark:hover:bg-neutral-800 transition"
-            title="Settings"
+            title={t('settings')}
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path
@@ -201,13 +226,14 @@ export function AppHeader(props: AppHeaderProps) {
               />
             </svg>
           </Link>
+          <LocaleSwitcher />
           <ThemeToggle />
           <button
             onClick={handleLogout}
             disabled={signingOut}
             className="hidden sm:inline-flex rounded-lg border border-neutral-300 px-3 py-2 text-sm font-semibold text-neutral-800 transition hover:border-primary-400 hover:text-primary-700 disabled:opacity-60 dark:border-neutral-700 dark:text-white dark:hover:border-primary-500 dark:hover:text-primary-200"
           >
-            {signingOut ? 'Signing out\u2026' : 'Logout'}
+            {signingOut ? t('signingOut') : t('logout')}
           </button>
           <button
             onClick={() => setMobileOpen(!mobileOpen)}
@@ -248,7 +274,7 @@ export function AppHeader(props: AppHeaderProps) {
             disabled={signingOut}
             className="rounded-lg px-3 py-2 text-sm font-semibold text-left text-error-600 hover:bg-error-50 dark:hover:bg-error-900/20 disabled:opacity-60"
           >
-            {signingOut ? 'Signing out\u2026' : 'Logout'}
+            {signingOut ? t('signingOut') : t('logout')}
           </button>
         </nav>
       </div>

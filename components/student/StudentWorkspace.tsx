@@ -1,7 +1,9 @@
 'use client'
 
-import Link from 'next/link'
+import { Link } from '@/i18n/navigation'
 import { useEffect, useMemo, useState } from 'react'
+import { useLocale } from 'next-intl'
+import { resolveLocalized } from '@/lib/i18n'
 import { DemoCalculator } from '@/components/demo-calculator'
 import { QuickGradeForm } from '@/components/quick-grade-form'
 
@@ -52,11 +54,7 @@ type TermPrefill = {
   }>
 }
 
-function resolveLocalized(value?: string | Record<string, string> | null) {
-  if (!value) return ''
-  if (typeof value === 'string') return value
-  return value['en'] || Object.values(value)[0] || ''
-}
+// resolveLocalized imported from @/lib/i18n
 
 function formatDate(input: string) {
   try {
@@ -99,6 +97,7 @@ function convertNormalizedToScale(
 }
 
 export function StudentWorkspace() {
+  const locale = useLocale()
   const [activeTab, setActiveTab] = useState<'calculator' | 'saved' | 'insights'>('calculator')
   const [terms, setTerms] = useState<Term[]>([])
   const [loading, setLoading] = useState(true)
@@ -248,7 +247,7 @@ export function StudentWorkspace() {
       term.subject_grades?.map((s) => ({
         id: crypto.randomUUID(),
         subjectId: s.subject_id || undefined,
-        subjectName: resolveLocalized(s.subjects?.name) || 'Subject',
+        subjectName: resolveLocalized(s.subjects?.name, locale) || 'Subject',
         grade: s.grade_value || '',
         weight: Number(s.subject_weight ?? 1),
       })) || []
@@ -416,7 +415,7 @@ export function StudentWorkspace() {
                           {term.term_name ? ` • ${term.term_name}` : ''}
                         </p>
                         <p className="text-lg font-semibold text-neutral-900 dark:text-white">
-                          {resolveLocalized(term.grading_systems?.name) || 'Grading system'}
+                          {resolveLocalized(term.grading_systems?.name, locale) || 'Grading system'}
                         </p>
                         <p className="text-xs text-neutral-500">
                           Saved {formatDate(term.created_at)}
@@ -482,7 +481,7 @@ export function StudentWorkspace() {
                             >
                               <div>
                                 <p className="font-semibold text-neutral-900 dark:text-white">
-                                  {resolveLocalized(sub.subjects?.name) || 'Subject'}
+                                  {resolveLocalized(sub.subjects?.name, locale) || 'Subject'}
                                 </p>
                                 <p className="text-xs text-neutral-500">
                                   Grade: {sub.grade_value ?? '-'} • Weight:{' '}

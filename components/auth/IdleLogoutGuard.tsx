@@ -1,8 +1,9 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter } from '@/i18n/navigation'
 import { useSession, signOut } from 'next-auth/react'
+import { useTranslations } from 'next-intl'
 
 const WARNING_MS = 13 * 60 * 1000
 const LOGOUT_MS = 15 * 60 * 1000
@@ -13,6 +14,8 @@ const LOGOUT_BROADCAST_KEY = 'bonifatus-idle-logout-broadcast'
 export function IdleLogoutGuard() {
   const router = useRouter()
   const { status } = useSession()
+  const t = useTranslations('idle')
+  const tc = useTranslations('common')
   const hasSession = status === 'authenticated'
   const [showWarning, setShowWarning] = useState(false)
   const [countdownMs, setCountdownMs] = useState<number | null>(null)
@@ -130,10 +133,10 @@ export function IdleLogoutGuard() {
   useEffect(() => {
     if (typeof window === 'undefined') return
     if (sessionStorage.getItem(IDLE_FLAG_KEY)) {
-      setNotice('You were signed out due to inactivity. Please sign in again.')
+      setNotice(t('signedOutInactivity'))
       sessionStorage.removeItem(IDLE_FLAG_KEY)
     }
-  }, [])
+  }, [t])
 
   useEffect(() => {
     if (!hasSession) {
@@ -220,7 +223,7 @@ export function IdleLogoutGuard() {
           <div className="flex items-start gap-2">
             <span className="mt-0.5 inline-block h-2 w-2 rounded-full bg-amber-500" />
             <div className="space-y-1">
-              <p className="font-semibold">Session expired</p>
+              <p className="font-semibold">{t('sessionExpired')}</p>
               <p>{notice}</p>
             </div>
           </div>
@@ -228,7 +231,7 @@ export function IdleLogoutGuard() {
             onClick={() => setNotice(null)}
             className="mt-2 text-xs font-semibold text-amber-800 underline dark:text-amber-200"
           >
-            Dismiss
+            {tc('dismiss')}
           </button>
         </div>
       )}
@@ -237,17 +240,16 @@ export function IdleLogoutGuard() {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
           <div className="w-full max-w-lg rounded-2xl border border-neutral-200 bg-white p-6 shadow-2xl dark:border-neutral-800 dark:bg-neutral-900">
             <p className="text-sm uppercase tracking-wide text-neutral-500 dark:text-neutral-400">
-              Are you still there?
+              {t('areYouStillThere')}
             </p>
             <h3 className="mt-1 text-2xl font-semibold text-neutral-900 dark:text-white">
-              We will sign you out soon
+              {t('willSignOutSoon')}
             </h3>
             <p className="mt-2 text-sm text-neutral-600 dark:text-neutral-300">
-              To protect your account, you&apos;ll be logged out after inactivity. Click stay signed
-              in to continue working.{' '}
+              {t('inactivityWarning')}{' '}
               {countdownMs !== null && (
                 <span className="font-semibold text-primary-600 dark:text-primary-300">
-                  {Math.ceil(countdownMs / 1000)}s remaining
+                  {t('remaining', { seconds: Math.ceil(countdownMs / 1000) })}
                 </span>
               )}
             </p>
@@ -256,13 +258,13 @@ export function IdleLogoutGuard() {
                 onClick={handleLogout}
                 className="w-full rounded-lg border border-neutral-300 px-4 py-2 text-sm font-semibold text-neutral-800 transition hover:border-neutral-400 dark:border-neutral-700 dark:text-white dark:hover:border-neutral-600 sm:w-auto"
               >
-                Sign out now
+                {t('signOutNow')}
               </button>
               <button
                 onClick={() => resetTimers()}
                 className="w-full rounded-lg bg-gradient-to-r from-primary-600 to-secondary-600 px-4 py-2 text-sm font-semibold text-white shadow-button transition hover:shadow-lg hover:scale-105 sm:w-auto"
               >
-                Stay signed in
+                {t('staySignedIn')}
               </button>
             </div>
           </div>

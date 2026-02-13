@@ -1,6 +1,8 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { useLocale } from 'next-intl'
+import { resolveLocalized } from '@/lib/i18n'
 
 type GradingSystem = {
   id: string
@@ -24,13 +26,10 @@ type QuickGrade = {
   subjectName: string | Record<string, string> | null
 }
 
-function resolveLocalized(value: string | Record<string, string> | null | undefined) {
-  if (!value) return ''
-  if (typeof value === 'string') return value
-  return value['en'] || Object.values(value)[0] || ''
-}
+// resolveLocalized imported from @/lib/i18n
 
 export function QuickGradeForm() {
+  const locale = useLocale()
   const [subjects, setSubjects] = useState<Subject[]>([])
   const [systems, setSystems] = useState<GradingSystem[]>([])
   const [recentGrades, setRecentGrades] = useState<QuickGrade[]>([])
@@ -147,7 +146,7 @@ export function QuickGradeForm() {
           <option value="">Subject</option>
           {subjects.map((s) => (
             <option key={s.id} value={s.id}>
-              {resolveLocalized(s.name)}
+              {resolveLocalized(s.name, locale)}
             </option>
           ))}
         </select>
@@ -206,7 +205,7 @@ export function QuickGradeForm() {
               className="flex items-center justify-between text-xs text-neutral-700 dark:text-neutral-300"
             >
               <div className="flex items-center gap-2">
-                <span className="font-semibold">{resolveLocalized(g.subjectName)}</span>
+                <span className="font-semibold">{resolveLocalized(g.subjectName, locale)}</span>
                 <span>{g.gradeValue}</span>
                 {g.note && <span className="text-neutral-500">({g.note})</span>}
                 <span className="text-primary-600 dark:text-primary-300 font-semibold">

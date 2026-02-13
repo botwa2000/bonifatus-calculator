@@ -1,10 +1,13 @@
 'use client'
 
+import { useTranslations } from 'next-intl'
+import { Link } from '@/i18n/navigation'
+
 export function HeroCta() {
+  const t = useTranslations('home')
+
   const handleOpenDemo = () => {
-    // Let the demo section know to open
     window.dispatchEvent(new CustomEvent('open-demo'))
-    // Update hash for native scroll fallback
     window.location.hash = 'demo-calculator'
     const el = document.getElementById('demo-calculator')
     if (el) {
@@ -14,18 +17,18 @@ export function HeroCta() {
 
   return (
     <div className="flex flex-col sm:flex-row gap-4">
-      <a
+      <Link
         href="/register"
         className="px-8 py-4 bg-gradient-to-r from-primary-600 to-secondary-600 text-white rounded-lg font-semibold shadow-button hover:shadow-lg hover:scale-105 transition-all duration-normal"
       >
-        Get Started Free
-      </a>
+        {t('getStarted')}
+      </Link>
       <button
         type="button"
         onClick={handleOpenDemo}
         className="px-8 py-4 bg-white dark:bg-neutral-800 text-neutral-900 dark:text-white border-2 border-neutral-200 dark:border-neutral-700 rounded-lg font-semibold hover:border-primary-500 dark:hover:border-primary-500 transition-all duration-normal text-center"
       >
-        View Demo
+        {t('viewDemo')}
       </button>
     </div>
   )

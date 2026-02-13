@@ -2,12 +2,13 @@
 
 import { useEffect, useState } from 'react'
 import { DemoCalculator } from './demo-calculator'
+import { useTranslations } from 'next-intl'
 
 export function DemoSection() {
+  const t = useTranslations('home')
   const [open, setOpen] = useState(true)
   const sectionId = 'demo-calculator'
 
-  // Listen for global "open-demo" events (triggered from hero buttons)
   useEffect(() => {
     const handler = () => {
       setOpen(true)
@@ -26,7 +27,6 @@ export function DemoSection() {
     window.addEventListener('open-demo', handler)
     window.addEventListener('hashchange', hashHandler)
 
-    // Also open if URL hash matches on mount
     hashHandler()
 
     return () => {
@@ -45,10 +45,10 @@ export function DemoSection() {
             </div>
             <div>
               <h3 className="text-lg font-semibold text-neutral-900 dark:text-white">
-                Try the Bonus Calculator
+                {t('demoSectionTitle')}
               </h3>
               <p className="text-sm text-neutral-600 dark:text-neutral-400">
-                Explore now; save results when you sign up.
+                {t('demoSectionSubtitle')}
               </p>
             </div>
           </div>
@@ -57,7 +57,7 @@ export function DemoSection() {
             onClick={() => setOpen((v) => !v)}
             className="text-sm font-semibold text-primary-600 dark:text-primary-300 hover:underline"
           >
-            {open ? 'Hide demo' : 'Try the demo'}
+            {open ? t('hideDemo') : t('tryDemo')}
           </button>
         </div>
         {open && <DemoCalculator />}

@@ -1,6 +1,8 @@
 'use client'
 
 import { useEffect, useMemo, useRef, useState } from 'react'
+import { useLocale } from 'next-intl'
+import { resolveLocalized } from '@/lib/i18n'
 import { Button, Select, Accordion, FormField, Tooltip } from '@/components/ui'
 
 type GradeDefinition = {
@@ -80,11 +82,7 @@ type CalculatorDraft = {
   updatedAt: number
 }
 
-function resolveLocalized(value: string | Record<string, string> | null | undefined) {
-  if (!value) return ''
-  if (typeof value === 'string') return value
-  return value['en'] || Object.values(value)[0] || ''
-}
+// resolveLocalized imported from @/lib/i18n
 
 function getFactorValue(factors: Factor[], type: string, key: string, fallback?: number) {
   const found = factors.find((f) => f.factorType === type && f.factorKey === key)
@@ -188,7 +186,10 @@ function calculateBonus(
   }
 }
 
-function getSampleData(config: CalculatorConfig): {
+function getSampleData(
+  config: CalculatorConfig,
+  locale: string = 'en'
+): {
   systemId?: string
   classLevel: number
   termType: string
@@ -221,7 +222,7 @@ function getSampleData(config: CalculatorConfig): {
     subjects: sampleSubjects.map((s, idx) => ({
       id: `${idx}`,
       subjectId: s.id,
-      subjectName: resolveLocalized(s.name) || `Subject ${idx + 1}`,
+      subjectName: resolveLocalized(s.name, locale) || `Subject ${idx + 1}`,
       grade: randomGrade(sampleSystem),
       weight: 1, // Always 1 for demo
       isCoreSubject: s.isCoreSubject ?? false,
@@ -264,6 +265,7 @@ export function DemoCalculator({
   onSaved,
   initialData,
 }: DemoCalculatorProps = {}) {
+  const locale = useLocale()
   const currentYear = new Date().getFullYear()
   const defaultSchoolYear = `${currentYear}-${currentYear + 1}`
 
@@ -330,9 +332,9 @@ export function DemoCalculator({
         .sort(
           (a, b) =>
             (a.displayOrder ?? 0) - (b.displayOrder ?? 0) ||
-            resolveLocalized(a.name).localeCompare(resolveLocalized(b.name))
+            resolveLocalized(a.name, locale).localeCompare(resolveLocalized(b.name, locale))
         ),
-    [config.gradingSystems]
+    [config.gradingSystems, locale]
   )
 
   const selectedSystem = useMemo(
@@ -523,7 +525,7 @@ export function DemoCalculator({
   const resolveSubjectId = (name: string | undefined) => {
     if (!name) return undefined
     const found = config.subjects.find(
-      (s) => resolveLocalized(s.name).toLowerCase() === name.trim().toLowerCase()
+      (s) => resolveLocalized(s.name, locale).toLowerCase() === name.trim().toLowerCase()
     )
     return found?.id
   }
@@ -537,12 +539,12 @@ export function DemoCalculator({
       > = {}
 
       config.categories.forEach((cat) => {
-        const catName = resolveLocalized(cat.name)
+        const catName = resolveLocalized(cat.name, locale)
         const items = config.subjects
           .filter((s) => s.categoryId === cat.id)
           .map((s) => ({
             id: s.id,
-            label: resolveLocalized(s.name),
+            label: resolveLocalized(s.name, locale),
           }))
           .sort((a, b) => a.label.localeCompare(b.label))
 
@@ -556,7 +558,7 @@ export function DemoCalculator({
       })
       return grouped
     }
-  }, [config.categories, config.subjects])
+  }, [config.categories, config.subjects, locale])
 
   const updateRow = (id: string, field: keyof SubjectEntry, value: string | number) => {
     setSubjectRows((prev) => prev.map((row) => (row.id === id ? { ...row, [field]: value } : row)))
@@ -567,7 +569,7 @@ export function DemoCalculator({
   }
 
   const applySample = () => {
-    const sample = getSampleData(config)
+    const sample = getSampleData(config, locale)
     setSelectedSystemId(sample.systemId)
     setClassLevel(sample.classLevel)
     setTermType(sample.termType)
@@ -661,7 +663,7 @@ export function DemoCalculator({
   // Select options
   const gradingSystemOptions = sortedGradingSystems.map((gs) => ({
     value: gs.id,
-    label: resolveLocalized(gs.name),
+    label: resolveLocalized(gs.name, locale),
   }))
 
   const termTypeOptions = [
