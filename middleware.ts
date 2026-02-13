@@ -89,7 +89,9 @@ export default async function middleware(req: NextRequest) {
   }
 
   // Auth checks
-  const token = await getToken({ req })
+  const secret = process.env.NEXTAUTH_SECRET || process.env.AUTH_SECRET
+  dbg('mw', `getToken attempt`, { hasSecret: !!secret, barePath })
+  const token = await getToken({ req, secret: secret || undefined })
   const isLoggedIn = !!token
 
   dbg('mw', `auth check`, { isLoggedIn, barePath, hasToken: !!token })
