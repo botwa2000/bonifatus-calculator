@@ -1,4 +1,5 @@
 import { setRequestLocale, getTranslations } from 'next-intl/server'
+import Image from 'next/image'
 import { DemoSection } from '@/components/demo-section'
 import { HeroCta } from '@/components/hero-cta'
 import { DemoLinkButton } from '@/components/demo-link-button'
@@ -22,23 +23,36 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
       <AppHeader variant="public" isAuthed={isAuthed} />
 
       {/* Hero Section */}
-      <section className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-24 text-left space-y-6">
-        <div className="inline-block px-4 py-2 bg-info-100 dark:bg-info-900/30 rounded-full">
-          <span className="text-info-700 dark:text-info-300 text-sm font-medium">
-            {t('demoBadge')}
-          </span>
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-24">
+        <div className="grid md:grid-cols-2 gap-12 items-center">
+          <div className="space-y-6">
+            <div className="inline-block px-4 py-2 bg-info-100 dark:bg-info-900/30 rounded-full">
+              <span className="text-info-700 dark:text-info-300 text-sm font-medium">
+                {t('demoBadge')}
+              </span>
+            </div>
+            <h2 className="text-4xl sm:text-5xl font-bold text-neutral-900 dark:text-white">
+              {t('heroTitle')}
+              <br />
+              <span className="bg-gradient-to-r from-primary-600 to-secondary-600 bg-clip-text text-transparent">
+                {t('heroHighlight')}
+              </span>
+            </h2>
+            <p className="text-lg text-neutral-600 dark:text-neutral-300 leading-relaxed">
+              {t('heroDescription')}
+            </p>
+            <HeroCta />
+          </div>
+          <div className="hidden md:flex justify-center">
+            <Image
+              src="/images/logo-with-slogan.svg"
+              alt="Bonifatus - Making Excellence Count"
+              width={400}
+              height={400}
+              priority
+            />
+          </div>
         </div>
-        <h2 className="text-4xl sm:text-5xl font-bold text-neutral-900 dark:text-white">
-          {t('heroTitle')}
-          <br />
-          <span className="bg-gradient-to-r from-primary-600 to-secondary-600 bg-clip-text text-transparent">
-            {t('heroHighlight')}
-          </span>
-        </h2>
-        <p className="text-lg text-neutral-600 dark:text-neutral-300 leading-relaxed">
-          {t('heroDescription')}
-        </p>
-        <HeroCta />
       </section>
 
       <DemoSection />
@@ -241,15 +255,24 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
             </div>
           </div>
 
-          <div className="bg-gradient-to-br from-primary-100 to-secondary-100 dark:from-primary-900/30 dark:to-secondary-900/30 rounded-2xl p-8 h-full flex items-center justify-center">
-            <div className="text-center">
-              <div className="text-6xl font-bold bg-gradient-to-r from-primary-600 to-secondary-600 bg-clip-text text-transparent mb-4">
-                {t('freeTier')}
-              </div>
-              <p className="text-xl text-neutral-700 dark:text-neutral-300 mb-2">
-                {t('proComingSoon')}
-              </p>
-              <p className="text-neutral-600 dark:text-neutral-400">{t('freeCoreFeatures')}</p>
+          <div className="relative flex items-center justify-center gap-4 py-4">
+            <div className="relative z-10 -rotate-3 rounded-3xl shadow-2xl overflow-hidden border-4 border-white dark:border-neutral-700">
+              <Image
+                src="/images/app/calculator.png"
+                alt="Bonifatus Calculator"
+                width={220}
+                height={440}
+                className="object-cover"
+              />
+            </div>
+            <div className="relative z-20 rotate-2 rounded-3xl shadow-2xl overflow-hidden border-4 border-white dark:border-neutral-700 -ml-6">
+              <Image
+                src="/images/app/progress.png"
+                alt="Bonifatus Progress Tracking"
+                width={220}
+                height={440}
+                className="object-cover"
+              />
             </div>
           </div>
         </div>
@@ -276,9 +299,18 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
           <div className="grid md:grid-cols-4 gap-8">
             <div className="col-span-2">
-              <h2 className="text-xl font-bold bg-gradient-to-r from-primary-600 to-secondary-600 bg-clip-text text-transparent mb-4">
-                Bonifatus
-              </h2>
+              <div className="flex items-center gap-3 mb-4">
+                <Image
+                  src="/images/logo-icon.svg"
+                  alt="Bonifatus"
+                  width={36}
+                  height={36}
+                  className="rounded-full"
+                />
+                <h2 className="text-xl font-bold bg-gradient-to-r from-primary-600 to-secondary-600 bg-clip-text text-transparent">
+                  Bonifatus
+                </h2>
+              </div>
               <p className="text-neutral-600 dark:text-neutral-400 mb-4">
                 {t('footerDescription')}
               </p>

@@ -29,6 +29,10 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
   return {
     title: 'Bonifatus - ' + t('heroTitle'),
     description: t('heroDescription'),
+    icons: {
+      icon: '/favicon.png',
+      apple: '/images/logo-192.png',
+    },
   }
 }
 

@@ -2,6 +2,7 @@
 
 import { Link, usePathname, useRouter } from '@/i18n/navigation'
 import { useState } from 'react'
+import Image from 'next/image'
 import { signOut } from 'next-auth/react'
 import { useTheme } from '@/components/providers/ThemeProvider'
 import { useTranslations, useLocale } from 'next-intl'
@@ -109,11 +110,17 @@ export function AppHeader(props: AppHeaderProps) {
     return (
       <header className="sticky top-0 z-30 border-b border-neutral-200 bg-white/80 backdrop-blur-sm dark:border-neutral-800 dark:bg-neutral-900/80">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 sm:px-6 lg:px-8">
-          <Link
-            href="/"
-            className="text-2xl font-bold bg-gradient-to-r from-primary-600 to-secondary-600 bg-clip-text text-transparent"
-          >
-            Bonifatus
+          <Link href="/" className="flex items-center gap-2">
+            <Image
+              src="/images/logo-icon.svg"
+              alt="Bonifatus"
+              width={36}
+              height={36}
+              className="rounded-full"
+            />
+            <span className="text-2xl font-bold bg-gradient-to-r from-primary-600 to-secondary-600 bg-clip-text text-transparent">
+              Bonifatus
+            </span>
           </Link>
           <nav className="flex gap-4 items-center">
             <a
@@ -173,11 +180,17 @@ export function AppHeader(props: AppHeaderProps) {
     <header className="sticky top-0 z-30 border-b border-neutral-200 bg-white/85 backdrop-blur-sm dark:border-neutral-800 dark:bg-neutral-900/85">
       <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-6 lg:px-8">
         <div className="flex items-center gap-3">
-          <Link
-            href="/dashboard"
-            className="text-2xl font-bold bg-gradient-to-r from-primary-600 to-secondary-600 bg-clip-text text-transparent"
-          >
-            Bonifatus
+          <Link href="/dashboard" className="flex items-center gap-2">
+            <Image
+              src="/images/logo-icon.svg"
+              alt="Bonifatus"
+              width={32}
+              height={32}
+              className="rounded-full"
+            />
+            <span className="text-2xl font-bold bg-gradient-to-r from-primary-600 to-secondary-600 bg-clip-text text-transparent hidden sm:inline">
+              Bonifatus
+            </span>
           </Link>
           <nav className="hidden gap-1 sm:flex">
             {navItems.map((item) => (

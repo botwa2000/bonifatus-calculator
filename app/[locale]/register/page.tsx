@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import Image from 'next/image'
 import { useRouter } from '@/i18n/navigation'
 import { Link } from '@/i18n/navigation'
 import { Turnstile } from '@/components/ui/Turnstile'
@@ -179,6 +180,13 @@ export default function RegisterPage() {
         <div className="flex flex-1 items-center justify-center px-4">
           <div className="max-w-md w-full">
             <div className="text-center mb-8">
+              <Image
+                src="/images/logo-icon.svg"
+                alt="Bonifatus"
+                width={64}
+                height={64}
+                className="mx-auto mb-3 rounded-full"
+              />
               <p className="text-neutral-600 dark:text-neutral-400">{t('verifyEmail')}</p>
             </div>
             <div className="bg-white dark:bg-neutral-800 rounded-2xl shadow-card p-8">
@@ -292,6 +300,13 @@ export default function RegisterPage() {
       <div className="flex flex-1 items-center justify-center px-4 py-12">
         <div className="max-w-md w-full">
           <div className="text-center mb-8">
+            <Image
+              src="/images/logo-icon.svg"
+              alt="Bonifatus"
+              width={64}
+              height={64}
+              className="mx-auto mb-3 rounded-full"
+            />
             <p className="text-neutral-600 dark:text-neutral-400">{t('createAccount')}</p>
           </div>
           <div className="bg-white dark:bg-neutral-800 rounded-2xl shadow-card p-8">
