@@ -3,6 +3,8 @@
  * Invisible bot protection for forms (privacy-friendly alternative to reCAPTCHA)
  */
 
+import { dbg, dbgWarn, dbgError } from '@/lib/debug'
+
 const TURNSTILE_VERIFY_URL = 'https://challenges.cloudflare.com/turnstile/v0/siteverify'
 
 /**
@@ -18,14 +20,11 @@ export async function verifyTurnstileToken(
   errorCodes?: string[]
 }> {
   const secretKey = process.env.TURNSTILE_SECRET_KEY
-  const debugEnabled =
-    process.env.TURNSTILE_DEBUG === 'true' || process.env.NEXT_PUBLIC_TURNSTILE_DEBUG === 'true'
 
   if (!secretKey) {
-    console.error('TURNSTILE_SECRET_KEY not configured')
-    // Allow a dev-only bypass when secret is missing locally
+    dbgError('turnstile', 'TURNSTILE_SECRET_KEY not configured')
     if (process.env.NODE_ENV === 'development') {
-      console.warn('Turnstile verification skipped in development mode')
+      dbgWarn('turnstile', 'verification skipped in development mode')
       return { success: true }
     }
     return { success: false, error: 'Turnstile not configured' }
@@ -55,9 +54,7 @@ export async function verifyTurnstileToken(
 
     if (!data.success) {
       const codes = (data['error-codes'] as string[] | undefined) ?? []
-      if (debugEnabled) {
-        console.warn('Turnstile verification failed', { codes, ip })
-      }
+      dbgWarn('turnstile', 'verification failed', { codes, ip })
       return {
         success: false,
         error: 'Bot verification failed',
@@ -65,13 +62,11 @@ export async function verifyTurnstileToken(
       }
     }
 
-    if (debugEnabled) {
-      console.info('Turnstile verification success', { ip })
-    }
+    dbg('turnstile', 'verification success', { ip })
 
     return { success: true }
   } catch (error) {
-    console.error('Turnstile verification error:', error)
+    dbgError('turnstile', 'verification error', { error: String(error) })
     return {
       success: false,
       error: 'Failed to verify bot protection',
@@ -124,7 +119,7 @@ export async function verifyTurnstileFromRequest(request: Request): Promise<{
     const ip = getClientIp(request.headers)
     return await verifyTurnstileToken(token, ip)
   } catch (error) {
-    console.error('Error parsing Turnstile token from request:', error)
+    dbgError('turnstile', 'error parsing token from request', { error: String(error) })
     return {
       success: false,
       error: 'Invalid request format',

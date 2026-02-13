@@ -39,6 +39,7 @@ if [[ "$ENV" == "prod" ]]; then
   IMAGE_TAG="bonifatus:prod"
   APP_URL="https://bonifatus.com"
   TURNSTILE_SITE_KEY="0x4AAAAAAB7cH7pweCPsYnpL"
+  DEBUG_LEVEL="none"
 else
   PORT=3001
   STACK_FILE="docker-stack.dev.yml"
@@ -48,6 +49,7 @@ else
   IMAGE_TAG="bonifatus:dev"
   APP_URL="https://dev.bonifatus.com"
   TURNSTILE_SITE_KEY="0x4AAAAAACWJz491rhjNxKNi"
+  DEBUG_LEVEL="verbose"
 fi
 
 STACK_NAME="bonifatus-${ENV}"
@@ -84,6 +86,7 @@ ssh $SSH_OPTS "$SERVER" bash -s <<EOF
   docker build \
     --build-arg NEXT_PUBLIC_TURNSTILE_SITE_KEY=${TURNSTILE_SITE_KEY} \
     --build-arg NEXT_PUBLIC_APP_URL=${APP_URL} \
+    --build-arg NEXT_PUBLIC_DEBUG_LEVEL=${DEBUG_LEVEL} \
     -t ${IMAGE_TAG} .
 EOF
 

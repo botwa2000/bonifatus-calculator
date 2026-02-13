@@ -1,24 +1,19 @@
 'use client'
 
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useRouter } from '@/i18n/navigation'
 import { Link } from '@/i18n/navigation'
 import { Turnstile } from '@/components/ui/Turnstile'
 import { AppHeader } from '@/components/layout/AppHeader'
 import { useTranslations } from 'next-intl'
+import { dbg, dbgWarn, dbgError } from '@/lib/debug'
 
 export default function LoginPage() {
   const router = useRouter()
   const t = useTranslations('auth')
   const siteKey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY
-  const debugEnabled = process.env.NEXT_PUBLIC_TURNSTILE_DEBUG === 'true'
-  const dbg = useCallback(
-    (message: string, meta?: Record<string, unknown>) => {
-      if (!debugEnabled) return
-      console.info('[login-debug]', message, meta ?? '')
-    },
-    [debugEnabled]
-  )
+
+  dbg('login', 'page rendered', { hasSiteKey: !!siteKey })
 
   const formDataRef = useRef({ email: '', password: '' })
   const [formData, setFormData] = useState({ email: '', password: '' })
@@ -55,9 +50,9 @@ export default function LoginPage() {
     setStatusMessage(t('pleaseCheckBox'))
     setTurnstileLoading(false)
     forceRender((v) => v + 1)
-    dbg('turnstile fallback to visible widget')
+    dbg('login', 'turnstile fallback to visible widget')
     visibleFallbackTimerRef.current = window.setTimeout(() => {
-      dbg('visible turnstile also timed out, allowing login without token')
+      dbg('login', 'visible turnstile also timed out, allowing login without token')
       setTurnstileFailed(true)
       setStatusMessage('')
     }, visibleFallbackTimeoutMs)
@@ -72,44 +67,54 @@ export default function LoginPage() {
     formDataRef.current = formData
   }, [formData])
 
-  const submitLogin = useCallback(
-    async (token: string) => {
-      setLoading(true)
-      dbg('submitLogin start', { email: formDataRef.current.email })
-      try {
-        const { signIn } = await import('next-auth/react')
-        const result = await signIn('credentials', {
-          redirect: false,
-          email: formDataRef.current.email,
-          password: formDataRef.current.password,
-          turnstileToken: token,
-        })
-        if (result?.error) {
-          dbg('submitLogin failed', { error: result.error })
-          setError(result.error === 'CredentialsSignin' ? t('invalidCredentials') : result.error)
-          setTurnstileToken('')
-          setLoading(false)
-          return
-        }
-        router.push('/dashboard')
-        router.refresh()
-      } catch (err) {
-        console.error('Login error:', err)
-        setError(t('unexpectedError'))
+  const submitLogin = async (token: string) => {
+    setLoading(true)
+    dbg('login', 'submitLogin start', {
+      email: formDataRef.current.email,
+      hasToken: !!token,
+      turnstileFailed,
+    })
+    try {
+      const { signIn } = await import('next-auth/react')
+      dbg('login', 'calling signIn credentials')
+      const result = await signIn('credentials', {
+        redirect: false,
+        email: formDataRef.current.email,
+        password: formDataRef.current.password,
+        turnstileToken: token,
+      })
+      dbg('login', 'signIn result', {
+        ok: result?.ok,
+        error: result?.error,
+        status: result?.status,
+        url: result?.url,
+      })
+      if (result?.error) {
+        dbgWarn('login', 'signIn returned error', { error: result.error })
+        setError(result.error === 'CredentialsSignin' ? t('invalidCredentials') : result.error)
         setTurnstileToken('')
         setLoading(false)
+        return
       }
-    },
-    [router, dbg, t]
-  )
+      dbg('login', 'login success — navigating to /dashboard')
+      router.push('/dashboard')
+      router.refresh()
+    } catch (err) {
+      dbgError('login', 'submitLogin threw', { error: String(err) })
+      setError(t('unexpectedError'))
+      setTurnstileToken('')
+      setLoading(false)
+    }
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
     setStatusMessage('')
-    dbg('handleSubmit', {
+    dbg('login', 'handleSubmit', {
       hasToken: Boolean(turnstileToken),
       turnstileLoading,
+      turnstileFailed,
       emailPresent: Boolean(formData.email),
     })
     if (loading) return
@@ -119,7 +124,9 @@ export default function LoginPage() {
     }
     if (!turnstileToken && !turnstileFailed) {
       setStatusMessage(fallbackVisible.current ? t('pleaseCheckBox') : t('verifyingNotRobot'))
-      dbg('handleSubmit blocked, missing token')
+      dbgWarn('login', 'handleSubmit blocked — missing token', {
+        fallbackVisible: fallbackVisible.current,
+      })
       return
     }
     await submitLogin(turnstileToken)
@@ -182,6 +189,7 @@ export default function LoginPage() {
                   action="login"
                   size={fallbackVisible.current ? 'normal' : 'invisible'}
                   onSuccess={(token) => {
+                    dbg('login', 'turnstile onSuccess', { tokenLength: token.length })
                     setTurnstileToken(token)
                     setTurnstileLoading(false)
                     setTurnstileFailed(false)
@@ -193,6 +201,7 @@ export default function LoginPage() {
                     turnstileStartRef.current = null
                   }}
                   onReady={() => {
+                    dbg('login', 'turnstile onReady', { fallbackVisible: fallbackVisible.current })
                     setTurnstileLoading(false)
                     turnstileStartRef.current = Date.now()
                     if (fallbackVisible.current) {
@@ -207,7 +216,7 @@ export default function LoginPage() {
                     }, fallbackTimeoutMs)
                   }}
                   onError={(reason) => {
-                    dbg('turnstile error callback', {
+                    dbgWarn('login', 'turnstile onError', {
                       reason,
                       wasFallbackVisible: fallbackVisible.current,
                     })
@@ -234,6 +243,7 @@ export default function LoginPage() {
                     }, visibleFallbackTimeoutMs)
                   }}
                   onExpire={() => {
+                    dbg('login', 'turnstile onExpire — re-verifying')
                     setTurnstileToken('')
                     setTurnstileLoading(true)
                     setStatusMessage(t('reVerifying'))
