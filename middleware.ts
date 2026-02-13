@@ -1,9 +1,7 @@
-import { auth } from '@/auth'
 import createIntlMiddleware from 'next-intl/middleware'
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
+import { getToken } from 'next-auth/jwt'
 import { routing } from '@/i18n/routing'
-
-export const runtime = 'nodejs'
 
 const intlMiddleware = createIntlMiddleware(routing)
 
@@ -31,9 +29,8 @@ function localePath(path: string, locale: string): string {
   return `/${locale}${path}`
 }
 
-export default auth((req) => {
+export default async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl
-  const isLoggedIn = !!req.auth
 
   // Skip static assets
   if (
@@ -49,7 +46,8 @@ export default auth((req) => {
     if (publicApiPrefixes.some((prefix) => pathname.startsWith(prefix))) {
       return NextResponse.next()
     }
-    if (!isLoggedIn) {
+    const token = await getToken({ req })
+    if (!token) {
       return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
     }
     return NextResponse.next()
@@ -58,6 +56,8 @@ export default auth((req) => {
   // For page routes, strip locale prefix to determine the "bare" path
   const barePath = stripLocalePrefix(pathname)
   const locale = getLocaleFromPath(pathname)
+  const token = await getToken({ req })
+  const isLoggedIn = !!token
 
   // Public pages
   if (publicRoutes.includes(barePath)) {
@@ -76,7 +76,7 @@ export default auth((req) => {
   }
 
   return intlMiddleware(req)
-})
+}
 
 export const config = {
   matcher: ['/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)'],
