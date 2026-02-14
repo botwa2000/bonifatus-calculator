@@ -225,24 +225,43 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
                 { title: t('benefit2Title'), desc: t('benefit2Desc') },
                 { title: t('benefit3Title'), desc: t('benefit3Desc') },
                 { title: t('benefit4Title'), desc: t('benefit4Desc') },
+                { title: t('benefit5Title'), desc: t('benefit5Desc'), icon: 'savings' },
               ].map((b) => (
                 <div key={b.title} className="flex gap-4">
                   <div className="flex-shrink-0">
-                    <div className="w-8 h-8 bg-success-500 rounded-full flex items-center justify-center">
-                      <svg
-                        className="w-5 h-5 text-white"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M5 13l4 4L19 7"
-                        />
-                      </svg>
-                    </div>
+                    {b.icon === 'savings' ? (
+                      <div className="w-8 h-8 bg-primary-500 rounded-full flex items-center justify-center">
+                        <svg
+                          className="w-5 h-5 text-white"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                          />
+                        </svg>
+                      </div>
+                    ) : (
+                      <div className="w-8 h-8 bg-success-500 rounded-full flex items-center justify-center">
+                        <svg
+                          className="w-5 h-5 text-white"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M5 13l4 4L19 7"
+                          />
+                        </svg>
+                      </div>
+                    )}
                   </div>
                   <div>
                     <h4 className="text-lg font-semibold text-neutral-900 dark:text-white mb-1">

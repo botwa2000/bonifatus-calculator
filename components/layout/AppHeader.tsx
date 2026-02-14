@@ -122,7 +122,8 @@ export function AppHeader(props: AppHeaderProps) {
               Bonifatus
             </span>
           </Link>
-          <nav className="flex gap-4 items-center">
+          {/* Desktop nav */}
+          <nav className="hidden sm:flex gap-4 items-center">
             <a
               href="#features"
               className="text-neutral-600 hover:text-neutral-900 dark:text-neutral-300 dark:hover:text-white transition-colors"
@@ -147,9 +148,15 @@ export function AppHeader(props: AppHeaderProps) {
                 </Link>
                 <Link
                   href="/profile"
-                  className="px-4 py-2 bg-gradient-to-r from-primary-600 to-secondary-600 text-white rounded-lg font-semibold shadow-button hover:shadow-lg hover:scale-105 transition-all"
+                  className="text-neutral-600 hover:text-neutral-900 dark:text-neutral-300 dark:hover:text-white transition-colors"
                 >
                   {t('profile')}
+                </Link>
+                <Link
+                  href="/settings"
+                  className="px-4 py-2 bg-gradient-to-r from-primary-600 to-secondary-600 text-white rounded-lg font-semibold shadow-button hover:shadow-lg hover:scale-105 transition-all"
+                >
+                  {t('settings')}
                 </Link>
               </>
             ) : (
@@ -163,6 +170,89 @@ export function AppHeader(props: AppHeaderProps) {
                 <Link
                   href="/register"
                   className="px-4 py-2 bg-gradient-to-r from-primary-600 to-secondary-600 text-white rounded-lg font-semibold shadow-button hover:shadow-lg hover:scale-105 transition-all"
+                >
+                  {t('signUp')}
+                </Link>
+              </>
+            )}
+          </nav>
+          {/* Mobile controls */}
+          <div className="flex items-center gap-2 sm:hidden">
+            <ThemeToggle />
+            <button
+              onClick={() => setMobileOpen(!mobileOpen)}
+              className="rounded-lg p-2 text-neutral-600 hover:bg-neutral-100 dark:text-neutral-300 dark:hover:bg-neutral-800"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d={mobileOpen ? 'M6 18L18 6M6 6l12 12' : 'M4 6h16M4 12h16M4 18h16'}
+                />
+              </svg>
+            </button>
+          </div>
+        </div>
+        {/* Mobile nav */}
+        <div
+          className={`sm:hidden border-t border-neutral-200 dark:border-neutral-800 ${mobileOpen ? '' : 'hidden'}`}
+        >
+          <nav className="flex flex-col px-4 py-2 gap-1">
+            <a
+              href="#features"
+              onClick={() => setMobileOpen(false)}
+              className="rounded-lg px-3 py-2 text-sm font-semibold text-neutral-700 hover:bg-neutral-100 dark:text-neutral-200 dark:hover:bg-neutral-800 transition"
+            >
+              {t('features')}
+            </a>
+            <a
+              href="#benefits"
+              onClick={() => setMobileOpen(false)}
+              className="rounded-lg px-3 py-2 text-sm font-semibold text-neutral-700 hover:bg-neutral-100 dark:text-neutral-200 dark:hover:bg-neutral-800 transition"
+            >
+              {t('benefits')}
+            </a>
+            <div className="px-3 py-2">
+              <LocaleSwitcher />
+            </div>
+            {props.isAuthed ? (
+              <>
+                <Link
+                  href="/dashboard"
+                  onClick={() => setMobileOpen(false)}
+                  className="rounded-lg px-3 py-2 text-sm font-semibold text-neutral-700 hover:bg-neutral-100 dark:text-neutral-200 dark:hover:bg-neutral-800 transition"
+                >
+                  {t('dashboard')}
+                </Link>
+                <Link
+                  href="/profile"
+                  onClick={() => setMobileOpen(false)}
+                  className="rounded-lg px-3 py-2 text-sm font-semibold text-neutral-700 hover:bg-neutral-100 dark:text-neutral-200 dark:hover:bg-neutral-800 transition"
+                >
+                  {t('profile')}
+                </Link>
+                <Link
+                  href="/settings"
+                  onClick={() => setMobileOpen(false)}
+                  className="rounded-lg px-3 py-2 text-sm font-semibold text-neutral-700 hover:bg-neutral-100 dark:text-neutral-200 dark:hover:bg-neutral-800 transition"
+                >
+                  {t('settings')}
+                </Link>
+              </>
+            ) : (
+              <>
+                <Link
+                  href="/login"
+                  onClick={() => setMobileOpen(false)}
+                  className="rounded-lg px-3 py-2 text-sm font-semibold text-neutral-700 hover:bg-neutral-100 dark:text-neutral-200 dark:hover:bg-neutral-800 transition"
+                >
+                  {t('login')}
+                </Link>
+                <Link
+                  href="/register"
+                  onClick={() => setMobileOpen(false)}
+                  className="rounded-lg px-3 py-2 text-sm font-semibold text-primary-600 hover:bg-primary-50 dark:text-primary-400 dark:hover:bg-primary-900/20 transition"
                 >
                   {t('signUp')}
                 </Link>
