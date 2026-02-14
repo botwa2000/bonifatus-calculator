@@ -14,6 +14,7 @@ services:
       - prod_EMAIL_SECURE
       - prod_EMAIL_USER
       - prod_EMAIL_PASSWORD
+      - prod_FMP_API_KEY
     environment:
       - NODE_ENV=production
       - PORT=3000
@@ -50,4 +51,6 @@ secrets:
   prod_EMAIL_USER:
     external: true
   prod_EMAIL_PASSWORD:
+    external: true
+  prod_FMP_API_KEY:
     external: true

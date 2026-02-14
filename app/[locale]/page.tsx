@@ -3,6 +3,7 @@ import Image from 'next/image'
 import { DemoSection } from '@/components/demo-section'
 import { HeroCta } from '@/components/hero-cta'
 import { DemoLinkButton } from '@/components/demo-link-button'
+import { CompoundGrowthWidget } from '@/components/widgets/CompoundGrowthWidget'
 import { auth } from '@/auth'
 import { AppHeader } from '@/components/layout/AppHeader'
 
@@ -296,6 +297,9 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
           </div>
         </div>
       </section>
+
+      {/* Compound Growth Widget */}
+      <CompoundGrowthWidget />
 
       {/* CTA Section */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">

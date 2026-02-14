@@ -27,7 +27,10 @@ export default async function ParentLayout({
   }
 
   const navItems = [
-    { label: t('navDashboard'), href: '/parent/children' },
+    { label: t('navDashboard'), href: '/parent/dashboard' },
+    { label: t('navChildren'), href: '/parent/children' },
+    { label: t('navRewards'), href: '/parent/rewards' },
+    { label: t('navInsights'), href: '/parent/insights' },
     { label: t('navSettings'), href: '/settings' },
   ]
 
