@@ -44,6 +44,7 @@ export const subjectCategories = pgTable('subject_categories', {
   id: text('id')
     .primaryKey()
     .$defaultFn(() => crypto.randomUUID()),
+  code: text('code').unique(),
   name: jsonb('name').notNull(),
   description: jsonb('description'),
   displayOrder: integer('display_order').default(0),
@@ -56,6 +57,7 @@ export const subjects = pgTable('subjects', {
   id: text('id')
     .primaryKey()
     .$defaultFn(() => crypto.randomUUID()),
+  code: text('code').unique(),
   name: jsonb('name').notNull(),
   description: jsonb('description'),
   categoryId: text('category_id').references(() => subjectCategories.id),

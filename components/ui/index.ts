@@ -39,3 +39,15 @@ export type { AccordionProps } from './Accordion'
 
 export { FormField } from './FormField'
 export type { FormFieldProps } from './FormField'
+
+export { Badge } from './Badge'
+export type { BadgeProps, BadgeVariant } from './Badge'
+
+export { Alert } from './Alert'
+export type { AlertProps, AlertVariant } from './Alert'
+
+export { DropZone } from './DropZone'
+export type { DropZoneProps } from './DropZone'
+
+export { SegmentedControl } from './SegmentedControl'
+export type { SegmentedControlProps, SegmentedControlOption } from './SegmentedControl'

@@ -857,7 +857,7 @@ export function DemoCalculator({
                           <div className="text-sm font-semibold text-neutral-800 dark:text-neutral-100 mb-1">
                             {row.subjectName || 'Select a subject'}
                           </div>
-                          <div className="max-h-52 overflow-y-auto overflow-x-hidden space-y-2">
+                          <div className="max-h-72 overflow-y-auto overflow-x-hidden space-y-2">
                             {Object.values(
                               getFilteredSubjectsByCategory(subjectFilters[row.id] || '')
                             ).map((group) => {
