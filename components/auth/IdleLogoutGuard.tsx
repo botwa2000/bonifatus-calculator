@@ -78,6 +78,30 @@ export function IdleLogoutGuard() {
   }
 
   const handleLogout = async () => {
+    clearTimers()
+    setShowWarning(false)
+    setCountdownMs(null)
+
+    // Force-clear auth cookies client-side BEFORE signOut so middleware
+    // won't redirect us back to dashboard during the race window
+    const cookieNames = [
+      'next-auth.session-token',
+      '__Secure-next-auth.session-token',
+      'authjs.session-token',
+      '__Secure-authjs.session-token',
+    ]
+    cookieNames.forEach((name) => {
+      document.cookie = `${name}=;path=/;expires=Thu, 01 Jan 1970 00:00:00 GMT`
+      document.cookie = `${name}=;path=/;expires=Thu, 01 Jan 1970 00:00:00 GMT;secure`
+    })
+
+    try {
+      await signOut({ redirect: false })
+    } catch {
+      // signOut may fail (e.g. background tab throttling), cookies already cleared
+    }
+
+    // Set flag only AFTER signOut so the notice shows on the login page, not here
     try {
       sessionStorage.setItem(IDLE_FLAG_KEY, '1')
       localStorage.setItem(LOGOUT_BROADCAST_KEY, String(Date.now()))
@@ -85,10 +109,7 @@ export function IdleLogoutGuard() {
     } catch {
       // noop
     }
-    clearTimers()
-    setShowWarning(false)
-    setCountdownMs(null)
-    await signOut({ redirect: false })
+
     router.push('/login?timeout=1')
     router.refresh()
   }

@@ -5,6 +5,7 @@ import { notFound } from 'next/navigation'
 import { SessionProvider } from 'next-auth/react'
 import { ThemeProvider } from '@/components/providers/ThemeProvider'
 import { IdleLogoutGuard } from '@/components/auth/IdleLogoutGuard'
+import { CookieConsentBanner } from '@/components/cookies/CookieConsentBanner'
 import { routing } from '@/i18n/routing'
 import { Geist, Geist_Mono } from 'next/font/google'
 
@@ -68,6 +69,7 @@ export default async function LocaleLayout({
             <ThemeProvider>
               <IdleLogoutGuard />
               {children}
+              <CookieConsentBanner />
             </ThemeProvider>
           </NextIntlClientProvider>
         </SessionProvider>

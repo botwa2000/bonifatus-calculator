@@ -4,6 +4,7 @@ import { DemoSection } from '@/components/demo-section'
 import { HeroCta } from '@/components/hero-cta'
 import { DemoLinkButton } from '@/components/demo-link-button'
 import { CompoundGrowthWidget } from '@/components/widgets/CompoundGrowthWidget'
+import { Link } from '@/i18n/navigation'
 import { auth } from '@/auth'
 import { AppHeader } from '@/components/layout/AppHeader'
 
@@ -392,20 +393,28 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
                   </a>
                 </li>
                 <li>
-                  <a
-                    href="#"
+                  <Link
+                    href="/privacy"
                     className="hover:text-primary-600 dark:hover:text-blue-400 transition-colors"
                   >
                     {t('footerPrivacy')}
-                  </a>
+                  </Link>
                 </li>
                 <li>
-                  <a
-                    href="#"
+                  <Link
+                    href="/terms"
                     className="hover:text-primary-600 dark:hover:text-blue-400 transition-colors"
                   >
                     {t('footerTerms')}
-                  </a>
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    href="/cookies"
+                    className="hover:text-primary-600 dark:hover:text-blue-400 transition-colors"
+                  >
+                    {t('footerCookies')}
+                  </Link>
                 </li>
                 <li>
                   <a

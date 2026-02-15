@@ -19,7 +19,15 @@ const locales = routing.locales
 const defaultLocale = routing.defaultLocale
 const localePattern = new RegExp(`^/(${locales.join('|')})(/|$)`)
 
-const publicRoutes = ['/', '/login', '/register', '/forgot-password', '/privacy', '/terms']
+const publicRoutes = [
+  '/',
+  '/login',
+  '/register',
+  '/forgot-password',
+  '/privacy',
+  '/terms',
+  '/cookies',
+]
 const publicApiPrefixes = ['/api/health', '/api/auth', '/api/config']
 
 function stripLocalePrefix(pathname: string): string {
