@@ -37,6 +37,9 @@ yarn-error.log*
 .env.test.local
 .env.production.local
 
+# temporary deployment artifacts (SCP workaround outputs)
+tmp_*.txt
+
 # local credentials / tokens
 debug-supabase.js
 *.pfx
