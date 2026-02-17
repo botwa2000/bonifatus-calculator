@@ -80,7 +80,9 @@ export async function recognizeText(
     cachedLangs = null
   }
 
-  const worker = await Tesseract.createWorker(langs)
+  const worker = await Tesseract.createWorker(langs, 1, {
+    cachePath: process.env.TESSDATA_CACHE,
+  })
   cachedWorker = worker
   cachedLangs = langs
 

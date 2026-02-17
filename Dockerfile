@@ -41,6 +41,14 @@ COPY --from=builder --chown=nextjs:nodejs /app/drizzle ./drizzle
 # tesseract.js is a serverExternalPackage — it must be present in node_modules
 # at runtime so its Node.js worker can load correctly
 COPY --from=builder --chown=nextjs:nodejs /app/node_modules/tesseract.js ./node_modules/tesseract.js
+# Pre-download Tesseract.js language data at build time so the first OCR
+# request doesn't stall on the CDN. Files are stored in /app/tessdata and
+# the worker is told to use this path via TESSDATA_CACHE (read in ocr-engine.ts).
+RUN mkdir -p /app/tessdata && \
+    wget -q -O /app/tessdata/eng.traineddata.gz \
+      https://tessdata.projectnaptha.com/4.0.0/eng.traineddata.gz && \
+    chown -R nextjs:nodejs /app/tessdata
+ENV TESSDATA_CACHE=/app/tessdata
 COPY docker-entrypoint.sh /docker-entrypoint.sh
 RUN chmod +x /docker-entrypoint.sh
 
