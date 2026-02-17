@@ -97,9 +97,13 @@ export default function LoginPage() {
         setLoading(false)
         return
       }
-      dbg('login', 'login success — navigating to /dashboard')
-      router.push('/dashboard')
-      router.refresh()
+      // Navigate to the intended destination (or /dashboard by default).
+      // Do NOT call router.refresh() here — it races with router.push()
+      // and causes the middleware to see two concurrent navigations.
+      const searchParams = new URLSearchParams(window.location.search)
+      const redirectTo = searchParams.get('redirectTo') || '/dashboard'
+      dbg('login', 'login success — navigating', { redirectTo })
+      router.push(redirectTo as '/')
     } catch (err) {
       dbgError('login', 'submitLogin threw', { error: String(err) })
       setError(t('unexpectedError'))
