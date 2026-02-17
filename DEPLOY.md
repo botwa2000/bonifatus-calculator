@@ -18,19 +18,18 @@ Add this to `~/.ssh/config` (already done — do not repeat):
 ```
 Host bonifatus-hetzner
   HostName 159.69.180.183
-  User deploy
-  IdentityFile ~/.ssh/bonifatus_hetzner
+  User root
   BatchMode yes
   ServerAliveInterval 60
   ServerAliveCountMax 10
 ```
 
-After this, all SSH commands use `ssh bonifatus-hetzner` — no `-i` flag, no key path issues.
+After this, all SSH commands use `ssh root@159.69.180.183` — no `-i` flag, no key path issues.
 
 Test it:
 
 ```bash
-ssh bonifatus-hetzner "echo connected"
+ssh root@159.69.180.183 "echo connected"
 ```
 
 ## Deployment
@@ -84,11 +83,11 @@ Secrets are stored as Docker Swarm external secrets, prefixed by environment (`d
 
 ```bash
 # Single secret
-echo -n "value" | ssh bonifatus-hetzner "docker secret create dev_DATABASE_URL -"
+echo -n "value" | ssh root@159.69.180.183 "docker secret create dev_DATABASE_URL -"
 
 # Update (remove then recreate)
-ssh bonifatus-hetzner "docker secret rm dev_DATABASE_URL 2>/dev/null || true"
-echo -n "new-value" | ssh bonifatus-hetzner "docker secret create dev_DATABASE_URL -"
+ssh root@159.69.180.183 "docker secret rm dev_DATABASE_URL 2>/dev/null || true"
+echo -n "new-value" | ssh root@159.69.180.183 "docker secret create dev_DATABASE_URL -"
 
 # Bulk update from file (KEY=value lines, no quotes, no export)
 ./deploy.sh dev --secrets-file .env.dev.secrets
@@ -97,7 +96,7 @@ echo -n "new-value" | ssh bonifatus-hetzner "docker secret create dev_DATABASE_U
 ### List secrets
 
 ```bash
-ssh bonifatus-hetzner "docker secret ls"
+ssh root@159.69.180.183 "docker secret ls"
 ```
 
 ## Build-Time Variables
@@ -114,17 +113,17 @@ Baked into the Next.js client bundle at build time. Not secrets — defined in `
 
 ```bash
 # Dev
-ssh bonifatus-hetzner "docker service logs bonifatus-dev_app --tail 100 -f"
+ssh root@159.69.180.183 "docker service logs bonifatus-dev_app --tail 100 -f"
 
 # Prod
-ssh bonifatus-hetzner "docker service logs bonifatus-prod_app --tail 100 -f"
+ssh root@159.69.180.183 "docker service logs bonifatus-prod_app --tail 100 -f"
 ```
 
 ## Service Status
 
 ```bash
 # List all stacks and services
-ssh bonifatus-hetzner "docker stack ls && docker stack services bonifatus-dev && docker stack services bonifatus-prod"
+ssh root@159.69.180.183 "docker stack ls && docker stack services bonifatus-dev && docker stack services bonifatus-prod"
 ```
 
 ## Rollback
@@ -133,19 +132,19 @@ Docker Swarm keeps the previous task version:
 
 ```bash
 # Instant rollback (uses previous image)
-ssh bonifatus-hetzner "docker service rollback bonifatus-prod_app"
+ssh root@159.69.180.183 "docker service rollback bonifatus-prod_app"
 ```
 
 For a full code rollback:
 
 ```bash
-ssh bonifatus-hetzner bash -s <<'EOF'
+ssh root@159.69.180.183 bash -s <<'EOF'
 cd /home/deploy/bonifatus-calculator
 git log --oneline -10
 EOF
 
 # Then reset to a specific commit and redeploy
-ssh bonifatus-hetzner bash -s <<'EOF'
+ssh root@159.69.180.183 bash -s <<'EOF'
 cd /home/deploy/bonifatus-calculator
 git reset --hard <commit>
 docker build \
@@ -163,10 +162,10 @@ Run after deployment if schema changes were made:
 
 ```bash
 # Dev
-ssh bonifatus-hetzner "export DATABASE_URL=\$(cat /run/secrets/dev_DATABASE_URL) && cd /home/deploy/bonifatus-dev && npx drizzle-kit migrate"
+ssh root@159.69.180.183 "export DATABASE_URL=\$(cat /run/secrets/dev_DATABASE_URL) && cd /home/deploy/bonifatus-dev && npx drizzle-kit migrate"
 
 # Prod
-ssh bonifatus-hetzner "export DATABASE_URL=\$(cat /run/secrets/prod_DATABASE_URL) && cd /home/deploy/bonifatus-calculator && npx drizzle-kit migrate"
+ssh root@159.69.180.183 "export DATABASE_URL=\$(cat /run/secrets/prod_DATABASE_URL) && cd /home/deploy/bonifatus-calculator && npx drizzle-kit migrate"
 ```
 
 ## Architecture

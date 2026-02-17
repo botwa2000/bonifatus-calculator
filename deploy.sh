@@ -51,8 +51,8 @@ if [[ -n "$SECRETS_FILE" ]]; then
   while IFS='=' read -r key value; do
     [[ -z "$key" || "$key" == \#* ]] && continue
     secret_name="${ENV}_${key}"
-    ssh bonifatus-hetzner "docker secret rm ${secret_name} 2>/dev/null || true"
-    echo -n "$value" | ssh bonifatus-hetzner "docker secret create ${secret_name} -"
+    ssh root@159.69.180.183 "docker secret rm ${secret_name} 2>/dev/null || true"
+    echo -n "$value" | ssh root@159.69.180.183 "docker secret create ${secret_name} -"
     echo "   Created: ${secret_name}"
   done < "$SECRETS_FILE"
 fi
@@ -60,7 +60,7 @@ fi
 echo "==> Deploying ${ENV} to bonifatus-hetzner"
 
 # Single SSH session: pull → build → deploy → health check
-ssh bonifatus-hetzner bash -s <<EOF
+ssh root@159.69.180.183 bash -s <<EOF
 set -euo pipefail
 
 echo "=== [1/5] Pulling latest ${BRANCH} ==="
