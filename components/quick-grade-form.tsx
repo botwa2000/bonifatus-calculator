@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { useLocale } from 'next-intl'
+import { useLocale, useTranslations } from 'next-intl'
 import { resolveLocalized } from '@/lib/i18n'
 
 type GradingSystem = {
@@ -30,6 +30,7 @@ type QuickGrade = {
 
 export function QuickGradeForm() {
   const locale = useLocale()
+  const t = useTranslations('quickGrade')
   const [subjects, setSubjects] = useState<Subject[]>([])
   const [systems, setSystems] = useState<GradingSystem[]>([])
   const [recentGrades, setRecentGrades] = useState<QuickGrade[]>([])
@@ -136,14 +137,14 @@ export function QuickGradeForm() {
 
   return (
     <div className="rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 shadow-sm p-4 space-y-3">
-      <h3 className="text-sm font-semibold text-neutral-800 dark:text-neutral-100">Quick grade</h3>
+      <h3 className="text-sm font-semibold text-neutral-800 dark:text-neutral-100">{t('title')}</h3>
       <div className="flex flex-wrap gap-2 items-end">
         <select
           value={subjectId}
           onChange={(e) => setSubjectId(e.target.value)}
           className="rounded-lg border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 py-2 text-sm text-neutral-900 dark:text-white flex-1 min-w-[140px]"
         >
-          <option value="">Subject</option>
+          <option value="">{t('subject')}</option>
           {subjects.map((s) => (
             <option key={s.id} value={s.id}>
               {resolveLocalized(s.name, locale)}
@@ -156,7 +157,7 @@ export function QuickGradeForm() {
             onChange={(e) => setGradeValue(e.target.value)}
             className="rounded-lg border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 py-2 text-sm text-neutral-900 dark:text-white w-24"
           >
-            <option value="">Grade</option>
+            <option value="">{t('grade')}</option>
             {selectedSystem.gradeDefinitions.map((g) => (
               <option key={g.grade ?? ''} value={g.grade ?? ''}>
                 {g.grade ?? ''}
@@ -167,14 +168,14 @@ export function QuickGradeForm() {
           <input
             value={gradeValue}
             onChange={(e) => setGradeValue(e.target.value)}
-            placeholder="Grade"
+            placeholder={t('grade')}
             className="rounded-lg border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 py-2 text-sm text-neutral-900 dark:text-white w-24"
           />
         )}
         <input
           value={note}
           onChange={(e) => setNote(e.target.value)}
-          placeholder="Note (optional)"
+          placeholder={t('noteOptional')}
           className="rounded-lg border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 py-2 text-sm text-neutral-900 dark:text-white flex-1 min-w-[100px]"
         />
         <input
@@ -184,21 +185,21 @@ export function QuickGradeForm() {
           value={defaultClassLevel}
           onChange={(e) => setDefaultClassLevel(Number(e.target.value) || 1)}
           className="rounded-lg border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 py-2 text-sm text-neutral-900 dark:text-white w-16"
-          title="Class level"
+          title={t('classLevel')}
         />
         <button
           onClick={handleSave}
           disabled={saving || !subjectId || !gradeValue}
           className="px-4 py-2 text-sm font-semibold rounded-lg bg-gradient-to-r from-primary-600 to-secondary-600 text-white shadow-button disabled:opacity-60"
         >
-          {saving ? 'Saving...' : 'Log'}
+          {saving ? t('saving') : t('log')}
         </button>
       </div>
       {error && <p className="text-xs text-error-600">{error}</p>}
       {message && <p className="text-xs text-success-600 font-semibold">{message}</p>}
       {recentGrades.length > 0 && (
         <div className="space-y-1 pt-2 border-t border-neutral-100 dark:border-neutral-800">
-          <p className="text-xs text-neutral-500 dark:text-neutral-400">Recent quick grades</p>
+          <p className="text-xs text-neutral-500 dark:text-neutral-400">{t('recentQuickGrades')}</p>
           {recentGrades.map((g) => (
             <div
               key={g.id}

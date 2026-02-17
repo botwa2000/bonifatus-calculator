@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { useLocale } from 'next-intl'
+import { useLocale, useTranslations } from 'next-intl'
 import { resolveLocalized } from '@/lib/i18n'
 import { Button, Select, Accordion, FormField, Tooltip } from '@/components/ui'
 
@@ -266,6 +266,8 @@ export function DemoCalculator({
   initialData,
 }: DemoCalculatorProps = {}) {
   const locale = useLocale()
+  const t = useTranslations('calculator')
+  const tc = useTranslations('common')
   const currentYear = new Date().getFullYear()
   const defaultSchoolYear = `${currentYear}-${currentYear + 1}`
 
@@ -464,7 +466,7 @@ export function DemoCalculator({
         setSubjectRows(parsed.subjects.map((s) => ({ ...s, weight: isDemo ? 1 : s.weight })))
       }
       setDraftRestored(true)
-      setDraftStatus('Restored your last draft')
+      setDraftStatus(t('draftRestored'))
       setSettingsOpen(false)
       draftLoadedRef.current = true
     } catch {
@@ -503,7 +505,7 @@ export function DemoCalculator({
       }
       try {
         localStorage.setItem(draftKey, JSON.stringify(draft))
-        setDraftStatus('Draft saved locally')
+        setDraftStatus(t('draftSaved'))
       } catch {
         // ignore storage errors
       }
@@ -586,9 +588,9 @@ export function DemoCalculator({
     try {
       localStorage.setItem(defaultSystemKey, selectedSystem.id)
       setPreferredSystemId(selectedSystem.id)
-      setDraftStatus('Saved as your default grading system')
+      setDraftStatus(t('savedAsDefault'))
     } catch {
-      setSaveError('Could not store your default preference in this browser.')
+      setSaveError(t('couldNotStoreDefault'))
     }
   }
 
@@ -600,7 +602,7 @@ export function DemoCalculator({
       return
     }
     if (!selectedSystem) {
-      setSaveError('Select a grading system first.')
+      setSaveError(t('selectSystemFirst'))
       return
     }
     const subjectPayload = subjectRows.map((row) => {
@@ -613,7 +615,7 @@ export function DemoCalculator({
       }
     })
     if (subjectPayload.some((s) => !s.subjectId)) {
-      setSaveError('Please pick subjects from the list so we can save them.')
+      setSaveError(t('pickSubjects'))
       return
     }
     setSaving(true)
@@ -637,7 +639,7 @@ export function DemoCalculator({
         setSaveError(data.error || 'Failed to save')
         return
       }
-      setSaveMessage('Saved!')
+      setSaveMessage(t('saved'))
       setEditingTermId(undefined)
       try {
         localStorage.removeItem(draftKey)
@@ -667,10 +669,10 @@ export function DemoCalculator({
   }))
 
   const termTypeOptions = [
-    { value: 'midterm', label: 'Midterm' },
-    { value: 'final', label: 'Final' },
-    { value: 'semester', label: 'Semester' },
-    { value: 'quarterly', label: 'Quarter' },
+    { value: 'midterm', label: t('midterm') },
+    { value: 'final', label: t('final') },
+    { value: 'semester', label: t('semester') },
+    { value: 'quarterly', label: t('quarterly') },
   ]
 
   return (
@@ -679,13 +681,13 @@ export function DemoCalculator({
         <div className="text-xs text-neutral-600 dark:text-neutral-400">
           {userEmail ? (
             <span className="font-semibold text-neutral-800 dark:text-white">
-              Logged in as {userEmail}.{' '}
+              {t('loggedInAs', { email: userEmail })}{' '}
               <span className="font-normal text-neutral-600 dark:text-neutral-400">
-                Saves go to your profile.
+                {t('savesToProfile')}
               </span>
             </span>
           ) : (
-            'Demo mode. Sign in to save this calculation to a profile.'
+            t('demoMode')
           )}
         </div>
         {allowSample && (
@@ -693,18 +695,18 @@ export function DemoCalculator({
             onClick={applySample}
             className="text-sm font-semibold text-primary-600 dark:text-primary-300 hover:underline"
           >
-            Load sample
+            {t('loadSample')}
           </button>
         )}
       </div>
 
-      {loading && <p className="text-neutral-600 dark:text-neutral-300">Loading settings...</p>}
+      {loading && <p className="text-neutral-600 dark:text-neutral-300">{t('loadingSettings')}</p>}
       {error && <p className="text-sm text-red-600 dark:text-red-400 mb-4">Error: {error}</p>}
 
       {!loading && !error && selectedSystem && (
         <div className="space-y-4">
           <Accordion
-            title="Settings"
+            title={t('settings')}
             open={settingsOpen}
             onToggle={() => setSettingsOpen((v) => !v)}
           >
@@ -712,8 +714,8 @@ export function DemoCalculator({
               <div className="grid sm:grid-cols-3 gap-4">
                 <div className="sm:col-span-2">
                   <Select
-                    label="Grading system"
-                    tooltip="The grading scale used by your school. Different countries use different systems."
+                    label={t('gradingSystem')}
+                    tooltip={t('gradingSystemTooltip')}
                     value={selectedSystem?.id}
                     onChange={(e) => setSelectedSystemId(e.target.value)}
                     options={gradingSystemOptions}
@@ -724,20 +726,17 @@ export function DemoCalculator({
                       onClick={handleSetDefaultSystem}
                       className="rounded-full border border-neutral-300 px-3 py-1 font-semibold text-neutral-700 transition hover:border-primary-400 hover:text-primary-700 dark:border-neutral-700 dark:text-neutral-200 dark:hover:border-primary-500 dark:hover:text-primary-200"
                     >
-                      Set as default
+                      {t('setAsDefault')}
                     </button>
                     {preferredSystemId && preferredSystemId === selectedSystem?.id && (
                       <span className="rounded-full bg-primary-100 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide text-primary-700 dark:bg-primary-900/30 dark:text-primary-200">
-                        Default
+                        {t('default')}
                       </span>
                     )}
                   </div>
                 </div>
                 <div className="space-y-3">
-                  <FormField
-                    label="Class level"
-                    tooltip="The grade/year level of the student (1-13)."
-                  >
+                  <FormField label={t('classLevel')} tooltip={t('classLevelTooltip')}>
                     <input
                       type="number"
                       min={1}
@@ -749,8 +748,8 @@ export function DemoCalculator({
                     />
                   </FormField>
                   <Select
-                    label="Term type"
-                    tooltip="The type of grading period. Final terms have higher bonus multipliers."
+                    label={t('termType')}
+                    tooltip={t('termTypeTooltip')}
                     value={termType}
                     onChange={(e) => setTermType(e.target.value)}
                     options={termTypeOptions}
@@ -758,22 +757,19 @@ export function DemoCalculator({
                 </div>
               </div>
               <div className="grid sm:grid-cols-3 gap-4">
-                <FormField label="School year" tooltip="The academic year (e.g., 2025-2026).">
+                <FormField label={t('schoolYear')} tooltip={t('schoolYearTooltip')}>
                   <input
                     value={schoolYear}
                     onChange={(e) => setSchoolYear(e.target.value)}
-                    placeholder="e.g. 2025-2026"
+                    placeholder={t('schoolYearPlaceholder')}
                     className="w-full rounded-lg border-2 border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-4 py-3 text-neutral-900 dark:text-white focus:border-primary-500 focus:ring-4 focus:ring-primary-100 outline-none transition-all"
                   />
                 </FormField>
-                <FormField
-                  label="Term name"
-                  tooltip="Optional name for this term (e.g., Spring, Fall)."
-                >
+                <FormField label={t('termName')} tooltip={t('termNameTooltip')}>
                   <input
                     value={termName}
                     onChange={(e) => setTermName(e.target.value)}
-                    placeholder="e.g. Spring"
+                    placeholder={t('termNamePlaceholder')}
                     className="w-full rounded-lg border-2 border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-4 py-3 text-neutral-900 dark:text-white focus:border-primary-500 focus:ring-4 focus:ring-primary-100 outline-none transition-all"
                   />
                 </FormField>
@@ -782,36 +778,36 @@ export function DemoCalculator({
           </Accordion>
 
           <Accordion
-            title="Subjects & Grades"
+            title={t('subjectsAndGrades')}
             open={subjectsOpen}
             onToggle={() => setSubjectsOpen((v) => !v)}
           >
             <div className="space-y-3">
               <div className="flex items-center justify-between">
                 <h4 className="text-sm font-semibold text-neutral-800 dark:text-neutral-100">
-                  Subject rows
+                  {t('subjectRows')}
                 </h4>
                 <button
                   onClick={addRow}
                   className="text-sm font-semibold text-primary-600 dark:text-primary-300 hover:underline"
                 >
-                  Add subject
+                  {t('addSubject')}
                 </button>
               </div>
 
               {/* Column headers */}
               <div className="hidden lg:grid lg:grid-cols-12 gap-3 px-3 text-xs font-medium text-neutral-500 dark:text-neutral-400">
                 <div className="lg:col-span-5 flex items-center gap-1">
-                  Subject
-                  <Tooltip content="Select a subject from the list. Type to filter." />
+                  {t('subject')}
+                  <Tooltip content={t('subjectTooltip')} />
                 </div>
                 <div className="lg:col-span-3 flex items-center gap-1">
-                  Grade
-                  <Tooltip content="The grade received for this subject." />
+                  {t('grade')}
+                  <Tooltip content={t('gradeTooltip')} />
                 </div>
                 <div className="lg:col-span-3 flex items-center gap-1">
-                  Weight
-                  <Tooltip content="Subject weight for average calculation. Default is 1." />
+                  {t('weight')}
+                  <Tooltip content={t('weightTooltip')} />
                 </div>
                 <div className="lg:col-span-1"></div>
               </div>
@@ -824,12 +820,12 @@ export function DemoCalculator({
                   >
                     <div className="lg:col-span-5 space-y-2">
                       <div className="lg:hidden flex items-center gap-1 text-xs font-medium text-neutral-500 dark:text-neutral-400 mb-1">
-                        Subject
-                        <Tooltip content="Select a subject from the list. Type to filter." />
+                        {t('subject')}
+                        <Tooltip content={t('subjectTooltip')} />
                       </div>
                       <div className="flex items-center gap-2">
                         <input
-                          placeholder={row.subjectName || 'Search subject'}
+                          placeholder={row.subjectName || t('searchSubject')}
                           value={subjectFilters[row.id] ?? ''}
                           onChange={(e) =>
                             setSubjectFilters((prev) => ({ ...prev, [row.id]: e.target.value }))
@@ -839,7 +835,7 @@ export function DemoCalculator({
                         />
                         {row.isCoreSubject && (
                           <span className="shrink-0 rounded bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300 px-1.5 py-0.5 text-[10px] font-semibold uppercase">
-                            Core
+                            {t('core')}
                           </span>
                         )}
                         <button
@@ -849,13 +845,13 @@ export function DemoCalculator({
                             setPickerOpen((prev) => ({ ...prev, [row.id]: !prev[row.id] }))
                           }
                         >
-                          {pickerOpen[row.id] ? 'Hide' : 'Browse'}
+                          {pickerOpen[row.id] ? tc('hide') : t('browse')}
                         </button>
                       </div>
                       {pickerOpen[row.id] && (
                         <div className="w-full rounded-lg border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 py-2">
                           <div className="text-sm font-semibold text-neutral-800 dark:text-neutral-100 mb-1">
-                            {row.subjectName || 'Select a subject'}
+                            {row.subjectName || t('selectSubject')}
                           </div>
                           <div className="max-h-72 overflow-y-auto overflow-x-hidden space-y-2">
                             {Object.values(
@@ -918,7 +914,9 @@ export function DemoCalculator({
                                     !selectedSubjectIds.has(item.id) || row.subjectId === item.id
                                 ).length === 0
                             ) && (
-                              <div className="text-xs text-neutral-500 px-2 py-1">No matches</div>
+                              <div className="text-xs text-neutral-500 px-2 py-1">
+                                {tc('noMatches')}
+                              </div>
                             )}
                           </div>
                         </div>
@@ -926,8 +924,8 @@ export function DemoCalculator({
                     </div>
                     <div className="lg:col-span-3">
                       <div className="lg:hidden flex items-center gap-1 text-xs font-medium text-neutral-500 dark:text-neutral-400 mb-1">
-                        Grade
-                        <Tooltip content="The grade received for this subject." />
+                        {t('grade')}
+                        <Tooltip content={t('gradeTooltip')} />
                       </div>
                       {selectedSystem?.scaleType === 'percentage' ? (
                         <input
@@ -945,7 +943,7 @@ export function DemoCalculator({
                           onChange={(e) => updateRow(row.id, 'grade', e.target.value)}
                           className="w-full rounded-lg border-2 border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 py-2 text-neutral-900 dark:text-white focus:border-primary-500 outline-none transition-all"
                         >
-                          <option value="">Select grade</option>
+                          <option value="">{t('selectGrade')}</option>
                           {selectedSystem?.gradeDefinitions?.map((g) => (
                             <option key={g.grade ?? ''} value={g.grade ?? ''}>
                               {g.grade ?? ''}
@@ -954,7 +952,7 @@ export function DemoCalculator({
                         </select>
                       ) : (
                         <input
-                          placeholder="Grade"
+                          placeholder={t('grade')}
                           value={row.grade}
                           onChange={(e) => updateRow(row.id, 'grade', e.target.value)}
                           className="w-full rounded-lg border-2 border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 py-2 text-neutral-900 dark:text-white focus:border-primary-500 outline-none transition-all"
@@ -963,8 +961,8 @@ export function DemoCalculator({
                     </div>
                     <div className="lg:col-span-3">
                       <div className="lg:hidden flex items-center gap-1 text-xs font-medium text-neutral-500 dark:text-neutral-400 mb-1">
-                        Weight
-                        <Tooltip content="Subject weight for average calculation. Default is 1." />
+                        {t('weight')}
+                        <Tooltip content={t('weightTooltip')} />
                       </div>
                       {isDemo ? (
                         <div className="w-full rounded-lg border-2 border-neutral-200 dark:border-neutral-700 bg-neutral-100 dark:bg-neutral-800 px-3 py-2 text-neutral-500 dark:text-neutral-400 cursor-not-allowed">
@@ -985,7 +983,7 @@ export function DemoCalculator({
                       <button
                         onClick={() => removeRow(row.id)}
                         className="text-sm text-neutral-500 hover:text-red-500"
-                        aria-label="Remove subject"
+                        aria-label={t('removeSubject')}
                       >
                         ×
                       </button>
@@ -996,13 +994,19 @@ export function DemoCalculator({
             </div>
           </Accordion>
 
-          <Accordion title="Results" open={resultsOpen} onToggle={() => setResultsOpen((v) => !v)}>
+          <Accordion
+            title={t('results')}
+            open={resultsOpen}
+            onToggle={() => setResultsOpen((v) => !v)}
+          >
             <div>
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-neutral-600 dark:text-neutral-400">Bonus total</p>
+                  <p className="text-sm text-neutral-600 dark:text-neutral-400">
+                    {t('bonusTotal')}
+                  </p>
                   <p className="text-3xl font-bold text-primary-600 dark:text-primary-300">
-                    {calcResult.total.toFixed(2)} pts
+                    {calcResult.total.toFixed(2)} {tc('pts')}
                   </p>
                   <p className="text-xs text-neutral-500 dark:text-neutral-400">
                     {(() => {
@@ -1012,39 +1016,38 @@ export function DemoCalculator({
                       )
                       const max = selectedSystem?.maxValue
                       const scaleLabel = max ? ` / ${Number(max)}` : ''
-                      return `${calcResult.subjectCount} subjects · Avg score ${avgRaw.toFixed(
-                        2
-                      )}${scaleLabel}`
+                      return t('subjectsAvg', {
+                        count: calcResult.subjectCount,
+                        avg: avgRaw.toFixed(2),
+                        scale: scaleLabel,
+                      })
                     })()}
                   </p>
                 </div>
                 {userEmail ? (
                   <Button onClick={handleSave} disabled={saving || !canSave} isLoading={saving}>
-                    Save term
+                    {t('saveTerm')}
                   </Button>
                 ) : (
-                  <Button onClick={() => (window.location.href = '/register')}>Save & Track</Button>
+                  <Button onClick={() => (window.location.href = '/register')}>
+                    {t('saveAndTrack')}
+                  </Button>
                 )}
               </div>
               <div className="mt-3 space-y-2 text-sm text-neutral-700 dark:text-neutral-300">
                 {calcResult.breakdown.map((item, idx) => (
                   <div key={`${item.subject}-${idx}`} className="flex justify-between">
-                    <span>
-                      {item.subject} — {item.tier} tier
+                    <span>{t('tier', { subject: item.subject, tier: item.tier })}</span>
+                    <span className="font-semibold">
+                      {item.bonus.toFixed(2)} {tc('pts')}
                     </span>
-                    <span className="font-semibold">{item.bonus.toFixed(2)} pts</span>
                   </div>
                 ))}
                 {calcResult.breakdown.length === 0 && (
-                  <p className="text-neutral-500">
-                    Add subjects and grades to see the calculation.
-                  </p>
+                  <p className="text-neutral-500">{t('addSubjectsToSee')}</p>
                 )}
               </div>
-              <p className="mt-3 text-xs text-neutral-500 dark:text-neutral-500">
-                Formula: class level × term factor × grade factor (best=2, second=1, third=0,
-                below=-1), floored at zero.
-              </p>
+              <p className="mt-3 text-xs text-neutral-500 dark:text-neutral-500">{t('formula')}</p>
               {saveError && (
                 <p className="mt-2 text-sm text-red-600 dark:text-red-400">{saveError}</p>
               )}
@@ -1053,7 +1056,7 @@ export function DemoCalculator({
               )}
               {draftRestored && (
                 <p className="mt-1 text-xs text-secondary-700 dark:text-secondary-300">
-                  Restored your last draft. Saving will clear it.
+                  {t('draftRestored')}
                 </p>
               )}
               {draftStatus && (

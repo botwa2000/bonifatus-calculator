@@ -129,9 +129,10 @@ export function ReportCardScanner({
       ) : (
         <div className="space-y-3">
           <div className="relative rounded-xl overflow-hidden bg-neutral-100 dark:bg-neutral-800 flex items-center justify-center">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={preview}
-              alt="Report card preview"
+              alt={t('imagePreview')}
               className="max-h-96 object-contain transition-transform"
               style={{ transform: `rotate(${rotation}deg)` }}
             />

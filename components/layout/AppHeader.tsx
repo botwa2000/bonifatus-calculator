@@ -1,10 +1,9 @@
 'use client'
 
 import { Link, usePathname, useRouter } from '@/i18n/navigation'
-import { useState } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import Image from 'next/image'
 import { signOut } from 'next-auth/react'
-import { useTheme } from '@/components/providers/ThemeProvider'
 import { useTranslations, useLocale } from 'next-intl'
 import { routing } from '@/i18n/routing'
 
@@ -22,60 +21,70 @@ type AppHeaderProps =
       userRole?: string | null
     }
 
-function ThemeToggle() {
-  const { theme, setTheme } = useTheme()
-  const next = theme === 'dark' ? 'light' : theme === 'light' ? 'system' : 'dark'
-  const label = theme === 'dark' ? 'Dark' : theme === 'light' ? 'Light' : 'System'
-  return (
-    <button
-      onClick={() => setTheme(next)}
-      title={`Theme: ${label}`}
-      className="rounded-lg p-2 text-neutral-600 hover:bg-neutral-100 dark:text-neutral-300 dark:hover:bg-neutral-800 transition"
-    >
-      {theme === 'dark' ? (
-        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"
-          />
-        </svg>
-      ) : (
-        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"
-          />
-        </svg>
-      )}
-    </button>
-  )
+const localeNames: Record<string, string> = {
+  en: 'English',
+  de: 'Deutsch',
+  fr: 'Fran\u00e7ais',
+  it: 'Italiano',
+  es: 'Espa\u00f1ol',
+  ru: '\u0420\u0443\u0441\u0441\u043a\u0438\u0439',
 }
 
-function LocaleSwitcher() {
+function LocaleDropdown() {
   const locale = useLocale()
   const router = useRouter()
   const pathname = usePathname()
   const t = useTranslations('nav')
+  const [open, setOpen] = useState(false)
+  const ref = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) {
+        setOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [])
 
   return (
-    <select
-      value={locale}
-      onChange={(e) => {
-        router.replace(pathname, { locale: e.target.value })
-      }}
-      title={t('language')}
-      className="rounded-lg border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 text-sm text-neutral-700 dark:text-neutral-200 px-2 py-1.5 outline-none focus:ring-2 focus:ring-primary-500 cursor-pointer"
-    >
-      {routing.locales.map((loc) => (
-        <option key={loc} value={loc}>
-          {loc.toUpperCase()}
-        </option>
-      ))}
-    </select>
+    <div ref={ref} className="relative">
+      <button
+        onClick={() => setOpen((v) => !v)}
+        title={t('switchLanguage')}
+        className="rounded-lg p-2 text-neutral-600 hover:bg-neutral-100 dark:text-neutral-300 dark:hover:bg-neutral-800 transition"
+      >
+        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <circle cx="12" cy="12" r="10" strokeWidth={2} />
+          <path
+            strokeLinecap="round"
+            strokeWidth={2}
+            d="M2 12h20M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10A15.3 15.3 0 0112 2z"
+          />
+        </svg>
+      </button>
+      {open && (
+        <div className="absolute right-0 mt-1 w-44 rounded-xl border border-neutral-200 bg-white shadow-lg dark:border-neutral-700 dark:bg-neutral-800 py-1 z-50">
+          {routing.locales.map((loc) => (
+            <button
+              key={loc}
+              onClick={() => {
+                router.replace(pathname, { locale: loc })
+                setOpen(false)
+              }}
+              className={`w-full text-left px-4 py-2 text-sm transition-colors ${
+                loc === locale
+                  ? 'bg-primary-50 text-primary-700 font-semibold dark:bg-primary-900/30 dark:text-primary-200'
+                  : 'text-neutral-700 hover:bg-neutral-100 dark:text-neutral-200 dark:hover:bg-neutral-700'
+              }`}
+            >
+              {localeNames[loc] || loc.toUpperCase()}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
   )
 }
 
@@ -136,8 +145,7 @@ export function AppHeader(props: AppHeaderProps) {
             >
               {t('benefits')}
             </a>
-            <LocaleSwitcher />
-            <ThemeToggle />
+            <LocaleDropdown />
             {props.isAuthed ? (
               <>
                 <Link
@@ -178,7 +186,7 @@ export function AppHeader(props: AppHeaderProps) {
           </nav>
           {/* Mobile controls */}
           <div className="flex items-center gap-2 sm:hidden">
-            <ThemeToggle />
+            <LocaleDropdown />
             <button
               onClick={() => setMobileOpen(!mobileOpen)}
               className="rounded-lg p-2 text-neutral-600 hover:bg-neutral-100 dark:text-neutral-300 dark:hover:bg-neutral-800"
@@ -213,9 +221,6 @@ export function AppHeader(props: AppHeaderProps) {
             >
               {t('benefits')}
             </a>
-            <div className="px-3 py-2">
-              <LocaleSwitcher />
-            </div>
             {props.isAuthed ? (
               <>
                 <Link
@@ -301,7 +306,7 @@ export function AppHeader(props: AppHeaderProps) {
         <div className="flex items-center gap-3">
           <div className="hidden flex-col text-right leading-tight sm:flex">
             <span className="text-sm font-semibold text-neutral-900 dark:text-white">
-              {userName || 'User'}
+              {userName || t('user')}
             </span>
             {userRole && (
               <span className="text-xs uppercase tracking-wide text-neutral-500 dark:text-neutral-400">
@@ -329,8 +334,7 @@ export function AppHeader(props: AppHeaderProps) {
               />
             </svg>
           </Link>
-          <LocaleSwitcher />
-          <ThemeToggle />
+          <LocaleDropdown />
           <button
             onClick={handleLogout}
             disabled={signingOut}

@@ -6,6 +6,7 @@
 'use client'
 
 import React from 'react'
+import { useTranslations } from 'next-intl'
 
 export type AlertVariant = 'error' | 'success' | 'warning' | 'info'
 
@@ -32,6 +33,7 @@ export const Alert: React.FC<AlertProps> = ({
   onDismiss,
   className = '',
 }) => {
+  const tc = useTranslations('common')
   return (
     <div
       className={`rounded-lg border p-3 text-sm flex items-start gap-2 ${variantClasses[variant]} ${className}`}
@@ -43,7 +45,7 @@ export const Alert: React.FC<AlertProps> = ({
           type="button"
           onClick={onDismiss}
           className="shrink-0 opacity-60 hover:opacity-100 transition-opacity"
-          aria-label="Dismiss"
+          aria-label={tc('dismiss')}
         >
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path

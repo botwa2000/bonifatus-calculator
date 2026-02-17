@@ -7,6 +7,7 @@
 'use client'
 
 import React, { useState } from 'react'
+import { useTranslations } from 'next-intl'
 import { Input, InputProps } from './Input'
 import { calculatePasswordStrength, type PasswordStrength } from '@/lib/auth/password-validation'
 
@@ -22,6 +23,7 @@ export const PasswordInput: React.FC<PasswordInputProps> = ({
   onChange,
   ...props
 }) => {
+  const tc = useTranslations('common')
   const [showPassword, setShowPassword] = useState(false)
   const [strength, setStrength] = useState<{ strength: PasswordStrength; score: number } | null>(
     null
@@ -88,7 +90,7 @@ export const PasswordInput: React.FC<PasswordInputProps> = ({
             type="button"
             onClick={() => setShowPassword(!showPassword)}
             className="text-neutral-400 hover:text-neutral-600 transition-colors"
-            aria-label={showPassword ? 'Hide password' : 'Show password'}
+            aria-label={showPassword ? tc('hidePassword') : tc('showPassword')}
           >
             {showPassword ? (
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

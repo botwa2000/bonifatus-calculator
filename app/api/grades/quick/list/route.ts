@@ -8,7 +8,7 @@ import { eq, desc } from 'drizzle-orm'
 export async function GET() {
   try {
     const user = await requireAuthApi()
-    if (!user) {
+    if (!user || !user.id) {
       return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
     }
 
@@ -35,9 +35,14 @@ export async function GET() {
 
     return NextResponse.json({ success: true, grades: rows })
   } catch (error) {
-    console.error('Quick grade list error:', error)
+    const message = error instanceof Error ? error.message : String(error)
+    console.error('Quick grade list error:', message)
     return NextResponse.json(
-      { success: false, error: 'Unexpected error while listing quick grades' },
+      {
+        success: false,
+        error: 'Unexpected error while listing quick grades',
+        ...(process.env.NODE_ENV === 'development' && { detail: message }),
+      },
       { status: 500 }
     )
   }

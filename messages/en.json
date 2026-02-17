@@ -27,7 +27,9 @@
     "dismiss": "Dismiss",
     "comingSoon": "Coming Soon",
     "pts": "pts",
-    "copyright": "\u00a9 2026 Bonifatus. All rights reserved."
+    "copyright": "\u00a9 2026 Bonifatus. All rights reserved.",
+    "hidePassword": "Hide password",
+    "showPassword": "Show password"
   },
   "nav": {
     "features": "Features",
@@ -39,7 +41,9 @@
     "settings": "Settings",
     "logout": "Logout",
     "signingOut": "Signing out\u2026",
-    "language": "Language"
+    "language": "Language",
+    "switchLanguage": "Switch language",
+    "user": "User"
   },
   "home": {
     "demoBadge": "Live Demo \u2014 No signup needed",
@@ -244,6 +248,16 @@
     "browse": "Browse",
     "core": "Core",
     "couldNotStoreDefault": "Could not store your default preference in this browser."
+  },
+  "quickGrade": {
+    "title": "Quick grade",
+    "subject": "Subject",
+    "grade": "Grade",
+    "noteOptional": "Note (optional)",
+    "saving": "Saving...",
+    "log": "Log",
+    "recentQuickGrades": "Recent quick grades",
+    "classLevel": "Class level"
   },
   "settings": {
     "accountLabel": "Account",
@@ -627,7 +641,10 @@
     "confidence": "Confidence",
     "matchSubject": "Select subject...",
     "schoolYear": "School Year",
-    "classLevel": "Class Level"
+    "classLevel": "Class Level",
+    "imagePreview": "Report card preview",
+    "include": "Include",
+    "exclude": "Exclude"
   },
   "profile": {
     "backToHomepage": "\u2190 Back to homepage",

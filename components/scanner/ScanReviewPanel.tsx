@@ -247,7 +247,7 @@ export function ScanReviewPanel({
                 type="button"
                 onClick={() => handleToggleExclude(idx)}
                 className="text-neutral-400 hover:text-red-500 text-lg transition-colors"
-                title={row.excluded ? 'Include' : 'Exclude'}
+                title={row.excluded ? t('include') : t('exclude')}
               >
                 {row.excluded ? '+' : '\u00d7'}
               </button>
