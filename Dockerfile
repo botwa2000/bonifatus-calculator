@@ -41,6 +41,7 @@ COPY --from=builder --chown=nextjs:nodejs /app/drizzle ./drizzle
 # tesseract.js is a serverExternalPackage — it must be present in node_modules
 # at runtime so its Node.js worker can load correctly
 COPY --from=builder --chown=nextjs:nodejs /app/node_modules/tesseract.js ./node_modules/tesseract.js
+COPY --from=builder --chown=nextjs:nodejs /app/node_modules/tesseract.js-core ./node_modules/tesseract.js-core
 # Pre-download Tesseract.js language data at build time so the first OCR
 # request doesn't stall on the CDN. Files are stored in /app/tessdata and
 # the worker is told to use this path via TESSDATA_CACHE (read in ocr-engine.ts).
