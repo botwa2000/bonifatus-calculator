@@ -1,69 +1,108 @@
 # Deployment Guide
 
-Bonifatus is deployed to a **Hetzner VPS** using **Docker Swarm**. Two environments run on the same server, each with its own stack, secrets, and domain.
+Bonifatus is deployed to a **Hetzner VPS** using **Docker Swarm**. Two environments run on the same server.
 
-|               | Dev                    | Prod                    |
-| ------------- | ---------------------- | ----------------------- |
-| Domain        | dev.bonifatus.com      | bonifatus.com           |
-| Branch        | `dev`                  | `main`                  |
-| External port | 3001                   | 3000                    |
-| Stack name    | `bonifatus-dev`        | `bonifatus-prod`        |
-| Image tag     | `bonifatus:dev`        | `bonifatus:prod`        |
-| Stack file    | `docker-stack.dev.yml` | `docker-stack.prod.yml` |
-| Debug level   | verbose                | none                    |
+|            | Dev                    | Prod                    |
+| ---------- | ---------------------- | ----------------------- |
+| Domain     | dev.bonifatus.com      | bonifatus.com           |
+| Branch     | `dev`                  | `main`                  |
+| Port       | 3001                   | 3000                    |
+| Stack      | `bonifatus-dev`        | `bonifatus-prod`        |
+| Image      | `bonifatus:dev`        | `bonifatus:prod`        |
+| Stack file | `docker-stack.dev.yml` | `docker-stack.prod.yml` |
 
-## Prerequisites
+## SSH Setup (one-time)
 
-- SSH key at `~/.ssh/bonifatus_hetzner` with access to `deploy@159.69.180.183`
-- Git repos cloned on the server at `/home/deploy/bonifatus-calculator` (prod) and `/home/deploy/bonifatus-dev` (dev)
-- Docker Swarm initialized on the server (`docker swarm init`)
-- Caddy or reverse proxy forwarding `bonifatus.com:443 -> :3000` and `dev.bonifatus.com:443 -> :3001`
+Add this to `~/.ssh/config` (already done — do not repeat):
+
+```
+Host bonifatus-hetzner
+  HostName 159.69.180.183
+  User deploy
+  IdentityFile ~/.ssh/bonifatus_hetzner
+  BatchMode yes
+  ServerAliveInterval 60
+  ServerAliveCountMax 10
+```
+
+After this, all SSH commands use `ssh bonifatus-hetzner` — no `-i` flag, no key path issues.
+
+Test it:
+
+```bash
+ssh bonifatus-hetzner "echo connected"
+```
+
+## Deployment
+
+### Deploy to dev
+
+```bash
+./deploy.sh dev
+```
+
+### Deploy to prod
+
+```bash
+# 1. Merge dev into main
+git checkout main
+git merge dev
+git push origin main
+
+# 2. Deploy
+./deploy.sh prod
+```
+
+Both commands run a single SSH session that:
+
+1. `git pull` the correct branch
+2. `docker build` with the correct build args
+3. `docker stack deploy` the stack
+4. `docker service update --force` to pick up the new image
+5. Wait 20s then health-check `http://localhost:{port}/api/health`
+
+**Time:** ~5–8 minutes (mostly the Docker build).
 
 ## Secrets Management
 
-All sensitive configuration is stored as **Docker Swarm external secrets**, not in files. Secrets are prefixed by environment (`dev_` or `prod_`) and the entrypoint script strips the prefix at runtime.
+Secrets are stored as Docker Swarm external secrets, prefixed by environment (`dev_` or `prod_`). The entrypoint script reads them from `/run/secrets/` and exports them without the prefix.
 
-### Required secrets per environment
+### Required secrets
 
-| Secret name                  | Description                          |
+| Secret                       | Description                          |
 | ---------------------------- | ------------------------------------ |
 | `{env}_DATABASE_URL`         | PostgreSQL connection string         |
 | `{env}_NEXTAUTH_SECRET`      | NextAuth JWT signing secret          |
 | `{env}_TURNSTILE_SECRET_KEY` | Cloudflare Turnstile server-side key |
 | `{env}_EMAIL_HOST`           | SMTP host                            |
 | `{env}_EMAIL_PORT`           | SMTP port                            |
-| `{env}_EMAIL_SECURE`         | SMTP TLS (`true`/`false`)            |
+| `{env}_EMAIL_SECURE`         | `true` or `false`                    |
 | `{env}_EMAIL_USER`           | SMTP username                        |
 | `{env}_EMAIL_PASSWORD`       | SMTP password                        |
 
-### Creating/updating secrets
+### Create or update secrets
 
 ```bash
-# Create a single secret
-echo -n "your-value" | ssh -i ~/.ssh/bonifatus_hetzner deploy@159.69.180.183 \
-  "docker secret create dev_DATABASE_URL -"
+# Single secret
+echo -n "value" | ssh bonifatus-hetzner "docker secret create dev_DATABASE_URL -"
 
-# Update a secret (must remove then recreate)
-ssh -i ~/.ssh/bonifatus_hetzner deploy@159.69.180.183 \
-  "docker secret rm dev_DATABASE_URL 2>/dev/null || true"
-echo -n "new-value" | ssh -i ~/.ssh/bonifatus_hetzner deploy@159.69.180.183 \
-  "docker secret create dev_DATABASE_URL -"
+# Update (remove then recreate)
+ssh bonifatus-hetzner "docker secret rm dev_DATABASE_URL 2>/dev/null || true"
+echo -n "new-value" | ssh bonifatus-hetzner "docker secret create dev_DATABASE_URL -"
 
-# Bulk update from a secrets file
+# Bulk update from file (KEY=value lines, no quotes, no export)
 ./deploy.sh dev --secrets-file .env.dev.secrets
 ```
 
-The secrets file format is plain `KEY=value` lines (no quotes, no `export`):
+### List secrets
 
-```
-DATABASE_URL=postgresql://user:pass@host:5432/db
-NEXTAUTH_SECRET=some-random-string
-TURNSTILE_SECRET_KEY=0x4AAA...
+```bash
+ssh bonifatus-hetzner "docker secret ls"
 ```
 
 ## Build-Time Variables
 
-These are baked into the Next.js client bundle at build time via Docker `--build-arg`. They are **not** secrets and are defined in `deploy.sh`:
+Baked into the Next.js client bundle at build time. Not secrets — defined in `deploy.sh`.
 
 | Variable                         | Dev                         | Prod                       |
 | -------------------------------- | --------------------------- | -------------------------- |
@@ -71,139 +110,77 @@ These are baked into the Next.js client bundle at build time via Docker `--build
 | `NEXT_PUBLIC_APP_URL`            | `https://dev.bonifatus.com` | `https://bonifatus.com`    |
 | `NEXT_PUBLIC_DEBUG_LEVEL`        | `verbose`                   | `none`                     |
 
-## Deployment Procedure
-
-### 1. Commit and push
+## Logs
 
 ```bash
-# On your local machine
-git add <files>
-git commit -m "Description of changes"
-git push origin dev
+# Dev
+ssh bonifatus-hetzner "docker service logs bonifatus-dev_app --tail 100 -f"
+
+# Prod
+ssh bonifatus-hetzner "docker service logs bonifatus-prod_app --tail 100 -f"
 ```
 
-### 2. Deploy to dev
+## Service Status
 
 ```bash
-./deploy.sh dev
-```
-
-This will:
-
-1. SSH to the server, pull latest `dev` branch
-2. Build Docker image `bonifatus:dev` with dev build args
-3. Deploy stack `bonifatus-dev` using `docker-stack.dev.yml`
-4. Force service update to pick up the new image
-5. Wait 10 seconds, then run health check on port 3001
-
-### 3. Verify dev
-
-- Check health: `curl https://dev.bonifatus.com/api/health`
-- Check the site: open `https://dev.bonifatus.com` in a browser
-- Test login, registration, and key flows
-- Check logs if needed:
-  ```bash
-  ssh -i ~/.ssh/bonifatus_hetzner deploy@159.69.180.183 \
-    "docker service logs bonifatus-dev_app --tail 100"
-  ```
-
-### 4. Merge to main and deploy to prod
-
-```bash
-# Merge dev into main
-git checkout main
-git merge dev
-git push origin main
-
-# Deploy to production
-./deploy.sh prod
-```
-
-### 5. Verify prod
-
-- Check health: `curl https://bonifatus.com/api/health`
-- Check the site: open `https://bonifatus.com` in a browser
-- Smoke test login and core features
-
-## Database Migrations
-
-Migrations use Drizzle Kit. Run them on the server after deployment if schema changes were made:
-
-```bash
-ssh -i ~/.ssh/bonifatus_hetzner deploy@159.69.180.183 bash -c '
-  cd /home/deploy/bonifatus-dev  # or bonifatus-calculator for prod
-  export DATABASE_URL="$(cat /run/secrets/dev_DATABASE_URL)"
-  npx drizzle-kit migrate
-'
-```
-
-## Debug Logging
-
-Debug output is controlled by `NEXT_PUBLIC_DEBUG_LEVEL` (a build-time variable):
-
-| Level     | Behavior                                                       |
-| --------- | -------------------------------------------------------------- |
-| `verbose` | All `dbg()`, `dbgWarn()`, `dbgError()` calls output to console |
-| `basic`   | Only `dbgWarn()` and `dbgError()` output to console            |
-| `none`    | No debug output                                                |
-
-Dev is set to `verbose`, prod to `none`. To temporarily enable debug on prod, rebuild with `--build-arg NEXT_PUBLIC_DEBUG_LEVEL=basic`.
-
-View logs:
-
-```bash
-# Dev logs (verbose debug enabled)
-ssh -i ~/.ssh/bonifatus_hetzner deploy@159.69.180.183 \
-  "docker service logs bonifatus-dev_app --tail 200 -f"
-
-# Prod logs
-ssh -i ~/.ssh/bonifatus_hetzner deploy@159.69.180.183 \
-  "docker service logs bonifatus-prod_app --tail 200 -f"
+# List all stacks and services
+ssh bonifatus-hetzner "docker stack ls && docker stack services bonifatus-dev && docker stack services bonifatus-prod"
 ```
 
 ## Rollback
 
-If a deployment fails:
+Docker Swarm keeps the previous task version:
 
 ```bash
-# Check which services are running
-ssh -i ~/.ssh/bonifatus_hetzner deploy@159.69.180.183 \
-  "docker service ls"
-
-# View recent logs for errors
-ssh -i ~/.ssh/bonifatus_hetzner deploy@159.69.180.183 \
-  "docker service logs bonifatus-dev_app --tail 50"
-
-# Rollback to previous image (Swarm keeps the previous version)
-ssh -i ~/.ssh/bonifatus_hetzner deploy@159.69.180.183 \
-  "docker service rollback bonifatus-dev_app"
+# Instant rollback (uses previous image)
+ssh bonifatus-hetzner "docker service rollback bonifatus-prod_app"
 ```
 
-For a full rollback, reset the branch on the server and rebuild:
+For a full code rollback:
 
 ```bash
-ssh -i ~/.ssh/bonifatus_hetzner deploy@159.69.180.183 bash -c '
-  cd /home/deploy/bonifatus-dev
-  git reset --hard HEAD~1
-  docker build --build-arg NEXT_PUBLIC_TURNSTILE_SITE_KEY=0x4AAAAAACWJz491rhjNxKNi \
-    --build-arg NEXT_PUBLIC_APP_URL=https://dev.bonifatus.com \
-    --build-arg NEXT_PUBLIC_DEBUG_LEVEL=verbose \
-    -t bonifatus:dev .
-  docker service update --force --image bonifatus:dev bonifatus-dev_app
-'
+ssh bonifatus-hetzner bash -s <<'EOF'
+cd /home/deploy/bonifatus-calculator
+git log --oneline -10
+EOF
+
+# Then reset to a specific commit and redeploy
+ssh bonifatus-hetzner bash -s <<'EOF'
+cd /home/deploy/bonifatus-calculator
+git reset --hard <commit>
+docker build \
+  --build-arg NEXT_PUBLIC_TURNSTILE_SITE_KEY=0x4AAAAAAB7cH7pweCPsYnpL \
+  --build-arg NEXT_PUBLIC_APP_URL=https://bonifatus.com \
+  --build-arg NEXT_PUBLIC_DEBUG_LEVEL=none \
+  -t bonifatus:prod .
+docker service update --force --image bonifatus:prod bonifatus-prod_app
+EOF
 ```
 
-## Architecture Overview
+## Database Migrations
+
+Run after deployment if schema changes were made:
+
+```bash
+# Dev
+ssh bonifatus-hetzner "export DATABASE_URL=\$(cat /run/secrets/dev_DATABASE_URL) && cd /home/deploy/bonifatus-dev && npx drizzle-kit migrate"
+
+# Prod
+ssh bonifatus-hetzner "export DATABASE_URL=\$(cat /run/secrets/prod_DATABASE_URL) && cd /home/deploy/bonifatus-calculator && npx drizzle-kit migrate"
+```
+
+## Architecture
 
 ```
-Client -> Caddy (TLS) -> Docker Swarm -> Container (port 3000)
+Client → nginx (TLS) → Docker Swarm → Container (:3000 prod / :3001 dev)
                                             |
                                     docker-entrypoint.sh
                                     (reads /run/secrets/*, strips env prefix,
-                                     exports as env vars, then runs node server.js)
+                                     exports as env vars, runs node server.js)
 ```
 
-- **Dockerfile**: Multi-stage build (deps -> builder -> runner). Standalone output mode.
-- **docker-entrypoint.sh**: Reads Docker Swarm secrets from `/run/secrets/`, strips `dev_`/`prod_` prefix, exports as environment variables.
-- **docker-stack.{dev,prod}.yml**: Defines service, ports, secrets, health check, and restart policy.
-- **deploy.sh**: Orchestrates the full deploy: SSH to server, git pull, docker build, stack deploy, force update, health check.
+- **Dockerfile**: Multi-stage build (deps → builder → runner). Standalone output. Pre-downloads Tesseract language data.
+- **docker-entrypoint.sh**: Reads Docker Swarm secrets, strips `dev_`/`prod_` prefix, exports as env vars.
+- **docker-stack.{dev,prod}.yml**: Service definition, ports, secrets, health check, restart policy.
+- **deploy.sh**: Single SSH session — git pull, docker build, stack deploy, force update, health check.
+- **~/.ssh/config**: Host alias `bonifatus-hetzner` so no `-i` flag needed anywhere.
