@@ -29,7 +29,8 @@
     "pts": "pts",
     "copyright": "\u00a9 2026 Bonifatus. All rights reserved.",
     "hidePassword": "Hide password",
-    "showPassword": "Show password"
+    "showPassword": "Show password",
+    "date": "Date"
   },
   "nav": {
     "features": "Features",
@@ -257,7 +258,14 @@
     "saving": "Saving...",
     "log": "Log",
     "recentQuickGrades": "Recent quick grades",
-    "classLevel": "Class level"
+    "classLevel": "Class level",
+    "noteTracker": "Note Tracker",
+    "testDate": "Test date",
+    "unsettled": "Unsettled",
+    "settled": "Settled",
+    "unsettledCount": "{count} unsettled ({points} pts)",
+    "filterAll": "All",
+    "filterUnsettled": "Unsettled only"
   },
   "settings": {
     "accountLabel": "Account",
@@ -341,7 +349,8 @@
     "changeFromLastYear": "Change from last year",
     "myRewards": "My Rewards",
     "totalEarned": "total bonus points earned",
-    "recentSettlements": "Ask your parent to settle rewards in the parent dashboard."
+    "recentSettlements": "Ask your parent to settle rewards in the parent dashboard.",
+    "noteTrackerTitle": "Note Tracker"
   },
   "studentProfile": {
     "header": "Student profile",
@@ -459,7 +468,16 @@
     "topPerformers": "Top Performers",
     "monthlyReturn": "30d return",
     "marketDisclaimer": "Data delayed. For educational purposes only. Not financial advice.",
-    "investCta": "Interested in investing your child's rewards?"
+    "investCta": "Interested in investing your child's rewards?",
+    "childNotes": "unsettled notes",
+    "noUnsettledNotes": "No unsettled notes for this child.",
+    "settleSelected": "Settle selected",
+    "settleAll": "Select all",
+    "settlementCreated": "Settlement created successfully!",
+    "notesForChild": "Unsettled notes for {name}",
+    "subjectLabel": "Subject",
+    "gradeLabel": "Grade",
+    "noteLabel": "Note"
   },
   "admin": {
     "dashboardTitle": "Admin Dashboard",
@@ -676,6 +694,8 @@
     "dangerDesc": "Permanently delete your account and data.",
     "deleteAccount": "Delete account",
     "deleting": "Deleting...",
-    "accountDeleted": "Account deleted. Signing you out..."
+    "accountDeleted": "Account deleted. Signing you out...",
+    "schoolName": "School Name",
+    "noSchoolSet": "No school set"
   }
 }

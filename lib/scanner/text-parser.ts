@@ -1,4 +1,5 @@
 import { dbg } from '@/lib/debug'
+import { correctOcrText, capitalizeProperName } from './ocr-corrections'
 
 export type ParsedSubject = {
   originalName: string
@@ -43,12 +44,42 @@ const GRADE_PATTERNS = [
 const TWO_COL_PATTERN =
   /^(.+?)\s{2,}(\d[+-]?|\d\.\d|\d{1,2}\/20|\d{1,3}%|[A-F][*+-]?)\s{3,}(.+?)\s{2,}(\d[+-]?|\d\.\d|\d{1,2}\/20|\d{1,3}%|[A-F][*+-]?)\s*$/i
 
+// School type keywords for heuristic school name detection
+const SCHOOL_TYPE_KEYWORDS = [
+  'grundschule',
+  'volksschule',
+  'gymnasium',
+  'realschule',
+  'hauptschule',
+  'gesamtschule',
+  'oberschule',
+  'mittelschule',
+  'förderschule',
+  'college',
+  'colegio',
+  'liceo',
+  'instituto',
+  'lycée',
+  'collège',
+  'école',
+  'scuola',
+  'school',
+  'academy',
+  'escuela',
+  'школа',
+  'гимназия',
+  'лицей',
+]
+
 // Term type keywords
 const TERM_KEYWORDS: Record<string, 'midterm' | 'final' | 'semester' | 'quarterly'> = {
   // German
   jahreszeugnis: 'final',
   halbjahreszeugnis: 'semester',
   zwischenzeugnis: 'midterm',
+  abschlusszeugnis: 'final',
+  versetzungszeugnis: 'final',
+  'zeugnis der allgemeinen hochschulreife': 'final',
   // French
   'bulletin annuel': 'final',
   'bulletin semestriel': 'semester',
@@ -61,12 +92,26 @@ const TERM_KEYWORDS: Record<string, 'midterm' | 'final' | 'semester' | 'quarterl
   midterm: 'midterm',
   semester: 'semester',
   quarterly: 'quarterly',
+  'annual report': 'final',
   // Italian
   pagella: 'final',
   'pagella finale': 'final',
+  'scheda di valutazione': 'final',
+  'primo quadrimestre': 'semester',
+  'secondo quadrimestre': 'final',
   // Spanish
   'boletín final': 'final',
   'boletín trimestral': 'quarterly',
+  'calificaciones finales': 'final',
+  'evaluación trimestral': 'quarterly',
+  // Russian
+  'годовая оценка': 'final',
+  годовая: 'final',
+  'четвертная оценка': 'quarterly',
+  четвертная: 'quarterly',
+  полугодовая: 'semester',
+  'итоговая аттестация': 'final',
+  аттестат: 'final',
 }
 
 // Subject aliases for common OCR outputs (OCR often mis-reads specific characters)
@@ -90,6 +135,80 @@ const BEHAVIORAL_GRADES = new Set([
   'comportamiento',
   'conducta',
 ])
+
+const TEXT_MONTH_MAP: Record<string, string> = {
+  // German
+  januar: '01',
+  februar: '02',
+  märz: '03',
+  april: '04',
+  mai: '05',
+  juni: '06',
+  juli: '07',
+  august: '08',
+  september: '09',
+  oktober: '10',
+  november: '11',
+  dezember: '12',
+  // French
+  janvier: '01',
+  février: '02',
+  mars: '03',
+  avril: '04',
+  juin: '06',
+  juillet: '07',
+  août: '08',
+  septembre: '09',
+  octobre: '10',
+  novembre: '11',
+  décembre: '12',
+  // Spanish
+  enero: '01',
+  febrero: '02',
+  marzo: '03',
+  mayo: '05',
+  junio: '06',
+  julio: '07',
+  agosto: '08',
+  septiembre: '09',
+  noviembre: '11',
+  diciembre: '12',
+  // Italian
+  gennaio: '01',
+  febbraio: '02',
+  aprile: '04',
+  maggio: '05',
+  giugno: '06',
+  luglio: '07',
+  settembre: '09',
+  ottobre: '10',
+  // English
+  january: '01',
+  february: '02',
+  march: '03',
+  may: '05',
+  june: '06',
+  july: '07',
+  october: '10',
+  december: '12',
+}
+
+function textMonthToNumber(month: string): string | null {
+  return TEXT_MONTH_MAP[month.toLowerCase()] ?? null
+}
+
+function normalizeDate(raw: string): string {
+  // Already ISO format
+  if (/^\d{4}-\d{2}-\d{2}$/.test(raw)) return raw
+  // DD.MM.YYYY or DD/MM/YYYY
+  const parts = raw.split(/[./]/)
+  if (parts.length === 3) {
+    const [d, m, y] = parts
+    const year = y.length === 2 ? `20${y}` : y
+    return `${year}-${m.padStart(2, '0')}-${d.padStart(2, '0')}`
+  }
+  return raw
+}
 
 function isGradeValue(text: string): boolean {
   const trimmed = text.trim()
@@ -133,7 +252,8 @@ export function parseOcrText(text: string, overallConfidence: number): ScanResul
 
   let prevLine = ''
 
-  for (const line of lines) {
+  for (let lineIndex = 0; lineIndex < lines.length; lineIndex++) {
+    const line = lines[lineIndex]
     const lowerLine = line.toLowerCase()
     let isMetadataLine = false
 
@@ -144,14 +264,25 @@ export function parseOcrText(text: string, overallConfidence: number): ScanResul
       isMetadataLine = true
     }
 
-    // Student name — handles "Vor- und Zuname", "Name:", "Schüler:" etc.
+    // Student name — handles "Vor- und Zuname", "Name:", "Schüler:", "Nom:", "Apellido:", "Фамилия:" etc.
     // Colon is optional because German reports often use spacing only.
     if (!metadata.studentName) {
       const studentMatch = line.match(
-        /(?:Vor-?\s*(?:und|u\.?)\s*Zuname|Vorname|Name|Student|Schüler(?:in)?|Élève|Aluno|Alumno|Ученик)\s*[:：]?\s+(.+)/i
+        /(?:Vor-?\s*(?:und|u\.?)\s*Zuname|Vorname|Name|Student|Schüler(?:in)?|Élève|Aluno|Alumno|Ученик|Nom|Apellido|Фамилия|Имя)\s*[:：]?\s+(.+)/i
       )
       if (studentMatch) {
-        metadata.studentName = studentMatch[1].trim()
+        metadata.studentName = capitalizeProperName(correctOcrText(studentMatch[1].trim()))
+        isMetadataLine = true
+      }
+    }
+
+    // Heuristic: 2-3 capitalized words in top 10 lines may be a student name
+    if (!metadata.studentName && lineIndex < 10) {
+      const nameCandidate = line.match(
+        /^([A-ZÄÖÜÀÂÉÈÊËÎÏÔÙÛÇÑ][a-zäöüàâéèêëîïôùûçñß]+(?:\s+[A-ZÄÖÜÀÂÉÈÊËÎÏÔÙÛÇÑ][a-zäöüàâéèêëîïôùûçñß]+){1,2})\s*$/
+      )
+      if (nameCandidate && !SCHOOL_TYPE_KEYWORDS.some((kw) => line.toLowerCase().includes(kw))) {
+        metadata.studentName = capitalizeProperName(correctOcrText(nameCandidate[1]))
         isMetadataLine = true
       }
     }
@@ -159,10 +290,23 @@ export function parseOcrText(text: string, overallConfidence: number): ScanResul
     // School name via explicit label prefix (e.g. "Schule: …")
     if (!metadata.schoolName) {
       const schoolMatch = line.match(
-        /(?:Schule|School|École|Scuola|Escuela|Школа|Gymnasium|Realschule|Hauptschule|Gesamtschule|Lycée|Instituto)\s*[:：]\s*(.+)/i
+        /(?:Schule|School|École|Scuola|Escuela|Школа|Gymnasium|Realschule|Hauptschule|Gesamtschule|Lycée|Instituto|Colegio|College|Liceo)\s*[:：]\s*(.+)/i
       )
       if (schoolMatch) {
-        metadata.schoolName = schoolMatch[1].trim()
+        metadata.schoolName = correctOcrText(schoolMatch[1].trim())
+        isMetadataLine = true
+      }
+    }
+
+    // Heuristic: school type keyword in line → treat entire line as school name
+    if (!metadata.schoolName) {
+      const lowerForSchool = line.toLowerCase()
+      if (
+        SCHOOL_TYPE_KEYWORDS.some((kw) => lowerForSchool.includes(kw)) &&
+        line.length > 5 &&
+        line.length < 80
+      ) {
+        metadata.schoolName = correctOcrText(line)
         isMetadataLine = true
       }
     }
@@ -190,11 +334,25 @@ export function parseOcrText(text: string, overallConfidence: number): ScanResul
       }
     }
 
-    // Date (DD.MM.YYYY, DD/MM/YYYY, YYYY-MM-DD) — shares lines freely
+    // Date (DD.MM.YYYY, DD/MM/YYYY, YYYY-MM-DD, textual European) — shares lines freely
     if (!metadata.date) {
       const dateMatch = line.match(/\b(\d{1,2}[./]\d{1,2}[./]\d{2,4}|\d{4}-\d{2}-\d{2})\b/)
       if (dateMatch) {
-        metadata.date = dateMatch[1]
+        metadata.date = normalizeDate(dateMatch[1])
+      } else {
+        // European textual formats: "12. Januar 2024", "12 janvier 2024", "15 marzo 2024"
+        const textDateMatch = line.match(
+          /\b(\d{1,2})\.?\s+(Januar|Februar|März|April|Mai|Juni|Juli|August|September|Oktober|November|Dezember|janvier|février|mars|avril|mai|juin|juillet|août|septembre|octobre|novembre|décembre|enero|febrero|marzo|abril|mayo|junio|julio|agosto|septiembre|octubre|noviembre|diciembre|gennaio|febbraio|aprile|maggio|giugno|luglio|settembre|ottobre|dicembre|January|February|March|April|May|June|July|August|October|December)\s+(\d{4})\b/i
+        )
+        if (textDateMatch) {
+          const day = textDateMatch[1].padStart(2, '0')
+          const monthName = textDateMatch[2].toLowerCase()
+          const year = textDateMatch[3]
+          const monthNum = textMonthToNumber(monthName)
+          if (monthNum) {
+            metadata.date = `${year}-${monthNum}-${day}`
+          }
+        }
       }
     }
 

@@ -13,6 +13,7 @@ interface ProfileClientProps {
   dateOfBirth: string | null
   themePreference: ThemeChoice
   role: 'parent' | 'child'
+  schoolName?: string | null
 }
 
 export default function ProfileClient({
@@ -21,6 +22,7 @@ export default function ProfileClient({
   dateOfBirth,
   themePreference,
   role,
+  schoolName: initialSchoolName,
 }: ProfileClientProps) {
   const router = useRouter()
   const t = useTranslations('profile')
@@ -28,6 +30,7 @@ export default function ProfileClient({
   const ta = useTranslations('auth')
 
   const [name, setName] = useState(fullName)
+  const [schoolNameVal, setSchoolNameVal] = useState(initialSchoolName || '')
   const [dob, setDob] = useState(dateOfBirth || '')
   const [newPassword, setNewPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
@@ -113,6 +116,7 @@ export default function ProfileClient({
         body: JSON.stringify({
           fullName: name.trim() || undefined,
           dateOfBirth: dob || null,
+          schoolName: role === 'child' ? schoolNameVal.trim() || null : undefined,
         }),
       })
       if (!res.ok) {
@@ -307,6 +311,20 @@ export default function ProfileClient({
                 </p>
               )}
             </label>
+            {role === 'child' && (
+              <label className="block space-y-1">
+                <span className="text-sm text-neutral-700 dark:text-neutral-300">
+                  {t('schoolName')}
+                </span>
+                <input
+                  type="text"
+                  value={schoolNameVal}
+                  onChange={(e) => setSchoolNameVal(e.target.value)}
+                  placeholder={t('noSchoolSet')}
+                  className="w-full rounded-lg border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 py-2 text-neutral-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary-500"
+                />
+              </label>
+            )}
             <label className="block space-y-1">
               <span className="text-sm text-neutral-700 dark:text-neutral-300">
                 {t('emailAddress')}

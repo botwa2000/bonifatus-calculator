@@ -3,6 +3,7 @@ import { db } from '@/lib/db/client'
 import { subjects } from '@/drizzle/schema/grades'
 import { eq } from 'drizzle-orm'
 import type { ParsedSubject } from './text-parser'
+import { generateOcrVariants, normalizeUmlauts } from './ocr-corrections'
 
 const LOCALES = ['en', 'de', 'fr', 'it', 'es', 'ru'] as const
 
@@ -49,10 +50,30 @@ function normalizeForComparison(text: string): string {
     .trim()
 }
 
+function levenshteinDistance(a: string, b: string): number {
+  const la = a.length
+  const lb = b.length
+  const dp: number[] = Array.from({ length: lb + 1 }, (_, i) => i)
+  for (let i = 1; i <= la; i++) {
+    let prev = i - 1
+    dp[0] = i
+    for (let j = 1; j <= lb; j++) {
+      const tmp = dp[j]
+      if (a[i - 1] === b[j - 1]) {
+        dp[j] = prev
+      } else {
+        dp[j] = 1 + Math.min(prev, dp[j], dp[j - 1])
+      }
+      prev = tmp
+    }
+  }
+  return dp[lb]
+}
+
 function findMatch(
   originalName: string,
   allSubjects: DbSubject[]
-): { id: string; name: string; confidence: 'high' | 'medium' | 'low' } | null {
+): { id: string; name: string; confidence: 'high' | 'medium' | 'low'; method: string } | null {
   const normalized = normalizeForComparison(originalName)
 
   // Strategy 1: Exact match in any locale
@@ -60,7 +81,7 @@ function findMatch(
     for (const locale of LOCALES) {
       const localeName = subj.name[locale]
       if (localeName && normalizeForComparison(localeName) === normalized) {
-        return { id: subj.id, name: localeName, confidence: 'high' }
+        return { id: subj.id, name: localeName, confidence: 'high', method: 'exact' }
       }
     }
   }
@@ -74,7 +95,7 @@ function findMatch(
 
       // Check if OCR text starts with subject name or vice versa
       if (normLocal.startsWith(normalized) || normalized.startsWith(normLocal)) {
-        return { id: subj.id, name: localeName, confidence: 'medium' }
+        return { id: subj.id, name: localeName, confidence: 'medium', method: 'prefix' }
       }
     }
   }
@@ -87,12 +108,54 @@ function findMatch(
       const normLocal = normalizeForComparison(localeName)
 
       if (normLocal.length >= 3 && normalized.includes(normLocal)) {
-        return { id: subj.id, name: localeName, confidence: 'low' }
+        return { id: subj.id, name: localeName, confidence: 'low', method: 'contains' }
       }
       if (normalized.length >= 3 && normLocal.includes(normalized)) {
-        return { id: subj.id, name: localeName, confidence: 'low' }
+        return { id: subj.id, name: localeName, confidence: 'low', method: 'contains' }
       }
     }
+  }
+
+  // Strategy 3.5: OCR-corrected matching — try variants of the OCR text
+  const variants = generateOcrVariants(originalName)
+  for (const variant of variants) {
+    if (variant === originalName) continue
+    const normVariant = normalizeForComparison(variant)
+    const normVariantUmlaut = normalizeForComparison(normalizeUmlauts(variant))
+    for (const subj of allSubjects) {
+      for (const locale of LOCALES) {
+        const localeName = subj.name[locale]
+        if (!localeName) continue
+        const normLocal = normalizeForComparison(localeName)
+        const normLocalUmlaut = normalizeForComparison(normalizeUmlauts(localeName))
+        if (normLocal === normVariant || normLocalUmlaut === normVariantUmlaut) {
+          return { id: subj.id, name: localeName, confidence: 'medium', method: 'ocr-corrected' }
+        }
+        if (normLocal.startsWith(normVariant) || normVariant.startsWith(normLocal)) {
+          return { id: subj.id, name: localeName, confidence: 'medium', method: 'ocr-corrected' }
+        }
+      }
+    }
+  }
+
+  // Strategy 4: Levenshtein fuzzy match
+  let bestMatch: { id: string; name: string; dist: number } | null = null
+  for (const subj of allSubjects) {
+    for (const locale of LOCALES) {
+      const localeName = subj.name[locale]
+      if (!localeName) continue
+      const normLocal = normalizeForComparison(localeName)
+      if (normLocal.length < 4 || normalized.length < 4) continue
+
+      const dist = levenshteinDistance(normalized, normLocal)
+      const threshold = Math.floor(Math.min(normalized.length, normLocal.length) * 0.25)
+      if (dist <= threshold && (!bestMatch || dist < bestMatch.dist)) {
+        bestMatch = { id: subj.id, name: localeName, dist }
+      }
+    }
+  }
+  if (bestMatch) {
+    return { id: bestMatch.id, name: bestMatch.name, confidence: 'low', method: 'levenshtein' }
   }
 
   return null
@@ -118,12 +181,16 @@ export async function matchSubjects(parsed: ParsedSubject[]): Promise<MatchedSub
   })
 
   dbg('scanner', 'subject match results', {
-    results: results.map((s) => ({
-      ocr: s.originalName,
-      grade: s.grade,
-      matched: s.matchedSubjectName ?? '(no match)',
-      confidence: s.matchConfidence,
-    })),
+    results: results.map((s) => {
+      const match = findMatch(s.originalName, allSubjects)
+      return {
+        ocr: s.originalName,
+        grade: s.grade,
+        matched: s.matchedSubjectName ?? '(no match)',
+        confidence: s.matchConfidence,
+        method: match?.method ?? 'none',
+      }
+    }),
   })
 
   return results

@@ -29,7 +29,8 @@
     "pts": "Pkt.",
     "copyright": "\u00a9 2026 Bonifatus. Alle Rechte vorbehalten.",
     "hidePassword": "Passwort verbergen",
-    "showPassword": "Passwort anzeigen"
+    "showPassword": "Passwort anzeigen",
+    "date": "Datum"
   },
   "nav": {
     "features": "Funktionen",
@@ -257,7 +258,14 @@
     "saving": "Speichern...",
     "log": "Eintragen",
     "recentQuickGrades": "Letzte Schnellnoten",
-    "classLevel": "Klassenstufe"
+    "classLevel": "Klassenstufe",
+    "noteTracker": "Noten-Tracker",
+    "testDate": "Prüfungsdatum",
+    "unsettled": "Offen",
+    "settled": "Abgerechnet",
+    "unsettledCount": "{count} offene ({points} Pkt)",
+    "filterAll": "Alle",
+    "filterUnsettled": "Nur offene"
   },
   "settings": {
     "accountLabel": "Konto",
@@ -341,7 +349,8 @@
     "changeFromLastYear": "Veränderung zum Vorjahr",
     "myRewards": "Meine Belohnungen",
     "totalEarned": "Bonuspunkte insgesamt verdient",
-    "recentSettlements": "Bitte deinen Elternteil, Belohnungen im Eltern-Dashboard abzurechnen."
+    "recentSettlements": "Bitte deinen Elternteil, Belohnungen im Eltern-Dashboard abzurechnen.",
+    "noteTrackerTitle": "Noten-Tracker"
   },
   "studentProfile": {
     "header": "Schülerprofil",
@@ -459,7 +468,16 @@
     "topPerformers": "Top-Performer",
     "monthlyReturn": "30-Tage-Rendite",
     "marketDisclaimer": "Daten verzögert. Nur zu Bildungszwecken. Keine Finanzberatung.",
-    "investCta": "Interesse, die Belohnungen deines Kindes zu investieren?"
+    "investCta": "Interesse, die Belohnungen deines Kindes zu investieren?",
+    "childNotes": "offene Noten",
+    "noUnsettledNotes": "Keine offenen Noten für dieses Kind.",
+    "settleSelected": "Ausgewählte abrechnen",
+    "settleAll": "Alle auswählen",
+    "settlementCreated": "Abrechnung erfolgreich erstellt!",
+    "notesForChild": "Offene Noten für {name}",
+    "subjectLabel": "Fach",
+    "gradeLabel": "Note",
+    "noteLabel": "Notiz"
   },
   "admin": {
     "dashboardTitle": "Admin-Dashboard",
@@ -676,6 +694,8 @@
     "dangerDesc": "Lösche dein Konto und deine Daten unwiderruflich.",
     "deleteAccount": "Konto löschen",
     "deleting": "Löschen...",
-    "accountDeleted": "Konto gelöscht. Du wirst abgemeldet..."
+    "accountDeleted": "Konto gelöscht. Du wirst abgemeldet...",
+    "schoolName": "Schulname",
+    "noSchoolSet": "Keine Schule angegeben"
   }
 }

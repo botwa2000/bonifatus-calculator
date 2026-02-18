@@ -14,12 +14,14 @@ export async function updateProfile(
     fullName?: string
     dateOfBirth?: string
     themePreference?: 'light' | 'dark' | 'system'
+    schoolName?: string | null
   }
 ) {
   const updateData: Record<string, unknown> = { updatedAt: new Date() }
   if (data.fullName !== undefined) updateData.fullName = data.fullName
   if (data.dateOfBirth !== undefined) updateData.dateOfBirth = data.dateOfBirth
   if (data.themePreference !== undefined) updateData.themePreference = data.themePreference
+  if (data.schoolName !== undefined) updateData.schoolName = data.schoolName
 
   await db.update(userProfiles).set(updateData).where(eq(userProfiles.id, userId))
 }

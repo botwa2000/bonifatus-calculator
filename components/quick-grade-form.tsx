@@ -22,6 +22,7 @@ type QuickGrade = {
   gradeValue: string
   bonusPoints: number | null
   note: string | null
+  settlementStatus: string
   createdAt: string | null
   subjectName: string | Record<string, string> | null
 }
@@ -36,10 +37,12 @@ export function QuickGradeForm() {
   const [recentGrades, setRecentGrades] = useState<QuickGrade[]>([])
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
+  const [filter, setFilter] = useState<'all' | 'unsettled'>('all')
 
   const [subjectId, setSubjectId] = useState('')
   const [gradeValue, setGradeValue] = useState('')
   const [note, setNote] = useState('')
+  const [testDate, setTestDate] = useState('')
   const [message, setMessage] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
 
@@ -94,6 +97,7 @@ export function QuickGradeForm() {
           classLevel: defaultClassLevel,
           gradeValue,
           note: note || undefined,
+          gradedAt: testDate || undefined,
         }),
       })
       const data = await res.json()
@@ -104,6 +108,7 @@ export function QuickGradeForm() {
       setMessage(`+${Number(data.quickGrade.bonusPoints).toFixed(2)} pts`)
       setGradeValue('')
       setNote('')
+      setTestDate('')
       // Refresh list
       const listRes = await fetch('/api/grades/quick/list')
       const listData = await listRes.json()
@@ -135,9 +140,28 @@ export function QuickGradeForm() {
 
   if (loading) return null
 
+  const filteredGrades =
+    filter === 'unsettled'
+      ? recentGrades.filter((g) => g.settlementStatus === 'unsettled')
+      : recentGrades
+
+  const unsettledCount = recentGrades.filter((g) => g.settlementStatus === 'unsettled').length
+  const unsettledPoints = recentGrades
+    .filter((g) => g.settlementStatus === 'unsettled')
+    .reduce((sum, g) => sum + Number(g.bonusPoints ?? 0), 0)
+
   return (
     <div className="rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 shadow-sm p-4 space-y-3">
-      <h3 className="text-sm font-semibold text-neutral-800 dark:text-neutral-100">{t('title')}</h3>
+      <div className="flex items-center justify-between">
+        <h3 className="text-sm font-semibold text-neutral-800 dark:text-neutral-100">
+          {t('noteTracker')}
+        </h3>
+        {unsettledCount > 0 && (
+          <span className="text-xs rounded-full bg-amber-50 text-amber-700 dark:bg-amber-900/40 dark:text-amber-200 px-2 py-0.5">
+            {t('unsettledCount', { count: unsettledCount, points: unsettledPoints.toFixed(2) })}
+          </span>
+        )}
+      </div>
       <div className="flex flex-wrap gap-2 items-end">
         <select
           value={subjectId}
@@ -173,10 +197,11 @@ export function QuickGradeForm() {
           />
         )}
         <input
-          value={note}
-          onChange={(e) => setNote(e.target.value)}
-          placeholder={t('noteOptional')}
-          className="rounded-lg border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 py-2 text-sm text-neutral-900 dark:text-white flex-1 min-w-[100px]"
+          type="date"
+          value={testDate}
+          onChange={(e) => setTestDate(e.target.value)}
+          className="rounded-lg border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 py-2 text-sm text-neutral-900 dark:text-white w-36"
+          title={t('testDate')}
         />
         <input
           type="number"
@@ -186,6 +211,14 @@ export function QuickGradeForm() {
           onChange={(e) => setDefaultClassLevel(Number(e.target.value) || 1)}
           className="rounded-lg border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 py-2 text-sm text-neutral-900 dark:text-white w-16"
           title={t('classLevel')}
+        />
+      </div>
+      <div className="flex flex-wrap gap-2 items-end">
+        <input
+          value={note}
+          onChange={(e) => setNote(e.target.value)}
+          placeholder={t('noteOptional')}
+          className="rounded-lg border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 py-2 text-sm text-neutral-900 dark:text-white flex-1 min-w-[200px]"
         />
         <button
           onClick={handleSave}
@@ -199,13 +232,45 @@ export function QuickGradeForm() {
       {message && <p className="text-xs text-success-600 font-semibold">{message}</p>}
       {recentGrades.length > 0 && (
         <div className="space-y-1 pt-2 border-t border-neutral-100 dark:border-neutral-800">
-          <p className="text-xs text-neutral-500 dark:text-neutral-400">{t('recentQuickGrades')}</p>
-          {recentGrades.map((g) => (
+          <div className="flex items-center justify-between">
+            <p className="text-xs text-neutral-500 dark:text-neutral-400">
+              {t('recentQuickGrades')}
+            </p>
+            <div className="flex gap-1">
+              <button
+                onClick={() => setFilter('all')}
+                className={`px-2 py-0.5 rounded text-[10px] font-semibold transition ${
+                  filter === 'all'
+                    ? 'bg-neutral-200 dark:bg-neutral-700 text-neutral-900 dark:text-white'
+                    : 'text-neutral-500 hover:text-neutral-700'
+                }`}
+              >
+                {t('filterAll')}
+              </button>
+              <button
+                onClick={() => setFilter('unsettled')}
+                className={`px-2 py-0.5 rounded text-[10px] font-semibold transition ${
+                  filter === 'unsettled'
+                    ? 'bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-200'
+                    : 'text-neutral-500 hover:text-neutral-700'
+                }`}
+              >
+                {t('filterUnsettled')}
+              </button>
+            </div>
+          </div>
+          {filteredGrades.map((g) => (
             <div
               key={g.id}
               className="flex items-center justify-between text-xs text-neutral-700 dark:text-neutral-300"
             >
               <div className="flex items-center gap-2">
+                <span
+                  className={`inline-block w-2 h-2 rounded-full ${
+                    g.settlementStatus === 'settled' ? 'bg-success-500' : 'bg-amber-500'
+                  }`}
+                  title={g.settlementStatus === 'settled' ? t('settled') : t('unsettled')}
+                />
                 <span className="font-semibold">{resolveLocalized(g.subjectName, locale)}</span>
                 <span>{g.gradeValue}</span>
                 {g.note && <span className="text-neutral-500">({g.note})</span>}

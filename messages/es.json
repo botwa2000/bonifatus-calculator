@@ -29,7 +29,8 @@
     "pts": "pts",
     "copyright": "\u00a9 2026 Bonifatus. Todos los derechos reservados.",
     "hidePassword": "Ocultar contraseña",
-    "showPassword": "Mostrar contraseña"
+    "showPassword": "Mostrar contraseña",
+    "date": "Fecha"
   },
   "nav": {
     "features": "Funciones",
@@ -257,7 +258,14 @@
     "saving": "Guardando...",
     "log": "Registrar",
     "recentQuickGrades": "Calificaciones rápidas recientes",
-    "classLevel": "Nivel escolar"
+    "classLevel": "Nivel escolar",
+    "noteTracker": "Registro de notas",
+    "testDate": "Fecha del examen",
+    "unsettled": "Pendiente",
+    "settled": "Liquidado",
+    "unsettledCount": "{count} pendientes ({points} pts)",
+    "filterAll": "Todas",
+    "filterUnsettled": "Solo pendientes"
   },
   "settings": {
     "accountLabel": "Cuenta",
@@ -341,7 +349,8 @@
     "changeFromLastYear": "Cambio respecto al año anterior",
     "myRewards": "Mis recompensas",
     "totalEarned": "puntos de bonificación totales ganados",
-    "recentSettlements": "Pide a tu padre/madre que liquide las recompensas en el panel de padres."
+    "recentSettlements": "Pide a tu padre/madre que liquide las recompensas en el panel de padres.",
+    "noteTrackerTitle": "Registro de notas"
   },
   "studentProfile": {
     "header": "Perfil del estudiante",
@@ -459,7 +468,16 @@
     "topPerformers": "Mejores rendimientos",
     "monthlyReturn": "Rendimiento 30d",
     "marketDisclaimer": "Datos con retraso. Solo con fines educativos. No es asesoría financiera.",
-    "investCta": "¿Interesado en invertir las recompensas de tu hijo/a?"
+    "investCta": "¿Interesado en invertir las recompensas de tu hijo/a?",
+    "childNotes": "notas pendientes",
+    "noUnsettledNotes": "No hay notas pendientes para este hijo.",
+    "settleSelected": "Liquidar seleccionadas",
+    "settleAll": "Seleccionar todas",
+    "settlementCreated": "¡Liquidación creada con éxito!",
+    "notesForChild": "Notas pendientes de {name}",
+    "subjectLabel": "Asignatura",
+    "gradeLabel": "Nota",
+    "noteLabel": "Observación"
   },
   "admin": {
     "dashboardTitle": "Panel de administración",
@@ -677,6 +695,8 @@
     "dangerDesc": "Elimina permanentemente tu cuenta y datos.",
     "deleteAccount": "Eliminar cuenta",
     "deleting": "Eliminando...",
-    "accountDeleted": "Cuenta eliminada. Cerrando tu sesión..."
+    "accountDeleted": "Cuenta eliminada. Cerrando tu sesión...",
+    "schoolName": "Nombre del colegio",
+    "noSchoolSet": "Sin colegio definido"
   }
 }

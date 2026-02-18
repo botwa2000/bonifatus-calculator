@@ -23,6 +23,7 @@ export async function GET() {
         gradeQualityTier: quickGrades.gradeQualityTier,
         bonusPoints: quickGrades.bonusPoints,
         note: quickGrades.note,
+        settlementStatus: quickGrades.settlementStatus,
         gradedAt: quickGrades.gradedAt,
         createdAt: quickGrades.createdAt,
         subjectName: subjects.name,

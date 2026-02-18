@@ -304,36 +304,21 @@ export function AppHeader(props: AppHeaderProps) {
           </nav>
         </div>
         <div className="flex items-center gap-3">
-          <div className="hidden flex-col text-right leading-tight sm:flex">
-            <span className="text-sm font-semibold text-neutral-900 dark:text-white">
-              {userName || t('user')}
-            </span>
-            {userRole && (
-              <span className="text-xs uppercase tracking-wide text-neutral-500 dark:text-neutral-400">
-                {userRole}
+          <div className="hidden items-center gap-2 sm:flex">
+            <div className="w-8 h-8 rounded-full bg-primary-100 dark:bg-primary-900/40 flex items-center justify-center text-primary-700 dark:text-primary-200 text-sm font-bold">
+              {(userName || t('user'))[0]?.toUpperCase() || '?'}
+            </div>
+            <div className="flex flex-col text-right leading-tight">
+              <span className="text-sm font-semibold text-neutral-900 dark:text-white">
+                {userName || t('user')}
               </span>
-            )}
+              {userRole && (
+                <span className="text-xs uppercase tracking-wide text-neutral-500 dark:text-neutral-400">
+                  {userRole}
+                </span>
+              )}
+            </div>
           </div>
-          <Link
-            href="/settings"
-            className="rounded-lg p-2 text-neutral-600 hover:bg-neutral-100 dark:text-neutral-300 dark:hover:bg-neutral-800 transition"
-            title={t('settings')}
-          >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"
-              />
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-              />
-            </svg>
-          </Link>
           <LocaleDropdown />
           <button
             onClick={handleLogout}
@@ -361,6 +346,12 @@ export function AppHeader(props: AppHeaderProps) {
       <div
         className={`sm:hidden border-t border-neutral-200 dark:border-neutral-800 ${mobileOpen ? '' : 'hidden'}`}
       >
+        <div className="px-3 py-2 border-b border-neutral-200 dark:border-neutral-800">
+          <p className="font-semibold text-neutral-900 dark:text-white">{userName || t('user')}</p>
+          {userRole && (
+            <p className="text-xs text-neutral-500 dark:text-neutral-400 uppercase">{userRole}</p>
+          )}
+        </div>
         <nav className="flex flex-col px-4 py-2 gap-1">
           {navItems.map((item) => (
             <Link

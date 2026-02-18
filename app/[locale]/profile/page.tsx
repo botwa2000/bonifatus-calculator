@@ -17,6 +17,7 @@ export default async function ProfilePage({ params }: { params: Promise<{ locale
       dateOfBirth={profile?.dateOfBirth || null}
       themePreference={(profile?.themePreference as 'light' | 'dark' | 'system') || 'system'}
       role={(profile?.role as 'parent' | 'child') || 'parent'}
+      schoolName={profile?.schoolName || null}
     />
   )
 }

@@ -72,6 +72,27 @@ type GradesResponse = {
   error?: string
 }
 
+export type ChildQuickGrade = {
+  id: string
+  subjectId: string
+  gradeValue: string
+  gradeNormalized100: number | null
+  gradeQualityTier: string | null
+  bonusPoints: number | null
+  note: string | null
+  gradedAt: string | null
+  createdAt: string | null
+  settlementStatus: string
+  settlementId: string | null
+  subjectName: string | Record<string, string> | null
+}
+
+export type ChildQuickGradeGroup = {
+  childId: string
+  childName: string
+  grades: ChildQuickGrade[]
+}
+
 export function useParentData() {
   const [connections, setConnections] = useState<Connection[]>([])
   const [invites, setInvites] = useState<Invite[]>([])
@@ -81,6 +102,7 @@ export function useParentData() {
   const [gradeSummaries, setGradeSummaries] = useState<Record<string, ChildGradeSummary>>({})
   const [gradePreviews, setGradePreviews] = useState<Record<string, TermPreview[]>>({})
   const [gradesLoaded, setGradesLoaded] = useState(false)
+  const [childQuickGrades, setChildQuickGrades] = useState<ChildQuickGradeGroup[]>([])
   const [allChildTerms, setAllChildTerms] = useState<
     Array<{ childId: string; childName: string; term: GradesChild['terms'][0] }>
   >([])
@@ -90,13 +112,15 @@ export function useParentData() {
     setGradesLoaded(false)
     setError(null)
     try {
-      const [connRes, gradesRes] = await Promise.all([
+      const [connRes, gradesRes, qgRes] = await Promise.all([
         fetch('/api/connections/list'),
         fetch('/api/parent/children/grades'),
+        fetch('/api/parent/children/quick-grades'),
       ])
-      const [connJson, gradesJson] = await Promise.all([
+      const [connJson, gradesJson, qgJson] = await Promise.all([
         connRes.json(),
         gradesRes.json() as Promise<GradesResponse>,
+        qgRes.json(),
       ])
 
       if (!connRes.ok || !connJson.success) {
@@ -153,6 +177,10 @@ export function useParentData() {
         setGradeSummaries(summaries)
         setGradePreviews(previews)
         setAllChildTerms(flatTerms)
+      }
+
+      if (qgRes.ok && qgJson.success) {
+        setChildQuickGrades(qgJson.children || [])
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load connections')
@@ -236,6 +264,7 @@ export function useParentData() {
     gradeSummaries,
     gradePreviews,
     gradesLoaded,
+    childQuickGrades,
     allChildTerms,
     loadConnections,
     handleCreateInvite,

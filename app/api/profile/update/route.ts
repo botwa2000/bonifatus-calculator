@@ -22,6 +22,7 @@ const schema = z.object({
   fullName: z.string().min(1).max(100).optional(),
   dateOfBirth: z.string().nullable().optional(),
   themePreference: z.enum(['light', 'dark', 'system']).optional(),
+  schoolName: z.string().max(200).nullable().optional(),
 })
 
 export async function POST(request: NextRequest) {
@@ -43,6 +44,7 @@ export async function POST(request: NextRequest) {
     await updateProfile(user.id, {
       ...parsed.data,
       dateOfBirth: parsed.data.dateOfBirth ?? undefined,
+      schoolName: parsed.data.schoolName ?? undefined,
     })
 
     return NextResponse.json({ success: true })

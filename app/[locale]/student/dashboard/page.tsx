@@ -104,8 +104,13 @@ export default function StudentDashboardPage() {
         </div>
       )}
 
-      {/* Quick Grade Form */}
-      <QuickGradeForm />
+      {/* Note Tracker */}
+      <div className="space-y-2">
+        <h2 className="text-lg font-semibold text-neutral-900 dark:text-white">
+          {t('noteTrackerTitle')}
+        </h2>
+        <QuickGradeForm />
+      </div>
 
       {/* Recent Terms */}
       <div className="rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-5 shadow-sm space-y-4">

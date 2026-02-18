@@ -96,6 +96,11 @@ export default function ParentDashboardPage() {
                             <p className="text-lg font-semibold text-neutral-900 dark:text-white">
                               {conn.child?.full_name || t('child')}
                             </p>
+                            {(conn.child as { school_name?: string } | undefined)?.school_name && (
+                              <span className="text-xs text-neutral-500 dark:text-neutral-400">
+                                {(conn.child as { school_name?: string }).school_name}
+                              </span>
+                            )}
                             <span className="text-xs rounded-full bg-success-100 text-success-700 dark:bg-success-900/30 dark:text-success-300 px-2 py-0.5">
                               {tc('active')}
                             </span>

@@ -29,7 +29,8 @@
     "pts": "б.",
     "copyright": "\u00a9 2026 Bonifatus. Все права защищены.",
     "hidePassword": "Скрыть пароль",
-    "showPassword": "Показать пароль"
+    "showPassword": "Показать пароль",
+    "date": "Дата"
   },
   "nav": {
     "features": "Возможности",
@@ -257,7 +258,14 @@
     "saving": "Сохранение...",
     "log": "Записать",
     "recentQuickGrades": "Последние быстрые оценки",
-    "classLevel": "Класс"
+    "classLevel": "Класс",
+    "noteTracker": "Трекер оценок",
+    "testDate": "Дата теста",
+    "unsettled": "Не выплачено",
+    "settled": "Выплачено",
+    "unsettledCount": "{count} невыплаченных ({points} б.)",
+    "filterAll": "Все",
+    "filterUnsettled": "Только невыплаченные"
   },
   "settings": {
     "accountLabel": "Аккаунт",
@@ -341,7 +349,8 @@
     "changeFromLastYear": "Изменение за год",
     "myRewards": "Мои награды",
     "totalEarned": "всего заработано бонусных баллов",
-    "recentSettlements": "Попросите родителя выплатить награды в родительской панели."
+    "recentSettlements": "Попросите родителя выплатить награды в родительской панели.",
+    "noteTrackerTitle": "Трекер оценок"
   },
   "studentProfile": {
     "header": "Профиль ученика",
@@ -459,7 +468,16 @@
     "topPerformers": "Лучшие результаты",
     "monthlyReturn": "Доходность за 30 дн.",
     "marketDisclaimer": "Данные с задержкой. Только в образовательных целях. Не является финансовой консультацией.",
-    "investCta": "Хотите инвестировать награды вашего ребёнка?"
+    "investCta": "Хотите инвестировать награды вашего ребёнка?",
+    "childNotes": "невыплаченные оценки",
+    "noUnsettledNotes": "Нет невыплаченных оценок для этого ребёнка.",
+    "settleSelected": "Выплатить выбранные",
+    "settleAll": "Выбрать все",
+    "settlementCreated": "Выплата успешно создана!",
+    "notesForChild": "Невыплаченные оценки для {name}",
+    "subjectLabel": "Предмет",
+    "gradeLabel": "Оценка",
+    "noteLabel": "Заметка"
   },
   "admin": {
     "dashboardTitle": "Панель администратора",
@@ -677,6 +695,8 @@
     "dangerDesc": "Безвозвратное удаление аккаунта и данных.",
     "deleteAccount": "Удалить аккаунт",
     "deleting": "Удаление...",
-    "accountDeleted": "Аккаунт удалён. Выход из системы..."
+    "accountDeleted": "Аккаунт удалён. Выход из системы...",
+    "schoolName": "Название школы",
+    "noSchoolSet": "Школа не указана"
   }
 }

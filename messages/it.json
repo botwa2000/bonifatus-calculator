@@ -29,7 +29,8 @@
     "pts": "pti",
     "copyright": "\u00a9 2026 Bonifatus. Tutti i diritti riservati.",
     "hidePassword": "Nascondi password",
-    "showPassword": "Mostra password"
+    "showPassword": "Mostra password",
+    "date": "Data"
   },
   "nav": {
     "features": "Funzionalità",
@@ -257,7 +258,14 @@
     "saving": "Salvataggio...",
     "log": "Registra",
     "recentQuickGrades": "Voti rapidi recenti",
-    "classLevel": "Livello della classe"
+    "classLevel": "Livello della classe",
+    "noteTracker": "Registro voti",
+    "testDate": "Data del test",
+    "unsettled": "Non saldato",
+    "settled": "Saldato",
+    "unsettledCount": "{count} non saldati ({points} pts)",
+    "filterAll": "Tutti",
+    "filterUnsettled": "Solo non saldati"
   },
   "settings": {
     "accountLabel": "Account",
@@ -341,7 +349,8 @@
     "changeFromLastYear": "Variazione rispetto all'anno scorso",
     "myRewards": "Le mie ricompense",
     "totalEarned": "punti bonus totali guadagnati",
-    "recentSettlements": "Chiedi al tuo genitore di saldare le ricompense nel pannello genitore."
+    "recentSettlements": "Chiedi al tuo genitore di saldare le ricompense nel pannello genitore.",
+    "noteTrackerTitle": "Registro voti"
   },
   "studentProfile": {
     "header": "Profilo studente",
@@ -459,7 +468,16 @@
     "topPerformers": "Migliori performance",
     "monthlyReturn": "Rendimento 30g",
     "marketDisclaimer": "Dati ritardati. Solo a scopo educativo. Non è consulenza finanziaria.",
-    "investCta": "Interessato a investire le ricompense di tuo figlio?"
+    "investCta": "Interessato a investire le ricompense di tuo figlio?",
+    "childNotes": "voti non saldati",
+    "noUnsettledNotes": "Nessun voto non saldato per questo bambino.",
+    "settleSelected": "Salda selezionati",
+    "settleAll": "Seleziona tutti",
+    "settlementCreated": "Saldo creato con successo!",
+    "notesForChild": "Voti non saldati per {name}",
+    "subjectLabel": "Materia",
+    "gradeLabel": "Voto",
+    "noteLabel": "Nota"
   },
   "admin": {
     "dashboardTitle": "Pannello di amministrazione",
@@ -677,6 +695,8 @@
     "dangerDesc": "Elimina definitivamente il tuo account e i tuoi dati.",
     "deleteAccount": "Elimina account",
     "deleting": "Eliminazione...",
-    "accountDeleted": "Account eliminato. Disconnessione in corso..."
+    "accountDeleted": "Account eliminato. Disconnessione in corso...",
+    "schoolName": "Nome della scuola",
+    "noSchoolSet": "Nessuna scuola impostata"
   }
 }

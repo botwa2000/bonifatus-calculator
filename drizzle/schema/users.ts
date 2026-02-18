@@ -33,6 +33,7 @@ export const userProfiles = pgTable('user_profiles', {
   fullName: text('full_name').notNull(),
   dateOfBirth: date('date_of_birth').notNull(),
   avatarUrl: text('avatar_url'),
+  schoolName: text('school_name'),
   preferredLanguage: text('preferred_language')
     .default('en')
     .notNull()

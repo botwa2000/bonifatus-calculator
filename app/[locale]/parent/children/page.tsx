@@ -15,7 +15,13 @@ type Connection = {
   invitation_status: string
   invited_at: string
   responded_at?: string | null
-  child?: { id: string; full_name: string; role?: string }
+  child?: {
+    id: string
+    full_name: string
+    role?: string
+    school_name?: string | null
+    email?: string | null
+  }
 }
 
 type Invite = {
@@ -332,6 +338,11 @@ export default function ParentChildrenPage() {
                                   ✕
                                 </button>
                               </p>
+                              {connection.child?.school_name && (
+                                <p className="text-xs text-neutral-500 dark:text-neutral-400">
+                                  {connection.child.school_name}
+                                </p>
+                              )}
                               <div className="flex flex-wrap gap-3 text-xs text-neutral-600 dark:text-neutral-400">
                                 <span className="font-semibold text-primary-600 dark:text-primary-300">
                                   {connection.invitation_status || 'accepted'}

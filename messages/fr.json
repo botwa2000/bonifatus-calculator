@@ -29,7 +29,8 @@
     "pts": "pts",
     "copyright": "\u00a9 2026 Bonifatus. Tous droits réservés.",
     "hidePassword": "Masquer le mot de passe",
-    "showPassword": "Afficher le mot de passe"
+    "showPassword": "Afficher le mot de passe",
+    "date": "Date"
   },
   "nav": {
     "features": "Fonctionnalités",
@@ -257,7 +258,14 @@
     "saving": "Enregistrement...",
     "log": "Enregistrer",
     "recentQuickGrades": "Notes rapides récentes",
-    "classLevel": "Niveau de classe"
+    "classLevel": "Niveau de classe",
+    "noteTracker": "Suivi des notes",
+    "testDate": "Date du test",
+    "unsettled": "Non réglé",
+    "settled": "Réglé",
+    "unsettledCount": "{count} non réglées ({points} pts)",
+    "filterAll": "Toutes",
+    "filterUnsettled": "Non réglées"
   },
   "settings": {
     "accountLabel": "Compte",
@@ -341,7 +349,8 @@
     "changeFromLastYear": "Changement par rapport à l'année dernière",
     "myRewards": "Mes récompenses",
     "totalEarned": "points bonus gagnés au total",
-    "recentSettlements": "Demande à ton parent de régler les récompenses dans le tableau de bord parent."
+    "recentSettlements": "Demande à ton parent de régler les récompenses dans le tableau de bord parent.",
+    "noteTrackerTitle": "Suivi des notes"
   },
   "studentProfile": {
     "header": "Profil élève",
@@ -459,7 +468,16 @@
     "topPerformers": "Meilleurs performeurs",
     "monthlyReturn": "Rendement 30j",
     "marketDisclaimer": "Données différées. À des fins éducatives uniquement. Pas un conseil financier.",
-    "investCta": "Intéressé par l'investissement des récompenses de votre enfant ?"
+    "investCta": "Intéressé par l'investissement des récompenses de votre enfant ?",
+    "childNotes": "notes non réglées",
+    "noUnsettledNotes": "Aucune note non réglée pour cet enfant.",
+    "settleSelected": "Régler la sélection",
+    "settleAll": "Tout sélectionner",
+    "settlementCreated": "Règlement créé avec succès !",
+    "notesForChild": "Notes non réglées pour {name}",
+    "subjectLabel": "Matière",
+    "gradeLabel": "Note",
+    "noteLabel": "Remarque"
   },
   "admin": {
     "dashboardTitle": "Tableau de bord admin",
@@ -677,6 +695,8 @@
     "dangerDesc": "Supprime définitivement ton compte et tes données.",
     "deleteAccount": "Supprimer le compte",
     "deleting": "Suppression...",
-    "accountDeleted": "Compte supprimé. Déconnexion en cours..."
+    "accountDeleted": "Compte supprimé. Déconnexion en cours...",
+    "schoolName": "Nom de l'école",
+    "noSchoolSet": "Aucune école définie"
   }
 }

@@ -1,18 +1,20 @@
 'use client'
 
-import { useCallback, useEffect, useMemo, useState } from 'react'
-import { useTranslations } from 'next-intl'
-import { useParentData } from '@/hooks/useParentData'
+import { useCallback, useEffect, useState } from 'react'
+import { useTranslations, useLocale } from 'next-intl'
+import { useParentData, type ChildQuickGradeGroup } from '@/hooks/useParentData'
+import { resolveLocalized } from '@/lib/i18n'
 import { formatDate } from '@/lib/utils/grade-helpers'
 
 type Settlement = {
   id: string
-  date: string
   childId: string
-  childName: string
+  childName: string | null
   amount: number
+  currency: string
   method: string
-  notes: string
+  notes: string | null
+  createdAt: string
 }
 
 type PayoutSplit = {
@@ -27,7 +29,6 @@ const POINT_VALUE_OPTIONS = [1, 2, 5, 10]
 const CURRENCIES = ['EUR', 'USD', 'GBP', 'CHF']
 const STORAGE_KEY_POINT_VALUE = 'bonifatus_point_value'
 const STORAGE_KEY_CURRENCY = 'bonifatus_currency'
-const STORAGE_KEY_SETTLEMENTS = 'bonifatus_settlements'
 
 const VOUCHER_PROVIDERS = [
   { name: 'Amazon', url: 'https://www.amazon.com/gift-cards' },
@@ -83,15 +84,20 @@ function currencySymbol(c: string) {
 export default function ParentRewardsPage() {
   const t = useTranslations('parent')
   const tc = useTranslations('common')
-  const { connections, gradeSummaries, gradesLoaded, loading } = useParentData()
+  const locale = useLocale()
+  const { connections, childQuickGrades, loading, loadConnections } = useParentData()
 
   const [pointValue, setPointValue] = useState(1)
   const [customValue, setCustomValue] = useState('')
   const [currency, setCurrency] = useState('EUR')
   const [settlements, setSettlements] = useState<Settlement[]>([])
+  const [settlementsLoaded, setSettlementsLoaded] = useState(false)
   const [activeChildId, setActiveChildId] = useState<string | null>(null)
   const [activeMethod, setActiveMethod] = useState<string | null>(null)
   const [settleNote, setSettleNote] = useState('')
+  const [selectedGradeIds, setSelectedGradeIds] = useState<Set<string>>(new Set())
+  const [settling, setSettling] = useState(false)
+  const [settleMessage, setSettleMessage] = useState<string | null>(null)
   const [splitMode, setSplitMode] = useState(false)
   const [split, setSplit] = useState<PayoutSplit>({
     cash: 100,
@@ -101,18 +107,34 @@ export default function ParentRewardsPage() {
     invest: 0,
   })
 
-  // Load from localStorage
+  // Load point value and currency from localStorage (lightweight preferences)
   useEffect(() => {
     try {
       const pv = localStorage.getItem(STORAGE_KEY_POINT_VALUE)
       if (pv) setPointValue(Number(pv))
       const cur = localStorage.getItem(STORAGE_KEY_CURRENCY)
       if (cur) setCurrency(cur)
-      const st = localStorage.getItem(STORAGE_KEY_SETTLEMENTS)
-      if (st) setSettlements(JSON.parse(st))
     } catch {
       /* ignore */
     }
+  }, [])
+
+  // Load settlements from DB
+  useEffect(() => {
+    async function loadSettlements() {
+      try {
+        const res = await fetch('/api/settlements/list')
+        const data = await res.json()
+        if (data.success) {
+          setSettlements(data.settlements || [])
+        }
+      } catch {
+        /* ignore */
+      } finally {
+        setSettlementsLoaded(true)
+      }
+    }
+    loadSettlements()
   }, [])
 
   const savePointValue = useCallback((val: number) => {
@@ -133,46 +155,96 @@ export default function ParentRewardsPage() {
     }
   }, [])
 
-  const settledByChild = useMemo(() => {
-    const map: Record<string, number> = {}
-    settlements.forEach((s) => {
-      map[s.childId] = (map[s.childId] || 0) + s.amount
-    })
-    return map
-  }, [settlements])
-
   const effectivePointValue = customValue ? Number(customValue) || pointValue : pointValue
 
-  const handleSettle = useCallback(
-    (childId: string, childName: string) => {
-      const summary = gradeSummaries[childId]
-      if (!summary) return
-      const totalMoney = summary.totalBonus * effectivePointValue
-      const settled = settledByChild[childId] || 0
-      const unsettled = Math.max(0, totalMoney - settled)
-      if (unsettled <= 0) return
-
-      const newSettlement: Settlement = {
-        id: crypto.randomUUID(),
-        date: new Date().toISOString(),
-        childId,
-        childName,
-        amount: unsettled,
-        method: activeMethod || 'cash',
-        notes: settleNote,
-      }
-      const updated = [newSettlement, ...settlements]
-      setSettlements(updated)
-      try {
-        localStorage.setItem(STORAGE_KEY_SETTLEMENTS, JSON.stringify(updated))
-      } catch {
-        /* ignore */
-      }
-      setActiveChildId(null)
-      setActiveMethod(null)
-      setSettleNote('')
+  // Get unsettled grades for a child
+  const getChildUnsettled = useCallback(
+    (childId: string) => {
+      const group = childQuickGrades.find((g: ChildQuickGradeGroup) => g.childId === childId)
+      if (!group) return []
+      return group.grades.filter((g) => g.settlementStatus === 'unsettled')
     },
-    [gradeSummaries, effectivePointValue, settledByChild, settlements, activeMethod, settleNote]
+    [childQuickGrades]
+  )
+
+  const toggleGradeSelection = useCallback((id: string) => {
+    setSelectedGradeIds((prev) => {
+      const next = new Set(prev)
+      if (next.has(id)) {
+        next.delete(id)
+      } else {
+        next.add(id)
+      }
+      return next
+    })
+  }, [])
+
+  const selectAllForChild = useCallback(
+    (childId: string) => {
+      const unsettled = getChildUnsettled(childId)
+      setSelectedGradeIds(new Set(unsettled.map((g) => g.id)))
+    },
+    [getChildUnsettled]
+  )
+
+  const handleSettle = useCallback(
+    async (childId: string) => {
+      if (selectedGradeIds.size === 0) return
+      setSettling(true)
+      setSettleMessage(null)
+
+      const unsettled = getChildUnsettled(childId)
+      const selectedGrades = unsettled.filter((g) => selectedGradeIds.has(g.id))
+      const totalBonus = selectedGrades.reduce((sum, g) => sum + Number(g.bonusPoints ?? 0), 0)
+      const amount = totalBonus * effectivePointValue
+
+      try {
+        const res = await fetch('/api/settlements/create', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            childId,
+            amount,
+            currency,
+            method: activeMethod || 'cash',
+            notes: settleNote || undefined,
+            splitConfig: splitMode ? split : undefined,
+            quickGradeIds: [...selectedGradeIds],
+          }),
+        })
+        const data = await res.json()
+        if (data.success) {
+          setSettleMessage(t('settlementCreated'))
+          setActiveChildId(null)
+          setActiveMethod(null)
+          setSettleNote('')
+          setSelectedGradeIds(new Set())
+          // Reload data
+          loadConnections()
+          const settleRes = await fetch('/api/settlements/list')
+          const settleData = await settleRes.json()
+          if (settleData.success) setSettlements(settleData.settlements || [])
+        } else {
+          setSettleMessage(data.error || 'Settlement failed')
+        }
+      } catch {
+        setSettleMessage('Settlement failed')
+      } finally {
+        setSettling(false)
+      }
+    },
+    [
+      selectedGradeIds,
+      getChildUnsettled,
+      effectivePointValue,
+      currency,
+      activeMethod,
+      settleNote,
+      splitMode,
+      split,
+      t,
+      loadConnections,
+    ]
   )
 
   const sym = currencySymbol(currency)
@@ -185,6 +257,12 @@ export default function ParentRewardsPage() {
         </h1>
         <p className="text-neutral-600 dark:text-neutral-300 text-sm">{t('rewardsDesc')}</p>
       </header>
+
+      {settleMessage && (
+        <div className="rounded-xl border border-success-200 bg-success-50 text-success-700 px-4 py-3 text-sm">
+          {settleMessage}
+        </div>
+      )}
 
       {/* Point Value Configuration */}
       <div className="rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-5 shadow-sm space-y-4">
@@ -235,18 +313,15 @@ export default function ParentRewardsPage() {
         </div>
       </div>
 
-      {/* Children Payout Overview */}
+      {/* Children with Unsettled Notes */}
       {loading ? (
         <p className="text-neutral-500 text-sm">{tc('loading')}</p>
       ) : (
         <div className="space-y-4">
           {connections.map((conn) => {
-            const summary = gradeSummaries[conn.child_id]
-            const totalBonus = summary?.totalBonus || 0
-            const totalMoney = totalBonus * effectivePointValue
-            const settled = settledByChild[conn.child_id] || 0
-            const unsettled = Math.max(0, totalMoney - settled)
-            const pct = totalMoney > 0 ? (settled / totalMoney) * 100 : 0
+            const unsettled = getChildUnsettled(conn.child_id)
+            const unsettledBonus = unsettled.reduce((sum, g) => sum + Number(g.bonusPoints ?? 0), 0)
+            const unsettledMoney = unsettledBonus * effectivePointValue
 
             return (
               <div
@@ -263,124 +338,130 @@ export default function ParentRewardsPage() {
                         {conn.child?.full_name || t('child')}
                       </p>
                       <p className="text-xs text-neutral-500">
-                        {totalBonus.toFixed(2)} {tc('pts')} &middot; {sym}
-                        {totalMoney.toFixed(2)} {t('totalValue')}
+                        {unsettled.length} {t('childNotes')} &middot; {sym}
+                        {unsettledMoney.toFixed(2)} {t('unsettled')}
                       </p>
                     </div>
                   </div>
-                  <button
-                    onClick={() =>
-                      setActiveChildId(activeChildId === conn.child_id ? null : conn.child_id)
-                    }
-                    className="px-4 py-2 rounded-lg bg-gradient-to-r from-primary-600 to-secondary-600 text-white text-sm font-semibold shadow-sm hover:opacity-90 transition"
-                  >
-                    {t('settleNow')}
-                  </button>
+                  {unsettled.length > 0 && (
+                    <button
+                      onClick={() =>
+                        setActiveChildId(activeChildId === conn.child_id ? null : conn.child_id)
+                      }
+                      className="px-4 py-2 rounded-lg bg-gradient-to-r from-primary-600 to-secondary-600 text-white text-sm font-semibold shadow-sm hover:opacity-90 transition"
+                    >
+                      {t('settleNow')}
+                    </button>
+                  )}
                 </div>
 
-                {/* Progress Bar */}
-                <div className="space-y-1">
-                  <div className="flex justify-between text-xs text-neutral-500">
-                    <span>
-                      {t('settled')}: {sym}
-                      {settled.toFixed(2)}
-                    </span>
-                    <span>
-                      {t('unsettled')}: {sym}
-                      {unsettled.toFixed(2)}
-                    </span>
-                  </div>
-                  <div className="w-full h-2 rounded-full bg-neutral-200 dark:bg-neutral-700">
-                    <div
-                      className="h-2 rounded-full bg-gradient-to-r from-primary-500 to-secondary-500 transition-all"
-                      style={{ width: `${Math.min(100, pct)}%` }}
-                    />
-                  </div>
-                </div>
-
-                {/* Payout Method Selector */}
-                {activeChildId === conn.child_id && unsettled > 0 && (
+                {/* Unsettled Notes Table */}
+                {activeChildId === conn.child_id && unsettled.length > 0 && (
                   <div className="space-y-4 pt-2">
-                    <p className="text-sm font-semibold text-neutral-900 dark:text-white">
-                      {t('settleNow')}: {sym}
-                      {unsettled.toFixed(2)}
-                    </p>
+                    <div className="flex items-center justify-between">
+                      <p className="text-sm font-semibold text-neutral-900 dark:text-white">
+                        {t('notesForChild', { name: conn.child?.full_name || t('child') })}
+                      </p>
+                      <button
+                        onClick={() => selectAllForChild(conn.child_id)}
+                        className="text-xs font-semibold text-primary-600 dark:text-primary-300 hover:underline"
+                      >
+                        {t('settleAll')}
+                      </button>
+                    </div>
 
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-xs">
+                        <thead>
+                          <tr className="border-b border-neutral-200 dark:border-neutral-700 text-neutral-500">
+                            <th className="py-1 px-2 text-left w-8"></th>
+                            <th className="py-1 px-2 text-left">{tc('date')}</th>
+                            <th className="py-1 px-2 text-left">{t('subjectLabel')}</th>
+                            <th className="py-1 px-2 text-center">{t('gradeLabel')}</th>
+                            <th className="py-1 px-2 text-right">
+                              {t('bonusLabel', { value: '' })}
+                            </th>
+                            <th className="py-1 px-2 text-left">{t('noteLabel')}</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {unsettled.map((g) => (
+                            <tr
+                              key={g.id}
+                              className="border-b border-neutral-100 dark:border-neutral-800 hover:bg-neutral-50 dark:hover:bg-neutral-800/40"
+                            >
+                              <td className="py-1.5 px-2">
+                                <input
+                                  type="checkbox"
+                                  checked={selectedGradeIds.has(g.id)}
+                                  onChange={() => toggleGradeSelection(g.id)}
+                                  className="accent-primary-600"
+                                />
+                              </td>
+                              <td className="py-1.5 px-2 text-neutral-600 dark:text-neutral-400">
+                                {formatDate(g.gradedAt || g.createdAt || '')}
+                              </td>
+                              <td className="py-1.5 px-2 font-semibold text-neutral-900 dark:text-white">
+                                {resolveLocalized(g.subjectName, locale)}
+                              </td>
+                              <td className="py-1.5 px-2 text-center text-neutral-900 dark:text-white">
+                                {g.gradeValue}
+                              </td>
+                              <td className="py-1.5 px-2 text-right text-primary-600 dark:text-primary-300 font-semibold">
+                                +{Number(g.bonusPoints ?? 0).toFixed(2)}
+                              </td>
+                              <td className="py-1.5 px-2 text-neutral-500 max-w-[120px] truncate">
+                                {g.note || '-'}
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+
+                    {selectedGradeIds.size > 0 && (
+                      <p className="text-sm text-neutral-700 dark:text-neutral-200">
+                        {t('settleSelected')}: {selectedGradeIds.size} notes &middot;{' '}
+                        <span className="font-semibold text-primary-600 dark:text-primary-300">
+                          {sym}
+                          {(
+                            unsettled
+                              .filter((g) => selectedGradeIds.has(g.id))
+                              .reduce((s, g) => s + Number(g.bonusPoints ?? 0), 0) *
+                            effectivePointValue
+                          ).toFixed(2)}
+                        </span>
+                      </p>
+                    )}
+
+                    {/* Payout Methods */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                      {/* Cash */}
-                      <button
-                        onClick={() => setActiveMethod('cash')}
-                        className={`rounded-xl border p-4 text-left transition ${
-                          activeMethod === 'cash'
-                            ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/20'
-                            : 'border-neutral-200 dark:border-neutral-700 hover:border-neutral-300'
-                        }`}
-                      >
-                        <p className="font-semibold text-neutral-900 dark:text-white">
-                          {t('payoutCash')}
-                        </p>
-                        <p className="text-xs text-neutral-500 mt-1">{t('payoutCashDesc')}</p>
-                      </button>
-
-                      {/* Bank */}
-                      <button
-                        onClick={() => setActiveMethod('bank')}
-                        className={`rounded-xl border p-4 text-left transition ${
-                          activeMethod === 'bank'
-                            ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/20'
-                            : 'border-neutral-200 dark:border-neutral-700 hover:border-neutral-300'
-                        }`}
-                      >
-                        <p className="font-semibold text-neutral-900 dark:text-white">
-                          {t('payoutBank')}
-                        </p>
-                        <p className="text-xs text-neutral-500 mt-1">{t('payoutBankDesc')}</p>
-                      </button>
-
-                      {/* Gift Vouchers */}
-                      <button
-                        onClick={() => setActiveMethod('voucher')}
-                        className={`rounded-xl border p-4 text-left transition ${
-                          activeMethod === 'voucher'
-                            ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/20'
-                            : 'border-neutral-200 dark:border-neutral-700 hover:border-neutral-300'
-                        }`}
-                      >
-                        <p className="font-semibold text-neutral-900 dark:text-white">
-                          {t('payoutVoucher')}
-                        </p>
-                        <p className="text-xs text-neutral-500 mt-1">{t('payoutVoucherDesc')}</p>
-                      </button>
-
-                      {/* Savings */}
-                      <button
-                        onClick={() => setActiveMethod('savings')}
-                        className={`rounded-xl border p-4 text-left transition ${
-                          activeMethod === 'savings'
-                            ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/20'
-                            : 'border-neutral-200 dark:border-neutral-700 hover:border-neutral-300'
-                        }`}
-                      >
-                        <p className="font-semibold text-neutral-900 dark:text-white">
-                          {t('payoutSavings')}
-                        </p>
-                        <p className="text-xs text-neutral-500 mt-1">{t('payoutSavingsDesc')}</p>
-                      </button>
-
-                      {/* Investment */}
-                      <button
-                        onClick={() => setActiveMethod('invest')}
-                        className={`rounded-xl border p-4 text-left transition ${
-                          activeMethod === 'invest'
-                            ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/20'
-                            : 'border-neutral-200 dark:border-neutral-700 hover:border-neutral-300'
-                        }`}
-                      >
-                        <p className="font-semibold text-neutral-900 dark:text-white">
-                          {t('payoutInvest')}
-                        </p>
-                        <p className="text-xs text-neutral-500 mt-1">{t('payoutInvestDesc')}</p>
-                      </button>
+                      {(['cash', 'bank', 'voucher', 'savings', 'invest'] as const).map((method) => (
+                        <button
+                          key={method}
+                          onClick={() => setActiveMethod(method)}
+                          className={`rounded-xl border p-4 text-left transition ${
+                            activeMethod === method
+                              ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/20'
+                              : 'border-neutral-200 dark:border-neutral-700 hover:border-neutral-300'
+                          }`}
+                        >
+                          <p className="font-semibold text-neutral-900 dark:text-white">
+                            {t(
+                              `payout${method.charAt(0).toUpperCase() + method.slice(1)}` as Parameters<
+                                typeof t
+                              >[0]
+                            )}
+                          </p>
+                          <p className="text-xs text-neutral-500 mt-1">
+                            {t(
+                              `payout${method.charAt(0).toUpperCase() + method.slice(1)}Desc` as Parameters<
+                                typeof t
+                              >[0]
+                            )}
+                          </p>
+                        </button>
+                      ))}
                     </div>
 
                     {/* Method Details */}
@@ -499,15 +580,18 @@ export default function ParentRewardsPage() {
                         className="flex-1 rounded-lg border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 py-2 text-sm text-neutral-900 dark:text-white"
                       />
                       <button
-                        onClick={() =>
-                          handleSettle(conn.child_id, conn.child?.full_name || 'Child')
-                        }
-                        className="px-5 py-2 rounded-lg bg-gradient-to-r from-primary-600 to-secondary-600 text-white text-sm font-semibold shadow-sm"
+                        onClick={() => handleSettle(conn.child_id)}
+                        disabled={settling || selectedGradeIds.size === 0}
+                        className="px-5 py-2 rounded-lg bg-gradient-to-r from-primary-600 to-secondary-600 text-white text-sm font-semibold shadow-sm disabled:opacity-60"
                       >
-                        {t('confirmSettlement')}
+                        {settling ? tc('saving') : t('confirmSettlement')}
                       </button>
                     </div>
                   </div>
+                )}
+
+                {unsettled.length === 0 && (
+                  <p className="text-sm text-neutral-500">{t('noUnsettledNotes')}</p>
                 )}
               </div>
             )
@@ -515,12 +599,14 @@ export default function ParentRewardsPage() {
         </div>
       )}
 
-      {/* Settlement History */}
+      {/* Settlement History from DB */}
       <div className="rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-5 shadow-sm space-y-4">
         <h2 className="text-lg font-semibold text-neutral-900 dark:text-white">
           {t('settlementHistory')}
         </h2>
-        {settlements.length === 0 ? (
+        {!settlementsLoaded ? (
+          <p className="text-sm text-neutral-500">{tc('loading')}</p>
+        ) : settlements.length === 0 ? (
           <p className="text-sm text-neutral-500">{t('noSettlements')}</p>
         ) : (
           <div className="space-y-2">
@@ -530,14 +616,16 @@ export default function ParentRewardsPage() {
                 className="flex items-center justify-between rounded-lg border border-neutral-100 dark:border-neutral-800 px-3 py-2 text-sm"
               >
                 <div>
-                  <p className="font-semibold text-neutral-900 dark:text-white">{s.childName}</p>
+                  <p className="font-semibold text-neutral-900 dark:text-white">
+                    {s.childName || t('child')}
+                  </p>
                   <p className="text-xs text-neutral-500">
-                    {formatDate(s.date)} &middot; {s.method}
+                    {formatDate(s.createdAt)} &middot; {s.method}
                     {s.notes ? ` \u2014 ${s.notes}` : ''}
                   </p>
                 </div>
                 <p className="font-semibold text-primary-600 dark:text-primary-300">
-                  {sym}
+                  {currencySymbol(s.currency)}
                   {s.amount.toFixed(2)}
                 </p>
               </div>
