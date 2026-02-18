@@ -448,7 +448,7 @@ export function DemoCalculator({
 
   useEffect(() => {
     if (draftLoadedRef.current) return
-    if (initialData?.termId) return
+    if (initialData) return // scan prefill or edit — never override with draft
     if (loading) return
     if (typeof window === 'undefined') return
     const raw = localStorage.getItem(draftKey)

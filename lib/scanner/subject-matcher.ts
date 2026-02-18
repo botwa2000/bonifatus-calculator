@@ -1,3 +1,4 @@
+import { dbg } from '@/lib/debug'
 import { db } from '@/lib/db/client'
 import { subjects } from '@/drizzle/schema/grades'
 import { eq } from 'drizzle-orm'
@@ -100,7 +101,7 @@ function findMatch(
 export async function matchSubjects(parsed: ParsedSubject[]): Promise<MatchedSubject[]> {
   const allSubjects = await loadSubjects()
 
-  return parsed.map((p) => {
+  const results = parsed.map((p) => {
     const match = findMatch(p.originalName, allSubjects)
     if (match) {
       return {
@@ -115,4 +116,15 @@ export async function matchSubjects(parsed: ParsedSubject[]): Promise<MatchedSub
       matchConfidence: 'none' as const,
     }
   })
+
+  dbg('scanner', 'subject match results', {
+    results: results.map((s) => ({
+      ocr: s.originalName,
+      grade: s.grade,
+      matched: s.matchedSubjectName ?? '(no match)',
+      confidence: s.matchConfidence,
+    })),
+  })
+
+  return results
 }
