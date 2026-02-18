@@ -1,45 +1,14 @@
 import { dbg } from '@/lib/debug'
-import { db } from '@/lib/db/client'
-import { subjects } from '@/drizzle/schema/grades'
-import { eq } from 'drizzle-orm'
 import type { ParsedSubject } from './text-parser'
 import { generateOcrVariants, normalizeUmlauts } from './ocr-corrections'
+import { loadSubjectsWithAliases, type DbSubjectWithAliases } from '@/lib/db/queries/scan-config'
 
 const LOCALES = ['en', 'de', 'fr', 'it', 'es', 'ru'] as const
-
-type DbSubject = {
-  id: string
-  code: string | null
-  name: Record<string, string>
-  categoryId: string | null
-  isCoreSubject: boolean | null
-}
 
 export type MatchedSubject = ParsedSubject & {
   matchedSubjectId?: string
   matchedSubjectName?: string
   matchConfidence: 'high' | 'medium' | 'low' | 'none'
-}
-
-let subjectCache: DbSubject[] | null = null
-let cacheTimestamp = 0
-const CACHE_TTL = 5 * 60 * 1000 // 5 minutes
-
-async function loadSubjects(): Promise<DbSubject[]> {
-  if (subjectCache && Date.now() - cacheTimestamp < CACHE_TTL) {
-    return subjectCache
-  }
-  const rows = await db.select().from(subjects).where(eq(subjects.isActive, true))
-
-  subjectCache = rows.map((r) => ({
-    id: r.id,
-    code: r.code,
-    name: (r.name || {}) as Record<string, string>,
-    categoryId: r.categoryId,
-    isCoreSubject: r.isCoreSubject,
-  }))
-  cacheTimestamp = Date.now()
-  return subjectCache
 }
 
 function normalizeForComparison(text: string): string {
@@ -72,9 +41,19 @@ function levenshteinDistance(a: string, b: string): number {
 
 function findMatch(
   originalName: string,
-  allSubjects: DbSubject[]
+  allSubjects: DbSubjectWithAliases[]
 ): { id: string; name: string; confidence: 'high' | 'medium' | 'low'; method: string } | null {
   const normalized = normalizeForComparison(originalName)
+
+  // Strategy 0: Alias lookup — check each subject's DB-stored aliases array
+  for (const subj of allSubjects) {
+    for (const alias of subj.aliases) {
+      if (normalizeForComparison(alias) === normalized) {
+        const name = subj.name['de'] || subj.name['en'] || originalName
+        return { id: subj.id, name, confidence: 'high', method: 'alias' }
+      }
+    }
+  }
 
   // Strategy 1: Exact match in any locale
   for (const subj of allSubjects) {
@@ -162,7 +141,7 @@ function findMatch(
 }
 
 export async function matchSubjects(parsed: ParsedSubject[]): Promise<MatchedSubject[]> {
-  const allSubjects = await loadSubjects()
+  const allSubjects = await loadSubjectsWithAliases()
 
   const results: MatchedSubject[] = parsed.map((p) => {
     const match = findMatch(p.originalName, allSubjects)

@@ -114,27 +114,9 @@ const TERM_KEYWORDS: Record<string, 'midterm' | 'final' | 'semester' | 'quarterl
   аттестат: 'final',
 }
 
-// Subject aliases for common OCR outputs (OCR often mis-reads specific characters)
-const BEHAVIORAL_GRADES = new Set([
-  'verhalten',
-  'mitarbeit',
-  'betragen',
-  'fleiss',
-  'fleiß',
-  'ordnung',
-  'sozialverhalten',
-  'arbeitsverhalten',
-  'behavior',
-  'behaviour',
-  'conduct',
-  'effort',
-  'comportement',
-  'conduite',
-  'comportamento',
-  'condotta',
-  'comportamiento',
-  'conducta',
-])
+import type { ScanParserConfig } from '@/lib/db/queries/scan-config'
+
+export type { ScanParserConfig }
 
 const TEXT_MONTH_MAP: Record<string, string> = {
   // German
@@ -225,24 +207,90 @@ function isGradeValue(text: string): boolean {
   return false
 }
 
-function isBehavioralGrade(subject: string): boolean {
-  return BEHAVIORAL_GRADES.has(subject.toLowerCase().trim())
+function isBehavioralGrade(subject: string, behavioralGrades: Set<string>): boolean {
+  return behavioralGrades.has(subject.toLowerCase().trim())
+}
+
+function shouldSkipLine(line: string, skipKeywords: string[]): boolean {
+  const lower = line.toLowerCase()
+  return skipKeywords.some((kw) => lower.startsWith(kw))
+}
+
+/**
+ * Token-based two-column splitter.
+ * Handles OCR lines like "Deutsch 2 Mathematik 2" where whitespace is normalized
+ * to single spaces (the regex-based TWO_COL_PATTERN requires 3+ spaces between columns).
+ * Splits into individual (subject, grade) pairs and adds them via tryAddSubject.
+ * Returns true if ≥2 pairs were found (i.e. it was indeed a two-column line).
+ */
+function trySplitTwoColumnTokens(
+  line: string,
+  confidence: number,
+  subjects: ParsedSubject[],
+  behavioralGrades: Set<string>
+): boolean {
+  const tokens = line.split(/\s+/)
+  if (tokens.length < 4) return false
+
+  // Find grade-value token positions, respecting parenthetical context like "(1. Fremdsprache)"
+  const gradeIndices: number[] = []
+  let parenDepth = 0
+  for (let i = 0; i < tokens.length; i++) {
+    const t = tokens[i]
+    for (const ch of t) {
+      if (ch === '(') parenDepth++
+      if (ch === ')') parenDepth = Math.max(0, parenDepth - 1)
+    }
+    if (parenDepth > 0) continue
+    if (i === 0) continue // First token must be a subject word, not a grade
+    if (isGradeValue(t)) {
+      gradeIndices.push(i)
+    }
+  }
+
+  if (gradeIndices.length < 2) return false
+
+  // Form (subject, grade) pairs from the grade positions
+  const pairs: Array<{ subject: string; grade: string }> = []
+  let start = 0
+  for (const gi of gradeIndices) {
+    if (gi <= start) continue
+    const subjectStr = tokens.slice(start, gi).join(' ').trim()
+    if (subjectStr.length >= 2 && /[a-zA-ZÀ-ÿß]/.test(subjectStr)) {
+      pairs.push({ subject: subjectStr, grade: tokens[gi] })
+    }
+    start = gi + 1
+  }
+
+  if (pairs.length < 2) return false
+
+  for (const pair of pairs) {
+    tryAddSubject(pair.subject, pair.grade, confidence, subjects, behavioralGrades)
+  }
+  return true
 }
 
 function tryAddSubject(
   subjectName: string,
   grade: string,
   confidence: number,
-  subjects: ParsedSubject[]
+  subjects: ParsedSubject[],
+  behavioralGrades: Set<string>
 ): void {
   if (subjectName.length < 2) return
-  if (isBehavioralGrade(subjectName)) return
+  if (isBehavioralGrade(subjectName, behavioralGrades)) return
   if (!isGradeValue(grade)) return
   if (/^\d/.test(subjectName)) return
   subjects.push({ originalName: subjectName, grade, confidence })
 }
 
-export function parseOcrText(text: string, overallConfidence: number): ScanResult {
+export function parseOcrText(
+  text: string,
+  overallConfidence: number,
+  config?: ScanParserConfig
+): ScanResult {
+  const skipKeywords = config?.skipKeywords ?? []
+  const behavioralGrades = config?.behavioralGrades ?? new Set<string>()
   const lines = text
     .split('\n')
     .map((l) => l.trim())
@@ -364,19 +412,39 @@ export function parseOcrText(text: string, overallConfidence: number): ScanResul
       }
     }
 
-    // Subject extraction — skip lines that are purely metadata
-    if (!isMetadataLine) {
-      // Try two-column layout first: "Deutsch 2   Mathematik 2"
+    // Subject extraction — skip lines that are purely metadata or non-grade content
+    if (!isMetadataLine && !shouldSkipLine(line, skipKeywords)) {
+      // Strategy 1: Regex two-column layout (multi-space separated): "Deutsch  2   Mathematik  2"
       const twoCol = line.match(TWO_COL_PATTERN)
       if (twoCol) {
-        tryAddSubject(twoCol[1].trim(), twoCol[2].trim(), overallConfidence, subjects)
-        tryAddSubject(twoCol[3].trim(), twoCol[4].trim(), overallConfidence, subjects)
-      } else {
-        // Single-column patterns
+        tryAddSubject(
+          twoCol[1].trim(),
+          twoCol[2].trim(),
+          overallConfidence,
+          subjects,
+          behavioralGrades
+        )
+        tryAddSubject(
+          twoCol[3].trim(),
+          twoCol[4].trim(),
+          overallConfidence,
+          subjects,
+          behavioralGrades
+        )
+      }
+      // Strategy 2: Token-based two-column split (single-space OCR output): "Deutsch 2 Mathematik 2"
+      else if (!trySplitTwoColumnTokens(line, overallConfidence, subjects, behavioralGrades)) {
+        // Strategy 3: Single-column patterns
         for (const pattern of GRADE_PATTERNS) {
           const match = line.match(pattern)
           if (match) {
-            tryAddSubject(match[1].trim(), match[2].trim(), overallConfidence, subjects)
+            tryAddSubject(
+              match[1].trim(),
+              match[2].trim(),
+              overallConfidence,
+              subjects,
+              behavioralGrades
+            )
             break
           }
         }

@@ -4,6 +4,7 @@ import { preprocessImage } from '@/lib/scanner/image-preprocessor'
 import { recognizeText } from '@/lib/scanner/ocr-engine'
 import { parseOcrText } from '@/lib/scanner/text-parser'
 import { matchSubjects } from '@/lib/scanner/subject-matcher'
+import { loadScanConfig } from '@/lib/db/queries/scan-config'
 
 // In-memory rate limiter: userId → { count, resetAt }
 const rateLimits = new Map<string, { count: number; resetAt: number }>()
@@ -58,13 +59,14 @@ export async function POST(req: Request) {
       )
     }
 
-    // Pipeline: preprocess → OCR → parse → match
+    // Pipeline: load config → preprocess → OCR → parse → match
+    const scanConfig = await loadScanConfig()
     const preprocessed = await preprocessImage(imageBuffer)
     const ocrResult = await recognizeText(preprocessed, {
       locale: locale || 'en',
       countryCode: gradingSystemCountry,
     })
-    const parsed = parseOcrText(ocrResult.text, ocrResult.confidence)
+    const parsed = parseOcrText(ocrResult.text, ocrResult.confidence, scanConfig)
     const matched = await matchSubjects(parsed.subjects)
 
     return NextResponse.json({
@@ -74,6 +76,21 @@ export async function POST(req: Request) {
       overallConfidence: parsed.overallConfidence,
       subjectCount: matched.length,
       matchedCount: matched.filter((s) => s.matchedSubjectId).length,
+      debugInfo: {
+        rawLines: ocrResult.text
+          .split('\n')
+          .map((l: string) => l.trim())
+          .filter(Boolean),
+        parsedSubjects: parsed.subjects.map((s) => ({
+          name: s.originalName,
+          grade: s.grade,
+        })),
+        matchDetails: matched.map((s) => ({
+          ocr: s.originalName,
+          matched: s.matchedSubjectName ?? '(none)',
+          confidence: s.matchConfidence,
+        })),
+      },
     })
   } catch (err) {
     console.error('Scan error:', err)

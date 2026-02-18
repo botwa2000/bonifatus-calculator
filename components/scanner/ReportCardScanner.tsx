@@ -89,6 +89,11 @@ export function ReportCardScanner({
         setError(data.error || t('scanFailed'))
         return
       }
+      if (data.debugInfo) {
+        console.log('[dbg:scanner] Raw OCR lines:', data.debugInfo.rawLines)
+        console.log('[dbg:scanner] Parsed subjects:', data.debugInfo.parsedSubjects)
+        console.log('[dbg:scanner] Match details:', data.debugInfo.matchDetails)
+      }
       onScanComplete(data)
     } catch {
       setError(t('scanFailed'))

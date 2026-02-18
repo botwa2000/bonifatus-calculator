@@ -59,6 +59,7 @@ export const subjects = pgTable('subjects', {
     .$defaultFn(() => crypto.randomUUID()),
   code: text('code').unique(),
   name: jsonb('name').notNull(),
+  aliases: jsonb('aliases').default([]),
   description: jsonb('description'),
   categoryId: text('category_id').references(() => subjectCategories.id),
   isCoreSubject: boolean('is_core_subject').default(false),
