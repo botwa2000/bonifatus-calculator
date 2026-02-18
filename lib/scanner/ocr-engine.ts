@@ -1,31 +1,5 @@
 import Tesseract from 'tesseract.js'
-
-const LOCALE_TO_LANGS: Record<string, string> = {
-  de: 'deu+eng',
-  en: 'eng',
-  fr: 'fra+eng',
-  it: 'ita+eng',
-  es: 'spa+eng',
-  ru: 'rus+eng',
-}
-
-const COUNTRY_TO_LANGS: Record<string, string> = {
-  DE: 'deu+eng',
-  AT: 'deu+eng',
-  CH: 'deu+fra+ita+eng',
-  US: 'eng',
-  GB: 'eng',
-  FR: 'fra+eng',
-  IT: 'ita+eng',
-  ES: 'spa+eng',
-  CA: 'eng+fra',
-  BR: 'por+eng',
-  JP: 'jpn+eng',
-  AU: 'eng',
-  IN: 'eng+hin',
-  NL: 'nld+eng',
-  RU: 'rus+eng',
-}
+import type { ScanParserConfig } from '@/lib/db/queries/scan-config'
 
 export type OcrResult = {
   text: string
@@ -51,21 +25,26 @@ function extractResult(data: Tesseract.Page): OcrResult {
 let cachedWorker: Tesseract.Worker | null = null
 let cachedLangs: string | null = null
 
-function resolveLangs(locale?: string, countryCode?: string): string {
-  if (countryCode && COUNTRY_TO_LANGS[countryCode]) {
-    return COUNTRY_TO_LANGS[countryCode]
+function resolveLangs(
+  config: Pick<ScanParserConfig, 'localeLanguages' | 'countryLanguages'>,
+  locale?: string,
+  countryCode?: string
+): string {
+  if (countryCode && config.countryLanguages[countryCode]) {
+    return config.countryLanguages[countryCode]
   }
-  if (locale && LOCALE_TO_LANGS[locale]) {
-    return LOCALE_TO_LANGS[locale]
+  if (locale && config.localeLanguages[locale]) {
+    return config.localeLanguages[locale]
   }
   return 'eng'
 }
 
 export async function recognizeText(
   imageBuffer: Buffer,
-  options?: { locale?: string; countryCode?: string }
+  options: { locale?: string; countryCode?: string },
+  config: Pick<ScanParserConfig, 'localeLanguages' | 'countryLanguages'>
 ): Promise<OcrResult> {
-  const langs = resolveLangs(options?.locale, options?.countryCode)
+  const langs = resolveLangs(config, options?.locale, options?.countryCode)
 
   // Reuse worker if language matches
   if (cachedWorker && cachedLangs === langs) {

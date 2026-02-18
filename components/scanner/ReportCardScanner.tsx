@@ -25,7 +25,7 @@ export type ScanApiResult = {
     schoolYear?: string
     classLevel?: number
     studentName?: string
-    termType?: 'midterm' | 'final' | 'semester' | 'quarterly'
+    termType?: string
     schoolName?: string
   }
   overallConfidence: number

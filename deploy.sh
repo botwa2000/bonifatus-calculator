@@ -4,6 +4,16 @@ set -euo pipefail
 # Bonifatus deploy script
 # Usage: ./deploy.sh <prod|dev> [--secrets-file path]
 
+# On Windows (Git Bash), OpenSSH may not be in PATH — add it if needed
+if ! command -v ssh >/dev/null 2>&1; then
+  export PATH="$PATH:/c/Windows/System32/OpenSSH"
+fi
+
+if ! command -v ssh >/dev/null 2>&1; then
+  echo "Error: ssh not found. Install OpenSSH or add it to PATH."
+  exit 1
+fi
+
 ENV="${1:-}"
 SECRETS_FILE=""
 

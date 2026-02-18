@@ -1,5 +1,6 @@
 import { dbg } from '@/lib/debug'
 import { correctOcrText, capitalizeProperName } from './ocr-corrections'
+import type { ScanParserConfig } from '@/lib/db/queries/scan-config'
 
 export type ParsedSubject = {
   originalName: string
@@ -13,7 +14,7 @@ export type ScanResult = {
     schoolYear?: string
     classLevel?: number
     studentName?: string
-    termType?: 'midterm' | 'final' | 'semester' | 'quarterly'
+    termType?: string
     schoolName?: string
     date?: string
   }
@@ -21,168 +22,51 @@ export type ScanResult = {
   overallConfidence: number
 }
 
-// Grade patterns for different systems (single-column)
+export type { ScanParserConfig }
+
+// Grade patterns for different systems (single-column) — structural regex, not data
 const GRADE_PATTERNS = [
-  // German: "Deutsch 2" or "Deutsch: 2" or "Deutsch  2+"
   /^(.+?)\s*[:：]?\s+(\d[+-]?)$/,
-  // French: "Français 15/20" or "Français: 15"
   /^(.+?)\s*[:：]?\s+(\d{1,2}(?:\/20)?)$/,
-  // Letter grades: "Mathematics A+" or "Math: B-"
   /^(.+?)\s*[:：]?\s+([A-F][*+-]?)$/i,
-  // UK GCSE: "English 9" or "Maths: 7"
   /^(.+?)\s*[:：]?\s+([1-9])$/,
-  // Percentage: "Science 85%" or "Math: 92%"
   /^(.+?)\s*[:：]?\s+(\d{1,3}%?)$/,
-  // Swiss: "Deutsch 5.5"
   /^(.+?)\s*[:：]?\s+(\d\.\d)$/,
-  // Tab or multi-space separated: "Deutsch    2"
   /^(.+?)\t+(\S+)$/,
 ]
 
-// Two-column layout: "Deutsch 2   Mathematik 2" — OCR merges columns separated by whitespace
-// Captures: subject1, grade1, subject2, grade2
+// Two-column layout pattern — structural regex
 const TWO_COL_PATTERN =
   /^(.+?)\s{2,}(\d[+-]?|\d\.\d|\d{1,2}\/20|\d{1,3}%|[A-F][*+-]?)\s{3,}(.+?)\s{2,}(\d[+-]?|\d\.\d|\d{1,2}\/20|\d{1,3}%|[A-F][*+-]?)\s*$/i
 
-// School type keywords for heuristic school name detection
-const SCHOOL_TYPE_KEYWORDS = [
-  'grundschule',
-  'volksschule',
-  'gymnasium',
-  'realschule',
-  'hauptschule',
-  'gesamtschule',
-  'oberschule',
-  'mittelschule',
-  'förderschule',
-  'college',
-  'colegio',
-  'liceo',
-  'instituto',
-  'lycée',
-  'collège',
-  'école',
-  'scuola',
-  'school',
-  'academy',
-  'escuela',
-  'школа',
-  'гимназия',
-  'лицей',
-]
-
-// Term type keywords
-const TERM_KEYWORDS: Record<string, 'midterm' | 'final' | 'semester' | 'quarterly'> = {
-  // German
-  jahreszeugnis: 'final',
-  halbjahreszeugnis: 'semester',
-  zwischenzeugnis: 'midterm',
-  abschlusszeugnis: 'final',
-  versetzungszeugnis: 'final',
-  'zeugnis der allgemeinen hochschulreife': 'final',
-  // French
-  'bulletin annuel': 'final',
-  'bulletin semestriel': 'semester',
-  'bulletin trimestriel': 'quarterly',
-  // English
-  'final report': 'final',
-  'end of year': 'final',
-  'mid-term': 'midterm',
-  'mid term': 'midterm',
-  midterm: 'midterm',
-  semester: 'semester',
-  quarterly: 'quarterly',
-  'annual report': 'final',
-  // Italian
-  pagella: 'final',
-  'pagella finale': 'final',
-  'scheda di valutazione': 'final',
-  'primo quadrimestre': 'semester',
-  'secondo quadrimestre': 'final',
-  // Spanish
-  'boletín final': 'final',
-  'boletín trimestral': 'quarterly',
-  'calificaciones finales': 'final',
-  'evaluación trimestral': 'quarterly',
-  // Russian
-  'годовая оценка': 'final',
-  годовая: 'final',
-  'четвертная оценка': 'quarterly',
-  четвертная: 'quarterly',
-  полугодовая: 'semester',
-  'итоговая аттестация': 'final',
-  аттестат: 'final',
+/** Escape special regex characters in a string for use in new RegExp() */
+function escapeRegex(str: string): string {
+  return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
 }
 
-import type { ScanParserConfig } from '@/lib/db/queries/scan-config'
-
-export type { ScanParserConfig }
-
-const TEXT_MONTH_MAP: Record<string, string> = {
-  // German
-  januar: '01',
-  februar: '02',
-  märz: '03',
-  april: '04',
-  mai: '05',
-  juni: '06',
-  juli: '07',
-  august: '08',
-  september: '09',
-  oktober: '10',
-  november: '11',
-  dezember: '12',
-  // French
-  janvier: '01',
-  février: '02',
-  mars: '03',
-  avril: '04',
-  juin: '06',
-  juillet: '07',
-  août: '08',
-  septembre: '09',
-  octobre: '10',
-  novembre: '11',
-  décembre: '12',
-  // Spanish
-  enero: '01',
-  febrero: '02',
-  marzo: '03',
-  mayo: '05',
-  junio: '06',
-  julio: '07',
-  agosto: '08',
-  septiembre: '09',
-  noviembre: '11',
-  diciembre: '12',
-  // Italian
-  gennaio: '01',
-  febbraio: '02',
-  aprile: '04',
-  maggio: '05',
-  giugno: '06',
-  luglio: '07',
-  settembre: '09',
-  ottobre: '10',
-  // English
-  january: '01',
-  february: '02',
-  march: '03',
-  may: '05',
-  june: '06',
-  july: '07',
-  october: '10',
-  december: '12',
+/**
+ * Build a regex from DB labels that matches lines like "Label: value" or "Label value".
+ * Returns null if the label list is empty.
+ */
+function buildLabelRegex(labels: string[]): RegExp | null {
+  if (!labels.length) return null
+  const alternation = labels.map(escapeRegex).join('|')
+  return new RegExp(`(?:${alternation})\\s*[:：]?\\s+(.+)`, 'i')
 }
 
-function textMonthToNumber(month: string): string | null {
-  return TEXT_MONTH_MAP[month.toLowerCase()] ?? null
+/**
+ * Build a regex for textual dates using DB month names.
+ * Matches patterns like "12. Januar 2024" or "15 mars 2024".
+ */
+function buildTextDateRegex(monthNames: Record<string, string>): RegExp | null {
+  const months = Object.keys(monthNames)
+  if (!months.length) return null
+  const alternation = months.map(escapeRegex).join('|')
+  return new RegExp(`\\b(\\d{1,2})\\.?\\s+(${alternation})\\s+(\\d{4})\\b`, 'i')
 }
 
 function normalizeDate(raw: string): string {
-  // Already ISO format
   if (/^\d{4}-\d{2}-\d{2}$/.test(raw)) return raw
-  // DD.MM.YYYY or DD/MM/YYYY
   const parts = raw.split(/[./]/)
   if (parts.length === 3) {
     const [d, m, y] = parts
@@ -194,15 +78,10 @@ function normalizeDate(raw: string): string {
 
 function isGradeValue(text: string): boolean {
   const trimmed = text.trim()
-  // Numeric grades 1-20, with optional +/-
   if (/^\d{1,2}[+-]?$/.test(trimmed)) return true
-  // Letter grades A-F with optional +/-/*
   if (/^[A-Fa-f][*+-]?$/.test(trimmed)) return true
-  // Percentage
   if (/^\d{1,3}%$/.test(trimmed)) return true
-  // Swiss decimal grades
   if (/^\d\.\d$/.test(trimmed)) return true
-  // French /20 format
   if (/^\d{1,2}\/20$/.test(trimmed)) return true
   return false
 }
@@ -216,13 +95,6 @@ function shouldSkipLine(line: string, skipKeywords: string[]): boolean {
   return skipKeywords.some((kw) => lower.startsWith(kw))
 }
 
-/**
- * Token-based two-column splitter.
- * Handles OCR lines like "Deutsch 2 Mathematik 2" where whitespace is normalized
- * to single spaces (the regex-based TWO_COL_PATTERN requires 3+ spaces between columns).
- * Splits into individual (subject, grade) pairs and adds them via tryAddSubject.
- * Returns true if ≥2 pairs were found (i.e. it was indeed a two-column line).
- */
 function trySplitTwoColumnTokens(
   line: string,
   confidence: number,
@@ -232,7 +104,6 @@ function trySplitTwoColumnTokens(
   const tokens = line.split(/\s+/)
   if (tokens.length < 4) return false
 
-  // Find grade-value token positions, respecting parenthetical context like "(1. Fremdsprache)"
   const gradeIndices: number[] = []
   let parenDepth = 0
   for (let i = 0; i < tokens.length; i++) {
@@ -242,7 +113,7 @@ function trySplitTwoColumnTokens(
       if (ch === ')') parenDepth = Math.max(0, parenDepth - 1)
     }
     if (parenDepth > 0) continue
-    if (i === 0) continue // First token must be a subject word, not a grade
+    if (i === 0) continue
     if (isGradeValue(t)) {
       gradeIndices.push(i)
     }
@@ -250,7 +121,6 @@ function trySplitTwoColumnTokens(
 
   if (gradeIndices.length < 2) return false
 
-  // Form (subject, grade) pairs from the grade positions
   const pairs: Array<{ subject: string; grade: string }> = []
   let start = 0
   for (const gi of gradeIndices) {
@@ -291,6 +161,17 @@ export function parseOcrText(
 ): ScanResult {
   const skipKeywords = config?.skipKeywords ?? []
   const behavioralGrades = config?.behavioralGrades ?? new Set<string>()
+  const schoolTypeKeywords = config?.schoolTypeKeywords ?? []
+  const termKeywords = config?.termKeywords ?? {}
+  const monthNames = config?.monthNames ?? {}
+  const studentNameLabels = config?.studentNameLabels ?? []
+  const schoolNameLabels = config?.schoolNameLabels ?? []
+
+  // Build dynamic regexes from DB-stored labels
+  const studentNameRegex = buildLabelRegex(studentNameLabels)
+  const schoolNameRegex = buildLabelRegex(schoolNameLabels)
+  const textDateRegex = buildTextDateRegex(monthNames)
+
   const lines = text
     .split('\n')
     .map((l) => l.trim())
@@ -305,19 +186,15 @@ export function parseOcrText(
     const lowerLine = line.toLowerCase()
     let isMetadataLine = false
 
-    // School name: "Name der Schule" (or similar) is a label printed *below* the school name.
-    // When we see that label, the previous non-empty line is the school name.
+    // School name: "Name der Schule" label — previous line is the school name
     if (/^Name\s+der\s+Schule$/i.test(line) && prevLine && !metadata.schoolName) {
       metadata.schoolName = prevLine
       isMetadataLine = true
     }
 
-    // Student name — handles "Vor- und Zuname", "Name:", "Schüler:", "Nom:", "Apellido:", "Фамилия:" etc.
-    // Colon is optional because German reports often use spacing only.
-    if (!metadata.studentName) {
-      const studentMatch = line.match(
-        /(?:Vor-?\s*(?:und|u\.?)\s*Zuname|Vorname|Name|Student|Schüler(?:in)?|Élève|Aluno|Alumno|Ученик|Nom|Apellido|Фамилия|Имя)\s*[:：]?\s+(.+)/i
-      )
+    // Student name via DB-configured labels
+    if (!metadata.studentName && studentNameRegex) {
+      const studentMatch = line.match(studentNameRegex)
       if (studentMatch) {
         metadata.studentName = capitalizeProperName(correctOcrText(studentMatch[1].trim()))
         isMetadataLine = true
@@ -329,17 +206,15 @@ export function parseOcrText(
       const nameCandidate = line.match(
         /^([A-ZÄÖÜÀÂÉÈÊËÎÏÔÙÛÇÑ][a-zäöüàâéèêëîïôùûçñß]+(?:\s+[A-ZÄÖÜÀÂÉÈÊËÎÏÔÙÛÇÑ][a-zäöüàâéèêëîïôùûçñß]+){1,2})\s*$/
       )
-      if (nameCandidate && !SCHOOL_TYPE_KEYWORDS.some((kw) => line.toLowerCase().includes(kw))) {
+      if (nameCandidate && !schoolTypeKeywords.some((kw) => line.toLowerCase().includes(kw))) {
         metadata.studentName = capitalizeProperName(correctOcrText(nameCandidate[1]))
         isMetadataLine = true
       }
     }
 
-    // School name via explicit label prefix (e.g. "Schule: …")
-    if (!metadata.schoolName) {
-      const schoolMatch = line.match(
-        /(?:Schule|School|École|Scuola|Escuela|Школа|Gymnasium|Realschule|Hauptschule|Gesamtschule|Lycée|Instituto|Colegio|College|Liceo)\s*[:：]\s*(.+)/i
-      )
+    // School name via DB-configured labels
+    if (!metadata.schoolName && schoolNameRegex) {
+      const schoolMatch = line.match(schoolNameRegex)
       if (schoolMatch) {
         metadata.schoolName = correctOcrText(schoolMatch[1].trim())
         isMetadataLine = true
@@ -350,7 +225,7 @@ export function parseOcrText(
     if (!metadata.schoolName) {
       const lowerForSchool = line.toLowerCase()
       if (
-        SCHOOL_TYPE_KEYWORDS.some((kw) => lowerForSchool.includes(kw)) &&
+        schoolTypeKeywords.some((kw) => lowerForSchool.includes(kw)) &&
         line.length > 5 &&
         line.length < 80
       ) {
@@ -359,7 +234,7 @@ export function parseOcrText(
       }
     }
 
-    // School year — do NOT use continue so class level can match on the same line
+    // School year
     if (!metadata.schoolYear) {
       const yearMatch = line.match(/(\d{4})\s*[/–-]\s*(\d{2,4})/)
       if (yearMatch) {
@@ -371,7 +246,7 @@ export function parseOcrText(
       }
     }
 
-    // Class level — also no continue, so year + class on one line both get extracted
+    // Class level
     if (!metadata.classLevel) {
       const classMatch = line.match(
         /(?:Klasse|Classe|Class|Grade|Grado|Класс|Stufe)\s*[:：]?\s*(\d{1,2})/i
@@ -382,21 +257,18 @@ export function parseOcrText(
       }
     }
 
-    // Date (DD.MM.YYYY, DD/MM/YYYY, YYYY-MM-DD, textual European) — shares lines freely
+    // Date (DD.MM.YYYY, DD/MM/YYYY, YYYY-MM-DD, textual European)
     if (!metadata.date) {
       const dateMatch = line.match(/\b(\d{1,2}[./]\d{1,2}[./]\d{2,4}|\d{4}-\d{2}-\d{2})\b/)
       if (dateMatch) {
         metadata.date = normalizeDate(dateMatch[1])
-      } else {
-        // European textual formats: "12. Januar 2024", "12 janvier 2024", "15 marzo 2024"
-        const textDateMatch = line.match(
-          /\b(\d{1,2})\.?\s+(Januar|Februar|März|April|Mai|Juni|Juli|August|September|Oktober|November|Dezember|janvier|février|mars|avril|mai|juin|juillet|août|septembre|octobre|novembre|décembre|enero|febrero|marzo|abril|mayo|junio|julio|agosto|septiembre|octubre|noviembre|diciembre|gennaio|febbraio|aprile|maggio|giugno|luglio|settembre|ottobre|dicembre|January|February|March|April|May|June|July|August|October|December)\s+(\d{4})\b/i
-        )
+      } else if (textDateRegex) {
+        const textDateMatch = line.match(textDateRegex)
         if (textDateMatch) {
           const day = textDateMatch[1].padStart(2, '0')
           const monthName = textDateMatch[2].toLowerCase()
           const year = textDateMatch[3]
-          const monthNum = textMonthToNumber(monthName)
+          const monthNum = monthNames[monthName] ?? null
           if (monthNum) {
             metadata.date = `${year}-${monthNum}-${day}`
           }
@@ -404,17 +276,16 @@ export function parseOcrText(
       }
     }
 
-    // Term type — check on every line (keyword may appear in document title)
-    for (const [keyword, termType] of Object.entries(TERM_KEYWORDS)) {
+    // Term type — check DB-loaded keywords
+    for (const [keyword, termType] of Object.entries(termKeywords)) {
       if (lowerLine.includes(keyword) && !metadata.termType) {
         metadata.termType = termType
         break
       }
     }
 
-    // Subject extraction — skip lines that are purely metadata or non-grade content
+    // Subject extraction
     if (!isMetadataLine && !shouldSkipLine(line, skipKeywords)) {
-      // Strategy 1: Regex two-column layout (multi-space separated): "Deutsch  2   Mathematik  2"
       const twoCol = line.match(TWO_COL_PATTERN)
       if (twoCol) {
         tryAddSubject(
@@ -431,10 +302,7 @@ export function parseOcrText(
           subjects,
           behavioralGrades
         )
-      }
-      // Strategy 2: Token-based two-column split (single-space OCR output): "Deutsch 2 Mathematik 2"
-      else if (!trySplitTwoColumnTokens(line, overallConfidence, subjects, behavioralGrades)) {
-        // Strategy 3: Single-column patterns
+      } else if (!trySplitTwoColumnTokens(line, overallConfidence, subjects, behavioralGrades)) {
         for (const pattern of GRADE_PATTERNS) {
           const match = line.match(pattern)
           if (match) {

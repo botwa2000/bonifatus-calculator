@@ -19,6 +19,12 @@ type CategoryOption = {
   name: string | Record<string, string>
 }
 
+type GradingSystemOption = {
+  id: string
+  name: string | Record<string, string> | null
+  countryCode: string | null
+}
+
 type ReviewSubject = {
   originalName: string
   grade: string
@@ -28,10 +34,18 @@ type ReviewSubject = {
   excluded: boolean
 }
 
+type TermTypeConfig = {
+  groups: Array<{ code: string; name: Record<string, string> }>
+  types: Array<{ code: string; group: string; name: Record<string, string> }>
+} | null
+
 type ScanReviewPanelProps = {
   scanResult: ScanApiResult
   subjects: SubjectOption[]
   categories: CategoryOption[]
+  gradingSystems: GradingSystemOption[]
+  suggestedGradingSystemId?: string
+  termTypes: TermTypeConfig
   onAccept: (data: {
     subjects: Array<{
       subjectId: string
@@ -40,6 +54,7 @@ type ScanReviewPanelProps = {
       weight: number
     }>
     metadata: ScanApiResult['metadata']
+    gradingSystemId: string
   }) => void
   onScanAgain: () => void
   onCancel: () => void
@@ -63,6 +78,9 @@ export function ScanReviewPanel({
   scanResult,
   subjects: allSubjects,
   categories,
+  gradingSystems,
+  suggestedGradingSystemId,
+  termTypes,
   onAccept,
   onScanAgain,
   onCancel,
@@ -77,6 +95,7 @@ export function ScanReviewPanel({
     }))
   )
   const [metadata, setMetadata] = useState(scanResult.metadata)
+  const [gradingSystemId, setGradingSystemId] = useState(suggestedGradingSystemId || '')
 
   const subjectOptions = useMemo(() => {
     const grouped: Record<
@@ -129,8 +148,27 @@ export function ScanReviewPanel({
         grade: r.grade,
         weight: 1,
       }))
-    onAccept({ subjects: accepted, metadata })
+    onAccept({ subjects: accepted, metadata, gradingSystemId })
   }
+
+  const termTypeGroups = useMemo(() => {
+    if (!termTypes?.groups || !termTypes?.types) return null
+    return termTypes.groups.map((group) => ({
+      code: group.code,
+      label: resolveLocalized(group.name, locale),
+      types: termTypes.types
+        .filter((tt) => tt.group === group.code)
+        .map((tt) => ({
+          value: tt.code,
+          label: resolveLocalized(tt.name, locale),
+        })),
+    }))
+  }, [termTypes, locale])
+
+  const gradingSystemOptions = gradingSystems.map((gs) => ({
+    value: gs.id,
+    label: resolveLocalized(gs.name, locale),
+  }))
 
   const matchedCount = reviewSubjects.filter((r) => r.matchedSubjectId && !r.excluded).length
   const totalCount = reviewSubjects.filter((r) => !r.excluded).length
@@ -145,31 +183,103 @@ export function ScanReviewPanel({
       </div>
 
       {/* Metadata section */}
-      <div className="grid sm:grid-cols-2 gap-3 rounded-xl border border-neutral-200 dark:border-neutral-800 bg-neutral-50 dark:bg-neutral-900 p-4">
-        <div>
-          <Label>{t('schoolYear')}</Label>
-          <Input
-            value={metadata.schoolYear || ''}
-            onChange={(e) => setMetadata((m) => ({ ...m, schoolYear: e.target.value }))}
-            placeholder="2025-2026"
-            className="mt-1 !py-1.5"
-          />
+      <div className="rounded-xl border border-neutral-200 dark:border-neutral-800 bg-neutral-50 dark:bg-neutral-900 p-4 space-y-3">
+        <h4 className="text-sm font-semibold text-neutral-800 dark:text-neutral-100">
+          {t('extractedInfo')}
+        </h4>
+        <div className="grid sm:grid-cols-2 gap-3">
+          <div>
+            <Label>{t('studentName')}</Label>
+            <Input
+              value={metadata.studentName || ''}
+              onChange={(e) => setMetadata((m) => ({ ...m, studentName: e.target.value }))}
+              placeholder={t('studentName')}
+              className="mt-1 !py-1.5"
+            />
+          </div>
+          <div>
+            <Label>{t('schoolName')}</Label>
+            <Input
+              value={metadata.schoolName || ''}
+              onChange={(e) => setMetadata((m) => ({ ...m, schoolName: e.target.value }))}
+              placeholder={t('schoolName')}
+              className="mt-1 !py-1.5"
+            />
+          </div>
         </div>
-        <div>
-          <Label>{t('classLevel')}</Label>
-          <Input
-            type="number"
-            min={1}
-            max={13}
-            value={metadata.classLevel ?? ''}
-            onChange={(e) =>
-              setMetadata((m) => ({
-                ...m,
-                classLevel: parseInt(e.target.value) || undefined,
-              }))
-            }
-            className="mt-1 !py-1.5"
-          />
+        <div className="grid sm:grid-cols-2 gap-3">
+          <div>
+            <Label>{t('schoolYear')}</Label>
+            <Input
+              value={metadata.schoolYear || ''}
+              onChange={(e) => setMetadata((m) => ({ ...m, schoolYear: e.target.value }))}
+              placeholder="2025-2026"
+              className="mt-1 !py-1.5"
+            />
+          </div>
+          <div>
+            <Label>{t('classLevel')}</Label>
+            <Input
+              type="number"
+              min={1}
+              max={13}
+              value={metadata.classLevel ?? ''}
+              onChange={(e) =>
+                setMetadata((m) => ({
+                  ...m,
+                  classLevel: parseInt(e.target.value) || undefined,
+                }))
+              }
+              className="mt-1 !py-1.5"
+            />
+          </div>
+        </div>
+        <div className="grid sm:grid-cols-2 gap-3">
+          <div>
+            <Label>{t('termType')}</Label>
+            <select
+              value={metadata.termType || 'semester_2'}
+              onChange={(e) =>
+                setMetadata((m) => ({
+                  ...m,
+                  termType: e.target.value,
+                }))
+              }
+              className="mt-1 w-full rounded-lg border-2 border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 py-1.5 text-sm text-neutral-900 dark:text-white outline-none focus:border-primary-500 transition-colors"
+            >
+              {termTypeGroups ? (
+                termTypeGroups.map((group) => (
+                  <optgroup key={group.code} label={group.label}>
+                    {group.types.map((tt) => (
+                      <option key={tt.value} value={tt.value}>
+                        {tt.label}
+                      </option>
+                    ))}
+                  </optgroup>
+                ))
+              ) : (
+                <>
+                  <option value="semester_2">{t('final')}</option>
+                  <option value="semester_1">{t('midterm')}</option>
+                </>
+              )}
+            </select>
+          </div>
+          <div>
+            <Label>{t('gradingSystem')}</Label>
+            <select
+              value={gradingSystemId}
+              onChange={(e) => setGradingSystemId(e.target.value)}
+              className="mt-1 w-full rounded-lg border-2 border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 py-1.5 text-sm text-neutral-900 dark:text-white outline-none focus:border-primary-500 transition-colors"
+            >
+              <option value="">{t('selectGradingSystem')}</option>
+              {gradingSystemOptions.map((o) => (
+                <option key={o.value} value={o.value}>
+                  {o.label}
+                </option>
+              ))}
+            </select>
+          </div>
         </div>
       </div>
 

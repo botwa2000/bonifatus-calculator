@@ -1,73 +1,34 @@
 /**
  * OCR correction utilities for common misreadings in report card text.
+ * All substitution maps and character mappings are loaded from the database.
  */
 
-// Common OCR substitution pairs: [wrong, correct]
-const OCR_SUBSTITUTIONS: [string, string][] = [
-  ['rn', 'm'],
-  ['m', 'rn'],
-  ['vv', 'w'],
-  ['l', 'I'],
-  ['I', 'l'],
-  ['0', 'O'],
-  ['O', '0'],
-  ['|', 'l'],
-  ['1', 'l'],
-  ['5', 'S'],
-  ['S', '5'],
-  ['8', 'B'],
-  ['ii', 'ü'],
-  ['ue', 'ü'],
-  ['ae', 'ä'],
-  ['oe', 'ö'],
-  ['ss', 'ß'],
-]
-
-// Umlaut normalization map for comparison
-const UMLAUT_MAP: Record<string, string> = {
-  ä: 'a',
-  ö: 'o',
-  ü: 'u',
-  Ä: 'A',
-  Ö: 'O',
-  Ü: 'U',
-  ß: 'ss',
-  é: 'e',
-  è: 'e',
-  ê: 'e',
-  ë: 'e',
-  à: 'a',
-  â: 'a',
-  ù: 'u',
-  û: 'u',
-  î: 'i',
-  ï: 'i',
-  ô: 'o',
-  ñ: 'n',
-  ç: 'c',
-}
+import type { ScanParserConfig } from '@/lib/db/queries/scan-config'
 
 /**
  * Normalize accented/umlaut characters to ASCII equivalents for comparison.
  */
-export function normalizeUmlauts(text: string): string {
+export function normalizeUmlauts(text: string, umlautMap: Record<string, string>): string {
   let result = ''
   for (const ch of text) {
-    result += UMLAUT_MAP[ch] ?? ch
+    result += umlautMap[ch] ?? ch
   }
   return result
 }
 
 /**
  * Generate OCR-corrected variants of input text by applying common substitutions.
- * Returns 5-8 alternate spellings including the original.
+ * Returns up to 8 alternate spellings including the original.
  */
-export function generateOcrVariants(text: string): string[] {
+export function generateOcrVariants(
+  text: string,
+  config: Pick<ScanParserConfig, 'ocrSubstitutions' | 'umlautMap'>
+): string[] {
   const variants = new Set<string>()
   variants.add(text)
-  variants.add(normalizeUmlauts(text))
+  variants.add(normalizeUmlauts(text, config.umlautMap))
 
-  for (const [wrong, correct] of OCR_SUBSTITUTIONS) {
+  for (const [wrong, correct] of config.ocrSubstitutions) {
     if (text.includes(wrong)) {
       variants.add(text.replace(wrong, correct))
     }

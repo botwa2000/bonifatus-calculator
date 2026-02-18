@@ -6,6 +6,16 @@ import { eq } from 'drizzle-orm'
 export type ScanParserConfig = {
   skipKeywords: string[]
   behavioralGrades: Set<string>
+  ocrSubstitutions: [string, string][]
+  umlautMap: Record<string, string>
+  schoolTypeKeywords: string[]
+  termKeywords: Record<string, string>
+  monthNames: Record<string, string>
+  studentNameLabels: string[]
+  schoolNameLabels: string[]
+  localeLanguages: Record<string, string>
+  countryLanguages: Record<string, string>
+  supportedLocales: string[]
 }
 
 export type DbSubjectWithAliases = {
@@ -27,24 +37,43 @@ function isCacheValid(): boolean {
   return cacheTimestamp > 0 && Date.now() - cacheTimestamp < CACHE_TTL
 }
 
+function asStringArray(val: unknown): string[] {
+  return Array.isArray(val) ? (val as string[]) : []
+}
+
+function asStringRecord(val: unknown): Record<string, string> {
+  return val && typeof val === 'object' && !Array.isArray(val)
+    ? (val as Record<string, string>)
+    : {}
+}
+
+function asTupleArray(val: unknown): [string, string][] {
+  if (!Array.isArray(val)) return []
+  return val.filter((item) => Array.isArray(item) && item.length === 2) as [string, string][]
+}
+
 export async function loadScanConfig(): Promise<ScanParserConfig> {
   if (configCache && isCacheValid()) return configCache
 
   const rows = await db.select().from(scanConfig)
-  const configMap: Record<string, unknown> = {}
+  const m: Record<string, unknown> = {}
   for (const row of rows) {
-    configMap[row.key] = row.data
+    m[row.key] = row.data
   }
 
   configCache = {
-    skipKeywords: Array.isArray(configMap['skip_keywords'])
-      ? (configMap['skip_keywords'] as string[])
-      : [],
-    behavioralGrades: new Set(
-      Array.isArray(configMap['behavioral_grades'])
-        ? (configMap['behavioral_grades'] as string[])
-        : []
-    ),
+    skipKeywords: asStringArray(m['skip_keywords']),
+    behavioralGrades: new Set(asStringArray(m['behavioral_grades'])),
+    ocrSubstitutions: asTupleArray(m['ocr_substitutions']),
+    umlautMap: asStringRecord(m['umlaut_map']),
+    schoolTypeKeywords: asStringArray(m['school_type_keywords']),
+    termKeywords: asStringRecord(m['term_keywords']),
+    monthNames: asStringRecord(m['month_names']),
+    studentNameLabels: asStringArray(m['student_name_labels']),
+    schoolNameLabels: asStringArray(m['school_name_labels']),
+    localeLanguages: asStringRecord(m['locale_languages']),
+    countryLanguages: asStringRecord(m['country_languages']),
+    supportedLocales: asStringArray(m['supported_locales']),
   }
   cacheTimestamp = Date.now()
   return configCache

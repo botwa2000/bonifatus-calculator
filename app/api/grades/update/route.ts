@@ -15,7 +15,7 @@ const updateSchema = z.object({
   termId: z.string().uuid(),
   gradingSystemId: z.string().uuid(),
   classLevel: z.number().int().min(1).max(20),
-  termType: z.enum(['midterm', 'final', 'semester', 'quarterly']),
+  termType: z.string().min(1).max(30),
   schoolYear: z.string().min(4).max(15),
   termName: z.string().max(50).optional(),
   childId: z.string().uuid().optional(),

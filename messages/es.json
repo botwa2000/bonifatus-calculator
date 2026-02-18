@@ -239,7 +239,7 @@
     "saved": "¡Guardado!",
     "selectSystemFirst": "Selecciona un sistema de calificación primero.",
     "pickSubjects": "Por favor, elige materias de la lista para poder guardarlas.",
-    "formula": "Fórmula: nivel escolar \u00d7 factor de período \u00d7 factor de calificación (mejor=2, segundo=1, tercero=0, inferior=-1), mínimo cero.",
+    "formula": "Fórmula: factor nivel de clase \u00d7 factor período \u00d7 factor nota \u00d7 peso. Todos los factores se configuran en la base de datos.",
     "tier": "{subject} \u2014 nivel {tier}",
     "addSubjectsToSee": "Agrega materias y calificaciones para ver el cálculo.",
     "midterm": "Parcial",
@@ -663,7 +663,17 @@
     "classLevel": "Nivel de clase",
     "imagePreview": "Vista previa del boletín",
     "include": "Incluir",
-    "exclude": "Excluir"
+    "exclude": "Excluir",
+    "extractedInfo": "Información extraída",
+    "studentName": "Nombre del alumno",
+    "schoolName": "Nombre del colegio",
+    "termType": "Tipo de boletín",
+    "gradingSystem": "Sistema de calificación",
+    "selectGradingSystem": "Seleccionar sistema de calificación...",
+    "midterm": "Parcial",
+    "final": "Final",
+    "semester": "Semestre",
+    "quarterly": "Trimestral"
   },
   "profile": {
     "backToHomepage": "\u2190 Volver a la página principal",

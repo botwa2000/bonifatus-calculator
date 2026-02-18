@@ -239,7 +239,7 @@
     "saved": "Salvato!",
     "selectSystemFirst": "Seleziona prima un sistema di valutazione.",
     "pickSubjects": "Seleziona le materie dall'elenco per poterle salvare.",
-    "formula": "Formula: livello classe \u00d7 fattore periodo \u00d7 fattore voto (migliore=2, secondo=1, terzo=0, inferiore=-1), minimo zero.",
+    "formula": "Formula: fattore livello classe \u00d7 fattore periodo \u00d7 fattore voto \u00d7 peso. Tutti i fattori sono configurati nel database.",
     "tier": "{subject} \u2014 fascia {tier}",
     "addSubjectsToSee": "Aggiungi materie e voti per vedere il calcolo.",
     "midterm": "Metà periodo",
@@ -663,7 +663,17 @@
     "classLevel": "Livello di classe",
     "imagePreview": "Anteprima della pagella",
     "include": "Includi",
-    "exclude": "Escludi"
+    "exclude": "Escludi",
+    "extractedInfo": "Informazioni estratte",
+    "studentName": "Nome dello studente",
+    "schoolName": "Nome della scuola",
+    "termType": "Tipo di pagella",
+    "gradingSystem": "Sistema di valutazione",
+    "selectGradingSystem": "Seleziona sistema di valutazione...",
+    "midterm": "Intermedio",
+    "final": "Finale",
+    "semester": "Semestre",
+    "quarterly": "Trimestrale"
   },
   "profile": {
     "backToHomepage": "\u2190 Torna alla homepage",

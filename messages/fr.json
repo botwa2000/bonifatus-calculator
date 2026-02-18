@@ -239,7 +239,7 @@
     "saved": "Enregistré !",
     "selectSystemFirst": "Sélectionne d'abord un système de notation.",
     "pickSubjects": "Choisis des matières dans la liste pour que nous puissions les enregistrer.",
-    "formula": "Formule : niveau de classe \u00d7 facteur de période \u00d7 facteur de note (meilleur=2, deuxième=1, troisième=0, en dessous=-1), plancher à zéro.",
+    "formula": "Formule : facteur niveau de classe \u00d7 facteur période \u00d7 facteur note \u00d7 pondération. Tous les facteurs sont configurés dans la base de données.",
     "tier": "{subject} \u2014 palier {tier}",
     "addSubjectsToSee": "Ajoute des matières et des notes pour voir le calcul.",
     "midterm": "Mi-trimestre",
@@ -663,7 +663,17 @@
     "classLevel": "Niveau de classe",
     "imagePreview": "Aperçu du bulletin",
     "include": "Inclure",
-    "exclude": "Exclure"
+    "exclude": "Exclure",
+    "extractedInfo": "Informations extraites",
+    "studentName": "Nom de l'élève",
+    "schoolName": "Nom de l'école",
+    "termType": "Type de bulletin",
+    "gradingSystem": "Système de notation",
+    "selectGradingSystem": "Choisir un système de notation...",
+    "midterm": "Mi-parcours",
+    "final": "Fin d'année",
+    "semester": "Semestre",
+    "quarterly": "Trimestriel"
   },
   "profile": {
     "backToHomepage": "\u2190 Retour à l'accueil",

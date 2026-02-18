@@ -1,10 +1,11 @@
 import { db } from '@/lib/db/client'
 import { gradingSystems, subjects, subjectCategories } from '@/drizzle/schema/grades'
 import { bonusFactorDefaults, userBonusFactors } from '@/drizzle/schema/bonuses'
+import { scanConfig } from '@/drizzle/schema/scanConfig'
 import { eq, and, isNull } from 'drizzle-orm'
 
 export async function getCalculatorConfig(subjectLimit = 200) {
-  const [gs, factors, subjectList, categories] = await Promise.all([
+  const [gs, factors, subjectList, categories, termTypesRow] = await Promise.all([
     db
       .select()
       .from(gradingSystems)
@@ -30,6 +31,7 @@ export async function getCalculatorConfig(subjectLimit = 200) {
       .from(subjectCategories)
       .where(eq(subjectCategories.isActive, true))
       .orderBy(subjectCategories.displayOrder),
+    db.select().from(scanConfig).where(eq(scanConfig.key, 'term_types')),
   ])
 
   return {
@@ -37,6 +39,7 @@ export async function getCalculatorConfig(subjectLimit = 200) {
     bonusFactorDefaults: factors,
     subjects: subjectList,
     categories,
+    termTypes: termTypesRow[0]?.data ?? null,
   }
 }
 

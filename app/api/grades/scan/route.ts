@@ -60,14 +60,15 @@ export async function POST(req: Request) {
     }
 
     // Pipeline: load config → preprocess → OCR → parse → match
-    const scanConfig = await loadScanConfig()
+    const config = await loadScanConfig()
     const preprocessed = await preprocessImage(imageBuffer)
-    const ocrResult = await recognizeText(preprocessed, {
-      locale: locale || 'en',
-      countryCode: gradingSystemCountry,
-    })
-    const parsed = parseOcrText(ocrResult.text, ocrResult.confidence, scanConfig)
-    const matched = await matchSubjects(parsed.subjects)
+    const ocrResult = await recognizeText(
+      preprocessed,
+      { locale: locale || 'en', countryCode: gradingSystemCountry },
+      config
+    )
+    const parsed = parseOcrText(ocrResult.text, ocrResult.confidence, config)
+    const matched = await matchSubjects(parsed.subjects, config)
 
     return NextResponse.json({
       success: true,

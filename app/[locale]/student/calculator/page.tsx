@@ -39,7 +39,15 @@ type Term = {
 type CalculatorConfig = {
   subjects: Array<{ id: string; name: string | Record<string, string>; categoryId?: string }>
   categories: Array<{ id: string; name: string | Record<string, string> }>
-  gradingSystems: Array<{ id: string; countryCode: string | null }>
+  gradingSystems: Array<{
+    id: string
+    name: string | Record<string, string> | null
+    countryCode: string | null
+  }>
+  termTypes: {
+    groups: Array<{ code: string; name: Record<string, string> }>
+    types: Array<{ code: string; group: string; name: Record<string, string> }>
+  } | null
 }
 
 type ScanMode = 'manual' | 'scanning' | 'reviewing'
@@ -104,6 +112,7 @@ export default function StudentCalculatorPage() {
             subjects: data.subjects || [],
             categories: data.categories || [],
             gradingSystems: data.gradingSystems || [],
+            termTypes: data.termTypes || null,
           })
           // Try to guess country from browser
           if (typeof navigator !== 'undefined') {
@@ -129,12 +138,13 @@ export default function StudentCalculatorPage() {
     (data: {
       subjects: Array<{ subjectId: string; subjectName: string; grade: string; weight: number }>
       metadata: ScanApiResult['metadata']
+      gradingSystemId: string
     }) => {
       const currentYear = new Date().getFullYear()
       setPrefill({
-        gradingSystemId: '',
+        gradingSystemId: data.gradingSystemId,
         classLevel: data.metadata.classLevel || 1,
-        termType: data.metadata.termType || 'final',
+        termType: data.metadata.termType || 'semester_2',
         schoolYear: data.metadata.schoolYear || `${currentYear}-${currentYear + 1}`,
         subjects: data.subjects.map((s, idx) => ({
           id: `scan-${idx}`,
@@ -211,6 +221,13 @@ export default function StudentCalculatorPage() {
             scanResult={scanResult}
             subjects={config.subjects}
             categories={config.categories}
+            gradingSystems={config.gradingSystems}
+            suggestedGradingSystemId={
+              config.gradingSystems.find(
+                (gs) => gs.countryCode?.toUpperCase() === selectedCountry?.toUpperCase()
+              )?.id
+            }
+            termTypes={config.termTypes}
             onAccept={handleAcceptScan}
             onScanAgain={() => {
               setScanResult(null)

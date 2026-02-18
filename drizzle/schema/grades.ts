@@ -18,7 +18,7 @@ export const gradeQualityTierEnum = pgEnum('grade_quality_tier', [
   'third',
   'below',
 ])
-export const termTypeEnum = pgEnum('term_type', ['midterm', 'final', 'semester', 'quarterly'])
+// term_type changed from enum to text to support international term types (migration 0006)
 
 export const gradingSystems = pgTable('grading_systems', {
   id: text('id')
@@ -85,7 +85,7 @@ export const termGrades = pgTable('term_grades', {
     .notNull()
     .references(() => userProfiles.id, { onDelete: 'cascade' }),
   schoolYear: text('school_year').notNull(),
-  termType: termTypeEnum('term_type').notNull(),
+  termType: text('term_type').notNull(),
   gradingSystemId: text('grading_system_id')
     .notNull()
     .references(() => gradingSystems.id),

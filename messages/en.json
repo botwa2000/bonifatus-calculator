@@ -239,7 +239,7 @@
     "saved": "Saved!",
     "selectSystemFirst": "Select a grading system first.",
     "pickSubjects": "Please pick subjects from the list so we can save them.",
-    "formula": "Formula: class level \u00d7 term factor \u00d7 grade factor (best=2, second=1, third=0, below=-1), floored at zero.",
+    "formula": "Formula: class level factor \u00d7 term factor \u00d7 grade factor \u00d7 weight. All factors are configured in the database.",
     "tier": "{subject} \u2014 {tier} tier",
     "addSubjectsToSee": "Add subjects and grades to see the calculation.",
     "midterm": "Midterm",
@@ -662,7 +662,17 @@
     "classLevel": "Class Level",
     "imagePreview": "Report card preview",
     "include": "Include",
-    "exclude": "Exclude"
+    "exclude": "Exclude",
+    "extractedInfo": "Extracted Information",
+    "studentName": "Student Name",
+    "schoolName": "School Name",
+    "termType": "Term Type",
+    "gradingSystem": "Grading System",
+    "selectGradingSystem": "Select grading system...",
+    "midterm": "Midterm",
+    "final": "Final",
+    "semester": "Semester",
+    "quarterly": "Quarterly"
   },
   "profile": {
     "backToHomepage": "\u2190 Back to homepage",

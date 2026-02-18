@@ -1,9 +1,11 @@
 import { dbg } from '@/lib/debug'
 import type { ParsedSubject } from './text-parser'
 import { generateOcrVariants, normalizeUmlauts } from './ocr-corrections'
-import { loadSubjectsWithAliases, type DbSubjectWithAliases } from '@/lib/db/queries/scan-config'
-
-const LOCALES = ['en', 'de', 'fr', 'it', 'es', 'ru'] as const
+import {
+  loadSubjectsWithAliases,
+  type DbSubjectWithAliases,
+  type ScanParserConfig,
+} from '@/lib/db/queries/scan-config'
 
 export type MatchedSubject = ParsedSubject & {
   matchedSubjectId?: string
@@ -41,9 +43,11 @@ function levenshteinDistance(a: string, b: string): number {
 
 function findMatch(
   originalName: string,
-  allSubjects: DbSubjectWithAliases[]
+  allSubjects: DbSubjectWithAliases[],
+  config: ScanParserConfig
 ): { id: string; name: string; confidence: 'high' | 'medium' | 'low'; method: string } | null {
   const normalized = normalizeForComparison(originalName)
+  const locales = config.supportedLocales
 
   // Strategy 0: Alias lookup — check each subject's DB-stored aliases array
   for (const subj of allSubjects) {
@@ -57,7 +61,7 @@ function findMatch(
 
   // Strategy 1: Exact match in any locale
   for (const subj of allSubjects) {
-    for (const locale of LOCALES) {
+    for (const locale of locales) {
       const localeName = subj.name[locale]
       if (localeName && normalizeForComparison(localeName) === normalized) {
         return { id: subj.id, name: localeName, confidence: 'high', method: 'exact' }
@@ -67,12 +71,11 @@ function findMatch(
 
   // Strategy 2: Case-insensitive startsWith or contains match
   for (const subj of allSubjects) {
-    for (const locale of LOCALES) {
+    for (const locale of locales) {
       const localeName = subj.name[locale]
       if (!localeName) continue
       const normLocal = normalizeForComparison(localeName)
 
-      // Check if OCR text starts with subject name or vice versa
       if (normLocal.startsWith(normalized) || normalized.startsWith(normLocal)) {
         return { id: subj.id, name: localeName, confidence: 'medium', method: 'prefix' }
       }
@@ -81,7 +84,7 @@ function findMatch(
 
   // Strategy 3: Fuzzy contains match (subject name appears within OCR text)
   for (const subj of allSubjects) {
-    for (const locale of LOCALES) {
+    for (const locale of locales) {
       const localeName = subj.name[locale]
       if (!localeName) continue
       const normLocal = normalizeForComparison(localeName)
@@ -96,17 +99,20 @@ function findMatch(
   }
 
   // Strategy 3.5: OCR-corrected matching — try variants of the OCR text
-  const variants = generateOcrVariants(originalName)
+  const ocrConfig = { ocrSubstitutions: config.ocrSubstitutions, umlautMap: config.umlautMap }
+  const variants = generateOcrVariants(originalName, ocrConfig)
   for (const variant of variants) {
     if (variant === originalName) continue
     const normVariant = normalizeForComparison(variant)
-    const normVariantUmlaut = normalizeForComparison(normalizeUmlauts(variant))
+    const normVariantUmlaut = normalizeForComparison(normalizeUmlauts(variant, config.umlautMap))
     for (const subj of allSubjects) {
-      for (const locale of LOCALES) {
+      for (const locale of locales) {
         const localeName = subj.name[locale]
         if (!localeName) continue
         const normLocal = normalizeForComparison(localeName)
-        const normLocalUmlaut = normalizeForComparison(normalizeUmlauts(localeName))
+        const normLocalUmlaut = normalizeForComparison(
+          normalizeUmlauts(localeName, config.umlautMap)
+        )
         if (normLocal === normVariant || normLocalUmlaut === normVariantUmlaut) {
           return { id: subj.id, name: localeName, confidence: 'medium', method: 'ocr-corrected' }
         }
@@ -120,7 +126,7 @@ function findMatch(
   // Strategy 4: Levenshtein fuzzy match
   let bestMatch: { id: string; name: string; dist: number } | null = null
   for (const subj of allSubjects) {
-    for (const locale of LOCALES) {
+    for (const locale of locales) {
       const localeName = subj.name[locale]
       if (!localeName) continue
       const normLocal = normalizeForComparison(localeName)
@@ -140,11 +146,14 @@ function findMatch(
   return null
 }
 
-export async function matchSubjects(parsed: ParsedSubject[]): Promise<MatchedSubject[]> {
+export async function matchSubjects(
+  parsed: ParsedSubject[],
+  config: ScanParserConfig
+): Promise<MatchedSubject[]> {
   const allSubjects = await loadSubjectsWithAliases()
 
   const results: MatchedSubject[] = parsed.map((p) => {
-    const match = findMatch(p.originalName, allSubjects)
+    const match = findMatch(p.originalName, allSubjects, config)
     if (match) {
       return {
         ...p,
@@ -161,7 +170,7 @@ export async function matchSubjects(parsed: ParsedSubject[]): Promise<MatchedSub
 
   dbg('scanner', 'subject match results', {
     results: results.map((s) => {
-      const match = findMatch(s.originalName, allSubjects)
+      const match = findMatch(s.originalName, allSubjects, config)
       return {
         ocr: s.originalName,
         grade: s.grade,

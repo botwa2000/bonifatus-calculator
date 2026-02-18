@@ -239,7 +239,7 @@
     "saved": "Gespeichert!",
     "selectSystemFirst": "Bitte wähle zuerst ein Notensystem aus.",
     "pickSubjects": "Bitte wähle Fächer aus der Liste aus, damit wir sie speichern können.",
-    "formula": "Formel: Klassenstufe \u00d7 Zeitraumfaktor \u00d7 Notenfaktor (beste=2, zweitbeste=1, dritte=0, darunter=-1), mindestens null.",
+    "formula": "Formel: Klassenstufenfaktor \u00d7 Terminfaktor \u00d7 Notenfaktor \u00d7 Gewichtung. Alle Faktoren werden in der Datenbank konfiguriert.",
     "tier": "{subject} \u2014 {tier}-Stufe",
     "addSubjectsToSee": "Füge Fächer und Noten hinzu, um die Berechnung zu sehen.",
     "midterm": "Halbjahr",
@@ -662,7 +662,17 @@
     "classLevel": "Klassenstufe",
     "imagePreview": "Zeugnisvorschau",
     "include": "Einschließen",
-    "exclude": "Ausschließen"
+    "exclude": "Ausschließen",
+    "extractedInfo": "Erkannte Informationen",
+    "studentName": "Schülername",
+    "schoolName": "Schulname",
+    "termType": "Zeugnisart",
+    "gradingSystem": "Notensystem",
+    "selectGradingSystem": "Notensystem auswählen...",
+    "midterm": "Halbjahr",
+    "final": "Jahreszeugnis",
+    "semester": "Semester",
+    "quarterly": "Quartal"
   },
   "profile": {
     "backToHomepage": "\u2190 Zurück zur Startseite",

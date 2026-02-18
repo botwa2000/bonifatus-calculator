@@ -32,6 +32,8 @@ Test it:
 ssh root@159.69.180.183 "echo connected"
 ```
 
+> **Windows note:** On Windows, `deploy.sh` automatically adds `C:\Windows\System32\OpenSSH` to PATH if `ssh` is not found. No manual fix needed — `./deploy.sh dev` works directly from Git Bash or Claude Code.
+
 ## Deployment
 
 ### Deploy to dev

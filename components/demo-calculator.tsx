@@ -53,11 +53,17 @@ type SubjectEntry = {
   isCoreSubject?: boolean
 }
 
+type TermTypeConfig = {
+  groups: Array<{ code: string; name: Record<string, string> }>
+  types: Array<{ code: string; group: string; name: Record<string, string> }>
+} | null
+
 type CalculatorConfig = {
   gradingSystems: GradingSystem[]
   bonusFactorDefaults: Factor[]
   subjects: Subject[]
   categories: Array<{ id: string; name: string | Record<string, string> }>
+  termTypes: TermTypeConfig
 }
 
 type CalculationResult = {
@@ -143,15 +149,15 @@ function calculateBonus(
   let totalWeightedNormalized = 0
   let totalWeight = 0
 
-  // Get term factor from DB or use defaults
+  // Get class level factor from DB (class_1=1.0, class_2=1.1, ..., class_13=2.2)
+  const classLevelFactor = getFactorValue(factors, 'class_level', `class_${classLevel}`, 1) ?? 1
+
+  // Get term factor from DB
   const termFactor = getFactorValue(factors, 'term_type', termType, 1) ?? 1
 
-  // Grade factors: best=2, second=1, third=0, below=-1
+  // Grade factors from DB (grade_tier: best, second, third, below)
   const getGradeFactor = (tier: string) => {
-    const value = getFactorValue(factors, 'grade_tier', tier)
-    if (value !== undefined) return value
-    const defaults: Record<string, number> = { best: 2, second: 1, third: 0, below: -1 }
-    return defaults[tier] ?? -1
+    return getFactorValue(factors, 'grade_tier', tier) ?? 0
   }
 
   const breakdown = subjects.map((subject) => {
@@ -160,8 +166,8 @@ function calculateBonus(
     const gradeFactor = getGradeFactor(tier)
     const weight = Number(subject.weight) || 1
 
-    // Formula: class_level × term_factor × grade_factor × weight
-    const rawBonus = classLevel * termFactor * gradeFactor * weight
+    // Formula: class_level_factor × term_factor × grade_factor × weight
+    const rawBonus = classLevelFactor * termFactor * gradeFactor * weight
     const bonus = Math.max(0, rawBonus)
 
     totalWeightedNormalized += normalized * weight
@@ -218,7 +224,7 @@ function getSampleData(
   return {
     systemId: sampleSystem?.id,
     classLevel: Math.floor(1 + Math.random() * 12),
-    termType: 'final',
+    termType: 'semester_2',
     subjects: sampleSubjects.map((s, idx) => ({
       id: `${idx}`,
       subjectId: s.id,
@@ -280,6 +286,7 @@ export function DemoCalculator({
     bonusFactorDefaults: [],
     subjects: [],
     categories: [],
+    termTypes: null,
   })
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -296,7 +303,7 @@ export function DemoCalculator({
     initialData?.gradingSystemId
   )
   const [classLevel, setClassLevel] = useState(initialData?.classLevel ?? 1)
-  const [termType, setTermType] = useState(initialData?.termType ?? 'final')
+  const [termType, setTermType] = useState(initialData?.termType ?? 'semester_2')
   const [schoolYear, setSchoolYear] = useState(initialData?.schoolYear ?? defaultSchoolYear)
   const [termName, setTermName] = useState(initialData?.termName ?? '')
   const [subjectRows, setSubjectRows] = useState<SubjectEntry[]>(
@@ -359,6 +366,7 @@ export function DemoCalculator({
           bonusFactorDefaults: data.bonusFactorDefaults || [],
           subjects: data.subjects || [],
           categories: data.categories || [],
+          termTypes: data.termTypes || null,
         })
         const countrySuggested = countryGuess
           ? data.gradingSystems?.find(
@@ -668,12 +676,19 @@ export function DemoCalculator({
     label: resolveLocalized(gs.name, locale),
   }))
 
-  const termTypeOptions = [
-    { value: 'midterm', label: t('midterm') },
-    { value: 'final', label: t('final') },
-    { value: 'semester', label: t('semester') },
-    { value: 'quarterly', label: t('quarterly') },
-  ]
+  const termTypeGroups = useMemo(() => {
+    if (!config.termTypes?.groups || !config.termTypes?.types) return null
+    return config.termTypes.groups.map((group) => ({
+      code: group.code,
+      label: resolveLocalized(group.name, locale),
+      types: config
+        .termTypes!.types.filter((tt) => tt.group === group.code)
+        .map((tt) => ({
+          value: tt.code,
+          label: resolveLocalized(tt.name, locale),
+        })),
+    }))
+  }, [config.termTypes, locale])
 
   return (
     <div className="bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-2xl shadow-xl p-6 sm:p-8 w-full max-w-3xl mx-auto">
@@ -747,13 +762,30 @@ export function DemoCalculator({
                       className="w-full rounded-lg border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-900 focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 dark:border-neutral-700 dark:bg-neutral-800 dark:text-white"
                     />
                   </FormField>
-                  <Select
-                    label={t('termType')}
-                    tooltip={t('termTypeTooltip')}
-                    value={termType}
-                    onChange={(e) => setTermType(e.target.value)}
-                    options={termTypeOptions}
-                  />
+                  <FormField label={t('termType')} tooltip={t('termTypeTooltip')}>
+                    <select
+                      value={termType}
+                      onChange={(e) => setTermType(e.target.value)}
+                      className="w-full rounded-lg border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-900 focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 dark:border-neutral-700 dark:bg-neutral-800 dark:text-white"
+                    >
+                      {termTypeGroups ? (
+                        termTypeGroups.map((group) => (
+                          <optgroup key={group.code} label={group.label}>
+                            {group.types.map((tt) => (
+                              <option key={tt.value} value={tt.value}>
+                                {tt.label}
+                              </option>
+                            ))}
+                          </optgroup>
+                        ))
+                      ) : (
+                        <>
+                          <option value="semester_2">{t('final')}</option>
+                          <option value="semester_1">{t('midterm')}</option>
+                        </>
+                      )}
+                    </select>
+                  </FormField>
                 </div>
               </div>
               <div className="grid sm:grid-cols-3 gap-4">

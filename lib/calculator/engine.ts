@@ -110,14 +110,7 @@ function gradeFactorForTier(
 ): number {
   const value = factorValue('grade_tier', tier, defaults, overrides)
   if (value !== undefined && !Number.isNaN(value)) return value
-  // Default grade factors: best=2, second=1, third=0, below=-1
-  const defaultFactors: Record<CalculatorSubjectResult['tier'], number> = {
-    best: 2,
-    second: 1,
-    third: 0,
-    below: -1,
-  }
-  return defaultFactors[tier]
+  return 0
 }
 
 export type SingleGradeInput = {
@@ -133,14 +126,14 @@ export function calculateSingleGradeBonus(input: SingleGradeInput): CalculatorSu
   const normalized = normalizeGrade(gradingSystem, subject.grade)
   const tier = deriveTier(gradingSystem, subject.grade)
 
-  // Formula: class_level × semester_factor × grade_factor, floored at 0
-  // For single grade calculation, semester_factor defaults to 1
-  const classLevelValue = classLevel
-  const semesterFactor =
-    factorValue('term_type', 'semester', factors.defaults, factors.overrides) ?? 1
+  // Formula: class_level_factor × term_factor × grade_factor × weight, floored at 0
+  const classLevelFactor =
+    factorValue('class_level', `class_${classLevel}`, factors.defaults, factors.overrides) ?? 1
+  const termFactor =
+    factorValue('term_type', 'semester_2', factors.defaults, factors.overrides) ?? 1
   const gradeFactor = gradeFactorForTier(tier, factors.defaults, factors.overrides)
 
-  const rawBonus = classLevelValue * semesterFactor * gradeFactor * weight
+  const rawBonus = classLevelFactor * termFactor * gradeFactor * weight
   const bonus = Math.max(0, rawBonus)
 
   return {
@@ -157,8 +150,9 @@ export function calculateSingleGradeBonus(input: SingleGradeInput): CalculatorSu
 export function calculateBonus(input: CalculatorInput): CalculatorResult {
   const { gradingSystem, factors, classLevel, termType, subjects } = input
 
-  // Formula: class_level × term_factor × grade_factor, floored at 0
-  const classLevelValue = classLevel
+  // Formula: class_level_factor × term_factor × grade_factor × weight, floored at 0
+  const classLevelFactor =
+    factorValue('class_level', `class_${classLevel}`, factors.defaults, factors.overrides) ?? 1
   const termFactor = factorValue('term_type', termType, factors.defaults, factors.overrides) ?? 1
 
   const breakdown: CalculatorSubjectResult[] = subjects.map((sub) => {
@@ -167,7 +161,7 @@ export function calculateBonus(input: CalculatorInput): CalculatorResult {
     const tier = deriveTier(gradingSystem, sub.grade)
     const gradeFactor = gradeFactorForTier(tier, factors.defaults, factors.overrides)
 
-    const rawBonus = classLevelValue * termFactor * gradeFactor * weight
+    const rawBonus = classLevelFactor * termFactor * gradeFactor * weight
     const bonus = Math.max(0, rawBonus)
 
     return {

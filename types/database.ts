@@ -674,7 +674,7 @@ export interface Database {
       event_severity: 'info' | 'warning' | 'critical'
       text_direction: 'ltr' | 'rtl'
       grade_quality_tier: 'best' | 'second' | 'third' | 'below'
-      term_type: 'midterm' | 'final' | 'semester' | 'quarterly'
+      term_type: string
     }
     CompositeTypes: {
       [_ in never]: never
