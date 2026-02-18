@@ -101,7 +101,7 @@ function findMatch(
 export async function matchSubjects(parsed: ParsedSubject[]): Promise<MatchedSubject[]> {
   const allSubjects = await loadSubjects()
 
-  const results = parsed.map((p) => {
+  const results: MatchedSubject[] = parsed.map((p) => {
     const match = findMatch(p.originalName, allSubjects)
     if (match) {
       return {
