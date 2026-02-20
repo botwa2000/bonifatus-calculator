@@ -1,5 +1,5 @@
 import { dbg } from '@/lib/debug'
-import { correctOcrText, capitalizeProperName } from './ocr-corrections'
+import { correctOcrText, capitalizeProperName, cleanGradeCandidate } from './ocr-corrections'
 import type { ScanParserConfig, NamePrefixPattern } from '@/lib/db/queries/scan-config'
 
 export type ParsedSubject = {
@@ -33,6 +33,8 @@ const GRADE_PATTERNS = [
   /^(.+?)\s*[:：]?\s+(\d{1,3}%?)$/,
   /^(.+?)\s*[:：]?\s+(\d\.\d)$/,
   /^(.+?)\t+(\S+)$/,
+  // Fallback: grade digit followed by OCR noise (e.g. "Deutsch 5s l", "Sport 3r")
+  /^(.+?)\s+(\d[+-]?)\s*[a-z|!;:,.\s]*$/i,
 ]
 
 /**
@@ -54,7 +56,8 @@ function stripDotLeaders(line: string): string {
  * Example: "Informatik 03 5" → { subject: "Informatik", grade: "5" }
  */
 function tryDualGradeColumn(line: string): { subject: string; grade: string } | null {
-  const match = line.match(/^(.+?)\s+(\d{1,2})\s+(\d[+-]?)$/)
+  // Match "Subject Points Grade" — allow trailing noise after grade
+  const match = line.match(/^(.+?)\s+(\d{1,2})\s+(\d[+-]?)\s*\S*$/)
   if (!match) return null
   const subject = match[1].trim()
   const grade = match[3] // Take the last (Note) column
@@ -172,7 +175,7 @@ function trySplitTwoColumnTokens(
     }
     if (parenDepth > 0) continue
     if (i === 0) continue
-    if (isGradeValue(t)) {
+    if (isGradeValue(t) || isGradeValue(cleanGradeCandidate(t))) {
       gradeIndices.push(i)
     }
   }
@@ -210,12 +213,20 @@ function tryAddSubject(
     .replace(/\.\s+.{1,6}$/, '') // "BIOIOGIE. rr" → "BIOIOGIE" (dot leader artifacts)
     .replace(/\s+(.)\1{1,}$/, '') // "GOSCHICHIE rrr" → "GOSCHICHIE" (repeated char noise)
     .replace(/["'*;:.]+$/g, '') // trailing punctuation including dots
+    .replace(/\s+[a-z]{1,3}$/i, '') // trailing short noise tokens like "crc", "rr"
     .trim()
   if (cleanName.length < 2) return
   if (isBehavioralGrade(cleanName, behavioralGrades)) return
-  if (!isGradeValue(grade)) return
+
+  // Try the grade as-is, then try cleaning OCR noise from it
+  let cleanedGrade = grade
+  if (!isGradeValue(cleanedGrade)) {
+    cleanedGrade = cleanGradeCandidate(grade)
+  }
+  if (!isGradeValue(cleanedGrade)) return
+
   if (/^\d/.test(cleanName)) return
-  subjects.push({ originalName: cleanName, grade, confidence })
+  subjects.push({ originalName: cleanName, grade: cleanedGrade, confidence })
 }
 
 export function parseOcrText(
@@ -371,8 +382,8 @@ export function parseOcrText(
 
     // Subject extraction
     if (!isMetadataLine && !shouldSkipLine(line, skipKeywords)) {
-      // Pre-process: strip dot leaders for cleaner matching
-      const cleanLine = stripDotLeaders(line)
+      // Pre-process: apply OCR corrections and strip dot leaders for cleaner matching
+      const cleanLine = stripDotLeaders(correctOcrText(line))
 
       const twoCol = cleanLine.match(TWO_COL_PATTERN)
       if (twoCol) {

@@ -36,7 +36,9 @@ function resolveLangs(
   if (locale && config.localeLanguages[locale]) {
     return config.localeLanguages[locale]
   }
-  return 'eng'
+  // Default to German+English since this app primarily serves German schools.
+  // This dramatically improves OCR accuracy for German text vs English-only.
+  return 'deu+eng'
 }
 
 export async function recognizeText(
@@ -62,6 +64,12 @@ export async function recognizeText(
   const worker = await Tesseract.createWorker(langs, 1, {
     cachePath: process.env.TESSDATA_CACHE,
   })
+
+  // Preserve spacing between columns — critical for report card tabular layouts
+  await worker.setParameters({
+    preserve_interword_spaces: '1',
+  })
+
   cachedWorker = worker
   cachedLangs = langs
 

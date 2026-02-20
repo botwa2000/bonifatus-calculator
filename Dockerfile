@@ -48,6 +48,8 @@ COPY --from=builder --chown=nextjs:nodejs /app/node_modules/tesseract.js-core ./
 RUN mkdir -p /app/tessdata && \
     wget -q -O /app/tessdata/eng.traineddata.gz \
       https://tessdata.projectnaptha.com/4.0.0/eng.traineddata.gz && \
+    wget -q -O /app/tessdata/deu.traineddata.gz \
+      https://tessdata.projectnaptha.com/4.0.0/deu.traineddata.gz && \
     chown -R nextjs:nodejs /app/tessdata
 ENV TESSDATA_CACHE=/app/tessdata
 COPY docker-entrypoint.sh /docker-entrypoint.sh

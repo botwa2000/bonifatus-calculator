@@ -55,11 +55,32 @@ export function correctOcrText(text: string): string {
   corrected = corrected.replace(/\|/g, 'l')
   corrected = corrected.replace(/(\w)0(\w)/g, '$1O$2') // mid-word 0→O
   corrected = corrected.replace(/([A-Z])1([a-z])/g, '$1l$2') // capital + 1 + lower → l
+  corrected = corrected.replace(/\b(\w)ll(\w)/g, '$1ll$2') // preserve legit double-l
+  corrected = corrected.replace(/}{/g, 'H') // }{ → H (common OCR for H)
+  corrected = corrected.replace(/\[\]/g, 'U') // [] → U
+
+  // Strip stray control/noise characters that Tesseract sometimes inserts
+  corrected = corrected.replace(/[=\[\]{}]/g, '')
 
   // Normalize multiple spaces
   corrected = corrected.replace(/\s+/g, ' ')
 
   return corrected
+}
+
+/**
+ * Clean a potential grade value by stripping trailing OCR noise.
+ * E.g. "5s" → "5", "3r" → "3", "2|" → "2"
+ */
+export function cleanGradeCandidate(raw: string): string {
+  let cleaned = raw.trim()
+  // Apply pipe→l first
+  cleaned = cleaned.replace(/\|/g, 'l')
+  // Strip trailing non-grade characters (letters, punctuation noise)
+  cleaned = cleaned.replace(/[^0-9A-Fa-f+\-*%/]+$/, '')
+  // Strip leading noise
+  cleaned = cleaned.replace(/^[^0-9A-Fa-f]+/, '')
+  return cleaned
 }
 
 /**

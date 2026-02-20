@@ -15,7 +15,13 @@ export async function preprocessImage(buffer: Buffer): Promise<Buffer> {
     pipeline = pipeline.resize(TARGET_WIDTH, null, { withoutEnlargement: true })
   }
 
-  return pipeline.grayscale().sharpen({ sigma: SHARPEN_SIGMA }).normalize().png().toBuffer()
+  return pipeline
+    .grayscale()
+    .sharpen({ sigma: SHARPEN_SIGMA })
+    .normalize()
+    .threshold(128) // Binarize: clean black text on white background for Tesseract
+    .png()
+    .toBuffer()
 }
 
 /**
