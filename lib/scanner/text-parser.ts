@@ -174,11 +174,13 @@ function tryAddSubject(
   subjects: ParsedSubject[],
   behavioralGrades: Set<string>
 ): void {
-  if (subjectName.length < 2) return
-  if (isBehavioralGrade(subjectName, behavioralGrades)) return
+  // Strip trailing OCR artifacts (quotes, asterisks, colons, semicolons)
+  const cleanName = subjectName.replace(/["'*;:]+$/g, '').trim()
+  if (cleanName.length < 2) return
+  if (isBehavioralGrade(cleanName, behavioralGrades)) return
   if (!isGradeValue(grade)) return
-  if (/^\d/.test(subjectName)) return
-  subjects.push({ originalName: subjectName, grade, confidence })
+  if (/^\d/.test(cleanName)) return
+  subjects.push({ originalName: cleanName, grade, confidence })
 }
 
 export function parseOcrText(

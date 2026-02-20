@@ -29,7 +29,7 @@ export async function GET() {
 
     const profileMap = Object.fromEntries(profiles.map((p) => [p.id, p]))
     const termsByChild = terms.reduce<Record<string, typeof terms>>((acc, term) => {
-      const cid = term.childId
+      const cid = term.child_id
       if (!acc[cid]) acc[cid] = []
       acc[cid].push(term)
       return acc
