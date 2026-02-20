@@ -64,8 +64,18 @@ function factorValue(
   return undefined
 }
 
+/** Clean grade input: trim, strip leading zeros (03→3), normalize whitespace */
+function cleanGradeInput(grade: string): string {
+  let cleaned = grade.trim()
+  // Strip leading zeros but keep "0" itself: "03" → "3", "0" → "0"
+  cleaned = cleaned.replace(/^0+([1-9])/, '$1')
+  return cleaned
+}
+
 function normalizeGrade(system: GradingSystemRow, grade: string): number {
   if (!grade) return 0
+
+  const cleaned = cleanGradeInput(grade)
 
   // Try direct match in grade_definitions
   const defs = (system.gradeDefinitions || []) as Array<{
@@ -73,7 +83,7 @@ function normalizeGrade(system: GradingSystemRow, grade: string): number {
     normalized_100?: number
     quality_tier?: string
   }>
-  const def = defs.find((g) => g.grade?.toLowerCase() === grade.trim().toLowerCase())
+  const def = defs.find((g) => g.grade?.toLowerCase() === cleaned.toLowerCase())
   if (def?.normalized_100 != null) return Number(def.normalized_100)
 
   // Percentages: clamp 0-100
@@ -99,20 +109,22 @@ function normalizeGrade(system: GradingSystemRow, grade: string): number {
 
 function resolveNumericValue(system: GradingSystemRow, grade: string): number {
   if (!grade) return 0
+  const cleaned = cleanGradeInput(grade)
   const defs = (system.gradeDefinitions || []) as Array<{
     grade?: string
     numeric_value?: number
   }>
-  const def = defs.find((g) => g.grade?.toLowerCase() === grade.trim().toLowerCase())
+  const def = defs.find((g) => g.grade?.toLowerCase() === cleaned.toLowerCase())
   if (def?.numeric_value != null) return Number(def.numeric_value)
   // Fallback: try parsing as number directly
-  const num = Number(grade)
+  const num = Number(cleaned)
   return Number.isNaN(num) ? 0 : num
 }
 
 function deriveTier(system: GradingSystemRow, grade: string): CalculatorSubjectResult['tier'] {
+  const cleaned = cleanGradeInput(grade)
   const defs = (system.gradeDefinitions || []) as Array<{ grade?: string; quality_tier?: string }>
-  const def = defs.find((g) => g.grade?.toLowerCase() === grade.trim().toLowerCase())
+  const def = defs.find((g) => g.grade?.toLowerCase() === cleaned.toLowerCase())
   if (def?.quality_tier) return def.quality_tier as CalculatorSubjectResult['tier']
   return 'below'
 }
@@ -142,15 +154,14 @@ export function calculateSingleGradeBonus(input: SingleGradeInput): CalculatorSu
   const normalized = normalizeGrade(gradingSystem, subject.grade)
   const tier = deriveTier(gradingSystem, subject.grade)
 
-  // Formula: class_level_factor × term_factor × grade_factor × weight, floored at 0
+  // Formula: class_level_factor × term_factor × grade_factor × weight
   const classLevelFactor =
     factorValue('class_level', `class_${classLevel}`, factors.defaults, factors.overrides) ?? 1
   const termFactor =
     factorValue('term_type', termType ?? 'semester_2', factors.defaults, factors.overrides) ?? 1
   const gradeFactor = gradeFactorForTier(tier, factors.defaults, factors.overrides)
 
-  const rawBonus = classLevelFactor * termFactor * gradeFactor * weight
-  const bonus = Math.max(0, rawBonus)
+  const bonus = classLevelFactor * termFactor * gradeFactor * weight
 
   return {
     subjectId: subject.subjectId,
@@ -179,8 +190,8 @@ export function calculateBonus(input: CalculatorInput): CalculatorResult {
     const tier = deriveTier(gradingSystem, sub.grade)
     const gradeFactor = gradeFactorForTier(tier, factors.defaults, factors.overrides)
 
-    const rawBonus = classLevelFactor * termFactor * gradeFactor * weight
-    const bonus = Math.max(0, rawBonus)
+    // Per-subject bonus can be negative (below-tier grades subtract)
+    const bonus = classLevelFactor * termFactor * gradeFactor * weight
 
     return {
       subjectId: sub.subjectId,
@@ -194,7 +205,9 @@ export function calculateBonus(input: CalculatorInput): CalculatorResult {
     }
   })
 
-  const total = breakdown.reduce((acc, item) => acc + item.bonus, 0)
+  // Sum all subject bonuses (including negatives), then floor total at 0
+  const rawTotal = breakdown.reduce((acc, item) => acc + item.bonus, 0)
+  const total = Math.max(0, rawTotal)
 
   return { total, breakdown }
 }

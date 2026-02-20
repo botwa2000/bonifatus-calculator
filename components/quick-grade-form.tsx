@@ -114,7 +114,8 @@ export function QuickGradeForm() {
         setError(data.error || 'Failed to save')
         return
       }
-      setMessage(`+${Number(data.quickGrade.bonusPoints).toFixed(2)} pts`)
+      const bp = Number(data.quickGrade.bonusPoints)
+      setMessage(`${bp >= 0 ? '+' : ''}${bp.toFixed(2)} pts`)
       setGradeValue('')
       setNote('')
       setTestDate('')
@@ -282,7 +283,8 @@ export function QuickGradeForm() {
                 <span>{g.gradeValue}</span>
                 {g.note && <span className="text-neutral-500">({g.note})</span>}
                 <span className="text-primary-600 dark:text-primary-300 font-semibold">
-                  +{Number(g.bonusPoints ?? 0).toFixed(2)}
+                  {Number(g.bonusPoints ?? 0) >= 0 ? '+' : ''}
+                  {Number(g.bonusPoints ?? 0).toFixed(2)}
                 </span>
               </div>
               <button

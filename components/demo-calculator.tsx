@@ -95,9 +95,14 @@ function getFactorValue(factors: Factor[], type: string, key: string, fallback?:
   return found ? Number(found.factorValue) : fallback
 }
 
+function cleanGradeInput(grade: string): string {
+  return grade.trim().replace(/^0+([1-9])/, '$1')
+}
+
 function deriveTierFromDefinitions(system: GradingSystem, grade: string) {
+  const cleaned = cleanGradeInput(grade)
   const def = system.gradeDefinitions?.find(
-    (g) => (g.grade ?? '').toLowerCase() === grade.trim().toLowerCase()
+    (g) => (g.grade ?? '').toLowerCase() === cleaned.toLowerCase()
   )
   if (def?.quality_tier) return def.quality_tier
   return 'below'
@@ -105,14 +110,15 @@ function deriveTierFromDefinitions(system: GradingSystem, grade: string) {
 
 function normalizeGrade(system: GradingSystem, grade: string) {
   if (!grade) return 0
+  const cleaned = cleanGradeInput(grade)
   if (system.scaleType === 'percentage') {
-    const val = Number(grade)
+    const val = Number(cleaned)
     if (Number.isNaN(val)) return 0
     return Math.min(Math.max(val, 0), 100)
   }
 
   const def = system.gradeDefinitions?.find(
-    (g) => (g.grade ?? '').toLowerCase() === grade.trim().toLowerCase()
+    (g) => (g.grade ?? '').toLowerCase() === cleaned.toLowerCase()
   )
   if (def?.normalized_100 != null) return Number(def.normalized_100)
 
@@ -167,8 +173,7 @@ function calculateBonus(
     const weight = Number(subject.weight) || 1
 
     // Formula: class_level_factor × term_factor × grade_factor × weight
-    const rawBonus = classLevelFactor * termFactor * gradeFactor * weight
-    const bonus = Math.max(0, rawBonus)
+    const bonus = classLevelFactor * termFactor * gradeFactor * weight
 
     totalWeightedNormalized += normalized * weight
     totalWeight += weight
@@ -181,11 +186,12 @@ function calculateBonus(
     }
   })
 
-  const sum = breakdown.reduce((acc, item) => acc + item.bonus, 0)
+  const rawSum = breakdown.reduce((acc, item) => acc + item.bonus, 0)
+  const total = Math.max(0, rawSum)
   const averageNormalized =
     totalWeight > 0 ? Number((totalWeightedNormalized / totalWeight).toFixed(2)) : 0
   return {
-    total: sum,
+    total,
     averageNormalized,
     subjectCount: subjects.length,
     breakdown,

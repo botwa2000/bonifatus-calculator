@@ -190,7 +190,8 @@ export default function StudentSavedPage() {
                           <div className="text-right">
                             <p className="text-xs text-neutral-500">{t('bonus')}</p>
                             <p className="text-primary-600 dark:text-primary-300 font-semibold">
-                              +{Number(sub.bonus_points ?? 0).toFixed(2)}
+                              {Number(sub.bonus_points ?? 0) >= 0 ? '+' : ''}
+                              {Number(sub.bonus_points ?? 0).toFixed(2)}
                             </p>
                           </div>
                         </div>

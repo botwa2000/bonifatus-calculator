@@ -408,7 +408,8 @@ export default function ParentRewardsPage() {
                                 {g.gradeValue}
                               </td>
                               <td className="py-1.5 px-2 text-right text-primary-600 dark:text-primary-300 font-semibold">
-                                +{Number(g.bonusPoints ?? 0).toFixed(2)}
+                                {Number(g.bonusPoints ?? 0) >= 0 ? '+' : ''}
+                                {Number(g.bonusPoints ?? 0).toFixed(2)}
                               </td>
                               <td className="py-1.5 px-2 text-neutral-500 max-w-[120px] truncate">
                                 {g.note || '-'}
