@@ -16,7 +16,7 @@ export type MatchedSubject = ParsedSubject & {
 function normalizeForComparison(text: string): string {
   return text
     .toLowerCase()
-    .replace(/[/\\()-]/g, ' ')
+    .replace(/[/\\().\-]/g, ' ')
     .replace(/\s+/g, ' ')
     .trim()
 }
@@ -123,9 +123,12 @@ function findMatch(
     }
   }
 
-  // Strategy 4: Levenshtein fuzzy match
+  // Strategy 4: Levenshtein fuzzy match (checks both locale names AND aliases)
   let bestMatch: { id: string; name: string; dist: number } | null = null
+  const levThreshold = (a: string, b: string) => Math.floor(Math.min(a.length, b.length) * 0.3)
+
   for (const subj of allSubjects) {
+    // Check locale names
     for (const locale of locales) {
       const localeName = subj.name[locale]
       if (!localeName) continue
@@ -133,9 +136,19 @@ function findMatch(
       if (normLocal.length < 4 || normalized.length < 4) continue
 
       const dist = levenshteinDistance(normalized, normLocal)
-      const threshold = Math.floor(Math.min(normalized.length, normLocal.length) * 0.25)
-      if (dist <= threshold && (!bestMatch || dist < bestMatch.dist)) {
+      if (dist <= levThreshold(normalized, normLocal) && (!bestMatch || dist < bestMatch.dist)) {
         bestMatch = { id: subj.id, name: localeName, dist }
+      }
+    }
+    // Check aliases (critical for compound names like "Katholische Religionslehre")
+    for (const alias of subj.aliases) {
+      const normAlias = normalizeForComparison(alias)
+      if (normAlias.length < 4 || normalized.length < 4) continue
+
+      const dist = levenshteinDistance(normalized, normAlias)
+      if (dist <= levThreshold(normalized, normAlias) && (!bestMatch || dist < bestMatch.dist)) {
+        const name = subj.name['de'] || subj.name['en'] || alias
+        bestMatch = { id: subj.id, name, dist }
       }
     }
   }

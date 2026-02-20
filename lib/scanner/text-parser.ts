@@ -174,8 +174,12 @@ function tryAddSubject(
   subjects: ParsedSubject[],
   behavioralGrades: Set<string>
 ): void {
-  // Strip trailing OCR artifacts (quotes, asterisks, colons, semicolons)
-  const cleanName = subjectName.replace(/["'*;:]+$/g, '').trim()
+  // Strip OCR artifacts from dot leaders, bordered cells, and repeated noise chars
+  const cleanName = subjectName
+    .replace(/\.\s+.{1,6}$/, '') // "BIOIOGIE. rr" → "BIOIOGIE" (dot leader artifacts)
+    .replace(/\s+(.)\1{1,}$/, '') // "GOSCHICHIE rrr" → "GOSCHICHIE" (repeated char noise)
+    .replace(/["'*;:.]+$/g, '') // trailing punctuation including dots
+    .trim()
   if (cleanName.length < 2) return
   if (isBehavioralGrade(cleanName, behavioralGrades)) return
   if (!isGradeValue(grade)) return
