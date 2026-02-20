@@ -31,6 +31,7 @@ export type ScanApiResult = {
   overallConfidence: number
   subjectCount: number
   matchedCount: number
+  suggestedCountryCode?: string
 }
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024 // 10MB
@@ -90,9 +91,28 @@ export function ReportCardScanner({
         return
       }
       if (data.debugInfo) {
-        console.log('[dbg:scanner] Raw OCR lines:', data.debugInfo.rawLines)
-        console.log('[dbg:scanner] Parsed subjects:', data.debugInfo.parsedSubjects)
-        console.log('[dbg:scanner] Match details:', data.debugInfo.matchDetails)
+        console.log('[dbg:scanner] Raw OCR text:\n' + (data.debugInfo.rawLines ?? []).join('\n'))
+        console.log(
+          '[dbg:scanner] Parsed subjects:\n' +
+            (data.debugInfo.parsedSubjects ?? [])
+              .map((s: { name: string; grade: string }) => `  ${s.name} → ${s.grade}`)
+              .join('\n')
+        )
+        console.log(
+          '[dbg:scanner] Match details:\n' +
+            (data.debugInfo.matchDetails ?? [])
+              .map(
+                (s: { ocr: string; matched: string; confidence: string }) =>
+                  `  ${s.ocr} → ${s.matched} [${s.confidence}]`
+              )
+              .join('\n')
+        )
+        if (data.metadata) {
+          console.log('[dbg:scanner] Metadata:', JSON.stringify(data.metadata, null, 2))
+        }
+        if (data.debugInfo.suggestedCountryCode) {
+          console.log('[dbg:scanner] Suggested country:', data.debugInfo.suggestedCountryCode)
+        }
       }
       onScanComplete(data)
     } catch {

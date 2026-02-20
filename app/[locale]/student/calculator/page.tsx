@@ -131,6 +131,10 @@ export default function StudentCalculatorPage() {
 
   const handleScanComplete = useCallback((result: ScanApiResult) => {
     setScanResult(result)
+    // Use country detected from report card content, fallback to browser locale
+    if (result.suggestedCountryCode) {
+      setSelectedCountry(result.suggestedCountryCode)
+    }
     setScanMode('reviewing')
   }, [])
 

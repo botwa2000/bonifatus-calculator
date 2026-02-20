@@ -35,6 +35,33 @@ const GRADE_PATTERNS = [
   /^(.+?)\t+(\S+)$/,
 ]
 
+/**
+ * Strip dot leaders, underscores, and similar fill characters between subject and grade.
+ * E.g. "Informatik .......................... 5" → "Informatik 5"
+ * Also handles "Informatik___________5" and "Informatik · · · · · 5"
+ */
+function stripDotLeaders(line: string): string {
+  // Replace sequences of 3+ dots, middle dots, underscores, or dashes used as fill
+  return line
+    .replace(/[.·_]{3,}/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
+}
+
+/**
+ * For lines with two numbers at the end (e.g. "Punkte" + "Note" columns),
+ * extract subject + last grade. Returns null if not applicable.
+ * Example: "Informatik 03 5" → { subject: "Informatik", grade: "5" }
+ */
+function tryDualGradeColumn(line: string): { subject: string; grade: string } | null {
+  const match = line.match(/^(.+?)\s+(\d{1,2})\s+(\d[+-]?)$/)
+  if (!match) return null
+  const subject = match[1].trim()
+  const grade = match[3] // Take the last (Note) column
+  if (subject.length < 2 || /^\d/.test(subject)) return null
+  return { subject, grade }
+}
+
 // Two-column layout pattern — structural regex
 const TWO_COL_PATTERN =
   /^(.+?)\s{2,}(\d[+-]?|\d\.\d|\d{1,2}\/20|\d{1,3}%|[A-F][*+-]?)\s{3,}(.+?)\s{2,}(\d[+-]?|\d\.\d|\d{1,2}\/20|\d{1,3}%|[A-F][*+-]?)\s*$/i
@@ -249,7 +276,7 @@ export function parseOcrText(
     // Class level
     if (!metadata.classLevel) {
       const classMatch = line.match(
-        /(?:Klasse|Classe|Class|Grade|Grado|Класс|Stufe)\s*[:：]?\s*(\d{1,2})/i
+        /(?:Klasse|Classe|Class|Grade|Grado|Класс|Stufe|Jahrgangsstufe)\s*[:：]?\s*(\d{1,2})/i
       )
       if (classMatch) {
         metadata.classLevel = parseInt(classMatch[1], 10)
@@ -286,7 +313,10 @@ export function parseOcrText(
 
     // Subject extraction
     if (!isMetadataLine && !shouldSkipLine(line, skipKeywords)) {
-      const twoCol = line.match(TWO_COL_PATTERN)
+      // Pre-process: strip dot leaders for cleaner matching
+      const cleanLine = stripDotLeaders(line)
+
+      const twoCol = cleanLine.match(TWO_COL_PATTERN)
       if (twoCol) {
         tryAddSubject(
           twoCol[1].trim(),
@@ -302,18 +332,32 @@ export function parseOcrText(
           subjects,
           behavioralGrades
         )
-      } else if (!trySplitTwoColumnTokens(line, overallConfidence, subjects, behavioralGrades)) {
-        for (const pattern of GRADE_PATTERNS) {
-          const match = line.match(pattern)
-          if (match) {
-            tryAddSubject(
-              match[1].trim(),
-              match[2].trim(),
-              overallConfidence,
-              subjects,
-              behavioralGrades
-            )
-            break
+      } else {
+        // Try dual-grade column (Punkte + Note format)
+        const dualGrade = tryDualGradeColumn(cleanLine)
+        if (dualGrade) {
+          tryAddSubject(
+            dualGrade.subject,
+            dualGrade.grade,
+            overallConfidence,
+            subjects,
+            behavioralGrades
+          )
+        } else if (
+          !trySplitTwoColumnTokens(cleanLine, overallConfidence, subjects, behavioralGrades)
+        ) {
+          for (const pattern of GRADE_PATTERNS) {
+            const match = cleanLine.match(pattern)
+            if (match) {
+              tryAddSubject(
+                match[1].trim(),
+                match[2].trim(),
+                overallConfidence,
+                subjects,
+                behavioralGrades
+              )
+              break
+            }
           }
         }
       }

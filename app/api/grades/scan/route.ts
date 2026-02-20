@@ -6,6 +6,58 @@ import { parseOcrText } from '@/lib/scanner/text-parser'
 import { matchSubjects } from '@/lib/scanner/subject-matcher'
 import { loadScanConfig } from '@/lib/db/queries/scan-config'
 
+// School type keywords → country code mapping for auto-detection
+const SCHOOL_COUNTRY_MAP: Array<{ keywords: string[]; country: string }> = [
+  {
+    keywords: [
+      'gymnasium',
+      'realschule',
+      'hauptschule',
+      'gesamtschule',
+      'grundschule',
+      'oberschule',
+      'mittelschule',
+      'förderschule',
+      'sekundarschule',
+      'gemeinschaftsschule',
+      'stadtteilschule',
+      'zeugnis',
+      'jahrgangsstufe',
+      'halbjahr',
+    ],
+    country: 'DE',
+  },
+  {
+    keywords: ['volksschule', 'neue mittelschule', 'bundesgymnasium', 'bundesrealgymnasium'],
+    country: 'AT',
+  },
+  {
+    keywords: ['kantonsschule', 'sekundarschule a', 'primarschule'],
+    country: 'CH',
+  },
+  { keywords: ['lycée', 'collège', 'école primaire', 'bulletin'], country: 'FR' },
+  { keywords: ['liceo', 'scuola media', 'scuola primaria', 'pagella'], country: 'IT' },
+  { keywords: ['colegio', 'instituto', 'escuela', 'boletín'], country: 'ES' },
+  { keywords: ['школа', 'гимназия', 'лицей', 'аттестат'], country: 'RU' },
+]
+
+function detectCountryFromMetadata(
+  metadata: { schoolName?: string; termType?: string },
+  rawText: string,
+  _schoolTypeKeywords: string[]
+): string | null {
+  const searchText = [metadata.schoolName ?? '', rawText].join(' ').toLowerCase()
+
+  for (const entry of SCHOOL_COUNTRY_MAP) {
+    for (const kw of entry.keywords) {
+      if (searchText.includes(kw)) {
+        return entry.country
+      }
+    }
+  }
+  return null
+}
+
 // In-memory rate limiter: userId → { count, resetAt }
 const rateLimits = new Map<string, { count: number; resetAt: number }>()
 const MAX_SCANS_PER_HOUR = 20
@@ -70,6 +122,13 @@ export async function POST(req: Request) {
     const parsed = parseOcrText(ocrResult.text, ocrResult.confidence, config)
     const matched = await matchSubjects(parsed.subjects, config)
 
+    // Auto-detect country from school metadata
+    const suggestedCountryCode = detectCountryFromMetadata(
+      parsed.metadata,
+      ocrResult.text,
+      config.schoolTypeKeywords
+    )
+
     return NextResponse.json({
       success: true,
       subjects: matched,
@@ -77,6 +136,7 @@ export async function POST(req: Request) {
       overallConfidence: parsed.overallConfidence,
       subjectCount: matched.length,
       matchedCount: matched.filter((s) => s.matchedSubjectId).length,
+      suggestedCountryCode,
       debugInfo: {
         rawLines: ocrResult.text
           .split('\n')
@@ -91,6 +151,7 @@ export async function POST(req: Request) {
           matched: s.matchedSubjectName ?? '(none)',
           confidence: s.matchConfidence,
         })),
+        suggestedCountryCode,
       },
     })
   } catch (err) {
