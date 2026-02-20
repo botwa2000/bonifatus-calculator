@@ -91,6 +91,9 @@ export function ReportCardScanner({
         return
       }
       if (data.debugInfo) {
+        if (data.debugInfo.columnSplitUsed) {
+          console.log('[dbg:scanner] Two-column layout detected — image was split for OCR')
+        }
         console.log('[dbg:scanner] Raw OCR text:\n' + (data.debugInfo.rawLines ?? []).join('\n'))
         console.log(
           '[dbg:scanner] Parsed subjects:\n' +

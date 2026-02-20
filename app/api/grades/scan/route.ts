@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import { requireAuthApi } from '@/lib/auth/session'
-import { preprocessImage } from '@/lib/scanner/image-preprocessor'
-import { recognizeText } from '@/lib/scanner/ocr-engine'
+import { preprocessImage, splitColumns } from '@/lib/scanner/image-preprocessor'
+import { recognizeText, type OcrResult } from '@/lib/scanner/ocr-engine'
 import { parseOcrText } from '@/lib/scanner/text-parser'
 import { matchSubjects } from '@/lib/scanner/subject-matcher'
 import { loadScanConfig } from '@/lib/db/queries/scan-config'
@@ -111,14 +111,41 @@ export async function POST(req: Request) {
       )
     }
 
-    // Pipeline: load config → preprocess → OCR → parse → match
+    // Pipeline: load config → preprocess → detect columns → OCR → parse → match
     const config = await loadScanConfig()
     const preprocessed = await preprocessImage(imageBuffer)
-    const ocrResult = await recognizeText(
-      preprocessed,
-      { locale: locale || 'en', countryCode: gradingSystemCountry },
-      config
-    )
+
+    // Detect two-column layout and split if found
+    const columns = await splitColumns(preprocessed)
+    let ocrResult: OcrResult
+    let columnSplitUsed = false
+
+    if (columns) {
+      // OCR each column half separately (sequential — single worker)
+      const leftOcr = await recognizeText(
+        columns[0],
+        { locale: locale || 'en', countryCode: gradingSystemCountry },
+        config
+      )
+      const rightOcr = await recognizeText(
+        columns[1],
+        { locale: locale || 'en', countryCode: gradingSystemCountry },
+        config
+      )
+      ocrResult = {
+        text: leftOcr.text + '\n' + rightOcr.text,
+        confidence: (leftOcr.confidence + rightOcr.confidence) / 2,
+        words: [...leftOcr.words, ...rightOcr.words],
+      }
+      columnSplitUsed = true
+    } else {
+      ocrResult = await recognizeText(
+        preprocessed,
+        { locale: locale || 'en', countryCode: gradingSystemCountry },
+        config
+      )
+    }
+
     const parsed = parseOcrText(ocrResult.text, ocrResult.confidence, config)
     const matched = await matchSubjects(parsed.subjects, config)
 
@@ -138,6 +165,7 @@ export async function POST(req: Request) {
       matchedCount: matched.filter((s) => s.matchedSubjectId).length,
       suggestedCountryCode,
       debugInfo: {
+        columnSplitUsed,
         rawLines: ocrResult.text
           .split('\n')
           .map((l: string) => l.trim())
