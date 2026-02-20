@@ -140,7 +140,7 @@ export async function POST(req: Request) {
     // Fallback: if few subjects found and no split was used, try forced center split.
     // This catches two-column layouts where gutter detection failed (e.g. section
     // headers spanning both columns reduce gutter brightness below threshold).
-    if (!columnSplitUsed && parsed.subjects.length < 5) {
+    if (!columnSplitUsed && parsed.subjects.length < 8) {
       const forcedColumns = await forceSplitCenter(preprocessed)
       if (forcedColumns) {
         const leftOcr = await recognizeText(forcedColumns[0], ocrOpts, config)
