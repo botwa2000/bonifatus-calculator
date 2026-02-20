@@ -122,7 +122,7 @@ export async function POST(req: Request) {
     let columnSplitUsed = false
 
     if (columns) {
-      // OCR each column half separately (sequential — single worker)
+      console.log('[scan] gutter detected — splitting into columns')
       const leftOcr = await recognizeText(columns[0], ocrOpts, config)
       const rightOcr = await recognizeText(columns[1], ocrOpts, config)
       ocrResult = {
@@ -132,32 +132,47 @@ export async function POST(req: Request) {
       }
       columnSplitUsed = true
     } else {
+      console.log('[scan] no gutter detected — full image OCR')
       ocrResult = await recognizeText(preprocessed, ocrOpts, config)
     }
 
     let parsed = parseOcrText(ocrResult.text, ocrResult.confidence, config)
+    console.log(`[scan] full OCR: ${parsed.subjects.length} subjects found`)
 
     // Fallback: if few subjects found and no split was used, try forced center split.
-    // This catches two-column layouts where gutter detection failed (e.g. section
-    // headers spanning both columns reduce gutter brightness below threshold).
     if (!columnSplitUsed && parsed.subjects.length < 8) {
+      console.log('[scan] fallback: trying forced center split')
       const forcedColumns = await forceSplitCenter(preprocessed)
       if (forcedColumns) {
         const leftOcr = await recognizeText(forcedColumns[0], ocrOpts, config)
         const rightOcr = await recognizeText(forcedColumns[1], ocrOpts, config)
+        console.log(
+          `[scan] split OCR left lines: ${leftOcr.text.split('\n').filter(Boolean).length}`
+        )
+        console.log(
+          `[scan] split OCR right lines: ${rightOcr.text.split('\n').filter(Boolean).length}`
+        )
         const splitOcr: OcrResult = {
           text: leftOcr.text + '\n' + rightOcr.text,
           confidence: (leftOcr.confidence + rightOcr.confidence) / 2,
           words: [...leftOcr.words, ...rightOcr.words],
         }
         const splitParsed = parseOcrText(splitOcr.text, splitOcr.confidence, config)
+        console.log(
+          `[scan] split parsed: ${splitParsed.subjects.length} subjects (full had ${parsed.subjects.length})`
+        )
 
         // Use split results if they yield more subjects
         if (splitParsed.subjects.length > parsed.subjects.length) {
           ocrResult = splitOcr
           parsed = splitParsed
           columnSplitUsed = true
+          console.log('[scan] using split results (more subjects)')
+        } else {
+          console.log('[scan] keeping full results (split not better)')
         }
+      } else {
+        console.log('[scan] forced split returned null (image too narrow?)')
       }
     }
 
