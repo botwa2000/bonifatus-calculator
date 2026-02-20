@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { requireAuthApi } from '@/lib/auth/session'
-import { preprocessImage, splitColumns } from '@/lib/scanner/image-preprocessor'
+import { preprocessImage, splitColumns, forceSplitCenter } from '@/lib/scanner/image-preprocessor'
 import { recognizeText, type OcrResult } from '@/lib/scanner/ocr-engine'
 import { parseOcrText } from '@/lib/scanner/text-parser'
 import { matchSubjects } from '@/lib/scanner/subject-matcher'
@@ -116,22 +116,15 @@ export async function POST(req: Request) {
     const preprocessed = await preprocessImage(imageBuffer)
 
     // Detect two-column layout and split if found
+    const ocrOpts = { locale: locale || 'en', countryCode: gradingSystemCountry }
     const columns = await splitColumns(preprocessed)
     let ocrResult: OcrResult
     let columnSplitUsed = false
 
     if (columns) {
       // OCR each column half separately (sequential — single worker)
-      const leftOcr = await recognizeText(
-        columns[0],
-        { locale: locale || 'en', countryCode: gradingSystemCountry },
-        config
-      )
-      const rightOcr = await recognizeText(
-        columns[1],
-        { locale: locale || 'en', countryCode: gradingSystemCountry },
-        config
-      )
+      const leftOcr = await recognizeText(columns[0], ocrOpts, config)
+      const rightOcr = await recognizeText(columns[1], ocrOpts, config)
       ocrResult = {
         text: leftOcr.text + '\n' + rightOcr.text,
         confidence: (leftOcr.confidence + rightOcr.confidence) / 2,
@@ -139,14 +132,35 @@ export async function POST(req: Request) {
       }
       columnSplitUsed = true
     } else {
-      ocrResult = await recognizeText(
-        preprocessed,
-        { locale: locale || 'en', countryCode: gradingSystemCountry },
-        config
-      )
+      ocrResult = await recognizeText(preprocessed, ocrOpts, config)
     }
 
-    const parsed = parseOcrText(ocrResult.text, ocrResult.confidence, config)
+    let parsed = parseOcrText(ocrResult.text, ocrResult.confidence, config)
+
+    // Fallback: if few subjects found and no split was used, try forced center split.
+    // This catches two-column layouts where gutter detection failed (e.g. section
+    // headers spanning both columns reduce gutter brightness below threshold).
+    if (!columnSplitUsed && parsed.subjects.length < 5) {
+      const forcedColumns = await forceSplitCenter(preprocessed)
+      if (forcedColumns) {
+        const leftOcr = await recognizeText(forcedColumns[0], ocrOpts, config)
+        const rightOcr = await recognizeText(forcedColumns[1], ocrOpts, config)
+        const splitOcr: OcrResult = {
+          text: leftOcr.text + '\n' + rightOcr.text,
+          confidence: (leftOcr.confidence + rightOcr.confidence) / 2,
+          words: [...leftOcr.words, ...rightOcr.words],
+        }
+        const splitParsed = parseOcrText(splitOcr.text, splitOcr.confidence, config)
+
+        // Use split results if they yield more subjects
+        if (splitParsed.subjects.length > parsed.subjects.length) {
+          ocrResult = splitOcr
+          parsed = splitParsed
+          columnSplitUsed = true
+        }
+      }
+    }
+
     const matched = await matchSubjects(parsed.subjects, config)
 
     // Auto-detect country from school metadata

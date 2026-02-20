@@ -20,15 +20,16 @@ export async function preprocessImage(buffer: Buffer): Promise<Buffer> {
 
 /**
  * Detect a vertical gutter in the middle of an image indicating two-column layout.
- * Only analyzes the middle 60% of image height to avoid headers/footers.
- * Returns the x-coordinate of the gutter in original image coordinates, or null.
+ * Uses bright-row-percentage: for each column x, counts what fraction of rows are
+ * "bright" (white background). This is robust to a few full-width header rows that
+ * cross the gutter (e.g. "Pflichtunterricht:", "Wahlpflichtunterricht:").
+ * Analyzes only the middle 40% of image height to focus on the content area.
  */
 async function detectColumnGutter(buffer: Buffer): Promise<number | null> {
   const ANALYSIS_WIDTH = 200
   const meta = await sharp(buffer).metadata()
   if (!meta.width || !meta.height) return null
 
-  // Only analyze images wide enough to plausibly have two columns
   if (meta.width < 600) return null
 
   const analysisHeight = Math.round((meta.height / meta.width) * ANALYSIS_WIDTH)
@@ -42,82 +43,79 @@ async function detectColumnGutter(buffer: Buffer): Promise<number | null> {
   const width = info.width
   const height = info.height
 
-  // Only analyze the middle 60% of height (skip headers and footers)
-  const yStart = Math.floor(height * 0.2)
-  const yEnd = Math.floor(height * 0.8)
+  // Focus on middle 40% of height — avoids header, footer, and title areas
+  const yStart = Math.floor(height * 0.3)
+  const yEnd = Math.floor(height * 0.7)
   const analyzeHeight = yEnd - yStart
   if (analyzeHeight < 10) return null
 
-  // Calculate average brightness for each column in the analysis region
-  const colBrightness: number[] = new Array(width).fill(0)
+  // For each column, calculate what percentage of rows are "bright" (> 180).
+  // A gutter between text columns will have most rows bright (white paper),
+  // while text columns will have many dark rows (ink).
+  const BRIGHT_PIXEL = 180
+  const colBrightRatio: number[] = new Array(width).fill(0)
   for (let x = 0; x < width; x++) {
-    let sum = 0
+    let brightCount = 0
     for (let y = yStart; y < yEnd; y++) {
-      sum += data[y * width + x]
+      if (data[y * width + x] > BRIGHT_PIXEL) brightCount++
     }
-    colBrightness[x] = sum / analyzeHeight
+    colBrightRatio[x] = brightCount / analyzeHeight
   }
 
-  // Look for the brightest vertical band in the middle 30%-70% of width
+  // Find the column with highest bright-row ratio in center 30%-70%
   const searchStart = Math.floor(width * 0.3)
   const searchEnd = Math.floor(width * 0.7)
-  let maxBrightness = 0
+  let maxBrightRatio = 0
   let gutterX = -1
 
   for (let x = searchStart; x <= searchEnd; x++) {
-    // Average over a 5-pixel window for noise resistance
+    // Average over 5-pixel window for noise resistance
     let windowSum = 0
     let count = 0
     for (let dx = -2; dx <= 2; dx++) {
       const xx = x + dx
       if (xx >= 0 && xx < width) {
-        windowSum += colBrightness[xx]
+        windowSum += colBrightRatio[xx]
         count++
       }
     }
     const windowAvg = windowSum / count
-    if (windowAvg > maxBrightness) {
-      maxBrightness = windowAvg
+    if (windowAvg > maxBrightRatio) {
+      maxBrightRatio = windowAvg
       gutterX = x
     }
   }
 
-  // The gutter must be significantly brighter than average (mostly-white strip)
-  const overallAvg = colBrightness.reduce((a, b) => a + b, 0) / width
-  const threshold = overallAvg + (255 - overallAvg) * 0.3
+  // Average bright ratio across all columns
+  const avgBrightRatio = colBrightRatio.reduce((a, b) => a + b, 0) / width
 
-  if (maxBrightness > threshold && gutterX > 0) {
+  // Gutter criteria: > 75% of rows are bright AND at least 10% more than average
+  if (maxBrightRatio > 0.75 && maxBrightRatio > avgBrightRatio + 0.1 && gutterX > 0) {
     const originalX = Math.round((gutterX / ANALYSIS_WIDTH) * meta.width)
     dbg('scanner', 'column gutter detected', {
       gutterX: originalX,
       imageWidth: meta.width,
-      brightness: Math.round(maxBrightness),
-      threshold: Math.round(threshold),
+      brightRatio: Math.round(maxBrightRatio * 100) + '%',
+      avgBrightRatio: Math.round(avgBrightRatio * 100) + '%',
     })
     return originalX
   }
 
   dbg('scanner', 'no column gutter detected', {
-    maxBrightness: Math.round(maxBrightness),
-    threshold: Math.round(threshold),
+    maxBrightRatio: Math.round(maxBrightRatio * 100) + '%',
+    avgBrightRatio: Math.round(avgBrightRatio * 100) + '%',
   })
   return null
 }
 
-/**
- * Split a preprocessed image into left and right halves at the detected gutter.
- * Returns [leftBuffer, rightBuffer] if a two-column layout is detected, or null.
- */
-export async function splitColumns(buffer: Buffer): Promise<Buffer[] | null> {
-  const gutterX = await detectColumnGutter(buffer)
-  if (gutterX === null) return null
-
+/** Internal: split an image at a given x-coordinate with overlap */
+async function splitAtX(buffer: Buffer, x: number): Promise<Buffer[] | null> {
   const meta = await sharp(buffer).metadata()
   if (!meta.width || !meta.height) return null
 
-  const overlap = Math.round(meta.width * 0.02) // 2% overlap to avoid cutting text
-  const leftWidth = Math.min(gutterX + overlap, meta.width)
-  const rightStart = Math.max(gutterX - overlap, 0)
+  const overlap = Math.round(meta.width * 0.02)
+  const leftWidth = Math.min(x + overlap, meta.width)
+  const rightStart = Math.max(x - overlap, 0)
   const rightWidth = meta.width - rightStart
 
   if (leftWidth < 100 || rightWidth < 100) return null
@@ -133,12 +131,36 @@ export async function splitColumns(buffer: Buffer): Promise<Buffer[] | null> {
       .toBuffer(),
   ])
 
-  dbg('scanner', 'image split into columns', {
-    leftWidth,
-    rightStart,
-    rightWidth,
-    imageHeight: meta.height,
-  })
-
   return [left, right]
+}
+
+/**
+ * Detect two-column layout via gutter analysis and split if found.
+ * Returns [leftBuffer, rightBuffer] or null.
+ */
+export async function splitColumns(buffer: Buffer): Promise<Buffer[] | null> {
+  const gutterX = await detectColumnGutter(buffer)
+  if (gutterX === null) return null
+
+  const result = await splitAtX(buffer, gutterX)
+  if (result) {
+    dbg('scanner', 'image split at detected gutter', { gutterX })
+  }
+  return result
+}
+
+/**
+ * Force split at center — used as fallback when smart detection fails
+ * but OCR of the full image yields too few subjects.
+ */
+export async function forceSplitCenter(buffer: Buffer): Promise<Buffer[] | null> {
+  const meta = await sharp(buffer).metadata()
+  if (!meta.width || !meta.height || meta.width < 600) return null
+
+  const centerX = Math.round(meta.width / 2)
+  const result = await splitAtX(buffer, centerX)
+  if (result) {
+    dbg('scanner', 'forced center split', { centerX, imageWidth: meta.width })
+  }
+  return result
 }
