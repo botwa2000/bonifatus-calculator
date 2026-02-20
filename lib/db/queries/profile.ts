@@ -15,6 +15,9 @@ export async function updateProfile(
     dateOfBirth?: string
     themePreference?: 'light' | 'dark' | 'system'
     schoolName?: string | null
+    avatarUrl?: string | null
+    defaultGradingSystemId?: string | null
+    defaultClassLevel?: number | null
   }
 ) {
   const updateData: Record<string, unknown> = { updatedAt: new Date() }
@@ -22,6 +25,10 @@ export async function updateProfile(
   if (data.dateOfBirth !== undefined) updateData.dateOfBirth = data.dateOfBirth
   if (data.themePreference !== undefined) updateData.themePreference = data.themePreference
   if (data.schoolName !== undefined) updateData.schoolName = data.schoolName
+  if (data.avatarUrl !== undefined) updateData.avatarUrl = data.avatarUrl
+  if (data.defaultGradingSystemId !== undefined)
+    updateData.defaultGradingSystemId = data.defaultGradingSystemId
+  if (data.defaultClassLevel !== undefined) updateData.defaultClassLevel = data.defaultClassLevel
 
   await db.update(userProfiles).set(updateData).where(eq(userProfiles.id, userId))
 }

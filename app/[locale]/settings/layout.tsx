@@ -43,7 +43,6 @@ export default async function SettingsLayout({
       { label: t('navCalculator'), href: '/student/calculator' },
       { label: t('navSaved'), href: '/student/saved' },
       { label: t('navInsights'), href: '/student/insights' },
-      { label: t('navProfile'), href: '/student/profile' },
       { label: t('navSettings'), href: '/settings' },
     ]
   }

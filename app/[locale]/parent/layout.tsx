@@ -31,6 +31,7 @@ export default async function ParentLayout({
     { label: t('navChildren'), href: '/parent/children' },
     { label: t('navRewards'), href: '/parent/rewards' },
     { label: t('navInsights'), href: '/parent/insights' },
+    { label: t('navInvestments'), href: '/parent/investments' },
     { label: t('navSettings'), href: '/settings' },
   ]
 

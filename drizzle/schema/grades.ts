@@ -93,6 +93,7 @@ export const termGrades = pgTable('term_grades', {
   termName: text('term_name'),
   status: text('status').default('submitted'),
   totalBonusPoints: real('total_bonus_points'),
+  reportCardImageUrl: text('report_card_image_url'),
   createdAt: timestamp('created_at', { mode: 'date' }).defaultNow(),
   updatedAt: timestamp('updated_at', { mode: 'date' }).defaultNow(),
 })

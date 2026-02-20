@@ -304,7 +304,10 @@ export function AppHeader(props: AppHeaderProps) {
           </nav>
         </div>
         <div className="flex items-center gap-3">
-          <div className="hidden items-center gap-2 sm:flex">
+          <Link
+            href="/profile"
+            className="hidden items-center gap-2 sm:flex rounded-lg px-2 py-1 -mx-2 -my-1 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
+          >
             <div className="w-8 h-8 rounded-full bg-primary-100 dark:bg-primary-900/40 flex items-center justify-center text-primary-700 dark:text-primary-200 text-sm font-bold">
               {(userName || t('user'))[0]?.toUpperCase() || '?'}
             </div>
@@ -318,7 +321,7 @@ export function AppHeader(props: AppHeaderProps) {
                 </span>
               )}
             </div>
-          </div>
+          </Link>
           <LocaleDropdown />
           <button
             onClick={handleLogout}

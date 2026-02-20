@@ -34,6 +34,8 @@ export const userProfiles = pgTable('user_profiles', {
   dateOfBirth: date('date_of_birth').notNull(),
   avatarUrl: text('avatar_url'),
   schoolName: text('school_name'),
+  defaultGradingSystemId: text('default_grading_system_id'),
+  defaultClassLevel: integer('default_class_level').default(1),
   preferredLanguage: text('preferred_language')
     .default('en')
     .notNull()

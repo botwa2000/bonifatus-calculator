@@ -13,6 +13,7 @@ export type Term = {
   grading_system_id: string
   total_bonus_points: number
   created_at: string
+  report_card_image_url?: string | null
   subject_grades: Array<{
     id: string
     subject_id: string | null
