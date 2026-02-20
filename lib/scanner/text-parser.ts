@@ -234,6 +234,17 @@ export function parseOcrText(
       }
     }
 
+    // Berlin format: "für Vorname Nachname geboren am DD.MM.YYYY"
+    if (!metadata.studentName && lineIndex < 15) {
+      const berlinName = line.match(
+        /f[üuia]{1,2}r\s+([A-ZÄÖÜa-zäöüß]+\s+[A-ZÄÖÜa-zäöüß]+(?:\s+[A-ZÄÖÜa-zäöüß]+)?)\s+geboren/i
+      )
+      if (berlinName) {
+        metadata.studentName = capitalizeProperName(correctOcrText(berlinName[1].trim()))
+        isMetadataLine = true
+      }
+    }
+
     // Heuristic: 2-3 capitalized words in top 10 lines may be a student name
     if (!metadata.studentName && lineIndex < 10) {
       const nameCandidate = line.match(

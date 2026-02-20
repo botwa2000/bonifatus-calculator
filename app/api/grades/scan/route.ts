@@ -111,68 +111,57 @@ export async function POST(req: Request) {
       )
     }
 
-    // Pipeline: load config → preprocess → detect columns → OCR → parse → match
+    // Pipeline: load config → preprocess → full OCR (for metadata) → split OCR (for subjects)
     const config = await loadScanConfig()
     const preprocessed = await preprocessImage(imageBuffer)
-
-    // Detect two-column layout and split if found
     const ocrOpts = { locale: locale || 'en', countryCode: gradingSystemCountry }
-    const columns = await splitColumns(preprocessed)
-    let ocrResult: OcrResult
+
+    // Always OCR the full image first — metadata (school name, student name, year)
+    // comes from full-width headers that get cut by column splitting.
+    const fullOcr = await recognizeText(preprocessed, ocrOpts, config)
+    const fullParsed = parseOcrText(fullOcr.text, fullOcr.confidence, config)
+    let ocrResult = fullOcr
+    let parsed = fullParsed
     let columnSplitUsed = false
 
+    // Try column splitting for better subject extraction
+    const columns = await splitColumns(preprocessed)
     if (columns) {
-      console.log('[scan] gutter detected — splitting into columns')
       const leftOcr = await recognizeText(columns[0], ocrOpts, config)
       const rightOcr = await recognizeText(columns[1], ocrOpts, config)
-      ocrResult = {
+      const splitOcr: OcrResult = {
         text: leftOcr.text + '\n' + rightOcr.text,
         confidence: (leftOcr.confidence + rightOcr.confidence) / 2,
         words: [...leftOcr.words, ...rightOcr.words],
       }
-      columnSplitUsed = true
-    } else {
-      console.log('[scan] no gutter detected — full image OCR')
-      ocrResult = await recognizeText(preprocessed, ocrOpts, config)
+      const splitParsed = parseOcrText(splitOcr.text, splitOcr.confidence, config)
+
+      if (splitParsed.subjects.length > fullParsed.subjects.length) {
+        // Use split subjects but keep full-image metadata (headers span full width)
+        ocrResult = splitOcr
+        parsed = { ...splitParsed, metadata: fullParsed.metadata }
+        columnSplitUsed = true
+      }
     }
 
-    let parsed = parseOcrText(ocrResult.text, ocrResult.confidence, config)
-    console.log(`[scan] full OCR: ${parsed.subjects.length} subjects found`)
-
-    // Fallback: if few subjects found and no split was used, try forced center split.
+    // Fallback: if still few subjects and no split used, try forced center split.
     if (!columnSplitUsed && parsed.subjects.length < 8) {
-      console.log('[scan] fallback: trying forced center split')
       const forcedColumns = await forceSplitCenter(preprocessed)
       if (forcedColumns) {
         const leftOcr = await recognizeText(forcedColumns[0], ocrOpts, config)
         const rightOcr = await recognizeText(forcedColumns[1], ocrOpts, config)
-        console.log(
-          `[scan] split OCR left lines: ${leftOcr.text.split('\n').filter(Boolean).length}`
-        )
-        console.log(
-          `[scan] split OCR right lines: ${rightOcr.text.split('\n').filter(Boolean).length}`
-        )
         const splitOcr: OcrResult = {
           text: leftOcr.text + '\n' + rightOcr.text,
           confidence: (leftOcr.confidence + rightOcr.confidence) / 2,
           words: [...leftOcr.words, ...rightOcr.words],
         }
         const splitParsed = parseOcrText(splitOcr.text, splitOcr.confidence, config)
-        console.log(
-          `[scan] split parsed: ${splitParsed.subjects.length} subjects (full had ${parsed.subjects.length})`
-        )
 
-        // Use split results if they yield more subjects
         if (splitParsed.subjects.length > parsed.subjects.length) {
           ocrResult = splitOcr
-          parsed = splitParsed
+          parsed = { ...splitParsed, metadata: fullParsed.metadata }
           columnSplitUsed = true
-          console.log('[scan] using split results (more subjects)')
-        } else {
-          console.log('[scan] keeping full results (split not better)')
         }
-      } else {
-        console.log('[scan] forced split returned null (image too narrow?)')
       }
     }
 
