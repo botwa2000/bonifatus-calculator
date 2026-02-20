@@ -165,7 +165,22 @@ export async function POST(req: Request) {
       }
     }
 
-    const matched = await matchSubjects(parsed.subjects, config)
+    const allMatched = await matchSubjects(parsed.subjects, config)
+
+    // Filter out garbage: unmatched subjects that don't look like real subject names
+    const matched = allMatched.filter((s) => {
+      // Keep all matched subjects (any confidence except "none")
+      if (s.matchedSubjectId) return true
+      // For unmatched: require minimum quality indicators
+      const name = s.originalName
+      if (name.length < 5) return false
+      // Must contain at least one 5+ letter word
+      if (!/[a-zA-ZÀ-ÿß]{5,}/.test(name)) return false
+      // Reject if more than half the characters are non-alpha (noise)
+      const alphaCount = (name.match(/[a-zA-ZÀ-ÿß]/g) || []).length
+      if (alphaCount < name.length * 0.6) return false
+      return true
+    })
 
     // Auto-detect country from school metadata
     const suggestedCountryCode = detectCountryFromMetadata(

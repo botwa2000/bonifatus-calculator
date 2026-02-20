@@ -24,6 +24,30 @@ export type ScanResult = {
 
 export type { ScanParserConfig }
 
+// Lines starting with these keywords signal that the subject section is over.
+// All subsequent lines are footer/signatures/stamps — skip subject extraction.
+const END_OF_SUBJECTS_KEYWORDS = [
+  'bemerkungen',
+  'anmerkungen',
+  'remarks',
+  'observations',
+  'versetzt',
+  'nicht versetzt',
+  'versäumte',
+  'versaumte',
+  'verspätungen',
+  'verspatungen',
+  'fehltage',
+  'fehlzeiten',
+  'entschuldigt',
+  'unentschuldigt',
+  'gelesen',
+  'datum',
+  'ort,',
+  'ein beiblatt',
+  'dieses zeugnis',
+]
+
 // Grade patterns for different systems (single-column) — structural regex, not data
 const GRADE_PATTERNS = [
   /^(.+?)\s*[:：]?\s+(\d[+-]?)$/,
@@ -187,7 +211,7 @@ function trySplitTwoColumnTokens(
   for (const gi of gradeIndices) {
     if (gi <= start) continue
     const subjectStr = tokens.slice(start, gi).join(' ').trim()
-    if (subjectStr.length >= 2 && /[a-zA-ZÀ-ÿß]/.test(subjectStr)) {
+    if (subjectStr.length >= 4 && /[a-zA-ZÀ-ÿß]{4,}/.test(subjectStr)) {
       pairs.push({ subject: subjectStr, grade: tokens[gi] })
     }
     start = gi + 1
@@ -215,7 +239,11 @@ function tryAddSubject(
     .replace(/["'*;:.]+$/g, '') // trailing punctuation including dots
     .replace(/\s+[a-z]{1,3}$/i, '') // trailing short noise tokens like "crc", "rr"
     .trim()
-  if (cleanName.length < 2) return
+
+  // Minimum 4 chars and must contain at least one 4+ letter word (filters "Fe", "eR", etc.)
+  if (cleanName.length < 4) return
+  if (!/[a-zA-ZÀ-ÿß]{4,}/.test(cleanName)) return
+  if (/^\d/.test(cleanName)) return
   if (isBehavioralGrade(cleanName, behavioralGrades)) return
 
   // Try the grade as-is, then try cleaning OCR noise from it
@@ -225,7 +253,9 @@ function tryAddSubject(
   }
   if (!isGradeValue(cleanedGrade)) return
 
-  if (/^\d/.test(cleanName)) return
+  // Single-letter grades (A-F) are often OCR noise — require longer subject names
+  if (/^[A-Fa-f]$/.test(cleanedGrade) && cleanName.length < 6) return
+
   subjects.push({ originalName: cleanName, grade: cleanedGrade, confidence })
 }
 
@@ -259,11 +289,17 @@ export function parseOcrText(
   const metadata: ScanResult['metadata'] = {}
 
   let prevLine = ''
+  let subjectsDone = false // Set true after "Bemerkungen" etc. — stops subject extraction
 
   for (let lineIndex = 0; lineIndex < lines.length; lineIndex++) {
     const line = lines[lineIndex]
     const lowerLine = line.toLowerCase()
     let isMetadataLine = false
+
+    // Check for end-of-subjects markers (footer, remarks, signatures)
+    if (!subjectsDone && END_OF_SUBJECTS_KEYWORDS.some((kw) => lowerLine.startsWith(kw))) {
+      subjectsDone = true
+    }
 
     // School name via previous-line labels (e.g. "Name der Schule" — previous line is the school name)
     if (!metadata.schoolName && prevLine && schoolNamePrevLineLabels.length) {
@@ -380,8 +416,8 @@ export function parseOcrText(
       }
     }
 
-    // Subject extraction
-    if (!isMetadataLine && !shouldSkipLine(line, skipKeywords)) {
+    // Subject extraction — skip if past end-of-subjects marker
+    if (!subjectsDone && !isMetadataLine && !shouldSkipLine(line, skipKeywords)) {
       // Pre-process: apply OCR corrections and strip dot leaders for cleaner matching
       const cleanLine = stripDotLeaders(correctOcrText(line))
 
