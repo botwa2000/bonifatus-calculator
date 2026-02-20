@@ -1,6 +1,6 @@
 import { dbg } from '@/lib/debug'
 import { correctOcrText, capitalizeProperName } from './ocr-corrections'
-import type { ScanParserConfig } from '@/lib/db/queries/scan-config'
+import type { ScanParserConfig, NamePrefixPattern } from '@/lib/db/queries/scan-config'
 
 export type ParsedSubject = {
   originalName: string
@@ -90,6 +90,37 @@ function buildTextDateRegex(monthNames: Record<string, string>): RegExp | null {
   if (!months.length) return null
   const alternation = months.map(escapeRegex).join('|')
   return new RegExp(`\\b(\\d{1,2})\\.?\\s+(${alternation})\\s+(\\d{4})\\b`, 'i')
+}
+
+/**
+ * Build a regex for class level detection from DB keywords.
+ * Matches patterns like "Klasse: 5" or "Grade 10".
+ */
+function buildClassLevelRegex(keywords: string[]): RegExp | null {
+  if (!keywords.length) return null
+  const alternation = keywords.map(escapeRegex).join('|')
+  return new RegExp(`(?:${alternation})\\s*[:：]?\\s*(\\d{1,2})`, 'i')
+}
+
+/**
+ * Try to extract a student name using name prefix/suffix patterns from DB.
+ * Each pattern has a prefix (e.g. "für") and suffix (e.g. "geboren") with a
+ * Unicode name capture group between them.
+ */
+function tryNamePrefixPatterns(line: string, patterns: NamePrefixPattern[]): string | null {
+  for (const { prefix, suffix } of patterns) {
+    try {
+      const regex = new RegExp(
+        `${prefix}\\s+([A-ZÀ-ÿЁА-яёa-zäöüß]+\\s+[A-ZÀ-ÿЁА-яёa-zäöüß]+(?:\\s+[A-ZÀ-ÿЁА-яёa-zäöüß]+)?)\\s+${suffix}`,
+        'i'
+      )
+      const match = line.match(regex)
+      if (match) return match[1].trim()
+    } catch {
+      // skip invalid regex patterns
+    }
+  }
+  return null
 }
 
 function normalizeDate(raw: string): string {
@@ -199,11 +230,15 @@ export function parseOcrText(
   const monthNames = config?.monthNames ?? {}
   const studentNameLabels = config?.studentNameLabels ?? []
   const schoolNameLabels = config?.schoolNameLabels ?? []
+  const classLevelKeywords = config?.classLevelKeywords ?? []
+  const namePrefixPatterns = config?.namePrefixPatterns ?? []
+  const schoolNamePrevLineLabels = config?.schoolNamePrevLineLabels ?? []
 
   // Build dynamic regexes from DB-stored labels
   const studentNameRegex = buildLabelRegex(studentNameLabels)
   const schoolNameRegex = buildLabelRegex(schoolNameLabels)
   const textDateRegex = buildTextDateRegex(monthNames)
+  const classLevelRegex = buildClassLevelRegex(classLevelKeywords)
 
   const lines = text
     .split('\n')
@@ -219,10 +254,16 @@ export function parseOcrText(
     const lowerLine = line.toLowerCase()
     let isMetadataLine = false
 
-    // School name: "Name der Schule" label — previous line is the school name
-    if (/^Name\s+der\s+Schule$/i.test(line) && prevLine && !metadata.schoolName) {
-      metadata.schoolName = prevLine
-      isMetadataLine = true
+    // School name via previous-line labels (e.g. "Name der Schule" — previous line is the school name)
+    if (!metadata.schoolName && prevLine && schoolNamePrevLineLabels.length) {
+      const lowerLineTrimmed = line.toLowerCase().trim()
+      for (const label of schoolNamePrevLineLabels) {
+        if (lowerLineTrimmed === label.toLowerCase()) {
+          metadata.schoolName = prevLine
+          isMetadataLine = true
+          break
+        }
+      }
     }
 
     // Student name via DB-configured labels
@@ -234,13 +275,11 @@ export function parseOcrText(
       }
     }
 
-    // Berlin format: "für Vorname Nachname geboren am DD.MM.YYYY"
-    if (!metadata.studentName && lineIndex < 15) {
-      const berlinName = line.match(
-        /f[üuia]{1,2}r\s+([A-ZÄÖÜa-zäöüß]+\s+[A-ZÄÖÜa-zäöüß]+(?:\s+[A-ZÄÖÜa-zäöüß]+)?)\s+geboren/i
-      )
-      if (berlinName) {
-        metadata.studentName = capitalizeProperName(correctOcrText(berlinName[1].trim()))
+    // Name prefix/suffix patterns (e.g. "für...geboren", "pour...née", "for...born")
+    if (!metadata.studentName && lineIndex < 15 && namePrefixPatterns.length) {
+      const nameFromPattern = tryNamePrefixPatterns(line, namePrefixPatterns)
+      if (nameFromPattern) {
+        metadata.studentName = capitalizeProperName(correctOcrText(nameFromPattern))
         isMetadataLine = true
       }
     }
@@ -290,14 +329,16 @@ export function parseOcrText(
       }
     }
 
-    // Class level
+    // Class level via DB-configured keywords
     if (!metadata.classLevel) {
-      const classMatch = line.match(
-        /(?:Klasse|Classe|Class|Grade|Grado|Класс|Stufe|Jahrgangsstufe)\s*[:：]?\s*(\d{1,2})/i
-      )
-      if (classMatch) {
-        metadata.classLevel = parseInt(classMatch[1], 10)
-        isMetadataLine = true
+      const correctedLine = correctOcrText(line)
+      const classRegex = classLevelRegex
+      if (classRegex) {
+        const classMatch = correctedLine.match(classRegex)
+        if (classMatch) {
+          metadata.classLevel = parseInt(classMatch[1], 10)
+          isMetadataLine = true
+        }
       }
     }
 

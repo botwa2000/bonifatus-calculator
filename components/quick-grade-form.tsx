@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useLocale, useTranslations } from 'next-intl'
 import { resolveLocalized } from '@/lib/i18n'
+import { SubjectCombobox } from '@/components/ui'
 
 type GradingSystem = {
   id: string
@@ -12,6 +13,12 @@ type GradingSystem = {
 }
 
 type Subject = {
+  id: string
+  name: string | Record<string, string>
+  categoryId?: string
+}
+
+type Category = {
   id: string
   name: string | Record<string, string>
 }
@@ -33,6 +40,7 @@ export function QuickGradeForm() {
   const locale = useLocale()
   const t = useTranslations('quickGrade')
   const [subjects, setSubjects] = useState<Subject[]>([])
+  const [categories, setCategories] = useState<Category[]>([])
   const [systems, setSystems] = useState<GradingSystem[]>([])
   const [recentGrades, setRecentGrades] = useState<QuickGrade[]>([])
   const [loading, setLoading] = useState(true)
@@ -61,6 +69,7 @@ export function QuickGradeForm() {
 
         if (configData.success) {
           setSubjects(configData.subjects || [])
+          setCategories(configData.categories || [])
           setSystems(configData.gradingSystems || [])
           const storedDefault =
             typeof window !== 'undefined'
@@ -163,18 +172,16 @@ export function QuickGradeForm() {
         )}
       </div>
       <div className="flex flex-wrap gap-2 items-end">
-        <select
+        <SubjectCombobox
+          subjects={subjects}
+          categories={categories}
           value={subjectId}
-          onChange={(e) => setSubjectId(e.target.value)}
-          className="rounded-lg border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 py-2 text-sm text-neutral-900 dark:text-white flex-1 min-w-[140px]"
-        >
-          <option value="">{t('subject')}</option>
-          {subjects.map((s) => (
-            <option key={s.id} value={s.id}>
-              {resolveLocalized(s.name, locale)}
-            </option>
-          ))}
-        </select>
+          onChange={(id) => setSubjectId(id)}
+          placeholder={t('subject')}
+          locale={locale}
+          compact
+          className="flex-1 min-w-[140px]"
+        />
         {selectedSystem?.gradeDefinitions?.length ? (
           <select
             value={gradeValue}

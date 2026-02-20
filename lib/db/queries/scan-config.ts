@@ -3,6 +3,11 @@ import { scanConfig } from '@/drizzle/schema/scanConfig'
 import { subjects } from '@/drizzle/schema/grades'
 import { eq } from 'drizzle-orm'
 
+export type NamePrefixPattern = {
+  prefix: string
+  suffix: string
+}
+
 export type ScanParserConfig = {
   skipKeywords: string[]
   behavioralGrades: Set<string>
@@ -16,6 +21,9 @@ export type ScanParserConfig = {
   localeLanguages: Record<string, string>
   countryLanguages: Record<string, string>
   supportedLocales: string[]
+  classLevelKeywords: string[]
+  namePrefixPatterns: NamePrefixPattern[]
+  schoolNamePrevLineLabels: string[]
 }
 
 export type DbSubjectWithAliases = {
@@ -52,6 +60,11 @@ function asTupleArray(val: unknown): [string, string][] {
   return val.filter((item) => Array.isArray(item) && item.length === 2) as [string, string][]
 }
 
+function asObjectArray<T>(val: unknown): T[] {
+  if (!Array.isArray(val)) return []
+  return val.filter((item) => item && typeof item === 'object' && !Array.isArray(item)) as T[]
+}
+
 export async function loadScanConfig(): Promise<ScanParserConfig> {
   if (configCache && isCacheValid()) return configCache
 
@@ -74,6 +87,9 @@ export async function loadScanConfig(): Promise<ScanParserConfig> {
     localeLanguages: asStringRecord(m['locale_languages']),
     countryLanguages: asStringRecord(m['country_languages']),
     supportedLocales: asStringArray(m['supported_locales']),
+    classLevelKeywords: asStringArray(m['class_level_keywords']),
+    namePrefixPatterns: asObjectArray<NamePrefixPattern>(m['name_prefix_patterns']),
+    schoolNamePrevLineLabels: asStringArray(m['school_name_prev_line_labels']),
   }
   cacheTimestamp = Date.now()
   return configCache

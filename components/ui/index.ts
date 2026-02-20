@@ -51,3 +51,6 @@ export type { DropZoneProps } from './DropZone'
 
 export { SegmentedControl } from './SegmentedControl'
 export type { SegmentedControlProps, SegmentedControlOption } from './SegmentedControl'
+
+export { SubjectCombobox } from './SubjectCombobox'
+export type { SubjectComboboxProps } from './SubjectCombobox'

@@ -4,7 +4,7 @@ import { useState, useMemo } from 'react'
 import { useTranslations } from 'next-intl'
 import { useLocale } from 'next-intl'
 import { resolveLocalized } from '@/lib/i18n'
-import { Button, Badge, Input, Label } from '@/components/ui'
+import { Button, Badge, Input, Label, SubjectCombobox } from '@/components/ui'
 import type { BadgeVariant } from '@/components/ui'
 import type { ScanApiResult } from './ReportCardScanner'
 
@@ -96,22 +96,6 @@ export function ScanReviewPanel({
   )
   const [metadata, setMetadata] = useState(scanResult.metadata)
   const [gradingSystemId, setGradingSystemId] = useState(suggestedGradingSystemId || '')
-
-  const subjectOptions = useMemo(() => {
-    const grouped: Record<
-      string,
-      { categoryName: string; items: Array<{ id: string; label: string }> }
-    > = {}
-    categories.forEach((cat) => {
-      const catName = resolveLocalized(cat.name, locale)
-      const items = allSubjects
-        .filter((s) => s.categoryId === cat.id)
-        .map((s) => ({ id: s.id, label: resolveLocalized(s.name, locale) }))
-        .sort((a, b) => a.label.localeCompare(b.label))
-      if (items.length) grouped[cat.id] = { categoryName: catName, items }
-    })
-    return grouped
-  }, [allSubjects, categories, locale])
 
   const handleSubjectChange = (index: number, subjectId: string) => {
     const subj = allSubjects.find((s) => s.id === subjectId)
@@ -311,23 +295,16 @@ export function ScanReviewPanel({
 
             {/* Subject picker */}
             <div className="col-span-4">
-              <select
-                value={row.matchedSubjectId || ''}
-                onChange={(e) => handleSubjectChange(idx, e.target.value)}
+              <SubjectCombobox
+                subjects={allSubjects}
+                categories={categories}
+                value={row.matchedSubjectId}
+                onChange={(subjectId) => handleSubjectChange(idx, subjectId)}
+                placeholder={t('matchSubject')}
                 disabled={row.excluded}
-                className="w-full rounded-lg border-2 border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-2 py-1.5 text-sm text-neutral-900 dark:text-white outline-none focus:border-primary-500 transition-colors"
-              >
-                <option value="">{t('matchSubject')}</option>
-                {Object.values(subjectOptions).map((group) => (
-                  <optgroup key={group.categoryName} label={group.categoryName}>
-                    {group.items.map((item) => (
-                      <option key={item.id} value={item.id}>
-                        {item.label}
-                      </option>
-                    ))}
-                  </optgroup>
-                ))}
-              </select>
+                locale={locale}
+                compact
+              />
             </div>
 
             {/* Grade */}

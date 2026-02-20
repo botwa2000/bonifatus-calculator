@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useLocale, useTranslations } from 'next-intl'
 import { resolveLocalized } from '@/lib/i18n'
-import { Button, Select, Accordion, FormField, Tooltip } from '@/components/ui'
+import { Button, Select, Accordion, FormField, Tooltip, SubjectCombobox } from '@/components/ui'
 
 type GradeDefinition = {
   grade?: string
@@ -320,8 +320,6 @@ export function DemoCalculator({
         ]
   )
   const [editingTermId, setEditingTermId] = useState<string | undefined>(initialData?.termId)
-  const [subjectFilters, setSubjectFilters] = useState<Record<string, string>>({})
-  const [pickerOpen, setPickerOpen] = useState<Record<string, boolean>>({})
   const draftLoadedRef = useRef(false)
   const draftSaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const draftKey = useMemo(() => `calculator-draft-${userEmail || 'guest'}`, [userEmail])
@@ -539,36 +537,6 @@ export function DemoCalculator({
     )
     return found?.id
   }
-
-  const getFilteredSubjectsByCategory = useMemo(() => {
-    return (filterRaw: string) => {
-      const filter = filterRaw.trim().toLowerCase()
-      const grouped: Record<
-        string,
-        { categoryName: string; items: Array<{ id: string; label: string }> }
-      > = {}
-
-      config.categories.forEach((cat) => {
-        const catName = resolveLocalized(cat.name, locale)
-        const items = config.subjects
-          .filter((s) => s.categoryId === cat.id)
-          .map((s) => ({
-            id: s.id,
-            label: resolveLocalized(s.name, locale),
-          }))
-          .sort((a, b) => a.label.localeCompare(b.label))
-
-        const filteredItems = filter
-          ? items.filter((item) => item.label.toLowerCase().includes(filter))
-          : items
-
-        if (filteredItems.length) {
-          grouped[cat.id] = { categoryName: catName, items: filteredItems }
-        }
-      })
-      return grouped
-    }
-  }, [config.categories, config.subjects, locale])
 
   const updateRow = (id: string, field: keyof SubjectEntry, value: string | number) => {
     setSubjectRows((prev) => prev.map((row) => (row.id === id ? { ...row, [field]: value } : row)))
@@ -856,103 +824,35 @@ export function DemoCalculator({
                         <Tooltip content={t('subjectTooltip')} />
                       </div>
                       <div className="flex items-center gap-2">
-                        <input
+                        <SubjectCombobox
+                          subjects={config.subjects}
+                          categories={config.categories}
+                          value={row.subjectId}
+                          onChange={(subjectId, subjectLabel, isCoreSubject) => {
+                            setSubjectRows((prev) =>
+                              prev.map((p) =>
+                                p.id === row.id
+                                  ? {
+                                      ...p,
+                                      subjectId,
+                                      subjectName: subjectLabel,
+                                      isCoreSubject: isCoreSubject ?? false,
+                                    }
+                                  : p
+                              )
+                            )
+                          }}
+                          disabledSubjectIds={selectedSubjectIds}
                           placeholder={row.subjectName || t('searchSubject')}
-                          value={subjectFilters[row.id] ?? ''}
-                          onChange={(e) =>
-                            setSubjectFilters((prev) => ({ ...prev, [row.id]: e.target.value }))
-                          }
-                          onFocus={() => setPickerOpen((prev) => ({ ...prev, [row.id]: true }))}
-                          className="w-full rounded-lg border-2 border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 py-2 text-neutral-900 dark:text-white focus:border-primary-500 outline-none transition-all"
+                          locale={locale}
+                          className="flex-1"
                         />
                         {row.isCoreSubject && (
                           <span className="shrink-0 rounded bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300 px-1.5 py-0.5 text-[10px] font-semibold uppercase">
                             {t('core')}
                           </span>
                         )}
-                        <button
-                          type="button"
-                          className="text-xs text-neutral-600 dark:text-neutral-300 underline shrink-0"
-                          onClick={() =>
-                            setPickerOpen((prev) => ({ ...prev, [row.id]: !prev[row.id] }))
-                          }
-                        >
-                          {pickerOpen[row.id] ? tc('hide') : t('browse')}
-                        </button>
                       </div>
-                      {pickerOpen[row.id] && (
-                        <div className="w-full rounded-lg border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 py-2">
-                          <div className="text-sm font-semibold text-neutral-800 dark:text-neutral-100 mb-1">
-                            {row.subjectName || t('selectSubject')}
-                          </div>
-                          <div className="max-h-72 overflow-y-auto overflow-x-hidden space-y-2">
-                            {Object.values(
-                              getFilteredSubjectsByCategory(subjectFilters[row.id] || '')
-                            ).map((group) => {
-                              const items = group.items.filter(
-                                (item) =>
-                                  !selectedSubjectIds.has(item.id) || row.subjectId === item.id
-                              )
-                              if (!items.length) return null
-                              return (
-                                <div key={group.categoryName} className="mb-2">
-                                  <div className="text-xs font-semibold text-neutral-500 mb-1">
-                                    {group.categoryName}
-                                  </div>
-                                  <div className="grid grid-cols-1 gap-1">
-                                    {items.map((item) => (
-                                      <button
-                                        key={item.id}
-                                        type="button"
-                                        onClick={() => {
-                                          const subjectConfig = config.subjects.find(
-                                            (s) => s.id === item.id
-                                          )
-                                          setSubjectRows((prev) =>
-                                            prev.map((p) =>
-                                              p.id === row.id
-                                                ? {
-                                                    ...p,
-                                                    subjectId: item.id,
-                                                    subjectName: item.label,
-                                                    isCoreSubject:
-                                                      subjectConfig?.isCoreSubject ?? false,
-                                                  }
-                                                : p
-                                            )
-                                          )
-                                          setSubjectFilters((prev) => ({ ...prev, [row.id]: '' }))
-                                          setPickerOpen((prev) => ({ ...prev, [row.id]: false }))
-                                        }}
-                                        disabled={
-                                          selectedSubjectIds.has(item.id) &&
-                                          row.subjectId !== item.id
-                                        }
-                                        className="text-left px-2 py-1 rounded hover:bg-neutral-100 dark:hover:bg-neutral-700 text-sm text-neutral-800 dark:text-neutral-100 disabled:opacity-40"
-                                      >
-                                        {item.label}
-                                      </button>
-                                    ))}
-                                  </div>
-                                </div>
-                              )
-                            })}
-                            {Object.values(
-                              getFilteredSubjectsByCategory(subjectFilters[row.id] || '')
-                            ).every(
-                              (group) =>
-                                group.items.filter(
-                                  (item) =>
-                                    !selectedSubjectIds.has(item.id) || row.subjectId === item.id
-                                ).length === 0
-                            ) && (
-                              <div className="text-xs text-neutral-500 px-2 py-1">
-                                {tc('noMatches')}
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      )}
                     </div>
                     <div className="lg:col-span-3">
                       <div className="lg:hidden flex items-center gap-1 text-xs font-medium text-neutral-500 dark:text-neutral-400 mb-1">
