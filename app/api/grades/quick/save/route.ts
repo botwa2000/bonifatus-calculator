@@ -13,6 +13,7 @@ const schema = z.object({
   subjectId: z.string().uuid(),
   gradingSystemId: z.string().uuid(),
   classLevel: z.number().int().min(1).max(20),
+  termType: z.string().min(1).max(30).optional(),
   gradeValue: z.string().min(1),
   note: z.string().max(200).optional(),
 })
@@ -68,6 +69,7 @@ export async function POST(request: NextRequest) {
         overrides: overrides as CalculatorInput['factors']['overrides'],
       },
       classLevel: payload.classLevel,
+      termType: payload.termType,
       subject: {
         subjectId: payload.subjectId,
         grade: payload.gradeValue,

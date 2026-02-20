@@ -29,6 +29,7 @@ export type CalculatorSubjectResult = {
   subjectId: string
   subjectName: string
   rawGrade: string
+  numericValue: number
   normalized: number
   tier: 'best' | 'second' | 'third' | 'below'
   weight: number
@@ -96,6 +97,19 @@ function normalizeGrade(system: GradingSystemRow, grade: string): number {
   return 0
 }
 
+function resolveNumericValue(system: GradingSystemRow, grade: string): number {
+  if (!grade) return 0
+  const defs = (system.gradeDefinitions || []) as Array<{
+    grade?: string
+    numeric_value?: number
+  }>
+  const def = defs.find((g) => g.grade?.toLowerCase() === grade.trim().toLowerCase())
+  if (def?.numeric_value != null) return Number(def.numeric_value)
+  // Fallback: try parsing as number directly
+  const num = Number(grade)
+  return Number.isNaN(num) ? 0 : num
+}
+
 function deriveTier(system: GradingSystemRow, grade: string): CalculatorSubjectResult['tier'] {
   const defs = (system.gradeDefinitions || []) as Array<{ grade?: string; quality_tier?: string }>
   const def = defs.find((g) => g.grade?.toLowerCase() === grade.trim().toLowerCase())
@@ -117,12 +131,14 @@ export type SingleGradeInput = {
   gradingSystem: CalculatorInput['gradingSystem']
   factors: CalculatorInput['factors']
   classLevel: number
+  termType?: string
   subject: CalculatorInputSubject
 }
 
 export function calculateSingleGradeBonus(input: SingleGradeInput): CalculatorSubjectResult {
-  const { gradingSystem, factors, classLevel, subject } = input
+  const { gradingSystem, factors, classLevel, termType, subject } = input
   const weight = Number(subject.weight ?? 1) || 1
+  const numericValue = resolveNumericValue(gradingSystem, subject.grade)
   const normalized = normalizeGrade(gradingSystem, subject.grade)
   const tier = deriveTier(gradingSystem, subject.grade)
 
@@ -130,7 +146,7 @@ export function calculateSingleGradeBonus(input: SingleGradeInput): CalculatorSu
   const classLevelFactor =
     factorValue('class_level', `class_${classLevel}`, factors.defaults, factors.overrides) ?? 1
   const termFactor =
-    factorValue('term_type', 'semester_2', factors.defaults, factors.overrides) ?? 1
+    factorValue('term_type', termType ?? 'semester_2', factors.defaults, factors.overrides) ?? 1
   const gradeFactor = gradeFactorForTier(tier, factors.defaults, factors.overrides)
 
   const rawBonus = classLevelFactor * termFactor * gradeFactor * weight
@@ -140,6 +156,7 @@ export function calculateSingleGradeBonus(input: SingleGradeInput): CalculatorSu
     subjectId: subject.subjectId,
     subjectName: subject.subjectName || 'Subject',
     rawGrade: subject.grade,
+    numericValue,
     normalized,
     tier,
     weight,
@@ -157,6 +174,7 @@ export function calculateBonus(input: CalculatorInput): CalculatorResult {
 
   const breakdown: CalculatorSubjectResult[] = subjects.map((sub) => {
     const weight = Number(sub.weight ?? 1) || 1
+    const numericValue = resolveNumericValue(gradingSystem, sub.grade)
     const normalized = normalizeGrade(gradingSystem, sub.grade)
     const tier = deriveTier(gradingSystem, sub.grade)
     const gradeFactor = gradeFactorForTier(tier, factors.defaults, factors.overrides)
@@ -168,6 +186,7 @@ export function calculateBonus(input: CalculatorInput): CalculatorResult {
       subjectId: sub.subjectId,
       subjectName: sub.subjectName || 'Subject',
       rawGrade: sub.grade,
+      numericValue,
       normalized,
       tier,
       weight,

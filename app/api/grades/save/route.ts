@@ -109,7 +109,7 @@ export async function POST(request: NextRequest) {
         termGradeId: termId,
         subjectId: payload.subjects[idx]?.subjectId,
         gradeValue: payload.subjects[idx]?.grade,
-        gradeNumeric: item.normalized,
+        gradeNumeric: item.numericValue,
         gradeNormalized100: item.normalized,
         gradeQualityTier: item.tier ?? null,
         subjectWeight: payload.subjects[idx]?.weight ?? item.weight ?? 1,
