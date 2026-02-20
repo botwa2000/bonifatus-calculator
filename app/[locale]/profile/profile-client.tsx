@@ -12,13 +12,13 @@ type Tab = 'personal' | 'security' | 'school' | 'connections' | 'danger'
 
 type ParentConnection = {
   id: string
-  parent_id: string
-  child_id: string
-  invitation_status: string
-  invited_at?: string
-  responded_at?: string | null
-  parent?: { id: string; full_name: string }
-  child?: { id: string; full_name: string }
+  parentId: string
+  childId: string
+  invitationStatus: string
+  invitedAt?: string
+  respondedAt?: string | null
+  parent?: { id: string; fullName: string }
+  child?: { id: string; fullName: string }
 }
 
 interface ProfileClientProps {
@@ -894,7 +894,7 @@ export default function ProfileClient({
                 <div className="space-y-3">
                   {connections.map((conn) => {
                     const otherPerson = role === 'child' ? conn.parent : conn.child
-                    const otherName = otherPerson?.full_name || 'Unknown'
+                    const otherName = otherPerson?.fullName || 'Unknown'
                     const otherRole = role === 'child' ? 'Parent' : 'Child'
 
                     return (
@@ -914,8 +914,8 @@ export default function ProfileClient({
                               <span className="font-semibold text-primary-600 dark:text-primary-300">
                                 {otherRole}
                               </span>
-                              <span>{conn.invitation_status}</span>
-                              <span>{formatDate(conn.responded_at || conn.invited_at)}</span>
+                              <span>{conn.invitationStatus}</span>
+                              <span>{formatDate(conn.respondedAt || conn.invitedAt)}</span>
                             </div>
                           </div>
                         </div>
