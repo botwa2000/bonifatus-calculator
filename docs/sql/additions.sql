@@ -1,4 +1,4 @@
--- Bonifatus SQL additions (idempotent) for reference/run in Supabase SQL Editor
+-- Bonifatus SQL additions (idempotent) — reference data seeding
 -- Creates missing reference tables and seeds grading systems, factors, categories, and subjects.
 
 -- Cleanup seeded data (destructive for non-custom/reference rows)

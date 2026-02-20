@@ -12,10 +12,6 @@ coverage
 *.pfx
 *.p12
 .DS_Store
-.vercel
-supabase/.branches
-supabase/.temp
-debug-supabase.js
 debug.log
 npm-debug.log*
 creds*.docx

@@ -84,7 +84,7 @@ export function getClientIp(headers: Headers): string | undefined {
     'cf-connecting-ip', // Cloudflare
     'x-real-ip', // Nginx
     'x-forwarded-for', // Standard proxy header
-    'x-vercel-forwarded-for', // Vercel
+    'x-vercel-forwarded-for', // common proxy header
   ]
 
   for (const header of ipHeaders) {

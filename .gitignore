@@ -41,7 +41,6 @@ yarn-error.log*
 tmp_*.txt
 
 # local credentials / tokens
-debug-supabase.js
 *.pfx
 *.p12
 .npmrc
@@ -49,9 +48,6 @@ debug-supabase.js
 creds bonifatus calculator.docx
 creds*.docx
 .secrets
-
-# vercel
-.vercel
 
 # typescript
 *.tsbuildinfo
@@ -65,7 +61,4 @@ coverage/
 .DS_Store
 *.pem
 
-# Supabase
-supabase/.branches
-supabase/.temp
 .claude/

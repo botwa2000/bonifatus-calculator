@@ -1,6 +1,5 @@
 /**
- * Supabase generated types
- * (Replace with `npx supabase gen types typescript --project-id <PROJECT_ID> --schema public`)
+ * Database types for the Bonifatus schema (PostgreSQL on Hetzner).
  */
 
 export type Json = string | number | boolean | null | { [key: string]: Json | undefined } | Json[]
