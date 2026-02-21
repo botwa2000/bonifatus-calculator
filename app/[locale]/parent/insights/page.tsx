@@ -5,6 +5,10 @@ import { useTranslations, useLocale } from 'next-intl'
 import { useParentData } from '@/hooks/useParentData'
 import { resolveLocalized } from '@/lib/i18n'
 import { deriveTier, tierColor } from '@/lib/utils/grade-helpers'
+import { Card, CardContent } from '@/components/ui/Card'
+import { Select } from '@/components/ui/Select'
+import { SegmentedControl } from '@/components/ui/SegmentedControl'
+import { Badge } from '@/components/ui/Badge'
 import {
   GradeTrendChart,
   SubjectPerformanceChart,
@@ -26,6 +30,20 @@ import {
 
 const CHILD_COLORS = ['#7c3aed', '#06b6d4', '#f59e0b', '#ef4444', '#22c55e', '#ec4899']
 
+const TOOLTIP_STYLE = {
+  backgroundColor: 'rgba(17,24,39,0.95)',
+  border: '1px solid #374151',
+  borderRadius: '12px',
+  fontSize: 13,
+  color: '#f3f4f6',
+}
+
+type SubjectGrade = {
+  grade_normalized_100?: number | null
+  subject_weight?: number | null
+  subjects?: { name?: string | Record<string, string> | null } | null
+}
+
 export default function ParentInsightsPage() {
   const t = useTranslations('parent')
   const tc = useTranslations('common')
@@ -33,7 +51,12 @@ export default function ParentInsightsPage() {
   const { connections, loading, gradeSummaries, allChildTerms, combinedBonus, gradesLoaded } =
     useParentData()
 
+  /* ── Filter state ─────────────────────────────────────── */
+
   const [selectedChild, setSelectedChild] = useState<string>('all')
+  const [selectedYear, setSelectedYear] = useState<string>('all')
+  const [selectedTermType, setSelectedTermType] = useState<string>('all')
+  const [selectedTier, setSelectedTier] = useState<string>('all')
 
   /* ── Maps & helpers ────────────────────────────────────── */
 
@@ -47,89 +70,124 @@ export default function ParentInsightsPage() {
 
   const childIds = useMemo(() => connections.map((c) => c.childId), [connections])
 
-  /* ── All-children stats ───────────────────────────────── */
+  /* ── Available filter values (derived from data) ──────── */
 
-  const totalTerms = useMemo(() => allChildTerms.length, [allChildTerms])
+  const availableYears = useMemo(() => {
+    const set = new Set<string>()
+    allChildTerms.forEach(({ term }) => set.add(term.school_year))
+    return Array.from(set).sort((a, b) => b.localeCompare(a))
+  }, [allChildTerms])
+
+  const availableTermTypes = useMemo(() => {
+    const set = new Set<string>()
+    allChildTerms.forEach(({ term }) => set.add(term.term_type))
+    return Array.from(set).sort()
+  }, [allChildTerms])
+
+  /* ── Apply filters to get working dataset ─────────────── */
+
+  const filteredTerms = useMemo(() => {
+    return allChildTerms.filter(({ childId, term }) => {
+      if (selectedChild !== 'all' && childId !== selectedChild) return false
+      if (selectedYear !== 'all' && term.school_year !== selectedYear) return false
+      if (selectedTermType !== 'all' && term.term_type !== selectedTermType) return false
+      return true
+    })
+  }, [allChildTerms, selectedChild, selectedYear, selectedTermType])
+
+  /** Filter individual subject grades by tier when tier filter is active */
+  const filterGradesByTier = (grades: SubjectGrade[]): SubjectGrade[] => {
+    if (selectedTier === 'all') return grades
+    return grades.filter((sg) => {
+      const n = Number(sg.grade_normalized_100 ?? 0)
+      return deriveTier(n) === selectedTier
+    })
+  }
+
+  const activeFilterCount = useMemo(() => {
+    let count = 0
+    if (selectedYear !== 'all') count++
+    if (selectedTermType !== 'all') count++
+    if (selectedTier !== 'all') count++
+    return count
+  }, [selectedYear, selectedTermType, selectedTier])
+
+  /* ── Stats (computed from filtered data) ──────────────── */
+
+  const filteredTermCount = filteredTerms.length
 
   const overallAvg = useMemo(() => {
     let totalWeight = 0
     let totalWeighted = 0
-    const terms =
-      selectedChild === 'all'
-        ? allChildTerms
-        : allChildTerms.filter((t) => t.childId === selectedChild)
-    terms.forEach(({ term }) => {
-      ;(term.subject_grades || []).forEach(
-        (sg: { grade_normalized_100?: number | null; subject_weight?: number | null }) => {
-          const w = Number(sg.subject_weight ?? 1)
-          const n = Number(sg.grade_normalized_100 ?? 0)
-          totalWeighted += n * w
-          totalWeight += w
-        }
-      )
+    filteredTerms.forEach(({ term }) => {
+      filterGradesByTier(term.subject_grades || []).forEach((sg) => {
+        const w = Number(sg.subject_weight ?? 1)
+        const n = Number(sg.grade_normalized_100 ?? 0)
+        totalWeighted += n * w
+        totalWeight += w
+      })
     })
     return totalWeight > 0 ? totalWeighted / totalWeight : 0
-  }, [allChildTerms, selectedChild])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filteredTerms, selectedTier])
 
-  const selectedBonus = useMemo(() => {
-    if (selectedChild === 'all') return combinedBonus
-    return gradeSummaries[selectedChild]?.totalBonus ?? 0
-  }, [selectedChild, combinedBonus, gradeSummaries])
-
-  const selectedTermCount = useMemo(() => {
-    if (selectedChild === 'all') return totalTerms
-    return gradeSummaries[selectedChild]?.savedTerms ?? 0
-  }, [selectedChild, totalTerms, gradeSummaries])
+  const filteredBonus = useMemo(() => {
+    return filteredTerms.reduce((sum, { term }) => sum + Number(term.total_bonus_points ?? 0), 0)
+  }, [filteredTerms])
 
   const mostActive = useMemo(() => {
+    if (selectedChild !== 'all') return childNames[selectedChild] || t('child')
+    const counts: Record<string, number> = {}
+    filteredTerms.forEach(({ childId }) => {
+      counts[childId] = (counts[childId] || 0) + 1
+    })
     let max = 0
     let name = '-'
-    Object.entries(gradeSummaries).forEach(([id, s]) => {
-      if (s.savedTerms > max) {
-        max = s.savedTerms
+    Object.entries(counts).forEach(([id, c]) => {
+      if (c > max) {
+        max = c
         name = childNames[id] || t('child')
       }
     })
     return name
-  }, [gradeSummaries, childNames, t])
+  }, [filteredTerms, selectedChild, childNames, t])
 
   /* ── Per-child summary cards ──────────────────────────── */
 
   const childSummaryCards = useMemo(() => {
     return childIds.map((id, idx) => {
-      const summary = gradeSummaries[id]
-      const name = childNames[id] || t('child')
-      const terms = allChildTerms.filter((t) => t.childId === id)
+      const terms = filteredTerms.filter((t) => t.childId === id)
       let totalWeight = 0
       let totalWeighted = 0
+      let bonus = 0
       terms.forEach(({ term }) => {
-        ;(term.subject_grades || []).forEach(
-          (sg: { grade_normalized_100?: number | null; subject_weight?: number | null }) => {
-            const w = Number(sg.subject_weight ?? 1)
-            const n = Number(sg.grade_normalized_100 ?? 0)
-            totalWeighted += n * w
-            totalWeight += w
-          }
-        )
+        bonus += Number(term.total_bonus_points ?? 0)
+        filterGradesByTier(term.subject_grades || []).forEach((sg) => {
+          const w = Number(sg.subject_weight ?? 1)
+          const n = Number(sg.grade_normalized_100 ?? 0)
+          totalWeighted += n * w
+          totalWeight += w
+        })
       })
       const avg = totalWeight > 0 ? totalWeighted / totalWeight : 0
       return {
         id,
-        name,
+        name: childNames[id] || t('child'),
         color: CHILD_COLORS[idx % CHILD_COLORS.length],
-        bonus: summary?.totalBonus ?? 0,
-        terms: summary?.savedTerms ?? 0,
+        bonus,
+        terms: terms.length,
         avg,
         tier: deriveTier(avg),
       }
     })
-  }, [childIds, gradeSummaries, childNames, allChildTerms, t])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [childIds, childNames, filteredTerms, selectedTier, t])
 
-  /* ── Comparative bonus by year (all children) ─────────── */
+  /* ── Comparative bonus by year ────────────────────────── */
 
   const comparativeData = useMemo(() => {
     const yearMap: Record<string, Record<string, number>> = {}
-    allChildTerms.forEach(({ childId, term }) => {
+    filteredTerms.forEach(({ childId, term }) => {
       const year = term.school_year
       if (!yearMap[year]) yearMap[year] = {}
       yearMap[year][childId] = (yearMap[year][childId] || 0) + Number(term.total_bonus_points ?? 0)
@@ -137,61 +195,53 @@ export default function ParentInsightsPage() {
     return Object.entries(yearMap)
       .sort(([a], [b]) => a.localeCompare(b))
       .map(([year, children]) => ({ year, ...children }))
-  }, [allChildTerms])
+  }, [filteredTerms])
 
-  /* ── Score trend lines (all children) ─────────────────── */
+  /* ── Score trend lines ────────────────────────────────── */
 
   const trendData = useMemo(() => {
-    const yearChildMap: Record<string, Record<string, number>> = {}
-    allChildTerms.forEach(({ childId, term }) => {
+    const yearChildMap: Record<string, Record<string, { totalW: number; totalS: number }>> = {}
+    filteredTerms.forEach(({ childId, term }) => {
       const year = term.school_year
       if (!yearChildMap[year]) yearChildMap[year] = {}
-      const grades = term.subject_grades || []
-      let totalW = 0
-      let totalS = 0
-      grades.forEach(
-        (sg: { grade_normalized_100?: number | null; subject_weight?: number | null }) => {
-          const w = Number(sg.subject_weight ?? 1)
-          totalW += w
-          totalS += Number(sg.grade_normalized_100 ?? 0) * w
-        }
-      )
-      const avg = totalW > 0 ? totalS / totalW : 0
-      yearChildMap[year][childId] = avg
+      if (!yearChildMap[year][childId]) yearChildMap[year][childId] = { totalW: 0, totalS: 0 }
+      filterGradesByTier(term.subject_grades || []).forEach((sg) => {
+        const w = Number(sg.subject_weight ?? 1)
+        yearChildMap[year][childId].totalW += w
+        yearChildMap[year][childId].totalS += Number(sg.grade_normalized_100 ?? 0) * w
+      })
     })
     return Object.entries(yearChildMap)
       .sort(([a], [b]) => a.localeCompare(b))
-      .map(([year, children]) => ({ year, ...children }))
-  }, [allChildTerms])
+      .map(([year, children]) => {
+        const row: Record<string, string | number> = { year }
+        Object.entries(children).forEach(([childId, d]) => {
+          row[childId] = d.totalW > 0 ? d.totalS / d.totalW : 0
+        })
+        return row
+      })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filteredTerms, selectedTier])
 
-  /* ── Aggregated subject performance ───────────────────── */
+  /* ── Subject performance ──────────────────────────────── */
 
   const subjectAggregates = useMemo(() => {
     const map: Record<string, { name: string; totalNorm: number; totalWeight: number }> = {}
-    const terms =
-      selectedChild === 'all'
-        ? allChildTerms
-        : allChildTerms.filter((t) => t.childId === selectedChild)
-    terms.forEach(({ term }) => {
-      ;(term.subject_grades || []).forEach(
-        (sg: {
-          subjects?: { name?: string | Record<string, string> | null } | null
-          grade_normalized_100?: number | null
-          subject_weight?: number | null
-        }) => {
-          const name = resolveLocalized(sg.subjects?.name, locale) || 'Unknown'
-          if (!map[name]) map[name] = { name, totalNorm: 0, totalWeight: 0 }
-          const w = Number(sg.subject_weight ?? 1)
-          map[name].totalNorm += Number(sg.grade_normalized_100 ?? 0) * w
-          map[name].totalWeight += w
-        }
-      )
+    filteredTerms.forEach(({ term }) => {
+      filterGradesByTier(term.subject_grades || []).forEach((sg) => {
+        const name = resolveLocalized(sg.subjects?.name, locale) || 'Unknown'
+        if (!map[name]) map[name] = { name, totalNorm: 0, totalWeight: 0 }
+        const w = Number(sg.subject_weight ?? 1)
+        map[name].totalNorm += Number(sg.grade_normalized_100 ?? 0) * w
+        map[name].totalWeight += w
+      })
     })
     return Object.values(map).map((s) => ({
       subject: s.name,
       avgScore: s.totalWeight > 0 ? s.totalNorm / s.totalWeight : 0,
     }))
-  }, [allChildTerms, selectedChild, locale])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filteredTerms, selectedTier, locale])
 
   /* ── Grade tier distribution ──────────────────────────── */
 
@@ -200,14 +250,11 @@ export default function ParentInsightsPage() {
       second = 0,
       third = 0,
       below = 0
-    const terms =
-      selectedChild === 'all'
-        ? allChildTerms
-        : allChildTerms.filter((t) => t.childId === selectedChild)
-    terms.forEach(({ term }) => {
+    filteredTerms.forEach(({ term }) => {
       ;(term.subject_grades || []).forEach((sg: { grade_normalized_100?: number | null }) => {
         const n = Number(sg.grade_normalized_100 ?? 0)
         const tier = deriveTier(n)
+        if (selectedTier !== 'all' && tier !== selectedTier) return
         if (tier === 'best') best++
         else if (tier === 'second') second++
         else if (tier === 'third') third++
@@ -220,37 +267,34 @@ export default function ParentInsightsPage() {
       { name: t('tierThird'), value: third, color: '#f59e0b' },
       { name: t('tierBelow'), value: below, color: '#ef4444' },
     ].filter((d) => d.value > 0)
-  }, [allChildTerms, selectedChild, t])
+  }, [filteredTerms, selectedTier, t])
 
   /* ── Single-child: bonus trend ────────────────────────── */
 
   const childBonusTrend = useMemo(() => {
     if (selectedChild === 'all') return []
     const yearMap: Record<string, number> = {}
-    allChildTerms
-      .filter((t) => t.childId === selectedChild)
-      .forEach(({ term }) => {
-        const year = term.school_year
-        yearMap[year] = (yearMap[year] || 0) + Number(term.total_bonus_points ?? 0)
-      })
+    filteredTerms.forEach(({ term }) => {
+      const year = term.school_year
+      yearMap[year] = (yearMap[year] || 0) + Number(term.total_bonus_points ?? 0)
+    })
     return Object.entries(yearMap)
       .sort(([a], [b]) => a.localeCompare(b))
       .map(([year, value]) => ({ label: year, value }))
-  }, [allChildTerms, selectedChild])
+  }, [filteredTerms, selectedChild])
 
   /* ── Single-child: term comparison ────────────────────── */
 
   const childTermComparison = useMemo(() => {
     if (selectedChild === 'all') return []
-    return allChildTerms
-      .filter((t) => t.childId === selectedChild)
+    return filteredTerms
       .sort((a, b) => new Date(a.term.created_at).getTime() - new Date(b.term.created_at).getTime())
       .slice(-8)
       .map(({ term }) => ({
         label: `${term.school_year} ${term.term_type}`,
         bonus: Number(term.total_bonus_points ?? 0),
       }))
-  }, [allChildTerms, selectedChild])
+  }, [filteredTerms, selectedChild])
 
   /* ── Year-over-year change ────────────────────────────── */
 
@@ -259,12 +303,10 @@ export default function ParentInsightsPage() {
     if (trend.length < 2) return null
     const values = trend.map((d) => {
       if ('value' in d) return d.value as number
-      // For comparativeData: sum all child values in the year
-      const sum = Object.entries(d).reduce(
+      return Object.entries(d).reduce(
         (acc, [k, v]) => (k === 'year' ? acc : acc + Number(v ?? 0)),
         0
       )
-      return sum
     })
     const recent = values[values.length - 1]
     const previous = values[values.length - 2]
@@ -272,26 +314,20 @@ export default function ParentInsightsPage() {
     return ((recent - previous) / previous) * 100
   }, [comparativeData, childBonusTrend, selectedChild])
 
-  /* ── Subject comparison table (all children) ──────────── */
+  /* ── Subject comparison table ─────────────────────────── */
 
   const subjectTable = useMemo(() => {
     const subjectChildMap: Record<string, Record<string, { total: number; weight: number }>> = {}
-    allChildTerms.forEach(({ childId, term }) => {
-      ;(term.subject_grades || []).forEach(
-        (sg: {
-          subjects?: { name?: string | Record<string, string> | null } | null
-          grade_normalized_100?: number | null
-          subject_weight?: number | null
-        }) => {
-          const subName = resolveLocalized(sg.subjects?.name, locale) || 'Unknown'
-          if (!subjectChildMap[subName]) subjectChildMap[subName] = {}
-          if (!subjectChildMap[subName][childId])
-            subjectChildMap[subName][childId] = { total: 0, weight: 0 }
-          const w = Number(sg.subject_weight ?? 1)
-          subjectChildMap[subName][childId].total += Number(sg.grade_normalized_100 ?? 0) * w
-          subjectChildMap[subName][childId].weight += w
-        }
-      )
+    filteredTerms.forEach(({ childId, term }) => {
+      filterGradesByTier(term.subject_grades || []).forEach((sg) => {
+        const subName = resolveLocalized(sg.subjects?.name, locale) || 'Unknown'
+        if (!subjectChildMap[subName]) subjectChildMap[subName] = {}
+        if (!subjectChildMap[subName][childId])
+          subjectChildMap[subName][childId] = { total: 0, weight: 0 }
+        const w = Number(sg.subject_weight ?? 1)
+        subjectChildMap[subName][childId].total += Number(sg.grade_normalized_100 ?? 0) * w
+        subjectChildMap[subName][childId].weight += w
+      })
     })
     return Object.entries(subjectChildMap)
       .map(([subject, children]) => {
@@ -302,7 +338,8 @@ export default function ParentInsightsPage() {
         return { subject, ...avgs }
       })
       .sort((a, b) => a.subject.localeCompare(b.subject))
-  }, [allChildTerms, locale])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filteredTerms, selectedTier, locale])
 
   /* ── Top & bottom subjects ────────────────────────────── */
 
@@ -310,32 +347,41 @@ export default function ParentInsightsPage() {
     const sorted = [...subjectAggregates].sort((a, b) => b.avgScore - a.avgScore)
     return {
       topSubjects: sorted.slice(0, 3),
-      weakSubjects: sorted.slice(-3).reverse(),
+      weakSubjects: sorted.length > 3 ? sorted.slice(-3).reverse() : [],
     }
   }, [subjectAggregates])
 
-  /* ── Loading / empty state ────────────────────────────── */
+  /* ── Handlers ─────────────────────────────────────────── */
+
+  const clearFilters = () => {
+    setSelectedYear('all')
+    setSelectedTermType('all')
+    setSelectedTier('all')
+  }
+
+  /* ── Loading ──────────────────────────────────────────── */
 
   if (loading) {
     return (
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
         <div className="space-y-4">
           {[...Array(3)].map((_, i) => (
-            <div
-              key={i}
-              className="rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-6 animate-pulse"
-            >
-              <div className="h-4 w-32 bg-neutral-200 dark:bg-neutral-700 rounded mb-3" />
-              <div className="h-8 w-48 bg-neutral-100 dark:bg-neutral-800 rounded" />
-            </div>
+            <Card key={i} padding="md">
+              <div className="animate-pulse">
+                <div className="h-4 w-32 bg-neutral-200 dark:bg-neutral-700 rounded mb-3" />
+                <div className="h-8 w-48 bg-neutral-100 dark:bg-neutral-800 rounded" />
+              </div>
+            </Card>
           ))}
         </div>
       </div>
     )
   }
 
+  const visibleChildIds = selectedChild === 'all' ? childIds : [selectedChild]
+
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-8">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-6">
       {/* Header */}
       <header className="space-y-1">
         <h1 className="text-2xl sm:text-3xl font-bold text-neutral-900 dark:text-white">
@@ -345,491 +391,622 @@ export default function ParentInsightsPage() {
       </header>
 
       {!gradesLoaded || connections.length === 0 ? (
-        <div className="rounded-2xl border border-dashed border-neutral-300 dark:border-neutral-700 bg-white dark:bg-neutral-900 p-12 text-center space-y-3">
-          <div className="text-4xl">&#128202;</div>
-          <p className="text-neutral-600 dark:text-neutral-300 font-medium">
-            {t('noInsightsData')}
-          </p>
-        </div>
+        <Card padding="lg" className="text-center">
+          <CardContent className="space-y-3 py-6">
+            <div className="text-4xl">&#128202;</div>
+            <p className="text-neutral-600 dark:text-neutral-300 font-medium">
+              {t('noInsightsData')}
+            </p>
+          </CardContent>
+        </Card>
       ) : (
         <>
-          {/* Child Selector Tabs */}
-          {connections.length > 1 && (
-            <div className="flex flex-wrap gap-2">
-              <button
-                onClick={() => setSelectedChild('all')}
-                className={`px-4 py-2 rounded-xl text-sm font-semibold transition-all ${
-                  selectedChild === 'all'
-                    ? 'bg-gradient-to-r from-primary-600 to-secondary-600 text-white shadow-md'
-                    : 'border border-neutral-200 dark:border-neutral-700 text-neutral-700 dark:text-neutral-300 hover:border-primary-400 bg-white dark:bg-neutral-900'
-                }`}
-              >
-                {t('allChildren')}
-              </button>
-              {childIds.map((id, idx) => (
-                <button
-                  key={id}
-                  onClick={() => setSelectedChild(id)}
-                  className={`px-4 py-2 rounded-xl text-sm font-semibold transition-all flex items-center gap-2 ${
-                    selectedChild === id
-                      ? 'text-white shadow-md'
-                      : 'border border-neutral-200 dark:border-neutral-700 text-neutral-700 dark:text-neutral-300 hover:border-primary-400 bg-white dark:bg-neutral-900'
-                  }`}
-                  style={
-                    selectedChild === id
-                      ? { backgroundColor: CHILD_COLORS[idx % CHILD_COLORS.length] }
-                      : undefined
-                  }
-                >
-                  <span
-                    className="w-2.5 h-2.5 rounded-full inline-block"
-                    style={{ backgroundColor: CHILD_COLORS[idx % CHILD_COLORS.length] }}
+          {/* ── Child selector + Filters ─────────────────────── */}
+          <Card padding="sm" className="space-y-4">
+            <CardContent>
+              {/* Child selector */}
+              {connections.length > 1 && (
+                <div className="mb-4">
+                  <SegmentedControl
+                    options={[
+                      { value: 'all', label: t('allChildren') },
+                      ...childIds.map((id, idx) => ({
+                        value: id,
+                        label: (
+                          <span className="flex items-center gap-1.5">
+                            <span
+                              className="w-2 h-2 rounded-full inline-block shrink-0"
+                              style={{ backgroundColor: CHILD_COLORS[idx % CHILD_COLORS.length] }}
+                            />
+                            {childNames[id] || t('child')}
+                          </span>
+                        ),
+                      })),
+                    ]}
+                    value={selectedChild}
+                    onChange={setSelectedChild}
                   />
-                  {childNames[id] || t('child')}
-                </button>
-              ))}
-            </div>
-          )}
+                </div>
+              )}
 
-          {/* Overview Stats */}
+              {/* Filters row */}
+              <div className="flex flex-wrap items-end gap-3">
+                <div className="w-40">
+                  <Select
+                    label={t('filterYear')}
+                    value={selectedYear}
+                    onChange={(e) => setSelectedYear(e.target.value)}
+                    options={[
+                      { value: 'all', label: t('allYears') },
+                      ...availableYears.map((y) => ({ value: y, label: y })),
+                    ]}
+                    fullWidth
+                    className="!py-2 !px-3 text-sm !border"
+                  />
+                </div>
+
+                <div className="w-44">
+                  <Select
+                    label={t('filterTermType')}
+                    value={selectedTermType}
+                    onChange={(e) => setSelectedTermType(e.target.value)}
+                    options={[
+                      { value: 'all', label: t('allTermTypes') },
+                      ...availableTermTypes.map((tt) => ({
+                        value: tt,
+                        label: tt.charAt(0).toUpperCase() + tt.slice(1),
+                      })),
+                    ]}
+                    fullWidth
+                    className="!py-2 !px-3 text-sm !border"
+                  />
+                </div>
+
+                <div className="w-44">
+                  <Select
+                    label={t('filterTier')}
+                    value={selectedTier}
+                    onChange={(e) => setSelectedTier(e.target.value)}
+                    options={[
+                      { value: 'all', label: t('allTiers') },
+                      { value: 'best', label: t('tierBest') },
+                      { value: 'second', label: t('tierSecond') },
+                      { value: 'third', label: t('tierThird') },
+                      { value: 'below', label: t('tierBelow') },
+                    ]}
+                    fullWidth
+                    className="!py-2 !px-3 text-sm !border"
+                  />
+                </div>
+
+                {activeFilterCount > 0 && (
+                  <button
+                    onClick={clearFilters}
+                    className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium text-primary-600 dark:text-primary-300 hover:bg-primary-50 dark:hover:bg-primary-900/20 transition-colors"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M6 18L18 6M6 6l12 12"
+                      />
+                    </svg>
+                    {t('clearFilters')}
+                    <Badge variant="info">{activeFilterCount}</Badge>
+                  </button>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* ── Overview Stats ───────────────────────────────── */}
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-            <div className="rounded-2xl border-l-4 border-l-primary-500 border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-4 shadow-sm">
-              <p className="text-xs text-neutral-500 dark:text-neutral-400">
-                {selectedChild === 'all' ? t('totalChildren') : t('termsAnalyzed')}
-              </p>
-              <p className="text-2xl font-bold text-neutral-900 dark:text-white">
-                {selectedChild === 'all' ? connections.length : selectedTermCount}
-              </p>
-            </div>
-            <div className="rounded-2xl border-l-4 border-l-secondary-500 border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-4 shadow-sm">
-              <p className="text-xs text-neutral-500 dark:text-neutral-400">
-                {selectedChild === 'all' ? t('combinedBonus') : t('totalBonusLabel')}
-              </p>
-              <p className="text-2xl font-bold text-primary-600 dark:text-primary-300">
-                {selectedBonus.toFixed(2)}
-              </p>
-            </div>
-            <div className="rounded-2xl border-l-4 border-l-amber-500 border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-4 shadow-sm">
-              <p className="text-xs text-neutral-500 dark:text-neutral-400">{t('avgScoreAll')}</p>
-              <p className="text-2xl font-bold text-neutral-900 dark:text-white">
-                {overallAvg.toFixed(1)}
-                <span className="text-sm font-normal text-neutral-400 ml-1">/ 100</span>
-              </p>
-            </div>
-            <div className="rounded-2xl border-l-4 border-l-success-500 border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-4 shadow-sm">
-              <p className="text-xs text-neutral-500 dark:text-neutral-400">
-                {selectedChild === 'all' ? t('mostActive') : t('termsAnalyzed')}
-              </p>
-              <p className="text-lg font-bold text-neutral-900 dark:text-white">
-                {selectedChild === 'all' ? mostActive : selectedTermCount}
-              </p>
-            </div>
+            <Card padding="sm" className="!border-l-4 !border-l-primary-500">
+              <CardContent>
+                <p className="text-xs text-neutral-500 dark:text-neutral-400">
+                  {selectedChild === 'all' ? t('totalChildren') : t('termsAnalyzed')}
+                </p>
+                <p className="text-2xl font-bold text-neutral-900 dark:text-white">
+                  {selectedChild === 'all' ? connections.length : filteredTermCount}
+                </p>
+                {selectedChild === 'all' && filteredTermCount !== allChildTerms.length && (
+                  <p className="text-[10px] text-neutral-400 mt-0.5">
+                    {filteredTermCount} / {allChildTerms.length} {t('termsFiltered')}
+                  </p>
+                )}
+              </CardContent>
+            </Card>
+
+            <Card padding="sm" className="!border-l-4 !border-l-secondary-500">
+              <CardContent>
+                <p className="text-xs text-neutral-500 dark:text-neutral-400">
+                  {selectedChild === 'all' ? t('combinedBonus') : t('totalBonusLabel')}
+                </p>
+                <p className="text-2xl font-bold text-primary-600 dark:text-primary-300">
+                  {filteredBonus.toFixed(2)}
+                </p>
+                {activeFilterCount > 0 && selectedChild === 'all' && (
+                  <p className="text-[10px] text-neutral-400 mt-0.5">
+                    {t('unfilteredLabel')}: {combinedBonus.toFixed(2)}
+                  </p>
+                )}
+              </CardContent>
+            </Card>
+
+            <Card padding="sm" className="!border-l-4 !border-l-amber-500">
+              <CardContent>
+                <p className="text-xs text-neutral-500 dark:text-neutral-400">{t('avgScoreAll')}</p>
+                <p className="text-2xl font-bold text-neutral-900 dark:text-white">
+                  {overallAvg.toFixed(1)}
+                  <span className="text-sm font-normal text-neutral-400 ml-1">/ 100</span>
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card padding="sm" className="!border-l-4 !border-l-success-500">
+              <CardContent>
+                <p className="text-xs text-neutral-500 dark:text-neutral-400">
+                  {selectedChild === 'all' ? t('mostActive') : t('termsAnalyzed')}
+                </p>
+                <p className="text-lg font-bold text-neutral-900 dark:text-white">
+                  {selectedChild === 'all' ? mostActive : filteredTermCount}
+                </p>
+              </CardContent>
+            </Card>
           </div>
 
-          {/* Per-child summary cards (only when "All" is selected and multiple children) */}
+          {/* ── Per-child summary cards ──────────────────────── */}
           {selectedChild === 'all' && childSummaryCards.length > 1 && (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {childSummaryCards.map((child) => (
-                <button
-                  key={child.id}
-                  onClick={() => setSelectedChild(child.id)}
-                  className="rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-4 shadow-sm text-left hover:border-primary-400 dark:hover:border-primary-600 transition-all hover:shadow-md group"
-                >
-                  <div className="flex items-center gap-3 mb-3">
-                    <div
-                      className="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold text-sm"
-                      style={{ backgroundColor: child.color }}
-                    >
-                      {child.name[0].toUpperCase()}
+                <Card key={child.id} padding="sm" hover onClick={() => setSelectedChild(child.id)}>
+                  <CardContent>
+                    <div className="flex items-center gap-3 mb-3">
+                      <div
+                        className="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold text-sm shrink-0"
+                        style={{ backgroundColor: child.color }}
+                      >
+                        {child.name[0].toUpperCase()}
+                      </div>
+                      <div className="min-w-0">
+                        <p className="font-semibold text-neutral-900 dark:text-white truncate">
+                          {child.name}
+                        </p>
+                        <p className="text-xs text-neutral-500">
+                          {child.terms} {child.terms === 1 ? 'term' : 'terms'}
+                        </p>
+                      </div>
                     </div>
-                    <div>
-                      <p className="font-semibold text-neutral-900 dark:text-white group-hover:text-primary-600 dark:group-hover:text-primary-300 transition-colors">
-                        {child.name}
-                      </p>
-                      <p className="text-xs text-neutral-500">
-                        {child.terms} {child.terms === 1 ? 'term' : 'terms'}
-                      </p>
+                    <div className="flex items-center justify-between text-sm">
+                      <div>
+                        <p className="text-xs text-neutral-500">{t('combinedBonus')}</p>
+                        <p className="font-bold text-primary-600 dark:text-primary-300">
+                          {child.bonus.toFixed(2)}
+                        </p>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-xs text-neutral-500">{t('avgScoreAll')}</p>
+                        <p className="font-bold" style={{ color: tierColor(child.tier) }}>
+                          {child.avg.toFixed(1)}
+                        </p>
+                      </div>
                     </div>
-                  </div>
-                  <div className="flex items-center justify-between text-sm">
-                    <div>
-                      <p className="text-xs text-neutral-500">{t('combinedBonus')}</p>
-                      <p className="font-bold text-primary-600 dark:text-primary-300">
-                        {child.bonus.toFixed(2)}
-                      </p>
-                    </div>
-                    <div className="text-right">
-                      <p className="text-xs text-neutral-500">{t('avgScoreAll')}</p>
-                      <p className="font-bold" style={{ color: tierColor(child.tier) }}>
-                        {child.avg.toFixed(1)}
-                      </p>
-                    </div>
-                  </div>
-                </button>
+                  </CardContent>
+                </Card>
               ))}
             </div>
           )}
 
-          {/* Charts Section */}
-          {selectedChild === 'all' ? (
+          {/* ── No data after filtering ──────────────────────── */}
+          {filteredTerms.length === 0 ? (
+            <Card padding="lg" className="text-center">
+              <CardContent className="py-6 space-y-2">
+                <p className="text-neutral-500 font-medium">{t('noFilteredData')}</p>
+                <button
+                  onClick={clearFilters}
+                  className="text-sm font-semibold text-primary-600 dark:text-primary-300 hover:underline"
+                >
+                  {t('clearFilters')}
+                </button>
+              </CardContent>
+            </Card>
+          ) : selectedChild === 'all' ? (
             <>
-              {/* ── ALL CHILDREN VIEW ──────────────────────────────── */}
+              {/* ── ALL CHILDREN VIEW ────────────────────────── */}
 
               {/* Comparative Bonus by Year */}
               {comparativeData.length > 0 && (
-                <div className="rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-5 shadow-sm">
-                  <h2 className="text-lg font-semibold text-neutral-900 dark:text-white mb-4">
-                    {t('comparativeBonus')}
-                  </h2>
-                  <ResponsiveContainer width="100%" height={300}>
-                    <BarChart data={comparativeData}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="#374151" strokeOpacity={0.2} />
-                      <XAxis dataKey="year" tick={{ fontSize: 12 }} stroke="#9ca3af" />
-                      <YAxis tick={{ fontSize: 12 }} stroke="#9ca3af" />
-                      <Tooltip
-                        contentStyle={{
-                          backgroundColor: 'rgba(17,24,39,0.95)',
-                          border: '1px solid #374151',
-                          borderRadius: '12px',
-                          fontSize: 13,
-                          color: '#f3f4f6',
-                        }}
-                      />
-                      <Legend wrapperStyle={{ fontSize: 12 }} />
-                      {childIds.map((id, idx) => (
-                        <Bar
-                          key={id}
-                          dataKey={id}
-                          name={childNames[id] || t('child')}
-                          fill={CHILD_COLORS[idx % CHILD_COLORS.length]}
-                          radius={[6, 6, 0, 0]}
-                        />
-                      ))}
-                    </BarChart>
-                  </ResponsiveContainer>
-                </div>
+                <Card padding="md">
+                  <CardContent>
+                    <h2 className="text-lg font-semibold text-neutral-900 dark:text-white mb-4">
+                      {t('comparativeBonus')}
+                    </h2>
+                    <ResponsiveContainer width="100%" height={300}>
+                      <BarChart data={comparativeData}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="#374151" strokeOpacity={0.2} />
+                        <XAxis dataKey="year" tick={{ fontSize: 12 }} stroke="#9ca3af" />
+                        <YAxis tick={{ fontSize: 12 }} stroke="#9ca3af" />
+                        <Tooltip contentStyle={TOOLTIP_STYLE} />
+                        <Legend wrapperStyle={{ fontSize: 12 }} />
+                        {visibleChildIds.map((id, idx) => (
+                          <Bar
+                            key={id}
+                            dataKey={id}
+                            name={childNames[id] || t('child')}
+                            fill={
+                              CHILD_COLORS[
+                                childIds.indexOf(id) >= 0
+                                  ? childIds.indexOf(id) % CHILD_COLORS.length
+                                  : idx % CHILD_COLORS.length
+                              ]
+                            }
+                            radius={[6, 6, 0, 0]}
+                          />
+                        ))}
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </CardContent>
+                </Card>
               )}
 
               {/* Score Trends */}
               {trendData.length > 1 && (
-                <div className="rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-5 shadow-sm">
-                  <h2 className="text-lg font-semibold text-neutral-900 dark:text-white mb-4">
-                    {t('trendLines')}
-                  </h2>
-                  <ResponsiveContainer width="100%" height={300}>
-                    <LineChart data={trendData}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="#374151" strokeOpacity={0.2} />
-                      <XAxis dataKey="year" tick={{ fontSize: 12 }} stroke="#9ca3af" />
-                      <YAxis domain={[0, 100]} tick={{ fontSize: 12 }} stroke="#9ca3af" />
-                      <Tooltip
-                        contentStyle={{
-                          backgroundColor: 'rgba(17,24,39,0.95)',
-                          border: '1px solid #374151',
-                          borderRadius: '12px',
-                          fontSize: 13,
-                          color: '#f3f4f6',
-                        }}
-                        formatter={(value: number) => [value.toFixed(1), '']}
-                      />
-                      <Legend wrapperStyle={{ fontSize: 12 }} />
-                      {childIds.map((id, idx) => (
-                        <Line
-                          key={id}
-                          type="monotone"
-                          dataKey={id}
-                          name={childNames[id] || t('child')}
-                          stroke={CHILD_COLORS[idx % CHILD_COLORS.length]}
-                          strokeWidth={2.5}
-                          dot={{ r: 5, strokeWidth: 2 }}
-                          activeDot={{ r: 7 }}
+                <Card padding="md">
+                  <CardContent>
+                    <h2 className="text-lg font-semibold text-neutral-900 dark:text-white mb-4">
+                      {t('trendLines')}
+                    </h2>
+                    <ResponsiveContainer width="100%" height={300}>
+                      <LineChart data={trendData}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="#374151" strokeOpacity={0.2} />
+                        <XAxis dataKey="year" tick={{ fontSize: 12 }} stroke="#9ca3af" />
+                        <YAxis domain={[0, 100]} tick={{ fontSize: 12 }} stroke="#9ca3af" />
+                        <Tooltip
+                          contentStyle={TOOLTIP_STYLE}
+                          formatter={(value: number) => [value.toFixed(1), '']}
                         />
-                      ))}
-                    </LineChart>
-                  </ResponsiveContainer>
-                </div>
-              )}
-
-              {/* Subject Performance + Grade Distribution row */}
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                {subjectAggregates.length > 0 && (
-                  <div className="rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-5 shadow-sm">
-                    <h2 className="text-lg font-semibold text-neutral-900 dark:text-white mb-4">
-                      {t('subjectPerformanceLabel')}
-                    </h2>
-                    <SubjectPerformanceChart
-                      data={subjectAggregates}
-                      height={Math.max(200, subjectAggregates.length * 36)}
-                    />
-                  </div>
-                )}
-
-                {tierDistribution.length > 0 && (
-                  <div className="rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-5 shadow-sm">
-                    <h2 className="text-lg font-semibold text-neutral-900 dark:text-white mb-4">
-                      {t('gradeDistributionLabel')}
-                    </h2>
-                    <GradeDistributionChart data={tierDistribution} />
-                  </div>
-                )}
-              </div>
-
-              {/* Year-over-Year + Top/Bottom Subjects */}
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                {yearOverYearChange !== null && (
-                  <div className="rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-5 shadow-sm flex flex-col items-center justify-center">
-                    <h2 className="text-sm font-semibold text-neutral-500 dark:text-neutral-400 mb-2">
-                      {t('yearOverYearLabel')}
-                    </h2>
-                    <p
-                      className={`text-4xl font-bold ${
-                        yearOverYearChange >= 0 ? 'text-success-600' : 'text-error-600'
-                      }`}
-                    >
-                      {yearOverYearChange >= 0 ? '\u2191' : '\u2193'}{' '}
-                      {Math.abs(yearOverYearChange).toFixed(1)}%
-                    </p>
-                    <p className="text-xs text-neutral-500 mt-1">{t('bonusChangeLabel')}</p>
-                  </div>
-                )}
-
-                {topSubjects.length > 0 && (
-                  <div className="rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-5 shadow-sm">
-                    <h2 className="text-sm font-semibold text-neutral-500 dark:text-neutral-400 mb-3">
-                      {t('topSubjectsLabel')}
-                    </h2>
-                    <div className="space-y-2">
-                      {topSubjects.map((s, i) => (
-                        <div key={s.subject} className="flex items-center justify-between">
-                          <div className="flex items-center gap-2">
-                            <span className="text-xs font-bold text-neutral-400 w-4">{i + 1}.</span>
-                            <span className="text-sm font-medium text-neutral-900 dark:text-white">
-                              {s.subject}
-                            </span>
-                          </div>
-                          <span
-                            className="text-sm font-bold"
-                            style={{ color: tierColor(deriveTier(s.avgScore)) }}
-                          >
-                            {s.avgScore.toFixed(1)}
-                          </span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {weakSubjects.length > 0 && (
-                  <div className="rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-5 shadow-sm">
-                    <h2 className="text-sm font-semibold text-neutral-500 dark:text-neutral-400 mb-3">
-                      {t('weakSubjectsLabel')}
-                    </h2>
-                    <div className="space-y-2">
-                      {weakSubjects.map((s, i) => (
-                        <div key={s.subject} className="flex items-center justify-between">
-                          <div className="flex items-center gap-2">
-                            <span className="text-xs font-bold text-neutral-400 w-4">{i + 1}.</span>
-                            <span className="text-sm font-medium text-neutral-900 dark:text-white">
-                              {s.subject}
-                            </span>
-                          </div>
-                          <span
-                            className="text-sm font-bold"
-                            style={{ color: tierColor(deriveTier(s.avgScore)) }}
-                          >
-                            {s.avgScore.toFixed(1)}
-                          </span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              {/* Subject Comparison Table */}
-              {subjectTable.length > 0 && connections.length > 1 && (
-                <div className="rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-5 shadow-sm">
-                  <h2 className="text-lg font-semibold text-neutral-900 dark:text-white mb-4">
-                    {t('subjectComparison')}
-                  </h2>
-                  <div className="overflow-x-auto">
-                    <table className="w-full text-sm">
-                      <thead>
-                        <tr className="border-b border-neutral-200 dark:border-neutral-800">
-                          <th className="text-left py-2.5 px-3 text-neutral-500 font-medium">
-                            {t('subjectLabel')}
-                          </th>
-                          {childIds.map((id, idx) => (
-                            <th key={id} className="text-center py-2.5 px-3 font-medium">
-                              <span className="flex items-center justify-center gap-1.5">
-                                <span
-                                  className="w-2 h-2 rounded-full inline-block"
-                                  style={{
-                                    backgroundColor: CHILD_COLORS[idx % CHILD_COLORS.length],
-                                  }}
-                                />
-                                <span className="text-neutral-700 dark:text-neutral-200">
-                                  {childNames[id] || t('child')}
-                                </span>
-                              </span>
-                            </th>
-                          ))}
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {subjectTable.map((row) => (
-                          <tr
-                            key={row.subject}
-                            className="border-b border-neutral-100 dark:border-neutral-800 hover:bg-neutral-50 dark:hover:bg-neutral-800/40 transition-colors"
-                          >
-                            <td className="py-2.5 px-3 font-medium text-neutral-900 dark:text-white">
-                              {row.subject}
-                            </td>
-                            {childIds.map((id) => {
-                              const val = (row as Record<string, unknown>)[id] as number | undefined
-                              const score = val ?? 0
-                              const tier = deriveTier(score)
-                              return (
-                                <td key={id} className="py-2.5 px-3 text-center">
-                                  {val !== undefined ? (
-                                    <span
-                                      className="font-semibold"
-                                      style={{ color: tierColor(tier) }}
-                                    >
-                                      {score.toFixed(1)}
-                                    </span>
-                                  ) : (
-                                    <span className="text-neutral-300 dark:text-neutral-600">
-                                      -
-                                    </span>
-                                  )}
-                                </td>
-                              )
-                            })}
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-              )}
-            </>
-          ) : (
-            <>
-              {/* ── SINGLE CHILD VIEW ─────────────────────────────── */}
-
-              {/* Bonus Trend */}
-              {childBonusTrend.length >= 2 && (
-                <div className="rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-5 shadow-sm">
-                  <h2 className="text-lg font-semibold text-neutral-900 dark:text-white mb-4">
-                    {t('comparativeBonus')}
-                  </h2>
-                  <GradeTrendChart data={childBonusTrend} height={300} />
-                </div>
+                        <Legend wrapperStyle={{ fontSize: 12 }} />
+                        {visibleChildIds.map((id) => {
+                          const colorIdx = childIds.indexOf(id)
+                          return (
+                            <Line
+                              key={id}
+                              type="monotone"
+                              dataKey={id}
+                              name={childNames[id] || t('child')}
+                              stroke={
+                                CHILD_COLORS[colorIdx >= 0 ? colorIdx % CHILD_COLORS.length : 0]
+                              }
+                              strokeWidth={2.5}
+                              dot={{ r: 5, strokeWidth: 2 }}
+                              activeDot={{ r: 7 }}
+                            />
+                          )
+                        })}
+                      </LineChart>
+                    </ResponsiveContainer>
+                  </CardContent>
+                </Card>
               )}
 
               {/* Subject Performance + Grade Distribution */}
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 {subjectAggregates.length > 0 && (
-                  <div className="rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-5 shadow-sm">
-                    <h2 className="text-lg font-semibold text-neutral-900 dark:text-white mb-4">
-                      {t('subjectPerformanceLabel')}
-                    </h2>
-                    <SubjectPerformanceChart
-                      data={subjectAggregates}
-                      height={Math.max(200, subjectAggregates.length * 36)}
-                    />
-                  </div>
+                  <Card padding="md">
+                    <CardContent>
+                      <h2 className="text-lg font-semibold text-neutral-900 dark:text-white mb-4">
+                        {t('subjectPerformanceLabel')}
+                      </h2>
+                      <SubjectPerformanceChart
+                        data={subjectAggregates}
+                        height={Math.max(200, subjectAggregates.length * 36)}
+                      />
+                    </CardContent>
+                  </Card>
                 )}
 
                 {tierDistribution.length > 0 && (
-                  <div className="rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-5 shadow-sm">
+                  <Card padding="md">
+                    <CardContent>
+                      <h2 className="text-lg font-semibold text-neutral-900 dark:text-white mb-4">
+                        {t('gradeDistributionLabel')}
+                      </h2>
+                      <GradeDistributionChart data={tierDistribution} />
+                    </CardContent>
+                  </Card>
+                )}
+              </div>
+
+              {/* Year-over-Year + Top/Bottom Subjects */}
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                {yearOverYearChange !== null && (
+                  <Card padding="md" className="flex flex-col items-center justify-center">
+                    <CardContent className="text-center">
+                      <h2 className="text-sm font-semibold text-neutral-500 dark:text-neutral-400 mb-2">
+                        {t('yearOverYearLabel')}
+                      </h2>
+                      <p
+                        className={`text-4xl font-bold ${
+                          yearOverYearChange >= 0 ? 'text-success-600' : 'text-error-600'
+                        }`}
+                      >
+                        {yearOverYearChange >= 0 ? '\u2191' : '\u2193'}{' '}
+                        {Math.abs(yearOverYearChange).toFixed(1)}%
+                      </p>
+                      <p className="text-xs text-neutral-500 mt-1">{t('bonusChangeLabel')}</p>
+                    </CardContent>
+                  </Card>
+                )}
+
+                {topSubjects.length > 0 && (
+                  <Card padding="md">
+                    <CardContent>
+                      <h2 className="text-sm font-semibold text-neutral-500 dark:text-neutral-400 mb-3">
+                        {t('topSubjectsLabel')}
+                      </h2>
+                      <div className="space-y-2.5">
+                        {topSubjects.map((s, i) => (
+                          <div key={s.subject} className="flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                              <Badge variant="success" className="!rounded-md w-5 text-center">
+                                {i + 1}
+                              </Badge>
+                              <span className="text-sm font-medium text-neutral-900 dark:text-white">
+                                {s.subject}
+                              </span>
+                            </div>
+                            <span
+                              className="text-sm font-bold"
+                              style={{ color: tierColor(deriveTier(s.avgScore)) }}
+                            >
+                              {s.avgScore.toFixed(1)}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
+
+                {weakSubjects.length > 0 && (
+                  <Card padding="md">
+                    <CardContent>
+                      <h2 className="text-sm font-semibold text-neutral-500 dark:text-neutral-400 mb-3">
+                        {t('weakSubjectsLabel')}
+                      </h2>
+                      <div className="space-y-2.5">
+                        {weakSubjects.map((s, i) => (
+                          <div key={s.subject} className="flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                              <Badge variant="warning" className="!rounded-md w-5 text-center">
+                                {i + 1}
+                              </Badge>
+                              <span className="text-sm font-medium text-neutral-900 dark:text-white">
+                                {s.subject}
+                              </span>
+                            </div>
+                            <span
+                              className="text-sm font-bold"
+                              style={{ color: tierColor(deriveTier(s.avgScore)) }}
+                            >
+                              {s.avgScore.toFixed(1)}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
+              </div>
+
+              {/* Subject Comparison Table */}
+              {subjectTable.length > 0 && connections.length > 1 && (
+                <Card padding="md">
+                  <CardContent>
                     <h2 className="text-lg font-semibold text-neutral-900 dark:text-white mb-4">
-                      {t('gradeDistributionLabel')}
+                      {t('subjectComparison')}
                     </h2>
-                    <GradeDistributionChart data={tierDistribution} />
-                  </div>
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-sm">
+                        <thead>
+                          <tr className="border-b border-neutral-200 dark:border-neutral-800">
+                            <th className="text-left py-2.5 px-3 text-neutral-500 font-medium">
+                              {t('subjectLabel')}
+                            </th>
+                            {childIds.map((id, idx) => (
+                              <th key={id} className="text-center py-2.5 px-3 font-medium">
+                                <span className="flex items-center justify-center gap-1.5">
+                                  <span
+                                    className="w-2 h-2 rounded-full inline-block"
+                                    style={{
+                                      backgroundColor: CHILD_COLORS[idx % CHILD_COLORS.length],
+                                    }}
+                                  />
+                                  <span className="text-neutral-700 dark:text-neutral-200">
+                                    {childNames[id] || t('child')}
+                                  </span>
+                                </span>
+                              </th>
+                            ))}
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {subjectTable.map((row) => (
+                            <tr
+                              key={row.subject}
+                              className="border-b border-neutral-100 dark:border-neutral-800 hover:bg-neutral-50 dark:hover:bg-neutral-800/40 transition-colors"
+                            >
+                              <td className="py-2.5 px-3 font-medium text-neutral-900 dark:text-white">
+                                {row.subject}
+                              </td>
+                              {childIds.map((id) => {
+                                const val = (row as Record<string, unknown>)[id] as
+                                  | number
+                                  | undefined
+                                const score = val ?? 0
+                                const tier = deriveTier(score)
+                                return (
+                                  <td key={id} className="py-2.5 px-3 text-center">
+                                    {val !== undefined ? (
+                                      <span
+                                        className="font-semibold"
+                                        style={{ color: tierColor(tier) }}
+                                      >
+                                        {score.toFixed(1)}
+                                      </span>
+                                    ) : (
+                                      <span className="text-neutral-300 dark:text-neutral-600">
+                                        -
+                                      </span>
+                                    )}
+                                  </td>
+                                )
+                              })}
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+            </>
+          ) : (
+            <>
+              {/* ── SINGLE CHILD VIEW ───────────────────────── */}
+
+              {/* Bonus Trend */}
+              {childBonusTrend.length >= 2 && (
+                <Card padding="md">
+                  <CardContent>
+                    <h2 className="text-lg font-semibold text-neutral-900 dark:text-white mb-4">
+                      {t('comparativeBonus')}
+                    </h2>
+                    <GradeTrendChart data={childBonusTrend} height={300} />
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* Subject Performance + Grade Distribution */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {subjectAggregates.length > 0 && (
+                  <Card padding="md">
+                    <CardContent>
+                      <h2 className="text-lg font-semibold text-neutral-900 dark:text-white mb-4">
+                        {t('subjectPerformanceLabel')}
+                      </h2>
+                      <SubjectPerformanceChart
+                        data={subjectAggregates}
+                        height={Math.max(200, subjectAggregates.length * 36)}
+                      />
+                    </CardContent>
+                  </Card>
+                )}
+
+                {tierDistribution.length > 0 && (
+                  <Card padding="md">
+                    <CardContent>
+                      <h2 className="text-lg font-semibold text-neutral-900 dark:text-white mb-4">
+                        {t('gradeDistributionLabel')}
+                      </h2>
+                      <GradeDistributionChart data={tierDistribution} />
+                    </CardContent>
+                  </Card>
                 )}
               </div>
 
               {/* Term Comparison */}
               {childTermComparison.length > 1 && (
-                <div className="rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-5 shadow-sm">
-                  <h2 className="text-lg font-semibold text-neutral-900 dark:text-white mb-4">
-                    {t('termComparisonLabel')}
-                  </h2>
-                  <TermComparisonChart data={childTermComparison} height={300} />
-                </div>
+                <Card padding="md">
+                  <CardContent>
+                    <h2 className="text-lg font-semibold text-neutral-900 dark:text-white mb-4">
+                      {t('termComparisonLabel')}
+                    </h2>
+                    <TermComparisonChart data={childTermComparison} height={300} />
+                  </CardContent>
+                </Card>
               )}
 
               {/* Year-over-Year + Top/Bottom Subjects */}
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 {yearOverYearChange !== null && (
-                  <div className="rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-5 shadow-sm flex flex-col items-center justify-center">
-                    <h2 className="text-sm font-semibold text-neutral-500 dark:text-neutral-400 mb-2">
-                      {t('yearOverYearLabel')}
-                    </h2>
-                    <p
-                      className={`text-4xl font-bold ${
-                        yearOverYearChange >= 0 ? 'text-success-600' : 'text-error-600'
-                      }`}
-                    >
-                      {yearOverYearChange >= 0 ? '\u2191' : '\u2193'}{' '}
-                      {Math.abs(yearOverYearChange).toFixed(1)}%
-                    </p>
-                    <p className="text-xs text-neutral-500 mt-1">{t('bonusChangeLabel')}</p>
-                  </div>
+                  <Card padding="md" className="flex flex-col items-center justify-center">
+                    <CardContent className="text-center">
+                      <h2 className="text-sm font-semibold text-neutral-500 dark:text-neutral-400 mb-2">
+                        {t('yearOverYearLabel')}
+                      </h2>
+                      <p
+                        className={`text-4xl font-bold ${
+                          yearOverYearChange >= 0 ? 'text-success-600' : 'text-error-600'
+                        }`}
+                      >
+                        {yearOverYearChange >= 0 ? '\u2191' : '\u2193'}{' '}
+                        {Math.abs(yearOverYearChange).toFixed(1)}%
+                      </p>
+                      <p className="text-xs text-neutral-500 mt-1">{t('bonusChangeLabel')}</p>
+                    </CardContent>
+                  </Card>
                 )}
 
                 {topSubjects.length > 0 && (
-                  <div className="rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-5 shadow-sm">
-                    <h2 className="text-sm font-semibold text-neutral-500 dark:text-neutral-400 mb-3">
-                      {t('topSubjectsLabel')}
-                    </h2>
-                    <div className="space-y-2">
-                      {topSubjects.map((s, i) => (
-                        <div key={s.subject} className="flex items-center justify-between">
-                          <div className="flex items-center gap-2">
-                            <span className="text-xs font-bold text-neutral-400 w-4">{i + 1}.</span>
-                            <span className="text-sm font-medium text-neutral-900 dark:text-white">
-                              {s.subject}
+                  <Card padding="md">
+                    <CardContent>
+                      <h2 className="text-sm font-semibold text-neutral-500 dark:text-neutral-400 mb-3">
+                        {t('topSubjectsLabel')}
+                      </h2>
+                      <div className="space-y-2.5">
+                        {topSubjects.map((s, i) => (
+                          <div key={s.subject} className="flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                              <Badge variant="success" className="!rounded-md w-5 text-center">
+                                {i + 1}
+                              </Badge>
+                              <span className="text-sm font-medium text-neutral-900 dark:text-white">
+                                {s.subject}
+                              </span>
+                            </div>
+                            <span
+                              className="text-sm font-bold"
+                              style={{ color: tierColor(deriveTier(s.avgScore)) }}
+                            >
+                              {s.avgScore.toFixed(1)}
                             </span>
                           </div>
-                          <span
-                            className="text-sm font-bold"
-                            style={{ color: tierColor(deriveTier(s.avgScore)) }}
-                          >
-                            {s.avgScore.toFixed(1)}
-                          </span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
+                        ))}
+                      </div>
+                    </CardContent>
+                  </Card>
                 )}
 
                 {weakSubjects.length > 0 && (
-                  <div className="rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-5 shadow-sm">
-                    <h2 className="text-sm font-semibold text-neutral-500 dark:text-neutral-400 mb-3">
-                      {t('weakSubjectsLabel')}
-                    </h2>
-                    <div className="space-y-2">
-                      {weakSubjects.map((s, i) => (
-                        <div key={s.subject} className="flex items-center justify-between">
-                          <div className="flex items-center gap-2">
-                            <span className="text-xs font-bold text-neutral-400 w-4">{i + 1}.</span>
-                            <span className="text-sm font-medium text-neutral-900 dark:text-white">
-                              {s.subject}
+                  <Card padding="md">
+                    <CardContent>
+                      <h2 className="text-sm font-semibold text-neutral-500 dark:text-neutral-400 mb-3">
+                        {t('weakSubjectsLabel')}
+                      </h2>
+                      <div className="space-y-2.5">
+                        {weakSubjects.map((s, i) => (
+                          <div key={s.subject} className="flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                              <Badge variant="warning" className="!rounded-md w-5 text-center">
+                                {i + 1}
+                              </Badge>
+                              <span className="text-sm font-medium text-neutral-900 dark:text-white">
+                                {s.subject}
+                              </span>
+                            </div>
+                            <span
+                              className="text-sm font-bold"
+                              style={{ color: tierColor(deriveTier(s.avgScore)) }}
+                            >
+                              {s.avgScore.toFixed(1)}
                             </span>
                           </div>
-                          <span
-                            className="text-sm font-bold"
-                            style={{ color: tierColor(deriveTier(s.avgScore)) }}
-                          >
-                            {s.avgScore.toFixed(1)}
-                          </span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
+                        ))}
+                      </div>
+                    </CardContent>
+                  </Card>
                 )}
               </div>
             </>
