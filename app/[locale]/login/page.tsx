@@ -80,6 +80,29 @@ export default function LoginPage() {
     }
   }, [t])
 
+  // Sync browser-autofilled values into React state
+  useEffect(() => {
+    const sync = () => {
+      const emailEl = document.getElementById('email') as HTMLInputElement | null
+      const passwordEl = document.getElementById('password') as HTMLInputElement | null
+      if (emailEl?.value && !formDataRef.current.email) {
+        setFormData((prev) => ({ ...prev, email: emailEl.value }))
+      }
+      if (passwordEl?.value && !formDataRef.current.password) {
+        setFormData((prev) => ({ ...prev, password: passwordEl.value }))
+      }
+    }
+    // Check multiple times as autofill can happen at different timings
+    const t1 = setTimeout(sync, 100)
+    const t2 = setTimeout(sync, 500)
+    const t3 = setTimeout(sync, 1500)
+    return () => {
+      clearTimeout(t1)
+      clearTimeout(t2)
+      clearTimeout(t3)
+    }
+  }, [])
+
   const submitLogin = async (token: string) => {
     setLoading(true)
     dbg('login', 'submitLogin start', {
@@ -305,7 +328,9 @@ export default function LoginPage() {
                 </label>
                 <input
                   id="email"
+                  name="email"
                   type="email"
+                  autoComplete="email"
                   required
                   value={formData.email}
                   onChange={(e) => setFormData({ ...formData, email: e.target.value })}
@@ -324,7 +349,9 @@ export default function LoginPage() {
                 <div className="relative">
                   <input
                     id="password"
+                    name="password"
                     type={showPassword ? 'text' : 'password'}
+                    autoComplete="current-password"
                     required
                     value={formData.password}
                     onChange={(e) => setFormData({ ...formData, password: e.target.value })}

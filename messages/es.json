@@ -44,7 +44,10 @@
     "signingOut": "Cerrando sesión\u2026",
     "language": "Idioma",
     "switchLanguage": "Cambiar idioma",
-    "user": "Usuario"
+    "user": "Usuario",
+    "faq": "FAQ",
+    "about": "Acerca de",
+    "contact": "Contacto"
   },
   "home": {
     "demoBadge": "Demo en vivo \u2014 Sin registro",

@@ -44,7 +44,10 @@
     "signingOut": "Abmelden\u2026",
     "language": "Sprache",
     "switchLanguage": "Sprache wechseln",
-    "user": "Benutzer"
+    "user": "Benutzer",
+    "faq": "FAQ",
+    "about": "Über uns",
+    "contact": "Kontakt"
   },
   "home": {
     "demoBadge": "Live-Demo \u2014 Keine Anmeldung nötig",

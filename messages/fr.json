@@ -44,7 +44,10 @@
     "signingOut": "Déconnexion en cours\u2026",
     "language": "Langue",
     "switchLanguage": "Changer de langue",
-    "user": "Utilisateur"
+    "user": "Utilisateur",
+    "faq": "FAQ",
+    "about": "À propos",
+    "contact": "Contact"
   },
   "home": {
     "demoBadge": "Démo en direct \u2014 Aucune inscription requise",

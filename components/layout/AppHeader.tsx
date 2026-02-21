@@ -133,18 +133,24 @@ export function AppHeader(props: AppHeaderProps) {
           </Link>
           {/* Desktop nav */}
           <nav className="hidden sm:flex gap-4 items-center">
-            <a
-              href="#features"
+            <Link
+              href="/faq"
               className="text-neutral-600 hover:text-neutral-900 dark:text-neutral-300 dark:hover:text-white transition-colors"
             >
-              {t('features')}
-            </a>
-            <a
-              href="#benefits"
+              {t('faq')}
+            </Link>
+            <Link
+              href="/about"
               className="text-neutral-600 hover:text-neutral-900 dark:text-neutral-300 dark:hover:text-white transition-colors"
             >
-              {t('benefits')}
-            </a>
+              {t('about')}
+            </Link>
+            <Link
+              href="/contact"
+              className="text-neutral-600 hover:text-neutral-900 dark:text-neutral-300 dark:hover:text-white transition-colors"
+            >
+              {t('contact')}
+            </Link>
             <LocaleDropdown />
             {props.isAuthed ? (
               <>
@@ -207,20 +213,27 @@ export function AppHeader(props: AppHeaderProps) {
           className={`sm:hidden border-t border-neutral-200 dark:border-neutral-800 ${mobileOpen ? '' : 'hidden'}`}
         >
           <nav className="flex flex-col px-4 py-2 gap-1">
-            <a
-              href="#features"
+            <Link
+              href="/faq"
               onClick={() => setMobileOpen(false)}
               className="rounded-lg px-3 py-2 text-sm font-semibold text-neutral-700 hover:bg-neutral-100 dark:text-neutral-200 dark:hover:bg-neutral-800 transition"
             >
-              {t('features')}
-            </a>
-            <a
-              href="#benefits"
+              {t('faq')}
+            </Link>
+            <Link
+              href="/about"
               onClick={() => setMobileOpen(false)}
               className="rounded-lg px-3 py-2 text-sm font-semibold text-neutral-700 hover:bg-neutral-100 dark:text-neutral-200 dark:hover:bg-neutral-800 transition"
             >
-              {t('benefits')}
-            </a>
+              {t('about')}
+            </Link>
+            <Link
+              href="/contact"
+              onClick={() => setMobileOpen(false)}
+              className="rounded-lg px-3 py-2 text-sm font-semibold text-neutral-700 hover:bg-neutral-100 dark:text-neutral-200 dark:hover:bg-neutral-800 transition"
+            >
+              {t('contact')}
+            </Link>
             {props.isAuthed ? (
               <>
                 <Link

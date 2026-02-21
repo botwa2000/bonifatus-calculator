@@ -44,7 +44,10 @@
     "signingOut": "Signing out\u2026",
     "language": "Language",
     "switchLanguage": "Switch language",
-    "user": "User"
+    "user": "User",
+    "faq": "FAQ",
+    "about": "About",
+    "contact": "Contact"
   },
   "home": {
     "demoBadge": "Live Demo \u2014 No signup needed",
