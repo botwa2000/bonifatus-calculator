@@ -4,6 +4,7 @@ import { DemoSection } from '@/components/demo-section'
 import { HeroCta } from '@/components/hero-cta'
 import { DemoLinkButton } from '@/components/demo-link-button'
 import { CompoundGrowthWidget } from '@/components/widgets/CompoundGrowthWidget'
+import { FaqSection } from '@/components/faq-section'
 import { Link } from '@/i18n/navigation'
 import { auth } from '@/auth'
 import { AppHeader } from '@/components/layout/AppHeader'
@@ -74,143 +75,76 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
         </div>
 
         <div className="grid md:grid-cols-3 gap-8">
-          {/* Feature 1 */}
-          <div className="p-6 rounded-xl bg-gradient-to-br from-info-50 to-info-100 dark:from-info-900/20 dark:to-info-800/20 hover:shadow-lg transition-shadow duration-normal duration-normal">
-            <div className="w-12 h-12 bg-info-600 rounded-lg flex items-center justify-center mb-4">
-              <svg
-                className="w-6 h-6 text-white"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
+          {[
+            {
+              title: t('feature1Title'),
+              desc: t('feature1Desc'),
+              color: 'info',
+              icon: 'M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z',
+            },
+            {
+              title: t('feature2Title'),
+              desc: t('feature2Desc'),
+              color: 'primary',
+              icon: 'M3 21v-4m0 0V5a2 2 0 012-2h6.5l1 1H21l-3 6 3 6h-8.5l-1-1H5a2 2 0 00-2 2zm9-13.5V9',
+            },
+            {
+              title: t('feature3Title'),
+              desc: t('feature3Desc'),
+              color: 'success',
+              icon: 'M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z',
+            },
+            {
+              title: t('feature4Title'),
+              desc: t('feature4Desc'),
+              color: 'warning',
+              icon: 'M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z',
+            },
+            {
+              title: t('feature5Title'),
+              desc: t('feature5Desc'),
+              color: 'accent',
+              icon: 'M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z',
+            },
+            {
+              title: t('feature6Title'),
+              desc: t('feature6Desc'),
+              color: 'secondary',
+              icon: 'M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z',
+            },
+          ].map((f) => (
+            <div
+              key={f.title}
+              className={`p-6 rounded-xl bg-gradient-to-br from-${f.color}-50 to-${f.color}-100 dark:from-${f.color}-900/20 dark:to-${f.color}-800/20 hover:shadow-lg transition-shadow duration-normal`}
+            >
+              <div
+                className={`w-12 h-12 bg-${f.color}-600 rounded-lg flex items-center justify-center mb-4`}
               >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"
-                />
-              </svg>
+                <svg
+                  className="w-6 h-6 text-white"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={f.icon} />
+                </svg>
+              </div>
+              <h4 className="text-xl font-semibold text-neutral-900 dark:text-white mb-2">
+                {f.title}
+              </h4>
+              <p className="text-neutral-600 dark:text-neutral-300">{f.desc}</p>
             </div>
-            <h4 className="text-xl font-semibold text-neutral-900 dark:text-white mb-2">
-              {t('feature1Title')}
-            </h4>
-            <p className="text-neutral-600 dark:text-neutral-300">{t('feature1Desc')}</p>
-          </div>
+          ))}
+        </div>
 
-          {/* Feature 2 */}
-          <div className="p-6 rounded-xl bg-gradient-to-br from-primary-50 to-primary-100 dark:from-primary-900/20 dark:to-primary-800/20 hover:shadow-lg transition-shadow duration-normal duration-normal">
-            <div className="w-12 h-12 bg-primary-600 rounded-lg flex items-center justify-center mb-4">
-              <svg
-                className="w-6 h-6 text-white"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M3 21v-4m0 0V5a2 2 0 012-2h6.5l1 1H21l-3 6 3 6h-8.5l-1-1H5a2 2 0 00-2 2zm9-13.5V9"
-                />
-              </svg>
-            </div>
-            <h4 className="text-xl font-semibold text-neutral-900 dark:text-white mb-2">
-              {t('feature2Title')}
-            </h4>
-            <p className="text-neutral-600 dark:text-neutral-300">{t('feature2Desc')}</p>
-          </div>
-
-          {/* Feature 3 */}
-          <div className="p-6 rounded-xl bg-gradient-to-br from-success-50 to-success-100 dark:from-success-900/20 dark:to-success-800/20 hover:shadow-lg transition-shadow duration-normal">
-            <div className="w-12 h-12 bg-success-600 rounded-lg flex items-center justify-center mb-4">
-              <svg
-                className="w-6 h-6 text-white"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
-                />
-              </svg>
-            </div>
-            <h4 className="text-xl font-semibold text-neutral-900 dark:text-white mb-2">
-              {t('feature3Title')}
-            </h4>
-            <p className="text-neutral-600 dark:text-neutral-300">{t('feature3Desc')}</p>
-          </div>
-
-          {/* Feature 4 */}
-          <div className="p-6 rounded-xl bg-gradient-to-br from-warning-50 to-warning-100 dark:from-warning-900/20 dark:to-warning-800/20 hover:shadow-lg transition-shadow duration-normal">
-            <div className="w-12 h-12 bg-warning-600 rounded-lg flex items-center justify-center mb-4">
-              <svg
-                className="w-6 h-6 text-white"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
-                />
-              </svg>
-            </div>
-            <h4 className="text-xl font-semibold text-neutral-900 dark:text-white mb-2">
-              {t('feature4Title')}
-            </h4>
-            <p className="text-neutral-600 dark:text-neutral-300">{t('feature4Desc')}</p>
-          </div>
-
-          {/* Feature 5 */}
-          <div className="p-6 rounded-xl bg-gradient-to-br from-accent-50 to-accent-100 dark:from-accent-900/20 dark:to-accent-800/20 hover:shadow-lg transition-shadow duration-normal">
-            <div className="w-12 h-12 bg-accent-600 rounded-lg flex items-center justify-center mb-4">
-              <svg
-                className="w-6 h-6 text-white"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
-                />
-              </svg>
-            </div>
-            <h4 className="text-xl font-semibold text-neutral-900 dark:text-white mb-2">
-              {t('feature5Title')}
-            </h4>
-            <p className="text-neutral-600 dark:text-neutral-300">{t('feature5Desc')}</p>
-          </div>
-
-          {/* Feature 6 */}
-          <div className="p-6 rounded-xl bg-gradient-to-br from-secondary-50 to-secondary-100 dark:from-secondary-900/20 dark:to-secondary-800/20 hover:shadow-lg transition-shadow duration-normal">
-            <div className="w-12 h-12 bg-secondary-600 rounded-lg flex items-center justify-center mb-4">
-              <svg
-                className="w-6 h-6 text-white"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"
-                />
-              </svg>
-            </div>
-            <h4 className="text-xl font-semibold text-neutral-900 dark:text-white mb-2">
-              {t('feature6Title')}
-            </h4>
-            <p className="text-neutral-600 dark:text-neutral-300">{t('feature6Desc')}</p>
-          </div>
+        {/* CTA after features */}
+        <div className="text-center mt-12">
+          <Link
+            href="/register"
+            className="inline-block px-8 py-4 bg-gradient-to-r from-primary-600 to-secondary-600 text-white rounded-lg font-semibold shadow-button hover:shadow-lg hover:scale-105 transition-all duration-normal"
+          >
+            {t('getStarted')}
+          </Link>
         </div>
       </section>
 
@@ -299,6 +233,82 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
         </div>
       </section>
 
+      {/* Reward Settlement Showcase */}
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 bg-white dark:bg-neutral-800/50 rounded-3xl my-12 shadow-card">
+        <div className="text-center mb-16">
+          <h3 className="text-3xl sm:text-4xl font-bold text-neutral-900 dark:text-white mb-4">
+            {t('rewardsShowcaseTitle')}
+          </h3>
+          <p className="text-lg text-neutral-600 dark:text-neutral-300 max-w-2xl mx-auto">
+            {t('rewardsShowcaseSubtitle')}
+          </p>
+        </div>
+        <div className="grid sm:grid-cols-2 lg:grid-cols-5 gap-6">
+          {[
+            {
+              title: t('reward1Title'),
+              desc: t('reward1Desc'),
+              color: 'success',
+              icon: 'M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z',
+            },
+            {
+              title: t('reward2Title'),
+              desc: t('reward2Desc'),
+              color: 'info',
+              icon: 'M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z',
+            },
+            {
+              title: t('reward3Title'),
+              desc: t('reward3Desc'),
+              color: 'warning',
+              icon: 'M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h14M5 12a2 2 0 110-4h14a2 2 0 110 4M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7',
+            },
+            {
+              title: t('reward4Title'),
+              desc: t('reward4Desc'),
+              color: 'primary',
+              icon: 'M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4',
+            },
+            {
+              title: t('reward5Title'),
+              desc: t('reward5Desc'),
+              color: 'secondary',
+              icon: 'M13 7h8m0 0v8m0-8l-8 8-4-4-6 6',
+            },
+          ].map((r) => (
+            <div
+              key={r.title}
+              className={`p-6 rounded-xl bg-gradient-to-br from-${r.color}-50 to-${r.color}-100 dark:from-${r.color}-900/20 dark:to-${r.color}-800/20 text-center hover:shadow-lg transition-shadow duration-normal`}
+            >
+              <div
+                className={`w-14 h-14 bg-${r.color}-600 rounded-xl flex items-center justify-center mx-auto mb-4`}
+              >
+                <svg
+                  className="w-7 h-7 text-white"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={r.icon} />
+                </svg>
+              </div>
+              <h4 className="text-lg font-semibold text-neutral-900 dark:text-white mb-2">
+                {r.title}
+              </h4>
+              <p className="text-sm text-neutral-600 dark:text-neutral-300">{r.desc}</p>
+            </div>
+          ))}
+        </div>
+        <div className="text-center mt-12">
+          <Link
+            href="/register"
+            className="inline-block px-8 py-4 bg-gradient-to-r from-primary-600 to-secondary-600 text-white rounded-lg font-semibold shadow-button hover:shadow-lg hover:scale-105 transition-all duration-normal"
+          >
+            {t('getStarted')}
+          </Link>
+        </div>
+      </section>
+
       {/* Compound Growth Widget */}
       <CompoundGrowthWidget />
 
@@ -308,13 +318,35 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
           <h3 className="text-3xl sm:text-4xl font-bold mb-4">{t('ctaTitle')}</h3>
           <p className="text-xl mb-8 opacity-90 max-w-2xl mx-auto">{t('ctaDescription')}</p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <button className="px-8 py-4 bg-white text-primary-600 rounded-lg font-semibold hover:shadow-xl hover:scale-105 transition-all duration-200">
+            <Link
+              href="/register"
+              className="px-8 py-4 bg-white text-primary-600 rounded-lg font-semibold hover:shadow-xl hover:scale-105 transition-all duration-200"
+            >
               {t('startFreeAccount')}
-            </button>
+            </Link>
             <DemoLinkButton className="px-8 py-4 bg-transparent border-2 border-white text-white rounded-lg font-semibold hover:bg-white/10 transition-all duration-200">
               {t('viewDemo')}
             </DemoLinkButton>
           </div>
+        </div>
+      </section>
+
+      {/* FAQ Section */}
+      <section id="faq" className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
+        <div className="text-center mb-12">
+          <h3 className="text-3xl sm:text-4xl font-bold text-neutral-900 dark:text-white mb-4">
+            {t('faqTitle')}
+          </h3>
+          <p className="text-lg text-neutral-600 dark:text-neutral-300">{t('faqSubtitle')}</p>
+        </div>
+        <FaqSection />
+        <div className="text-center mt-12">
+          <Link
+            href="/register"
+            className="inline-block px-8 py-4 bg-gradient-to-r from-primary-600 to-secondary-600 text-white rounded-lg font-semibold shadow-button hover:shadow-lg hover:scale-105 transition-all duration-normal"
+          >
+            {t('getStarted')}
+          </Link>
         </div>
       </section>
 
@@ -338,7 +370,6 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
               <p className="text-neutral-600 dark:text-neutral-400 mb-4">
                 {t('footerDescription')}
               </p>
-              <p className="text-sm text-neutral-500 dark:text-neutral-500">{t('footerWip')}</p>
             </div>
             <div>
               <h3 className="font-semibold text-neutral-900 dark:text-white mb-4">
@@ -363,15 +394,7 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
                 </li>
                 <li>
                   <a
-                    href="#"
-                    className="hover:text-primary-600 dark:hover:text-blue-400 transition-colors"
-                  >
-                    {t('footerPricing')}
-                  </a>
-                </li>
-                <li>
-                  <a
-                    href="#"
+                    href="#faq"
                     className="hover:text-primary-600 dark:hover:text-blue-400 transition-colors"
                   >
                     {t('footerFaq')}
@@ -385,12 +408,12 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
               </h3>
               <ul className="space-y-2 text-neutral-600 dark:text-neutral-400">
                 <li>
-                  <a
-                    href="#"
+                  <Link
+                    href="/about"
                     className="hover:text-primary-600 dark:hover:text-blue-400 transition-colors"
                   >
                     {t('footerAbout')}
-                  </a>
+                  </Link>
                 </li>
                 <li>
                   <Link
@@ -417,12 +440,12 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
                   </Link>
                 </li>
                 <li>
-                  <a
-                    href="#"
+                  <Link
+                    href="/contact"
                     className="hover:text-primary-600 dark:hover:text-blue-400 transition-colors"
                   >
                     {t('footerContact')}
-                  </a>
+                  </Link>
                 </li>
               </ul>
             </div>

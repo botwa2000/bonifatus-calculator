@@ -27,8 +27,10 @@ const publicRoutes = [
   '/privacy',
   '/terms',
   '/cookies',
+  '/about',
+  '/contact',
 ]
-const publicApiPrefixes = ['/api/health', '/api/auth', '/api/config']
+const publicApiPrefixes = ['/api/health', '/api/auth', '/api/config', '/api/contact']
 
 function stripLocalePrefix(pathname: string): string {
   const match = pathname.match(localePattern)
