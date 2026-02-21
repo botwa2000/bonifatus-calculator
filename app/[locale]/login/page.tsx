@@ -80,7 +80,10 @@ export default function LoginPage() {
     }
   }, [t])
 
-  // Sync browser-autofilled values into React state
+  // Sync browser-autofilled values into React state.
+  // Runs repeatedly to catch autofill that may arrive at different timings,
+  // and also on every animationstart (Chrome fires a special animation on
+  // autofilled inputs).
   useEffect(() => {
     const sync = () => {
       const emailEl = document.getElementById('email') as HTMLInputElement | null
@@ -92,16 +95,32 @@ export default function LoginPage() {
         setFormData((prev) => ({ ...prev, password: passwordEl.value }))
       }
     }
-    // Check multiple times as autofill can happen at different timings
     const t1 = setTimeout(sync, 100)
     const t2 = setTimeout(sync, 500)
     const t3 = setTimeout(sync, 1500)
+
+    // Chrome triggers an animation on autofilled inputs — use it as a signal
+    const handleAnimation = (e: AnimationEvent) => {
+      if (e.animationName === 'onAutoFillStart') sync()
+    }
+    document.addEventListener('animationstart', handleAnimation, true)
+
     return () => {
       clearTimeout(t1)
       clearTimeout(t2)
       clearTimeout(t3)
+      document.removeEventListener('animationstart', handleAnimation, true)
     }
   }, [])
+
+  // When the user focuses an input, immediately sync DOM value → React state
+  // so that any browser-autofilled value becomes editable right away.
+  const syncOnFocus = (field: 'email' | 'password') => {
+    const el = document.getElementById(field) as HTMLInputElement | null
+    if (el && el.value && el.value !== formDataRef.current[field]) {
+      setFormData((prev) => ({ ...prev, [field]: el.value }))
+    }
+  }
 
   const submitLogin = async (token: string) => {
     setLoading(true)
@@ -333,7 +352,8 @@ export default function LoginPage() {
                   autoComplete="email"
                   required
                   value={formData.email}
-                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                  onFocus={() => syncOnFocus('email')}
+                  onChange={(e) => setFormData((prev) => ({ ...prev, email: e.target.value }))}
                   className="w-full px-4 py-3 rounded-lg border border-neutral-300 dark:border-neutral-600 bg-white dark:bg-neutral-700 text-neutral-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
                   placeholder={t('emailPlaceholder')}
                 />
@@ -354,7 +374,8 @@ export default function LoginPage() {
                     autoComplete="current-password"
                     required
                     value={formData.password}
-                    onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                    onFocus={() => syncOnFocus('password')}
+                    onChange={(e) => setFormData((prev) => ({ ...prev, password: e.target.value }))}
                     className="w-full px-4 py-3 pr-12 rounded-lg border border-neutral-300 dark:border-neutral-600 bg-white dark:bg-neutral-700 text-neutral-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
                     placeholder={t('passwordPlaceholder')}
                   />
