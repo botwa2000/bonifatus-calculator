@@ -23,9 +23,7 @@ export const Accordion: React.FC<AccordionProps> = ({
   className = '',
 }) => {
   return (
-    <div
-      className={`rounded-xl border border-neutral-200 dark:border-neutral-800 overflow-hidden ${className}`}
-    >
+    <div className={`rounded-xl border border-neutral-200 dark:border-neutral-800 ${className}`}>
       <button
         type="button"
         onClick={onToggle}
@@ -45,7 +43,7 @@ export const Accordion: React.FC<AccordionProps> = ({
         className="grid transition-[grid-template-rows] duration-300"
         style={{ gridTemplateRows: open ? '1fr' : '0fr' }}
       >
-        <div className="overflow-hidden">
+        <div className={open ? 'overflow-visible' : 'overflow-hidden'}>
           <div className="p-4">{children}</div>
         </div>
       </div>
