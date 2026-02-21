@@ -79,7 +79,7 @@ export default function ParentDashboardPage() {
             ) : (
               <div className="space-y-3">
                 {connections.map((conn) => {
-                  const summary = gradeSummaries[conn.child_id]
+                  const summary = gradeSummaries[conn.childId]
                   const trendData = summary ? [{ label: 'Total', value: summary.totalBonus }] : []
 
                   return (
@@ -91,14 +91,14 @@ export default function ParentDashboardPage() {
                         <div className="space-y-1">
                           <div className="flex items-center gap-2">
                             <div className="w-8 h-8 rounded-full bg-primary-100 dark:bg-primary-900/40 flex items-center justify-center text-primary-700 dark:text-primary-200 text-sm font-bold">
-                              {(conn.child?.full_name || 'C')[0].toUpperCase()}
+                              {(conn.child?.fullName || 'C')[0].toUpperCase()}
                             </div>
                             <p className="text-lg font-semibold text-neutral-900 dark:text-white">
-                              {conn.child?.full_name || t('child')}
+                              {conn.child?.fullName || t('child')}
                             </p>
-                            {(conn.child as { school_name?: string } | undefined)?.school_name && (
+                            {conn.child?.schoolName && (
                               <span className="text-xs text-neutral-500 dark:text-neutral-400">
-                                {(conn.child as { school_name?: string }).school_name}
+                                {conn.child.schoolName}
                               </span>
                             )}
                             <span className="text-xs rounded-full bg-success-100 text-success-700 dark:bg-success-900/30 dark:text-success-300 px-2 py-0.5">

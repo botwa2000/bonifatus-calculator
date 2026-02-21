@@ -319,7 +319,7 @@ export default function ParentRewardsPage() {
       ) : (
         <div className="space-y-4">
           {connections.map((conn) => {
-            const unsettled = getChildUnsettled(conn.child_id)
+            const unsettled = getChildUnsettled(conn.childId)
             const unsettledBonus = unsettled.reduce((sum, g) => sum + Number(g.bonusPoints ?? 0), 0)
             const unsettledMoney = unsettledBonus * effectivePointValue
 
@@ -331,11 +331,11 @@ export default function ParentRewardsPage() {
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded-full bg-primary-100 dark:bg-primary-900/40 flex items-center justify-center text-primary-700 dark:text-primary-200 font-bold">
-                      {(conn.child?.full_name || 'C')[0].toUpperCase()}
+                      {(conn.child?.fullName || 'C')[0].toUpperCase()}
                     </div>
                     <div>
                       <p className="text-lg font-semibold text-neutral-900 dark:text-white">
-                        {conn.child?.full_name || t('child')}
+                        {conn.child?.fullName || t('child')}
                       </p>
                       <p className="text-xs text-neutral-500">
                         {unsettled.length} {t('childNotes')} &middot; {sym}
@@ -346,7 +346,7 @@ export default function ParentRewardsPage() {
                   {unsettled.length > 0 && (
                     <button
                       onClick={() =>
-                        setActiveChildId(activeChildId === conn.child_id ? null : conn.child_id)
+                        setActiveChildId(activeChildId === conn.childId ? null : conn.childId)
                       }
                       className="px-4 py-2 rounded-lg bg-gradient-to-r from-primary-600 to-secondary-600 text-white text-sm font-semibold shadow-sm hover:opacity-90 transition"
                     >
@@ -356,14 +356,14 @@ export default function ParentRewardsPage() {
                 </div>
 
                 {/* Unsettled Notes Table */}
-                {activeChildId === conn.child_id && unsettled.length > 0 && (
+                {activeChildId === conn.childId && unsettled.length > 0 && (
                   <div className="space-y-4 pt-2">
                     <div className="flex items-center justify-between">
                       <p className="text-sm font-semibold text-neutral-900 dark:text-white">
-                        {t('notesForChild', { name: conn.child?.full_name || t('child') })}
+                        {t('notesForChild', { name: conn.child?.fullName || t('child') })}
                       </p>
                       <button
-                        onClick={() => selectAllForChild(conn.child_id)}
+                        onClick={() => selectAllForChild(conn.childId)}
                         className="text-xs font-semibold text-primary-600 dark:text-primary-300 hover:underline"
                       >
                         {t('settleAll')}
@@ -581,7 +581,7 @@ export default function ParentRewardsPage() {
                         className="flex-1 rounded-lg border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 py-2 text-sm text-neutral-900 dark:text-white"
                       />
                       <button
-                        onClick={() => handleSettle(conn.child_id)}
+                        onClick={() => handleSettle(conn.childId)}
                         disabled={settling || selectedGradeIds.size === 0}
                         className="px-5 py-2 rounded-lg bg-gradient-to-r from-primary-600 to-secondary-600 text-white text-sm font-semibold shadow-sm disabled:opacity-60"
                       >

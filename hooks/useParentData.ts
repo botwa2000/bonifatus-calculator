@@ -4,21 +4,21 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 
 export type Connection = {
   id: string
-  parent_id: string
-  child_id: string
-  invitation_status: string
-  invited_at: string
-  responded_at?: string | null
-  child?: { id: string; full_name: string; role?: string }
+  parentId: string
+  childId: string
+  invitationStatus: string
+  invitedAt: string
+  respondedAt?: string | null
+  child?: { id: string; fullName: string; role?: string; schoolName?: string | null }
 }
 
 export type Invite = {
   id: string
   code: string
   status: string
-  expires_at: string
-  created_at?: string
-  child_id?: string | null
+  expiresAt: string
+  createdAt?: string
+  childId?: string | null
 }
 
 export type ChildGradeSummary = {
@@ -47,7 +47,7 @@ export type TermPreview = {
 
 type GradesChild = {
   relationshipId: string
-  child?: { id: string; full_name?: string | null }
+  child?: { id: string; fullName?: string | null }
   terms: Array<{
     id: string
     school_year: string
@@ -150,7 +150,7 @@ export function useParentData() {
             .sort()
             .pop()
           const childKey = child.child?.id || child.relationshipId
-          const childName = child.child?.full_name || 'Child'
+          const childName = child.child?.fullName || 'Child'
           summaries[childKey] = { savedTerms: terms.length, totalBonus, lastUpdated }
           previews[childKey] = terms
             .slice()
@@ -234,9 +234,7 @@ export function useParentData() {
 
   const activeInvites = useMemo(
     () =>
-      invites.filter(
-        (i) => i.status === 'pending' && new Date(i.expires_at).getTime() > Date.now()
-      ),
+      invites.filter((i) => i.status === 'pending' && new Date(i.expiresAt).getTime() > Date.now()),
     [invites]
   )
 
