@@ -83,16 +83,12 @@ export function useStudentData() {
         throw new Error(data.error || 'Failed to load saved grades')
       }
       setTerms(data.terms || [])
-      const latestYear = data.terms?.[0]?.school_year
-      if (latestYear && selectedYear === 'all') {
-        setSelectedYear(latestYear)
-      }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load saved grades')
     } finally {
       setLoading(false)
     }
-  }, [selectedYear])
+  }, [])
 
   useEffect(() => {
     loadTerms()

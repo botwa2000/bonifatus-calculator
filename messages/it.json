@@ -392,6 +392,7 @@
     "title": "Pannello di controllo",
     "description": "Visualizza quali figli sono collegati al tuo account. Se nessuno è ancora connesso, condividi un codice a 6 cifre o un QR per farli unire.",
     "connectedChildren": "Figli collegati",
+    "childrenPageDesc": "Visualizza quali figli sono collegati al tuo account. Condividi un codice a 6 cifre o un QR per farli unire.",
     "noChildren": "Nessun figlio collegato. Genera un codice di invito a 6 cifre e condividilo per iniziare.",
     "generating": "Generazione...",
     "generateInvite": "Genera invito",

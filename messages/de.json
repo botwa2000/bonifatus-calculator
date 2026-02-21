@@ -392,6 +392,7 @@
     "title": "Dashboard",
     "description": "Sieh, welche Kinder mit deinem Konto verknüpft sind. Wenn noch niemand verbunden ist, teile einen 6-stelligen Code oder QR, damit sie beitreten können.",
     "connectedChildren": "Verknüpfte Kinder",
+    "childrenPageDesc": "Sieh, welche Kinder mit deinem Konto verknüpft sind. Teile einen 6-stelligen Code oder QR, damit sie beitreten können.",
     "noChildren": "Noch keine Kinder verknüpft. Erstelle einen 6-stelligen Einladungscode und teile ihn, um loszulegen.",
     "generating": "Wird erstellt...",
     "generateInvite": "Einladung erstellen",

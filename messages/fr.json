@@ -392,6 +392,7 @@
     "title": "Tableau de bord",
     "description": "Voir les enfants liés à ton compte. Si personne n'est encore connecté, partage un code à 6 chiffres ou un QR pour les inviter.",
     "connectedChildren": "Enfants connectés",
+    "childrenPageDesc": "Voir quels enfants sont liés à ton compte. Partage un code à 6 chiffres ou un QR pour les inviter.",
     "noChildren": "Aucun enfant lié pour l'instant. Génère un code d'invitation à 6 chiffres et partage-le pour commencer.",
     "generating": "Génération...",
     "generateInvite": "Générer une invitation",

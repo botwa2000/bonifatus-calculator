@@ -392,6 +392,7 @@
     "title": "Panel",
     "description": "Mira qué hijos están vinculados a tu cuenta. Si aún no hay nadie conectado, comparte un código de 6 dígitos o un QR para que se unan.",
     "connectedChildren": "Hijos conectados",
+    "childrenPageDesc": "Mira qué hijos están vinculados a tu cuenta. Comparte un código de 6 dígitos o un QR para que se unan.",
     "noChildren": "Aún no hay hijos vinculados. Genera un código de invitación de 6 dígitos y compártelo para comenzar.",
     "generating": "Generando...",
     "generateInvite": "Generar invitación",

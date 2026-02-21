@@ -10,16 +10,16 @@ const QRCode = dynamic(() => import('qrcode.react').then((mod) => mod.QRCodeSVG)
 
 type Connection = {
   id: string
-  parent_id: string
-  child_id: string
-  invitation_status: string
-  invited_at: string
-  responded_at?: string | null
+  parentId: string
+  childId: string
+  invitationStatus: string
+  invitedAt: string
+  respondedAt?: string | null
   child?: {
     id: string
-    full_name: string
+    fullName: string
     role?: string
-    school_name?: string | null
+    schoolName?: string | null
     email?: string | null
   }
 }
@@ -28,9 +28,9 @@ type Invite = {
   id: string
   code: string
   status: string
-  expires_at: string
-  created_at?: string
-  child_id?: string | null
+  expiresAt: string
+  createdAt?: string
+  childId?: string | null
 }
 
 type ChildGradeSummary = {
@@ -59,7 +59,7 @@ type TermPreview = {
 
 type GradesChild = {
   relationshipId: string
-  child?: { id: string; full_name?: string | null }
+  child?: { id: string; fullName?: string | null }
   terms: Array<{
     id: string
     school_year: string
@@ -102,7 +102,7 @@ export default function ParentChildrenPage() {
   }, [])
 
   const activeInvites = useMemo(
-    () => invites.filter((i) => i.status === 'pending' && new Date(i.expires_at).getTime() > nowMs),
+    () => invites.filter((i) => i.status === 'pending' && new Date(i.expiresAt).getTime() > nowMs),
     [invites, nowMs]
   )
 
@@ -126,7 +126,7 @@ export default function ParentChildrenPage() {
       setConnections(connJson.asParent || [])
       setInvites(connJson.invites || [])
       const newestPending = (connJson.invites || []).find(
-        (i: Invite) => i.status === 'pending' && new Date(i.expires_at) > new Date()
+        (i: Invite) => i.status === 'pending' && new Date(i.expiresAt) > new Date()
       )
       setActiveCode(newestPending || null)
 
@@ -259,9 +259,10 @@ export default function ParentChildrenPage() {
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-6">
       <header className="space-y-2">
-        <p className="text-sm text-neutral-500">{t('header')}</p>
-        <h1 className="text-3xl font-bold text-neutral-900 dark:text-white">{t('title')}</h1>
-        <p className="text-neutral-600 dark:text-neutral-300">{t('description')}</p>
+        <h1 className="text-3xl font-bold text-neutral-900 dark:text-white">
+          {t('connectedChildren')}
+        </h1>
+        <p className="text-neutral-600 dark:text-neutral-300">{t('childrenPageDesc')}</p>
       </header>
 
       {error && (
@@ -306,16 +307,16 @@ export default function ParentChildrenPage() {
               <div className="space-y-3">
                 {connections.map((connection) => {
                   const savedTerms =
-                    gradesLoaded && gradeSummaries[connection.child_id]
-                      ? gradeSummaries[connection.child_id].savedTerms
+                    gradesLoaded && gradeSummaries[connection.childId]
+                      ? gradeSummaries[connection.childId].savedTerms
                       : '-'
                   const totalBonus =
-                    gradesLoaded && gradeSummaries[connection.child_id]
-                      ? Number(gradeSummaries[connection.child_id].totalBonus || 0).toFixed(2)
+                    gradesLoaded && gradeSummaries[connection.childId]
+                      ? Number(gradeSummaries[connection.childId].totalBonus || 0).toFixed(2)
                       : '-'
                   const lastUpdated =
-                    gradesLoaded && gradeSummaries[connection.child_id]
-                      ? formatDate(gradeSummaries[connection.child_id].lastUpdated)
+                    gradesLoaded && gradeSummaries[connection.childId]
+                      ? formatDate(gradeSummaries[connection.childId].lastUpdated)
                       : '-'
 
                   return (
@@ -326,30 +327,22 @@ export default function ParentChildrenPage() {
                       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                         <div className="space-y-2 flex-1">
                           <div className="flex items-start justify-between gap-2">
-                            <div className="space-y-1">
-                              <p className="text-lg font-semibold text-neutral-900 dark:text-white flex items-center gap-2">
-                                {connection.child?.full_name || t('child')}
-                                <button
-                                  onClick={() => handleRemove(connection.id)}
-                                  disabled={removingId === connection.id}
-                                  className="text-xs text-error-600 hover:text-error-700 disabled:opacity-50"
-                                  title={t('breakConnection')}
-                                >
-                                  ✕
-                                </button>
+                            <div className="space-y-1 flex-1">
+                              <p className="text-lg font-semibold text-neutral-900 dark:text-white">
+                                {connection.child?.fullName || t('child')}
                               </p>
-                              {connection.child?.school_name && (
+                              {connection.child?.schoolName && (
                                 <p className="text-xs text-neutral-500 dark:text-neutral-400">
-                                  {connection.child.school_name}
+                                  {connection.child.schoolName}
                                 </p>
                               )}
                               <div className="flex flex-wrap gap-3 text-xs text-neutral-600 dark:text-neutral-400">
                                 <span className="font-semibold text-primary-600 dark:text-primary-300">
-                                  {connection.invitation_status || 'accepted'}
+                                  {connection.invitationStatus || 'accepted'}
                                 </span>
                                 <span>
                                   Connected:{' '}
-                                  {formatDate(connection.responded_at || connection.invited_at)}
+                                  {formatDate(connection.respondedAt || connection.invitedAt)}
                                 </span>
                               </div>
                               <div className="flex flex-wrap gap-2 text-xs">
@@ -364,6 +357,13 @@ export default function ParentChildrenPage() {
                                 </span>
                               </div>
                             </div>
+                            <button
+                              onClick={() => handleRemove(connection.id)}
+                              disabled={removingId === connection.id}
+                              className="shrink-0 px-3 py-1.5 rounded-lg border border-error-200 dark:border-error-800 text-sm font-semibold text-error-600 dark:text-error-400 hover:bg-error-50 dark:hover:bg-error-900/20 transition-colors disabled:opacity-50"
+                            >
+                              {removingId === connection.id ? '...' : t('breakConnection')}
+                            </button>
                           </div>
 
                           <div className="rounded-lg border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-950/60 p-3 space-y-2">
@@ -374,12 +374,12 @@ export default function ParentChildrenPage() {
                             </div>
                             {!gradesLoaded ? (
                               <p className="text-xs text-neutral-500">{t('loadingSavedResults')}</p>
-                            ) : (gradePreviews[connection.child_id] || []).length === 0 ? (
+                            ) : (gradePreviews[connection.childId] || []).length === 0 ? (
                               <p className="text-xs text-neutral-500">{t('noSavedResults')}</p>
                             ) : (
                               <div className="space-y-2">
-                                {(gradePreviews[connection.child_id] || []).map((term) => {
-                                  const isOpen = expandedTerm[connection.child_id] === term.id
+                                {(gradePreviews[connection.childId] || []).map((term) => {
+                                  const isOpen = expandedTerm[connection.childId] === term.id
                                   const subjects = sortSubjects(term.subject_grades)
                                   const avg = weightedAverage(subjects)
                                   return (
@@ -405,7 +405,7 @@ export default function ParentChildrenPage() {
                                           onClick={() =>
                                             setExpandedTerm((prev) => ({
                                               ...prev,
-                                              [connection.child_id]: isOpen ? null : term.id,
+                                              [connection.childId]: isOpen ? null : term.id,
                                             }))
                                           }
                                           className="text-xs font-semibold text-primary-600 dark:text-primary-300"
@@ -503,7 +503,7 @@ export default function ParentChildrenPage() {
                         {t('codeLabel', { code: invite.code })}
                       </p>
                       <p className="text-xs text-neutral-500">
-                        {t('expires', { date: new Date(invite.expires_at).toLocaleString() })}
+                        {t('expires', { date: new Date(invite.expiresAt).toLocaleString() })}
                       </p>
                     </div>
                     <span className="text-xs text-neutral-500">{invite.status}</span>
@@ -530,7 +530,7 @@ export default function ParentChildrenPage() {
           {activeCode ? (
             <div className="space-y-3">
               <div className="text-sm text-neutral-600 dark:text-neutral-300">
-                {t('shareCode', { date: new Date(activeCode.expires_at).toLocaleString() })}
+                {t('shareCode', { date: new Date(activeCode.expiresAt).toLocaleString() })}
               </div>
               <div className="text-4xl font-bold tracking-widest text-center text-primary-600 dark:text-primary-300">
                 {activeCode.code}

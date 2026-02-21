@@ -414,6 +414,7 @@
     "title": "Dashboard",
     "description": "See which children are linked to your account. If no one is connected yet, share a 6-digit code or QR for them to join.",
     "connectedChildren": "Connected children",
+    "childrenPageDesc": "See which children are linked to your account. Share a 6-digit code or QR for them to join.",
     "noChildren": "No children are linked yet. Generate a 6-digit invite code and share it to get started.",
     "generating": "Generating...",
     "generateInvite": "Generate invite",
