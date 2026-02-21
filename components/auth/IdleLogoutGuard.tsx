@@ -235,8 +235,6 @@ export function IdleLogoutGuard() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [hasSession])
 
-  if (!hasSession) return null
-
   return (
     <>
       {notice && (
@@ -257,7 +255,7 @@ export function IdleLogoutGuard() {
         </div>
       )}
 
-      {showWarning && (
+      {hasSession && showWarning && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
           <div className="w-full max-w-lg rounded-2xl border border-neutral-200 bg-white p-6 shadow-2xl dark:border-neutral-800 dark:bg-neutral-900">
             <p className="text-sm uppercase tracking-wide text-neutral-500 dark:text-neutral-400">

@@ -127,6 +127,8 @@
     "forgotPassword": "Forgot password?",
     "signIn": "Sign In",
     "signingIn": "Signing in...",
+    "emailVerifiedLogin": "Email verified successfully! Please sign in.",
+    "sessionExpiredLogin": "You were signed out due to inactivity. Please sign in again.",
     "noAccount": "Don't have an account?",
     "signUpLink": "Sign up",
     "hasAccount": "Already have an account?",

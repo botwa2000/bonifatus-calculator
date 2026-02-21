@@ -127,6 +127,8 @@
     "forgotPassword": "Password dimenticata?",
     "signIn": "Accedi",
     "signingIn": "Accesso in corso...",
+    "emailVerifiedLogin": "Email verificata con successo! Effettua l'accesso.",
+    "sessionExpiredLogin": "Sei stato disconnesso per inattività. Effettua nuovamente l'accesso.",
     "noAccount": "Non hai un account?",
     "signUpLink": "Registrati",
     "hasAccount": "Hai già un account?",

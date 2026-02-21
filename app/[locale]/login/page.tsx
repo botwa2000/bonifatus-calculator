@@ -20,6 +20,7 @@ export default function LoginPage() {
   const [formData, setFormData] = useState({ email: '', password: '' })
   const [error, setError] = useState('')
   const [statusMessage, setStatusMessage] = useState('')
+  const [successMessage, setSuccessMessage] = useState('')
   const [loading, setLoading] = useState(false)
   const [turnstileToken, setTurnstileToken] = useState('')
   const [turnstileLoading, setTurnstileLoading] = useState(!!siteKey)
@@ -28,6 +29,7 @@ export default function LoginPage() {
   const fallbackVisible = useRef(false)
   const [, forceRender] = useState(0)
   const [turnstileFailed, setTurnstileFailed] = useState(false)
+  const pendingSubmitRef = useRef(false)
   const fallbackTimerRef = useRef<number | null>(null)
   const visibleFallbackTimerRef = useRef<number | null>(null)
   const fallbackTimeoutMs = 45000
@@ -67,6 +69,16 @@ export default function LoginPage() {
   useEffect(() => {
     formDataRef.current = formData
   }, [formData])
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search)
+    if (params.get('verified') === 'true') {
+      setSuccessMessage(t('emailVerifiedLogin'))
+    }
+    if (params.get('timeout') === '1') {
+      setError(t('sessionExpiredLogin'))
+    }
+  }, [t])
 
   const submitLogin = async (token: string) => {
     setLoading(true)
@@ -128,8 +140,10 @@ export default function LoginPage() {
       return
     }
     if (!turnstileToken && !turnstileFailed) {
+      pendingSubmitRef.current = true
+      setLoading(true)
       setStatusMessage(fallbackVisible.current ? t('pleaseCheckBox') : t('verifyingNotRobot'))
-      dbgWarn('login', 'handleSubmit blocked — missing token', {
+      dbg('login', 'handleSubmit queued — waiting for token', {
         fallbackVisible: fallbackVisible.current,
       })
       return
@@ -157,6 +171,11 @@ export default function LoginPage() {
 
           <div className="bg-white dark:bg-neutral-800 rounded-2xl shadow-card p-8">
             <form onSubmit={handleSubmit} className="space-y-6">
+              {successMessage && (
+                <div className="bg-success-50 dark:bg-success-900/20 border border-success-200 dark:border-success-800 rounded-lg p-4">
+                  <p className="text-sm text-success-600 dark:text-success-400">{successMessage}</p>
+                </div>
+              )}
               {error && (
                 <div className="bg-error-50 dark:bg-error-900/20 border border-error-200 dark:border-error-800 rounded-lg p-4">
                   <p className="text-sm text-error-600 dark:text-error-400">{error}</p>
@@ -211,6 +230,10 @@ export default function LoginPage() {
                     fallbackVisible.current = false
                     forceRender((v) => v + 1)
                     turnstileStartRef.current = null
+                    if (pendingSubmitRef.current) {
+                      pendingSubmitRef.current = false
+                      submitLogin(token)
+                    }
                   }}
                   onReady={() => {
                     dbg('login', 'turnstile onReady', { fallbackVisible: fallbackVisible.current })

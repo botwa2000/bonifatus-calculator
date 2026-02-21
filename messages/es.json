@@ -127,6 +127,8 @@
     "forgotPassword": "¿Olvidaste tu contraseña?",
     "signIn": "Iniciar sesión",
     "signingIn": "Iniciando sesión...",
+    "emailVerifiedLogin": "¡Correo electrónico verificado con éxito! Por favor, inicia sesión.",
+    "sessionExpiredLogin": "Tu sesión expiró por inactividad. Por favor, inicia sesión de nuevo.",
     "noAccount": "¿No tienes una cuenta?",
     "signUpLink": "Regístrate",
     "hasAccount": "¿Ya tienes una cuenta?",

@@ -143,6 +143,21 @@ export default function RegisterPage() {
         setLoading(false)
         return
       }
+      // Auto-login after successful email verification
+      try {
+        const { signIn } = await import('next-auth/react')
+        const result = await signIn('credentials', {
+          redirect: false,
+          email: formData.email,
+          password: formData.password,
+        })
+        if (result?.ok) {
+          router.push('/dashboard')
+          return
+        }
+      } catch {
+        // Auto-login failed, fall through to login page
+      }
       router.push('/login?verified=true')
     } catch {
       setError(t('unexpectedError'))
@@ -483,6 +498,9 @@ export default function RegisterPage() {
                     setTurnstileToken(token)
                     setTurnstileLoading(false)
                   }}
+                  onReady={() => {
+                    setTurnstileLoading(false)
+                  }}
                   onError={() => {
                     setError(t('securityRefresh'))
                     setTurnstileToken('')
@@ -503,7 +521,7 @@ export default function RegisterPage() {
               </div>
               <button
                 type="submit"
-                disabled={loading || !turnstileToken || turnstileLoading}
+                disabled={loading || !turnstileToken}
                 className="w-full px-6 py-3 bg-gradient-to-r from-primary-600 to-secondary-600 text-white rounded-lg font-semibold shadow-button hover:shadow-lg hover:scale-105 transition-all duration-normal disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
               >
                 {loading

@@ -127,6 +127,8 @@
     "forgotPassword": "Passwort vergessen?",
     "signIn": "Anmelden",
     "signingIn": "Anmeldung läuft...",
+    "emailVerifiedLogin": "E-Mail erfolgreich verifiziert! Bitte melden Sie sich an.",
+    "sessionExpiredLogin": "Sie wurden wegen Inaktivität abgemeldet. Bitte melden Sie sich erneut an.",
     "noAccount": "Noch kein Konto?",
     "signUpLink": "Registrieren",
     "hasAccount": "Bereits ein Konto?",
