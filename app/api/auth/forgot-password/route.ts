@@ -30,7 +30,8 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const { email, turnstileToken } = parsed.data
+    const { email: rawEmail, turnstileToken } = parsed.data
+    const email = rawEmail.toLowerCase()
     const clientIp = getClientIp(request.headers)
 
     const turnstileResult = await verifyTurnstileToken(turnstileToken, clientIp)

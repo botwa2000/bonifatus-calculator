@@ -26,7 +26,8 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const { email, code, newPassword } = parsed.data
+    const { email: rawEmail, code, newPassword } = parsed.data
+    const email = rawEmail.toLowerCase()
     const clientIp = getClientIp(request.headers)
     const userAgent = request.headers.get('user-agent') || undefined
 

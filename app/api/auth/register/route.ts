@@ -37,7 +37,15 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const { email, password, fullName, dateOfBirth, role, turnstileToken } = validationResult.data
+    const {
+      email: rawEmail,
+      password,
+      fullName,
+      dateOfBirth,
+      role,
+      turnstileToken,
+    } = validationResult.data
+    const email = rawEmail.toLowerCase()
 
     const clientIp = getClientIp(request.headers)
     const turnstileResult = await verifyTurnstileToken(turnstileToken, clientIp)
