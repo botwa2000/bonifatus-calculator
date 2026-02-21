@@ -29,6 +29,7 @@ const publicRoutes = [
   '/cookies',
   '/about',
   '/contact',
+  '/faq',
 ]
 const publicApiPrefixes = ['/api/health', '/api/auth', '/api/config', '/api/contact']
 

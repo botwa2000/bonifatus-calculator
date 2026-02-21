@@ -7,6 +7,7 @@ import Image from 'next/image'
 import { resolveLocalized } from '@/lib/i18n'
 import { useStudentData, Term } from '@/hooks/useStudentData'
 import { formatDate, convertNormalizedToScale } from '@/lib/utils/grade-helpers'
+import { BonusIcon } from '@/components/ui'
 
 /* ------------------------------------------------------------------ */
 /*  ViewTermModal                                                      */
@@ -128,7 +129,8 @@ function ViewTermModal({
             <p className="text-sm font-semibold text-neutral-700 dark:text-neutral-300">
               {t('bonusPoints')}
             </p>
-            <p className="text-2xl font-bold text-primary-600 dark:text-primary-300">
+            <p className="text-2xl font-bold text-primary-600 dark:text-primary-300 flex items-center gap-1">
+              <BonusIcon className="w-5 h-5 text-primary-500" />
               {Number(term.total_bonus_points ?? 0).toFixed(2)}
             </p>
           </div>
@@ -439,7 +441,8 @@ export default function StudentSavedPage() {
                           </div>
                           <div className="text-right">
                             <p className="text-xs text-neutral-500">{t('bonus')}</p>
-                            <p className="text-primary-600 dark:text-primary-300 font-semibold">
+                            <p className="text-primary-600 dark:text-primary-300 font-semibold flex items-center gap-1">
+                              <BonusIcon className="w-3.5 h-3.5 text-primary-500" />
                               {Number(sub.bonus_points ?? 0) >= 0 ? '+' : ''}
                               {Number(sub.bonus_points ?? 0).toFixed(2)}
                             </p>

@@ -6,6 +6,7 @@ import { useParentData } from '@/hooks/useParentData'
 import { formatDate } from '@/lib/utils/grade-helpers'
 import { GradeTrendChart } from '@/components/charts'
 import { StockTickerWidget } from '@/components/widgets/StockTickerWidget'
+import { BonusIcon } from '@/components/ui'
 
 export default function ParentDashboardPage() {
   const t = useTranslations('parent')
@@ -110,7 +111,8 @@ export default function ParentDashboardPage() {
                               <span className="rounded-full bg-primary-50 text-primary-700 dark:bg-primary-900/40 dark:text-primary-200 px-2 py-1">
                                 {t('savedResultsCount', { count: summary.savedTerms })}
                               </span>
-                              <span className="rounded-full bg-amber-50 text-amber-700 dark:bg-amber-900/40 dark:text-amber-200 px-2 py-1">
+                              <span className="rounded-full bg-amber-50 text-amber-700 dark:bg-amber-900/40 dark:text-amber-200 px-2 py-1 inline-flex items-center gap-1">
+                                <BonusIcon className="w-3.5 h-3.5" />
                                 {t('bonusLabel', { value: summary.totalBonus.toFixed(2) })}
                               </span>
                               {summary.lastUpdated && (

@@ -54,3 +54,5 @@ export type { SegmentedControlProps, SegmentedControlOption } from './SegmentedC
 
 export { SubjectCombobox } from './SubjectCombobox'
 export type { SubjectComboboxProps } from './SubjectCombobox'
+
+export { BonusIcon } from './BonusIcon'

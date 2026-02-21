@@ -6,6 +6,7 @@ import { useStudentData } from '@/hooks/useStudentData'
 import { QuickGradeForm } from '@/components/quick-grade-form'
 import { GradeTrendChart } from '@/components/charts'
 import { formatDate } from '@/lib/utils/grade-helpers'
+import { BonusIcon } from '@/components/ui'
 
 export default function StudentDashboardPage() {
   const t = useTranslations('student')
@@ -53,7 +54,7 @@ export default function StudentDashboardPage() {
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           <div className="rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-4 shadow-sm">
             <div className="flex items-center gap-2 mb-1">
-              <span className="text-primary-500 text-lg">&#9733;</span>
+              <BonusIcon className="w-5 h-5 text-primary-500" />
               <p className="text-xs text-neutral-500 dark:text-neutral-400">
                 {t('totalBonusPoints')}
               </p>
@@ -150,7 +151,8 @@ export default function StudentDashboardPage() {
                   {term.school_year} &middot; {term.term_type}
                 </p>
                 <p className="text-xs text-neutral-500">{term.subject_grades.length} subjects</p>
-                <p className="mt-2 text-lg font-bold text-primary-600 dark:text-primary-300">
+                <p className="mt-2 text-lg font-bold text-primary-600 dark:text-primary-300 flex items-center gap-1">
+                  <BonusIcon className="w-4 h-4 text-primary-500" />
                   {Number(term.total_bonus_points ?? 0).toFixed(2)} {tc('pts')}
                 </p>
                 <p className="text-xs text-neutral-400">{formatDate(term.created_at)}</p>
@@ -177,7 +179,8 @@ export default function StudentDashboardPage() {
             {t('myRewards')}
           </h2>
           <div className="flex items-baseline gap-2">
-            <p className="text-3xl font-bold text-primary-600 dark:text-primary-300">
+            <p className="text-3xl font-bold text-primary-600 dark:text-primary-300 flex items-center gap-1">
+              <BonusIcon className="w-6 h-6 text-primary-500" />
               {stats.total.toFixed(2)}
             </p>
             <p className="text-sm text-neutral-500">{t('totalEarned')}</p>

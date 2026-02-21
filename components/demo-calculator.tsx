@@ -822,7 +822,7 @@ export function DemoCalculator({
                 {subjectRows.map((row) => (
                   <div
                     key={row.id}
-                    className="grid grid-cols-1 lg:grid-cols-12 gap-3 items-start rounded-xl border border-neutral-200 dark:border-neutral-800 bg-neutral-50 dark:bg-neutral-900 px-3 py-3 overflow-hidden"
+                    className="grid grid-cols-1 lg:grid-cols-12 gap-3 items-start rounded-xl border border-neutral-200 dark:border-neutral-800 bg-neutral-50 dark:bg-neutral-900 px-3 py-3 overflow-visible"
                   >
                     <div className="lg:col-span-5 space-y-2">
                       <div className="lg:hidden flex items-center gap-1 text-xs font-medium text-neutral-500 dark:text-neutral-400 mb-1">

@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useLocale, useTranslations } from 'next-intl'
 import { resolveLocalized } from '@/lib/i18n'
-import { SubjectCombobox } from '@/components/ui'
+import { SubjectCombobox, BonusIcon } from '@/components/ui'
 
 type GradingSystem = {
   id: string
@@ -282,7 +282,8 @@ export function QuickGradeForm() {
                 <span className="font-semibold">{resolveLocalized(g.subjectName, locale)}</span>
                 <span>{g.gradeValue}</span>
                 {g.note && <span className="text-neutral-500">({g.note})</span>}
-                <span className="text-primary-600 dark:text-primary-300 font-semibold">
+                <span className="text-primary-600 dark:text-primary-300 font-semibold inline-flex items-center gap-0.5">
+                  <BonusIcon className="w-3 h-3 text-primary-500" />
                   {Number(g.bonusPoints ?? 0) >= 0 ? '+' : ''}
                   {Number(g.bonusPoints ?? 0).toFixed(2)}
                 </span>

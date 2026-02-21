@@ -5,6 +5,7 @@ import { useTranslations, useLocale } from 'next-intl'
 import { useParentData, type ChildQuickGradeGroup } from '@/hooks/useParentData'
 import { resolveLocalized } from '@/lib/i18n'
 import { formatDate } from '@/lib/utils/grade-helpers'
+import { BonusIcon } from '@/components/ui'
 
 type Settlement = {
   id: string
@@ -408,8 +409,11 @@ export default function ParentRewardsPage() {
                                 {g.gradeValue}
                               </td>
                               <td className="py-1.5 px-2 text-right text-primary-600 dark:text-primary-300 font-semibold">
-                                {Number(g.bonusPoints ?? 0) >= 0 ? '+' : ''}
-                                {Number(g.bonusPoints ?? 0).toFixed(2)}
+                                <span className="inline-flex items-center gap-0.5">
+                                  <BonusIcon className="w-3 h-3 text-primary-500" />
+                                  {Number(g.bonusPoints ?? 0) >= 0 ? '+' : ''}
+                                  {Number(g.bonusPoints ?? 0).toFixed(2)}
+                                </span>
                               </td>
                               <td className="py-1.5 px-2 text-neutral-500 max-w-[120px] truncate">
                                 {g.note || '-'}
@@ -423,7 +427,8 @@ export default function ParentRewardsPage() {
                     {selectedGradeIds.size > 0 && (
                       <p className="text-sm text-neutral-700 dark:text-neutral-200">
                         {t('settleSelected')}: {selectedGradeIds.size} notes &middot;{' '}
-                        <span className="font-semibold text-primary-600 dark:text-primary-300">
+                        <span className="font-semibold text-primary-600 dark:text-primary-300 inline-flex items-center gap-1">
+                          <BonusIcon className="w-3.5 h-3.5 text-primary-500" />
                           {sym}
                           {(
                             unsettled
