@@ -68,7 +68,7 @@ function localePath(path: string, locale: string): string {
   return `/${locale}${path}`
 }
 
-export default async function middleware(req: NextRequest) {
+export default async function proxy(req: NextRequest) {
   const { pathname } = req.nextUrl
 
   // Skip static assets
