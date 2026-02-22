@@ -16,7 +16,8 @@
     "db:migrate": "drizzle-kit migrate",
     "db:push": "drizzle-kit push",
     "db:studio": "drizzle-kit studio",
-    "db:seed": "tsx drizzle/seed.ts"
+    "db:seed": "tsx drizzle/seed.ts",
+    "screenshots": "npx playwright test scripts/take-screenshots.ts --project=mobile --project=desktop"
   },
   "lint-staged": {
     "*.{ts,tsx}": [
@@ -50,7 +51,6 @@
     "next": "15.5.7",
     "next-auth": "^5.0.0-beta.30",
     "next-intl": "^4.3.9",
-    "next-pwa": "^5.6.0",
     "nodemailer": "^7.0.9",
     "pg": "^8.18.0",
     "qrcode.react": "^4.2.0",

@@ -7,6 +7,7 @@ import { ThemeProvider } from '@/components/providers/ThemeProvider'
 import { IdleLogoutGuard } from '@/components/auth/IdleLogoutGuard'
 import { CookieConsentBanner } from '@/components/cookies/CookieConsentBanner'
 import { routing } from '@/i18n/routing'
+import { ServiceWorkerRegistrar } from '@/components/pwa/ServiceWorkerRegistrar'
 import { Geist, Geist_Mono } from 'next/font/google'
 
 const geistSans = Geist({
@@ -57,6 +58,11 @@ export default async function LocaleLayout({
   return (
     <html lang={locale} suppressHydrationWarning>
       <head>
+        <link rel="manifest" href="/manifest.json" />
+        <meta name="theme-color" content="#7c3aed" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+        <meta name="apple-mobile-web-app-title" content="Bonifatus" />
         <script
           dangerouslySetInnerHTML={{
             __html: `(function(){try{var t=localStorage.getItem('theme-preference');if(t==='dark')document.documentElement.classList.add('dark')}catch(e){}})()`,
@@ -70,6 +76,7 @@ export default async function LocaleLayout({
               <IdleLogoutGuard />
               {children}
               <CookieConsentBanner />
+              <ServiceWorkerRegistrar />
             </ThemeProvider>
           </NextIntlClientProvider>
         </SessionProvider>
