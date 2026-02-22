@@ -28,7 +28,7 @@ export function TermComparisonChart({ data, height = 300 }: Props) {
             borderRadius: '8px',
             fontSize: 13,
           }}
-          formatter={(value: number) => [value.toFixed(2), 'Bonus Points']}
+          formatter={(value) => [Number(value).toFixed(2), 'Bonus Points']}
         />
         <Bar dataKey="bonus" fill="#7c3aed" radius={[4, 4, 0, 0]} />
       </BarChart>

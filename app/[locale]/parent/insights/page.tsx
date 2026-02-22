@@ -664,7 +664,7 @@ export default function ParentInsightsPage() {
                         <YAxis domain={[0, 100]} tick={{ fontSize: 12 }} stroke="#9ca3af" />
                         <Tooltip
                           contentStyle={TOOLTIP_STYLE}
-                          formatter={(value: number) => [value.toFixed(1), '']}
+                          formatter={(value) => [Number(value).toFixed(1), '']}
                         />
                         <Legend wrapperStyle={{ fontSize: 12 }} />
                         {visibleChildIds.map((id) => {

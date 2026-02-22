@@ -39,7 +39,7 @@ export function SubjectPerformanceChart({ data, height = 300 }: Props) {
             borderRadius: '8px',
             fontSize: 13,
           }}
-          formatter={(value: number) => [value.toFixed(1), 'Avg Score']}
+          formatter={(value) => [Number(value).toFixed(1), 'Avg Score']}
         />
         <Bar dataKey="avgScore" radius={[0, 4, 4, 0]}>
           {sorted.map((entry, index) => (

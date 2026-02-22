@@ -178,8 +178,8 @@ export default function SavingsSimulator() {
                   fontSize: '12px',
                   boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
                 }}
-                formatter={(value: number, name: string) => [
-                  formatCurrency(value),
+                formatter={(value, name) => [
+                  formatCurrency(Number(value)),
                   name === 'value' ? t('simulatedValue') : t('totalInvested'),
                 ]}
                 labelFormatter={(label) => `Year ${label}`}
