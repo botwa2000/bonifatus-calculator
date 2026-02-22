@@ -167,47 +167,56 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
             </h3>
             <div className="space-y-6">
               {[
-                { title: t('benefit1Title'), desc: t('benefit1Desc') },
-                { title: t('benefit2Title'), desc: t('benefit2Desc') },
-                { title: t('benefit3Title'), desc: t('benefit3Desc') },
-                { title: t('benefit4Title'), desc: t('benefit4Desc') },
-                { title: t('benefit5Title'), desc: t('benefit5Desc'), icon: 'savings' },
+                {
+                  title: t('benefit1Title'),
+                  desc: t('benefit1Desc'),
+                  color: 'bg-success-500',
+                  icon: 'M15 12a3 3 0 11-6 0 3 3 0 016 0z M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z',
+                },
+                {
+                  title: t('benefit2Title'),
+                  desc: t('benefit2Desc'),
+                  color: 'bg-info-500',
+                  icon: 'M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4',
+                },
+                {
+                  title: t('benefit3Title'),
+                  desc: t('benefit3Desc'),
+                  color: 'bg-warning-500',
+                  icon: 'M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z',
+                },
+                {
+                  title: t('benefit4Title'),
+                  desc: t('benefit4Desc'),
+                  color: 'bg-accent-500',
+                  icon: 'M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z',
+                },
+                {
+                  title: t('benefit5Title'),
+                  desc: t('benefit5Desc'),
+                  color: 'bg-primary-500',
+                  icon: 'M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z',
+                },
               ].map((b) => (
                 <div key={b.title} className="flex gap-4">
                   <div className="flex-shrink-0">
-                    {b.icon === 'savings' ? (
-                      <div className="w-8 h-8 bg-primary-500 rounded-full flex items-center justify-center">
-                        <svg
-                          className="w-5 h-5 text-white"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                          />
-                        </svg>
-                      </div>
-                    ) : (
-                      <div className="w-8 h-8 bg-success-500 rounded-full flex items-center justify-center">
-                        <svg
-                          className="w-5 h-5 text-white"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M5 13l4 4L19 7"
-                          />
-                        </svg>
-                      </div>
-                    )}
+                    <div
+                      className={`w-8 h-8 ${b.color} rounded-full flex items-center justify-center`}
+                    >
+                      <svg
+                        className="w-5 h-5 text-white"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d={b.icon}
+                        />
+                      </svg>
+                    </div>
                   </div>
                   <div>
                     <h4 className="text-lg font-semibold text-neutral-900 dark:text-white mb-1">
@@ -220,22 +229,33 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
             </div>
           </div>
 
-          <div className="relative flex items-center justify-center gap-4 py-4">
-            <div className="relative z-10 -rotate-3 rounded-3xl shadow-2xl overflow-hidden border-4 border-white dark:border-neutral-700">
-              <Image
-                src="/images/app/calculator.png"
-                alt="Bonifatus Calculator"
-                width={220}
-                height={440}
-                className="object-cover"
-              />
+          <div className="relative flex flex-col items-center gap-6 py-4">
+            <div className="flex items-center justify-center gap-4">
+              <div className="relative z-10 -rotate-3 rounded-3xl shadow-2xl overflow-hidden border-4 border-white dark:border-neutral-700">
+                <Image
+                  src="/images/screenshots/student-dashboard-mobile.png"
+                  alt="Bonifatus Student Dashboard"
+                  width={195}
+                  height={422}
+                  className="object-cover"
+                />
+              </div>
+              <div className="relative z-20 rotate-2 rounded-3xl shadow-2xl overflow-hidden border-4 border-white dark:border-neutral-700 -ml-6">
+                <Image
+                  src="/images/screenshots/parent-dashboard-mobile.png"
+                  alt="Bonifatus Parent Dashboard"
+                  width={195}
+                  height={422}
+                  className="object-cover"
+                />
+              </div>
             </div>
-            <div className="relative z-20 rotate-2 rounded-3xl shadow-2xl overflow-hidden border-4 border-white dark:border-neutral-700 -ml-6">
+            <div className="rounded-2xl shadow-2xl overflow-hidden border-4 border-white dark:border-neutral-700 rotate-1">
               <Image
-                src="/images/app/progress.png"
-                alt="Bonifatus Progress Tracking"
-                width={220}
-                height={440}
+                src="/images/screenshots/student-dashboard-desktop.png"
+                alt="Bonifatus Desktop Dashboard"
+                width={480}
+                height={300}
                 className="object-cover"
               />
             </div>
