@@ -92,7 +92,6 @@ export function useStudentData() {
 
   useEffect(() => {
     loadTerms()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   useEffect(() => {

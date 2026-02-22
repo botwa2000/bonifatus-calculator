@@ -411,7 +411,6 @@ export function DemoCalculator({
 
     loadConfig()
     loadUser()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   useEffect(() => {
@@ -427,7 +426,6 @@ export function DemoCalculator({
         setSelectedSystemId(storedDefault)
       }
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [defaultSystemKey])
 
   useEffect(() => {
@@ -484,7 +482,6 @@ export function DemoCalculator({
     } catch {
       // ignore parse errors
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [draftKey, initialData, loading, sortedGradingSystems, isDemo])
 
   const calcResult = useMemo(

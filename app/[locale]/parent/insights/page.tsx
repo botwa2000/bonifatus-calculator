@@ -128,7 +128,6 @@ export default function ParentInsightsPage() {
       })
     })
     return totalWeight > 0 ? totalWeighted / totalWeight : 0
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filteredTerms, selectedTier])
 
   const filteredBonus = useMemo(() => {
@@ -180,7 +179,6 @@ export default function ParentInsightsPage() {
         tier: deriveTier(avg),
       }
     })
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [childIds, childNames, filteredTerms, selectedTier, t])
 
   /* ── Comparative bonus by year ────────────────────────── */
@@ -220,7 +218,6 @@ export default function ParentInsightsPage() {
         })
         return row
       })
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filteredTerms, selectedTier])
 
   /* ── Subject performance ──────────────────────────────── */
@@ -240,7 +237,6 @@ export default function ParentInsightsPage() {
       subject: s.name,
       avgScore: s.totalWeight > 0 ? s.totalNorm / s.totalWeight : 0,
     }))
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filteredTerms, selectedTier, locale])
 
   /* ── Grade tier distribution ──────────────────────────── */
@@ -338,7 +334,6 @@ export default function ParentInsightsPage() {
         return { subject, ...avgs }
       })
       .sort((a, b) => a.subject.localeCompare(b.subject))
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filteredTerms, selectedTier, locale])
 
   /* ── Top & bottom subjects ────────────────────────────── */

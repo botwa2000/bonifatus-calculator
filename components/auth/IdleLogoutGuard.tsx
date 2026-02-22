@@ -169,7 +169,6 @@ export function IdleLogoutGuard() {
     hydrateLastActive()
     syncTimersFromLastActive()
     return () => clearTimers()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [hasSession])
 
   useEffect(() => {
@@ -211,7 +210,6 @@ export function IdleLogoutGuard() {
       window.removeEventListener('visibilitychange', onVisibilityReturn)
       window.removeEventListener('focus', onVisibilityReturn)
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [hasSession])
 
   useEffect(() => {
@@ -232,7 +230,6 @@ export function IdleLogoutGuard() {
     return () => {
       window.removeEventListener('storage', onStorage)
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [hasSession])
 
   return (
