@@ -1,5 +1,6 @@
 'use client'
 
+import { useEffect, useMemo, useState } from 'react'
 import { Link } from '@/i18n/navigation'
 import { useTranslations } from 'next-intl'
 import { useStudentData } from '@/hooks/useStudentData'
@@ -8,10 +9,67 @@ import { GradeTrendChart } from '@/components/charts'
 import { formatDate } from '@/lib/utils/grade-helpers'
 import { BonusIcon } from '@/components/ui'
 
+type ChildSettlement = {
+  id: string
+  amount: number
+  currency: string
+  method: string
+  notes: string | null
+  createdAt: string
+}
+
+const METHOD_ICONS: Record<string, string> = {
+  cash: '\u{1F4B5}',
+  bank: '\u{1F3E6}',
+  voucher: '\u{1F381}',
+  savings: '\u{1F3E0}',
+  invest: '\u{1F4C8}',
+}
+
+function currencySymbol(c: string) {
+  switch (c) {
+    case 'EUR':
+      return '\u20ac'
+    case 'USD':
+      return '$'
+    case 'GBP':
+      return '\u00a3'
+    case 'CHF':
+      return 'CHF '
+    default:
+      return c + ' '
+  }
+}
+
 export default function StudentDashboardPage() {
   const t = useTranslations('student')
   const tc = useTranslations('common')
   const { terms, loading, stats, profile, profileLoading } = useStudentData()
+
+  const [settlements, setSettlements] = useState<ChildSettlement[]>([])
+  const [settlementsLoaded, setSettlementsLoaded] = useState(false)
+
+  useEffect(() => {
+    async function loadSettlements() {
+      try {
+        const res = await fetch('/api/settlements/list')
+        const data = await res.json()
+        if (data.success) setSettlements(data.settlements || [])
+      } catch {
+        /* ignore */
+      } finally {
+        setSettlementsLoaded(true)
+      }
+    }
+    loadSettlements()
+  }, [])
+
+  const rewardStats = useMemo(() => {
+    if (settlements.length === 0) return null
+    const totalEarned = settlements.reduce((s, r) => s + r.amount, 0)
+    const currency = settlements[0]?.currency || 'EUR'
+    return { totalEarned, count: settlements.length, currency }
+  }, [settlements])
 
   const recentTerms = terms
     .slice()
@@ -174,20 +232,77 @@ export default function StudentDashboardPage() {
 
       {/* My Rewards Card */}
       {stats && (
-        <div className="rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-5 shadow-sm">
-          <h2 className="text-lg font-semibold text-neutral-900 dark:text-white mb-2">
+        <div className="rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-5 shadow-sm space-y-4">
+          <h2 className="text-lg font-semibold text-neutral-900 dark:text-white">
             {t('myRewards')}
           </h2>
-          <div className="flex items-baseline gap-2">
-            <p className="text-3xl font-bold text-primary-600 dark:text-primary-300 flex items-center gap-1">
-              <BonusIcon className="w-6 h-6 text-primary-500" />
-              {stats.total.toFixed(2)}
-            </p>
-            <p className="text-sm text-neutral-500">{t('totalEarned')}</p>
+
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+            <div className="rounded-xl bg-gradient-to-br from-primary-50 to-secondary-50 dark:from-primary-900/20 dark:to-secondary-900/20 border border-primary-100 dark:border-primary-800 p-3">
+              <p className="text-xs text-primary-600 dark:text-primary-400 font-medium">
+                {t('totalBonusPoints')}
+              </p>
+              <p className="text-xl font-bold text-primary-700 dark:text-primary-200 flex items-center gap-1">
+                <BonusIcon className="w-4 h-4 text-primary-500" />
+                {stats.total.toFixed(1)}
+              </p>
+            </div>
+            {rewardStats && (
+              <>
+                <div className="rounded-xl bg-success-50 dark:bg-success-900/20 border border-success-100 dark:border-success-800 p-3">
+                  <p className="text-xs text-success-600 dark:text-success-400 font-medium">
+                    Ausgezahlt
+                  </p>
+                  <p className="text-xl font-bold text-success-700 dark:text-success-200">
+                    {currencySymbol(rewardStats.currency)}
+                    {rewardStats.totalEarned.toFixed(2)}
+                  </p>
+                </div>
+                <div className="rounded-xl bg-amber-50 dark:bg-amber-900/20 border border-amber-100 dark:border-amber-800 p-3">
+                  <p className="text-xs text-amber-600 dark:text-amber-400 font-medium">
+                    Auszahlungen
+                  </p>
+                  <p className="text-xl font-bold text-amber-700 dark:text-amber-200">
+                    {rewardStats.count}
+                  </p>
+                </div>
+              </>
+            )}
           </div>
-          <p className="mt-2 text-xs text-neutral-500 dark:text-neutral-400">
-            {t('recentSettlements')}
-          </p>
+
+          {/* Recent Settlements */}
+          {settlementsLoaded && settlements.length > 0 && (
+            <div className="space-y-2">
+              <p className="text-sm font-semibold text-neutral-700 dark:text-neutral-200">
+                {t('recentSettlements')}
+              </p>
+              {settlements.slice(0, 5).map((s) => (
+                <div
+                  key={s.id}
+                  className="flex items-center gap-3 rounded-xl border border-neutral-100 dark:border-neutral-800 px-3 py-2 hover:bg-neutral-50 dark:hover:bg-neutral-800/40 transition"
+                >
+                  <div className="w-8 h-8 rounded-full bg-success-50 dark:bg-success-900/30 flex items-center justify-center text-sm flex-shrink-0">
+                    {METHOD_ICONS[s.method] || '\u{1F4B0}'}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-semibold text-success-600 dark:text-success-300">
+                      +{currencySymbol(s.currency)}
+                      {s.amount.toFixed(2)}
+                    </p>
+                    <p className="text-xs text-neutral-500 truncate">
+                      {formatDate(s.createdAt)}
+                      {s.notes ? ` \u2014 ${s.notes}` : ''}
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+          {settlementsLoaded && settlements.length === 0 && (
+            <p className="text-xs text-neutral-500 dark:text-neutral-400">
+              Noch keine Auszahlungen erhalten. Gib dein Bestes!
+            </p>
+          )}
         </div>
       )}
     </div>

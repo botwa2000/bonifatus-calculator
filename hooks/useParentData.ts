@@ -124,10 +124,23 @@ export function useParentData() {
       ])
 
       if (!connRes.ok || !connJson.success) {
+        if (connRes.status === 401 || connRes.status === 403) {
+          throw new Error('Session expired. Please log in again.')
+        }
         throw new Error(connJson.error || 'Failed to load connections')
       }
       setConnections(connJson.asParent || [])
       setInvites(connJson.invites || [])
+
+      // Check for auth failures on grades/quick-grades APIs
+      if (
+        gradesRes.status === 401 ||
+        gradesRes.status === 403 ||
+        qgRes.status === 401 ||
+        qgRes.status === 403
+      ) {
+        throw new Error('Session expired. Please log in again.')
+      }
 
       if (gradesRes.ok && gradesJson.success) {
         const summaries: Record<string, ChildGradeSummary> = {}

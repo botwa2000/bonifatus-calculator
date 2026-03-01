@@ -1,7 +1,7 @@
 import { db } from '@/lib/db/client'
 import { settlements } from '@/drizzle/schema/settlements'
 import { quickGrades } from '@/drizzle/schema/quickGrades'
-import { subjects } from '@/drizzle/schema/grades'
+import { subjects, subjectGrades, termGrades } from '@/drizzle/schema/grades'
 import { userProfiles } from '@/drizzle/schema/users'
 import { eq, and, desc, inArray } from 'drizzle-orm'
 
@@ -13,7 +13,8 @@ export async function createSettlement(data: {
   method: string
   notes?: string
   splitConfig?: Record<string, number>
-  quickGradeIds: string[]
+  quickGradeIds?: string[]
+  subjectGradeIds?: string[]
 }) {
   const settlementId = crypto.randomUUID()
   await db.insert(settlements).values({
@@ -27,12 +28,20 @@ export async function createSettlement(data: {
     splitConfig: data.splitConfig || null,
   })
 
-  // Mark the quick grades as settled
-  if (data.quickGradeIds.length > 0) {
+  // Mark quick grades as settled
+  if (data.quickGradeIds && data.quickGradeIds.length > 0) {
     await db
       .update(quickGrades)
       .set({ settlementStatus: 'settled', settlementId, updatedAt: new Date() })
       .where(inArray(quickGrades.id, data.quickGradeIds))
+  }
+
+  // Mark subject grades (from saved terms) as settled
+  if (data.subjectGradeIds && data.subjectGradeIds.length > 0) {
+    await db
+      .update(subjectGrades)
+      .set({ settlementStatus: 'settled', settlementId, updatedAt: new Date() })
+      .where(inArray(subjectGrades.id, data.subjectGradeIds))
   }
 
   return settlementId
@@ -117,5 +126,29 @@ export async function getChildQuickGrades(childId: string) {
     .leftJoin(subjects, eq(quickGrades.subjectId, subjects.id))
     .where(eq(quickGrades.childId, childId))
     .orderBy(desc(quickGrades.createdAt))
+    .limit(200)
+}
+
+/** Get unsettled subject grades from saved terms for a child */
+export async function getUnsettledSubjectGrades(childId: string) {
+  return db
+    .select({
+      id: subjectGrades.id,
+      subjectId: subjectGrades.subjectId,
+      gradeValue: subjectGrades.gradeValue,
+      gradeNormalized100: subjectGrades.gradeNormalized100,
+      gradeQualityTier: subjectGrades.gradeQualityTier,
+      bonusPoints: subjectGrades.bonusPoints,
+      settlementStatus: subjectGrades.settlementStatus,
+      createdAt: subjectGrades.createdAt,
+      subjectName: subjects.name,
+      schoolYear: termGrades.schoolYear,
+      termType: termGrades.termType,
+    })
+    .from(subjectGrades)
+    .innerJoin(termGrades, eq(subjectGrades.termGradeId, termGrades.id))
+    .leftJoin(subjects, eq(subjectGrades.subjectId, subjects.id))
+    .where(and(eq(termGrades.childId, childId), eq(subjectGrades.settlementStatus, 'unsettled')))
+    .orderBy(desc(subjectGrades.createdAt))
     .limit(200)
 }

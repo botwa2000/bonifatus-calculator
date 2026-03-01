@@ -10,6 +10,7 @@ import {
 } from 'drizzle-orm/pg-core'
 import { relations } from 'drizzle-orm'
 import { userProfiles } from './users'
+import { settlements } from './settlements'
 
 export const scaleTypeEnum = pgEnum('scale_type', ['letter', 'numeric', 'percentage'])
 export const gradeQualityTierEnum = pgEnum('grade_quality_tier', [
@@ -124,6 +125,8 @@ export const subjectGrades = pgTable('subject_grades', {
   gradeQualityTier: gradeQualityTierEnum('grade_quality_tier'),
   subjectWeight: real('subject_weight').default(1),
   bonusPoints: real('bonus_points'),
+  settlementStatus: text('settlement_status').default('unsettled').notNull(),
+  settlementId: text('settlement_id').references(() => settlements.id, { onDelete: 'set null' }),
   createdAt: timestamp('created_at', { mode: 'date' }).defaultNow(),
   updatedAt: timestamp('updated_at', { mode: 'date' }).defaultNow(),
 })
@@ -136,5 +139,9 @@ export const subjectGradesRelations = relations(subjectGrades, ({ one }) => ({
   subject: one(subjects, {
     fields: [subjectGrades.subjectId],
     references: [subjects.id],
+  }),
+  settlement: one(settlements, {
+    fields: [subjectGrades.settlementId],
+    references: [settlements.id],
   }),
 }))

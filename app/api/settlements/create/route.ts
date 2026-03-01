@@ -11,7 +11,8 @@ const schema = z.object({
   method: z.string().min(1).max(50),
   notes: z.string().max(500).optional(),
   splitConfig: z.record(z.string(), z.number()).optional(),
-  quickGradeIds: z.array(z.string()).min(1),
+  quickGradeIds: z.array(z.string()).optional(),
+  subjectGradeIds: z.array(z.string()).optional(),
 })
 
 export async function POST(request: NextRequest) {
@@ -48,6 +49,15 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    const qgIds = parsed.data.quickGradeIds || []
+    const sgIds = parsed.data.subjectGradeIds || []
+    if (qgIds.length === 0 && sgIds.length === 0) {
+      return NextResponse.json(
+        { success: false, error: 'At least one grade must be selected' },
+        { status: 400 }
+      )
+    }
+
     const settlementId = await createSettlement({
       parentId: profile.id,
       childId: parsed.data.childId,
@@ -56,7 +66,8 @@ export async function POST(request: NextRequest) {
       method: parsed.data.method,
       notes: parsed.data.notes,
       splitConfig: parsed.data.splitConfig,
-      quickGradeIds: parsed.data.quickGradeIds,
+      quickGradeIds: qgIds,
+      subjectGradeIds: sgIds,
     })
 
     return NextResponse.json({ success: true, settlementId })

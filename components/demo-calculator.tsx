@@ -155,8 +155,9 @@ function calculateBonus(
   let totalWeightedNormalized = 0
   let totalWeight = 0
 
-  // Get class level factor from DB (class_1=1.0, class_2=1.1, ..., class_13=2.2)
-  const classLevelFactor = getFactorValue(factors, 'class_level', `class_${classLevel}`, 1) ?? 1
+  // Class level factor equals the class number (5th class = 5, 10th class = 10)
+  const classLevelFactor =
+    getFactorValue(factors, 'class_level', `class_${classLevel}`, classLevel) ?? classLevel
 
   // Get term factor from DB
   const termFactor = getFactorValue(factors, 'term_type', termType, 1) ?? 1

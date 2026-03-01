@@ -1085,7 +1085,8 @@ async function seed() {
   // ---------------------------------------------------------------------------
   // Bonus factor defaults
   // ---------------------------------------------------------------------------
-  // Bonus formula: class_level x term_factor x grade_factor (floored at 0)
+  // Bonus formula: class_level × term_factor × grade_factor × weight (floored at 0)
+  // Class level factor = class number (5th class = 5, 10th class = 10)
   console.log('Seeding bonus factor defaults...')
   await db
     .insert(bonusFactorDefaults)

@@ -48,8 +48,15 @@ export default function ParentInsightsPage() {
   const t = useTranslations('parent')
   const tc = useTranslations('common')
   const locale = useLocale()
-  const { connections, loading, gradeSummaries, allChildTerms, combinedBonus, gradesLoaded } =
-    useParentData()
+  const {
+    connections,
+    loading,
+    error,
+    gradeSummaries,
+    allChildTerms,
+    combinedBonus,
+    gradesLoaded,
+  } = useParentData()
 
   /* ── Filter state ─────────────────────────────────────── */
 
@@ -354,7 +361,7 @@ export default function ParentInsightsPage() {
     setSelectedTier('all')
   }
 
-  /* ── Loading ──────────────────────────────────────────── */
+  /* ── Loading / Error ─────────────────────────────────── */
 
   if (loading) {
     return (
@@ -368,6 +375,16 @@ export default function ParentInsightsPage() {
               </div>
             </Card>
           ))}
+        </div>
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+        <div className="rounded-xl border border-error-200 bg-error-50 dark:bg-error-900/20 dark:border-error-800 text-error-700 dark:text-error-300 px-4 py-3">
+          {error}
         </div>
       </div>
     )

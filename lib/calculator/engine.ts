@@ -154,9 +154,11 @@ export function calculateSingleGradeBonus(input: SingleGradeInput): CalculatorSu
   const normalized = normalizeGrade(gradingSystem, subject.grade)
   const tier = deriveTier(gradingSystem, subject.grade)
 
-  // Formula: class_level_factor × term_factor × grade_factor × weight
+  // Formula: class_level × term_factor × grade_factor × weight
+  // Class level factor equals the class number (5th class = 5, 10th class = 10)
   const classLevelFactor =
-    factorValue('class_level', `class_${classLevel}`, factors.defaults, factors.overrides) ?? 1
+    factorValue('class_level', `class_${classLevel}`, factors.defaults, factors.overrides) ??
+    classLevel
   const termFactor =
     factorValue('term_type', termType ?? 'semester_2', factors.defaults, factors.overrides) ?? 1
   const gradeFactor = gradeFactorForTier(tier, factors.defaults, factors.overrides)
@@ -178,9 +180,11 @@ export function calculateSingleGradeBonus(input: SingleGradeInput): CalculatorSu
 export function calculateBonus(input: CalculatorInput): CalculatorResult {
   const { gradingSystem, factors, classLevel, termType, subjects } = input
 
-  // Formula: class_level_factor × term_factor × grade_factor × weight, floored at 0
+  // Formula: class_level × term_factor × grade_factor × weight, floored at 0
+  // Class level factor equals the class number (5th class = 5, 10th class = 10)
   const classLevelFactor =
-    factorValue('class_level', `class_${classLevel}`, factors.defaults, factors.overrides) ?? 1
+    factorValue('class_level', `class_${classLevel}`, factors.defaults, factors.overrides) ??
+    classLevel
   const termFactor = factorValue('term_type', termType, factors.defaults, factors.overrides) ?? 1
 
   const breakdown: CalculatorSubjectResult[] = subjects.map((sub) => {
