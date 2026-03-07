@@ -62,3 +62,25 @@ coverage/
 *.pem
 
 .claude/
+
+# Capacitor
+/out/
+
+# Android build artifacts (keep project files)
+android/app/build/
+android/.gradle/
+android/build/
+android/local.properties
+android/.idea/
+android/app/src/main/assets/public/
+android/app/src/main/assets/capacitor.config.json
+*.apk
+*.aab
+*.keystore
+
+# iOS build artifacts (keep project files)
+ios/App/Pods/
+ios/App/build/
+ios/App/DerivedData/
+ios/App/App/public/
+ios/App/capacitor.config.json

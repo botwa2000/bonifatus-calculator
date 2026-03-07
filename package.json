@@ -17,7 +17,13 @@
     "db:push": "drizzle-kit push",
     "db:studio": "drizzle-kit studio",
     "db:seed": "tsx drizzle/seed.ts",
-    "screenshots": "npx playwright test scripts/take-screenshots.ts --project=mobile --project=desktop"
+    "screenshots": "npx playwright test scripts/take-screenshots.ts --project=mobile --project=desktop",
+    "cap:sync": "npx cap sync",
+    "cap:open:android": "npx cap open android",
+    "cap:open:ios": "npx cap open ios",
+    "cap:build:android": "npx cap sync android && cd android && ./gradlew assembleRelease",
+    "cap:build:android:debug": "npx cap sync android && cd android && ./gradlew assembleDebug",
+    "cap:run:android": "npx cap run android"
   },
   "lint-staged": {
     "*.{ts,tsx}": [
@@ -30,6 +36,14 @@
   },
   "dependencies": {
     "@auth/drizzle-adapter": "^1.11.1",
+    "@capacitor/android": "^8.2.0",
+    "@capacitor/app": "^8.0.1",
+    "@capacitor/core": "^8.2.0",
+    "@capacitor/haptics": "^8.0.1",
+    "@capacitor/ios": "^8.2.0",
+    "@capacitor/keyboard": "^8.0.1",
+    "@capacitor/splash-screen": "^8.0.1",
+    "@capacitor/status-bar": "^8.0.1",
     "@hookform/resolvers": "^5.2.2",
     "@radix-ui/react-avatar": "^1.1.10",
     "@radix-ui/react-checkbox": "^1.3.3",
@@ -66,6 +80,7 @@
     "zod": "^4.1.12"
   },
   "devDependencies": {
+    "@capacitor/cli": "^8.2.0",
     "@playwright/test": "^1.55.1",
     "@tailwindcss/postcss": "^4",
     "@testing-library/jest-dom": "^6.9.1",

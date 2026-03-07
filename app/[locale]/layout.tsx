@@ -8,6 +8,7 @@ import { IdleLogoutGuard } from '@/components/auth/IdleLogoutGuard'
 import { CookieConsentBanner } from '@/components/cookies/CookieConsentBanner'
 import { routing } from '@/i18n/routing'
 import { ServiceWorkerRegistrar } from '@/components/pwa/ServiceWorkerRegistrar'
+import { CapacitorInit } from '@/components/native/CapacitorInit'
 import { Geist, Geist_Mono } from 'next/font/google'
 
 const geistSans = Geist({
@@ -77,6 +78,7 @@ export default async function LocaleLayout({
               {children}
               <CookieConsentBanner />
               <ServiceWorkerRegistrar />
+              <CapacitorInit />
             </ThemeProvider>
           </NextIntlClientProvider>
         </SessionProvider>
