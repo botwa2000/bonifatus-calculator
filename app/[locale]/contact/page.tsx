@@ -4,8 +4,6 @@ import { AppHeader } from '@/components/layout/AppHeader'
 import { ContactForm } from '@/components/contact-form'
 import { auth } from '@/auth'
 
-export const dynamic = 'force-dynamic'
-
 export default async function ContactPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params
   setRequestLocale(locale)

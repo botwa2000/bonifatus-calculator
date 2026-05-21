@@ -3,8 +3,6 @@ import { setRequestLocale, getTranslations } from 'next-intl/server'
 import { AppHeader } from '@/components/layout/AppHeader'
 import { auth } from '@/auth'
 
-export const dynamic = 'force-dynamic'
-
 export default async function TermsPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params
   setRequestLocale(locale)

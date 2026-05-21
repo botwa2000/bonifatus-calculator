@@ -4,8 +4,6 @@ import { AppHeader } from '@/components/layout/AppHeader'
 import { FaqSection } from '@/components/faq-section'
 import { auth } from '@/auth'
 
-export const dynamic = 'force-dynamic'
-
 export default async function FaqPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params
   setRequestLocale(locale)
