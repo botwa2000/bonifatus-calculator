@@ -83,9 +83,12 @@ export async function POST(request: NextRequest) {
       .set({ verifiedAt: new Date() })
       .where(eq(verificationCodes.id, record.id))
 
-    // Update password
+    // Update password and mark email as verified (user proved ownership via the reset code)
     const hashedPassword = await bcrypt.hash(newPassword, 12)
-    await db.update(users).set({ password: hashedPassword }).where(eq(users.id, userId))
+    await db
+      .update(users)
+      .set({ password: hashedPassword, emailVerified: new Date() })
+      .where(eq(users.id, userId))
 
     await logSecurityEvent({
       eventType: 'password_reset',
