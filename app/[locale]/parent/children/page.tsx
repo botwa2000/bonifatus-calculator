@@ -47,10 +47,12 @@ type TermPreview = {
   total_bonus_points: number
   created_at: string
   subject_count: number
+  class_level: number
   subject_grades: Array<{
     id: string
     grade_value: string | null
     grade_normalized_100: number | null
+    grade_quality_tier: string | null
     subject_weight: number | null
     bonus_points: number | null
     subjects?: { name?: string | Record<string, string> | null } | null
@@ -165,6 +167,7 @@ export default function ParentChildrenPage() {
               total_bonus_points: Number(t.total_bonus_points ?? 0),
               created_at: t.created_at,
               subject_count: (t.subject_grades || []).length,
+              class_level: Number((t as Record<string, unknown>).class_level ?? 0),
               subject_grades: (t.subject_grades || []) as TermPreview['subject_grades'],
             }))
         })
@@ -255,6 +258,28 @@ export default function ParentChildrenPage() {
       const nameB = resolveLocalized(b.subjects?.name, locale) || ''
       return nameA.localeCompare(nameB)
     })
+
+  const TIER_META: Record<string, { label: string; color: string; dot: string }> = {
+    best: { label: 'Best', color: 'text-green-600 dark:text-green-400', dot: 'bg-green-500' },
+    second: { label: 'Good', color: 'text-indigo-600 dark:text-indigo-400', dot: 'bg-indigo-500' },
+    third: { label: 'Pass', color: 'text-amber-600 dark:text-amber-400', dot: 'bg-amber-500' },
+    below: { label: 'Below', color: 'text-red-600 dark:text-red-400', dot: 'bg-red-500' },
+  }
+  const TIER_ORDER = ['best', 'second', 'third', 'below']
+
+  function buildTermStats(term: TermPreview) {
+    const byTier: Record<string, { count: number; totalBonus: number; bonusEach: number }> = {}
+    for (const sg of term.subject_grades) {
+      const tier = sg.grade_quality_tier || 'below'
+      const bonus = Number(sg.bonus_points ?? 0)
+      if (!byTier[tier]) byTier[tier] = { count: 0, totalBonus: 0, bonusEach: bonus }
+      byTier[tier].count++
+      byTier[tier].totalBonus += bonus
+      // bonusEach = representative per-subject bonus for uniform-weight tiers
+      byTier[tier].bonusEach = byTier[tier].totalBonus / byTier[tier].count
+    }
+    return byTier
+  }
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-6">
@@ -415,6 +440,62 @@ export default function ParentChildrenPage() {
                                       </div>
                                       {isOpen && (
                                         <div className="space-y-1.5 pt-1">
+                                          {/* Grade stats + bonus breakdown */}
+                                          {subjects.length > 0 &&
+                                            (() => {
+                                              const stats = buildTermStats(term)
+                                              return (
+                                                <div className="rounded border border-neutral-200 dark:border-neutral-800 bg-neutral-50 dark:bg-neutral-900/60 px-3 py-2 space-y-1.5 text-[11px]">
+                                                  <p className="font-semibold text-neutral-700 dark:text-neutral-300 text-xs">
+                                                    Grade breakdown · Class {term.class_level}
+                                                  </p>
+                                                  <div className="space-y-1">
+                                                    {TIER_ORDER.filter((tier) => stats[tier]).map(
+                                                      (tier) => {
+                                                        const s = stats[tier]
+                                                        const meta = TIER_META[tier]
+                                                        return (
+                                                          <div
+                                                            key={tier}
+                                                            className="flex items-center justify-between gap-2"
+                                                          >
+                                                            <div className="flex items-center gap-1.5">
+                                                              <span
+                                                                className={`w-2 h-2 rounded-full flex-shrink-0 ${meta.dot}`}
+                                                              />
+                                                              <span
+                                                                className={`font-medium ${meta.color}`}
+                                                              >
+                                                                {meta.label}
+                                                              </span>
+                                                              <span className="text-neutral-500">
+                                                                {s.count} subject
+                                                                {s.count !== 1 ? 's' : ''}
+                                                              </span>
+                                                            </div>
+                                                            <span className="text-neutral-600 dark:text-neutral-300 font-mono">
+                                                              {s.count} × {s.bonusEach.toFixed(2)} ={' '}
+                                                              <span className="font-semibold">
+                                                                {s.totalBonus.toFixed(2)}
+                                                              </span>
+                                                            </span>
+                                                          </div>
+                                                        )
+                                                      }
+                                                    )}
+                                                  </div>
+                                                  <div className="border-t border-neutral-200 dark:border-neutral-700 pt-1 flex items-center justify-between">
+                                                    <span className="text-neutral-500">
+                                                      Formula: Class {term.class_level} × Term
+                                                      factor × Grade tier
+                                                    </span>
+                                                    <span className="font-semibold text-primary-600 dark:text-primary-300">
+                                                      Total {term.total_bonus_points.toFixed(2)} pts
+                                                    </span>
+                                                  </div>
+                                                </div>
+                                              )
+                                            })()}
                                           {subjects.length === 0 ? (
                                             <p className="text-neutral-500">
                                               {t('noSubjectsRecorded')}
