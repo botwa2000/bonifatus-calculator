@@ -47,6 +47,31 @@ export function convertNormalizedToScale(
   return min + (normalized / 100) * (max - min)
 }
 
+/**
+ * KMK formula: converts a DE_GYMNASIUM average (0-15 Punkte) to the 1-6 university scale.
+ * Note = (17 - P) / 3, clamped to [1.0, 6.0]. P = 0 → 6.0 by convention.
+ */
+export function convertPoints15ToGrade6(avgPoints: number): number {
+  if (avgPoints <= 0) return 6.0
+  const grade = (17 - avgPoints) / 3
+  return Math.round(Math.max(1.0, Math.min(6.0, grade)) * 10) / 10
+}
+
+/**
+ * Returns a bracketed secondary-scale label for grading systems that have a standard
+ * university translation (e.g. DE_GYMNASIUM → 1-6), or null for all other systems.
+ * Example: formatSecondaryAverage('DE_GYMNASIUM', 10.5) → "(≈ 2.2)"
+ */
+export function formatSecondaryAverage(
+  systemCode: string | null | undefined,
+  avgNative: number
+): string | null {
+  if (systemCode === 'DE_GYMNASIUM') {
+    return `(≈ ${convertPoints15ToGrade6(avgNative).toFixed(1)})`
+  }
+  return null
+}
+
 export function deriveTier(normalized: number): string {
   if (normalized >= 75) return 'best'
   if (normalized >= 50) return 'second'

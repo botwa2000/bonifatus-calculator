@@ -6,7 +6,11 @@ import { Link } from '@/i18n/navigation'
 import Image from 'next/image'
 import { resolveLocalized } from '@/lib/i18n'
 import { useStudentData, Term } from '@/hooks/useStudentData'
-import { formatDate, convertNormalizedToScale } from '@/lib/utils/grade-helpers'
+import {
+  formatDate,
+  convertNormalizedToScale,
+  formatSecondaryAverage,
+} from '@/lib/utils/grade-helpers'
 import { BonusIcon } from '@/components/ui'
 
 /* ------------------------------------------------------------------ */
@@ -378,7 +382,11 @@ export default function StudentSavedPage() {
                           const avgNorm = totals.weight > 0 ? totals.weighted / totals.weight : 0
                           const avgRaw = convertNormalizedToScale(term.grading_systems, avgNorm)
                           const max = term.grading_systems?.max_value
-                          return `${avgRaw.toFixed(2)}${max ? ` / ${Number(max)}` : ''}`
+                          const secondary = formatSecondaryAverage(
+                            term.grading_systems?.code,
+                            avgRaw
+                          )
+                          return `${avgRaw.toFixed(2)}${max ? ` / ${Number(max)}` : ''}${secondary ? ` ${secondary}` : ''}`
                         })(),
                       })}
                     </p>

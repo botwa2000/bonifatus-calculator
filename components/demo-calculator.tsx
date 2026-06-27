@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { useLocale, useTranslations } from 'next-intl'
 import { resolveLocalized } from '@/lib/i18n'
 import { Button, Select, Accordion, FormField, Tooltip, SubjectCombobox } from '@/components/ui'
+import { formatSecondaryAverage } from '@/lib/utils/grade-helpers'
 
 type GradeDefinition = {
   grade?: string
@@ -952,10 +953,11 @@ export function DemoCalculator({
                       )
                       const max = selectedSystem?.maxValue
                       const scaleLabel = max ? ` / ${Number(max)}` : ''
+                      const secondary = formatSecondaryAverage(selectedSystem?.code, avgRaw)
                       return t('subjectsAvg', {
                         count: calcResult.subjectCount,
                         avg: avgRaw.toFixed(2),
-                        scale: scaleLabel,
+                        scale: scaleLabel + (secondary ? ` ${secondary}` : ''),
                       })
                     })()}
                   </p>
