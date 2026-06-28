@@ -308,6 +308,10 @@ export default function LoginPage() {
                       setStatusMessage('')
                       setTurnstileLoading(false)
                       clearFallbackTimer()
+                      if (pendingSubmitRef.current) {
+                        pendingSubmitRef.current = false
+                        void submitLogin('')
+                      }
                       return
                     }
                     setError(t('securityFailed'))
@@ -322,6 +326,10 @@ export default function LoginPage() {
                       setTurnstileFailed(true)
                       setStatusMessage('')
                       setError('')
+                      if (pendingSubmitRef.current) {
+                        pendingSubmitRef.current = false
+                        void submitLogin('')
+                      }
                     }, visibleFallbackTimeoutMs)
                   }}
                   onExpire={() => {
