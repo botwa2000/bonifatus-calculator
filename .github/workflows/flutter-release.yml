@@ -134,16 +134,24 @@ jobs:
       - name: Trigger Codemagic flutter-release
         env:
           CM_TOKEN: ${{ secrets.CODEMAGIC_API_TOKEN }}
+          CERT_KEY: ${{ secrets.CM_CERTIFICATE_PRIVATE_KEY }}
         run: |
           APP_ID="${{ secrets.BONIFATUS_CODEMAGIC_APP_ID }}"
           if [ -z "$APP_ID" ]; then
             echo "::error::BONIFATUS_CODEMAGIC_APP_ID secret is not set."
             exit 1
           fi
+          # Pass CM_CERTIFICATE_PRIVATE_KEY at trigger time so Codemagic
+          # doesn't need it stored as an app-level variable.
+          PAYLOAD=$(jq -n \
+            --arg appId "$APP_ID" \
+            --arg key "$CERT_KEY" \
+            '{appId: $appId, workflowId: "flutter-release", branch: "main",
+              environment: {variables: {CM_CERTIFICATE_PRIVATE_KEY: $key}}}')
           resp=$(curl -s -w "\n%{http_code}" -X POST \
             -H "x-auth-token: $CM_TOKEN" \
             -H "Content-Type: application/json" \
-            --data "{\"appId\": \"$APP_ID\", \"workflowId\": \"flutter-release\", \"branch\": \"main\"}" \
+            --data "$PAYLOAD" \
             https://api.codemagic.io/builds)
           code=$(echo "$resp" | tail -n1)
           body=$(echo "$resp" | sed '$d')
