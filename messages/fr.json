@@ -240,7 +240,7 @@
     "botProtectionNotConfigured": "La protection anti-bot n'est pas configurée. Réessaie plus tard.",
     "pleaseCheckBox": "Coche la case pour vérifier que tu n'es pas un robot.",
     "verifyingNotRobot": "Vérification que tu n'es pas un robot...",
-    "securityCheck": "Vérification de sécurité en cours... cela peut prendre jusqu'à une minute.",
+    "securityCheck": "Vérification de sécurité en cours...",
     "securityFailed": "La vérification de sécurité a échoué. Coche la case et réessaie.",
     "securityRefresh": "La vérification de sécurité a échoué. Actualise la page.",
     "botProtectionUnavailable": "La protection anti-bot est indisponible. Tu peux quand même te connecter.",

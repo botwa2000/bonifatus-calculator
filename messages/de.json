@@ -240,7 +240,7 @@
     "botProtectionNotConfigured": "Bot-Schutz ist nicht konfiguriert. Bitte versuche es später erneut.",
     "pleaseCheckBox": "Bitte setze das Häkchen, um zu bestätigen, dass du kein Roboter bist.",
     "verifyingNotRobot": "Überprüfung, dass du kein Roboter bist...",
-    "securityCheck": "Sicherheitsüberprüfung wird durchgeführt... das kann bis zu einer Minute dauern.",
+    "securityCheck": "Sicherheitsüberprüfung wird durchgeführt...",
     "securityFailed": "Sicherheitsüberprüfung fehlgeschlagen. Bitte setze das Häkchen und versuche es erneut.",
     "securityRefresh": "Sicherheitsüberprüfung fehlgeschlagen. Bitte lade die Seite neu.",
     "botProtectionUnavailable": "Bot-Schutz ist nicht verfügbar. Du kannst dich trotzdem anmelden.",

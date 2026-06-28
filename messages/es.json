@@ -240,7 +240,7 @@
     "botProtectionNotConfigured": "La protección contra bots no está configurada. Por favor, inténtalo más tarde.",
     "pleaseCheckBox": "Por favor, marca la casilla para verificar que no eres un robot.",
     "verifyingNotRobot": "Verificando que no eres un robot...",
-    "securityCheck": "Realizando una verificación de seguridad... esto puede tardar hasta un minuto.",
+    "securityCheck": "Realizando una verificación de seguridad...",
     "securityFailed": "La verificación de seguridad falló. Por favor, marca la casilla e inténtalo de nuevo.",
     "securityRefresh": "La verificación de seguridad falló. Por favor, actualiza la página.",
     "botProtectionUnavailable": "La protección contra bots no está disponible. Aún puedes iniciar sesión.",

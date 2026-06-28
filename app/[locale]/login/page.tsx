@@ -32,8 +32,8 @@ export default function LoginPage() {
   const pendingSubmitRef = useRef(false)
   const fallbackTimerRef = useRef<number | null>(null)
   const visibleFallbackTimerRef = useRef<number | null>(null)
-  const fallbackTimeoutMs = 45000
-  const visibleFallbackTimeoutMs = 30000
+  const fallbackTimeoutMs = 8000
+  const visibleFallbackTimeoutMs = 15000
 
   const clearFallbackTimer = () => {
     if (fallbackTimerRef.current) {
@@ -52,12 +52,17 @@ export default function LoginPage() {
     setTurnstileToken('')
     setStatusMessage(t('pleaseCheckBox'))
     setTurnstileLoading(false)
+    setLoading(false)
     forceRender((v) => v + 1)
     dbg('login', 'turnstile fallback to visible widget')
     visibleFallbackTimerRef.current = window.setTimeout(() => {
       dbg('login', 'visible turnstile also timed out, allowing login without token')
       setTurnstileFailed(true)
       setStatusMessage('')
+      if (pendingSubmitRef.current) {
+        pendingSubmitRef.current = false
+        void submitLogin('')
+      }
     }, visibleFallbackTimeoutMs)
   }
 

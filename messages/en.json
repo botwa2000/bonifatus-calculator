@@ -240,7 +240,7 @@
     "botProtectionNotConfigured": "Bot protection is not configured. Please try again later.",
     "pleaseCheckBox": "Please check the box to verify you are not a robot.",
     "verifyingNotRobot": "Verifying you are not a robot...",
-    "securityCheck": "Performing a security check... this may take up to a minute.",
+    "securityCheck": "Performing a security check...",
     "securityFailed": "Security verification failed. Please check the box and try again.",
     "securityRefresh": "Security verification failed. Please refresh the page.",
     "botProtectionUnavailable": "Bot protection is unavailable. You can still sign in.",
