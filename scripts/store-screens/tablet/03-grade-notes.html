@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1024">
+<title>Bonifatus – Meine Notizen</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html,body{width:1024px;height:1366px;overflow:hidden;font-family:-apple-system,system-ui,'Helvetica Neue',sans-serif;background:#F9FAFB;}
+
+.promo-banner{height:76px;background:linear-gradient(135deg,#4F46E5 0%,#7C3AED 100%);display:flex;flex-direction:column;align-items:center;justify-content:center;color:white;text-align:center;}
+.promo-banner h1{font-size:22px;font-weight:800;letter-spacing:-.4px;}
+.promo-banner p{font-size:13px;opacity:.85;margin-top:3px;}
+
+.status-bar{height:44px;background:linear-gradient(135deg,#5550E8 0%,#8040EE 100%);display:flex;align-items:center;justify-content:space-between;padding:0 24px;color:white;}
+.status-bar .time{font-size:15px;font-weight:600;}
+.status-bar .dynamic-island{width:124px;height:28px;background:#000;border-radius:20px;}
+.status-bar .icons{display:flex;align-items:center;gap:7px;}
+
+.app-header{height:60px;background:linear-gradient(135deg,#6254EE 0%,#8B44EE 100%);display:flex;align-items:center;justify-content:space-between;padding:0 24px;color:white;}
+.app-header .hdr-title{font-size:19px;font-weight:700;}
+.app-header .filter-btn{width:38px;height:38px;background:rgba(255,255,255,.2);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;}
+
+.split-pane{display:flex;flex-direction:row;height:calc(1366px - 76px - 44px - 60px - 60px);overflow:hidden;}
+
+.left-panel{width:280px;min-width:280px;background:#F9FAFB;border-right:1px solid #E5E7EB;padding:16px;overflow-y:auto;display:flex;flex-direction:column;gap:0;}
+.right-panel{flex:1;background:white;padding:20px;overflow-y:auto;display:flex;flex-direction:column;gap:0;}
+
+.sec-label{font-size:11px;font-weight:700;color:#9CA3AF;letter-spacing:.8px;text-transform:uppercase;margin-bottom:8px;margin-top:4px;}
+
+.filter-row{display:flex;align-items:center;gap:10px;padding:11px 12px;border-radius:10px;cursor:pointer;margin-bottom:4px;}
+.filter-row.active{background:#EEF2FF;border-left:3px solid #4F46E5;padding-left:9px;}
+.filter-row .fr-name{font-size:14px;font-weight:600;color:#374151;flex:1;}
+.filter-row.active .fr-name{color:#4F46E5;font-weight:700;}
+.filter-row .fr-badge{font-size:11px;font-weight:700;color:#6B7280;background:#E5E7EB;padding:3px 8px;border-radius:999px;}
+.filter-row.active .fr-badge{color:#4F46E5;background:#E0E7FF;}
+
+.subj-icon-sm{width:28px;height:28px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;}
+
+.time-row{display:flex;align-items:center;gap:8px;padding:10px 12px;border-radius:10px;cursor:pointer;margin-bottom:3px;}
+.time-row.active{background:#EEF2FF;}
+.time-row .tr-name{font-size:14px;color:#374151;flex:1;}
+.time-row.active .tr-name{color:#4F46E5;font-weight:600;}
+.time-row .tr-check{font-size:16px;color:#4F46E5;}
+.divider{height:1px;background:#E5E7EB;margin:12px 0;}
+
+.week-label{font-size:12px;font-weight:700;color:#9CA3AF;letter-spacing:.5px;text-transform:uppercase;margin-bottom:12px;padding-top:4px;}
+
+.grade-card{display:flex;align-items:center;gap:12px;padding:14px 16px;background:white;border:1px solid #E5E7EB;border-radius:12px;margin-bottom:10px;box-shadow:0 1px 3px rgba(0,0,0,.05);}
+.subj-icon{width:40px;height:40px;border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;}
+.gc-info{flex:1;min-width:0;}
+.gc-name{font-size:15px;font-weight:700;color:#111827;}
+.gc-type{font-size:12px;color:#6B7280;margin-top:2px;}
+.gc-date{font-size:11px;color:#9CA3AF;margin-top:1px;}
+.gc-right{display:flex;flex-direction:column;align-items:flex-end;gap:5px;}
+
+.gbadge{height:32px;min-width:52px;border-radius:999px;display:inline-flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;padding:0 10px;flex-shrink:0;}
+.t-best{color:#10B981;background:#D1FAE5;}
+.t-second{color:#6366F1;background:#E0E7FF;}
+.t-third{color:#F59E0B;background:#FEF3C7;}
+
+.tier-dot{width:8px;height:8px;border-radius:50%;display:inline-block;}
+
+.tab-bar{height:60px;background:white;border-top:1px solid #E5E7EB;display:flex;align-items:center;}
+.tab-item{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;}
+.tab-icon{font-size:20px;}
+.tab-lbl{font-size:10px;color:#9CA3AF;font-weight:500;}
+.tab-item.active .tab-lbl{color:#4F46E5;font-weight:700;}
+
+@media(max-width:800px){
+  .left-panel{width:220px;min-width:220px;}
+}
+@media(max-width:600px){
+  html,body{width:600px;height:960px;}
+  .split-pane{flex-direction:column;height:auto;}
+  .left-panel{width:100%;min-width:unset;border-right:none;border-bottom:1px solid #E5E7EB;max-height:300px;}
+}
+</style>
+</head>
+<body>
+
+<!-- Promo Banner -->
+<div class="promo-banner">
+  <h1>Alle Noten, perfekt organisiert</h1>
+  <p>Nach Woche und Fach sortiert</p>
+</div>
+
+<!-- Status Bar -->
+<div class="status-bar">
+  <span class="time">9:41</span>
+  <div class="dynamic-island"></div>
+  <div class="icons">
+    <svg width="17" height="12" viewBox="0 0 17 12" fill="white"><rect x="0" y="6" width="3" height="6" rx="1"/><rect x="4.5" y="4" width="3" height="8" rx="1"/><rect x="9" y="2" width="3" height="10" rx="1"/><rect x="13.5" y="0" width="3" height="12" rx="1"/></svg>
+    <svg width="16" height="12" viewBox="0 0 16 12" fill="white"><path d="M8 2.5C10.4 2.5 12.5 3.5 14 5.1L15.3 3.7C13.4 1.7 10.8.5 8 .5S2.6 1.7.7 3.7L2 5.1C3.5 3.5 5.6 2.5 8 2.5Z" opacity=".5"/><path d="M8 5.5C9.6 5.5 11 6.1 12.1 7.1L13.4 5.7C12 4.4 10.1 3.5 8 3.5S4 4.4 2.6 5.7L3.9 7.1C5 6.1 6.4 5.5 8 5.5Z" opacity=".75"/><circle cx="8" cy="10" r="1.8"/></svg>
+    <svg width="26" height="12" viewBox="0 0 26 12" fill="none"><rect x=".75" y=".75" width="21.5" height="10.5" rx="2.25" stroke="white" stroke-width="1.5"/><rect x="2.5" y="2.5" width="15" height="7" rx="1" fill="white"/><path d="M23.5 4C24.4 4.4 25 5.1 25 6S24.4 7.6 23.5 8V4Z" fill="white" opacity=".5"/></svg>
+    <span style="font-size:13px;font-weight:600;">87%</span>
+  </div>
+</div>
+
+<!-- App Header -->
+<div class="app-header">
+  <div class="hdr-title">Meine Notizen</div>
+  <div class="filter-btn">⚙️</div>
+</div>
+
+<!-- Split Pane -->
+<div class="split-pane">
+
+  <!-- LEFT PANEL -->
+  <div class="left-panel">
+    <div class="sec-label" style="margin-top:4px;">Fächer</div>
+
+    <div class="filter-row active">
+      <div class="subj-icon-sm" style="background:#E0E7FF;">📚</div>
+      <div class="fr-name">Alle Fächer</div>
+      <span class="fr-badge">42</span>
+    </div>
+    <div class="filter-row">
+      <div class="subj-icon-sm" style="background:#E0E7FF;">🔢</div>
+      <div class="fr-name">Mathematik</div>
+      <span class="fr-badge">6</span>
+    </div>
+    <div class="filter-row">
+      <div class="subj-icon-sm" style="background:#D1FAE5;">📖</div>
+      <div class="fr-name">Deutsch</div>
+      <span class="fr-badge">5</span>
+    </div>
+    <div class="filter-row">
+      <div class="subj-icon-sm" style="background:#E0E7FF;">🌍</div>
+      <div class="fr-name">Englisch</div>
+      <span class="fr-badge">6</span>
+    </div>
+    <div class="filter-row">
+      <div class="subj-icon-sm" style="background:#D1FAE5;">🏛️</div>
+      <div class="fr-name">Geschichte</div>
+      <span class="fr-badge">4</span>
+    </div>
+    <div class="filter-row">
+      <div class="subj-icon-sm" style="background:#FEF3C7;">🌿</div>
+      <div class="fr-name">Biologie</div>
+      <span class="fr-badge">5</span>
+    </div>
+    <div class="filter-row">
+      <div class="subj-icon-sm" style="background:#E0E7FF;">⚛️</div>
+      <div class="fr-name">Physik</div>
+      <span class="fr-badge">4</span>
+    </div>
+    <div class="filter-row">
+      <div class="subj-icon-sm" style="background:#FEF3C7;">🧪</div>
+      <div class="fr-name">Chemie</div>
+      <span class="fr-badge">3</span>
+    </div>
+    <div class="filter-row">
+      <div class="subj-icon-sm" style="background:#D1FAE5;">🏃</div>
+      <div class="fr-name">Sport</div>
+      <span class="fr-badge">4</span>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="sec-label">Zeitraum</div>
+    <div class="time-row active">
+      <div class="tr-name">Diese Woche</div>
+      <span class="tr-check">✓</span>
+    </div>
+    <div class="time-row">
+      <div class="tr-name">Letzte Woche</div>
+    </div>
+    <div class="time-row">
+      <div class="tr-name">Dieser Monat</div>
+    </div>
+    <div class="time-row">
+      <div class="tr-name">Alles</div>
+    </div>
+  </div>
+
+  <!-- RIGHT PANEL -->
+  <div class="right-panel">
+    <div class="week-label">Diese Woche</div>
+
+    <div class="grade-card">
+      <div class="subj-icon" style="background:#E0E7FF;">🔢</div>
+      <div class="gc-info">
+        <div class="gc-name">Mathematik</div>
+        <div class="gc-type">Klassenarbeit</div>
+        <div class="gc-date">Montag, 29. Juni</div>
+      </div>
+      <div class="gc-right">
+        <span class="gbadge t-second">2.0</span>
+        <span style="font-size:11px;color:#6B7280;">heute</span>
+      </div>
+    </div>
+
+    <div class="grade-card">
+      <div class="subj-icon" style="background:#D1FAE5;">📖</div>
+      <div class="gc-info">
+        <div class="gc-name">Deutsch</div>
+        <div class="gc-type">Aufsatz</div>
+        <div class="gc-date">Sonntag, 28. Juni</div>
+      </div>
+      <div class="gc-right">
+        <span class="gbadge t-best">1.7</span>
+        <span style="font-size:11px;color:#6B7280;">gestern</span>
+      </div>
+    </div>
+
+    <div class="grade-card">
+      <div class="subj-icon" style="background:#E0E7FF;">🌍</div>
+      <div class="gc-info">
+        <div class="gc-name">Englisch</div>
+        <div class="gc-type">Vokabeltest</div>
+        <div class="gc-date">Montag, 23. Juni</div>
+      </div>
+      <div class="gc-right">
+        <span class="gbadge t-second">2.3</span>
+        <span style="font-size:11px;color:#6B7280;">Mo</span>
+      </div>
+    </div>
+
+    <div class="grade-card">
+      <div class="subj-icon" style="background:#D1FAE5;">🏛️</div>
+      <div class="gc-info">
+        <div class="gc-name">Geschichte</div>
+        <div class="gc-type">Referat</div>
+        <div class="gc-date">Freitag, 27. Juni</div>
+      </div>
+      <div class="gc-right">
+        <span class="gbadge t-best">1.0</span>
+        <span style="font-size:11px;color:#6B7280;">Fr</span>
+      </div>
+    </div>
+
+    <div class="week-label" style="margin-top:8px;">Letzte Woche</div>
+
+    <div class="grade-card">
+      <div class="subj-icon" style="background:#FEF3C7;">🌿</div>
+      <div class="gc-info">
+        <div class="gc-name">Biologie</div>
+        <div class="gc-type">Praktikum</div>
+        <div class="gc-date">Donnerstag, 19. Juni</div>
+      </div>
+      <div class="gc-right">
+        <span class="gbadge t-third">3.0</span>
+        <span style="font-size:11px;color:#6B7280;">Do</span>
+      </div>
+    </div>
+
+    <div class="grade-card">
+      <div class="subj-icon" style="background:#E0E7FF;">⚛️</div>
+      <div class="gc-info">
+        <div class="gc-name">Physik</div>
+        <div class="gc-type">Test</div>
+        <div class="gc-date">Mittwoch, 18. Juni</div>
+      </div>
+      <div class="gc-right">
+        <span class="gbadge t-second">2.0</span>
+        <span style="font-size:11px;color:#6B7280;">Mi</span>
+      </div>
+    </div>
+
+    <div class="grade-card">
+      <div class="subj-icon" style="background:#D1FAE5;">🏃</div>
+      <div class="gc-info">
+        <div class="gc-name">Sport</div>
+        <div class="gc-type">Praktisch</div>
+        <div class="gc-date">Dienstag, 17. Juni</div>
+      </div>
+      <div class="gc-right">
+        <span class="gbadge t-best">1.3</span>
+        <span style="font-size:11px;color:#6B7280;">Di</span>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- Bottom Tab Bar -->
+<div class="tab-bar">
+  <div class="tab-item active">
+    <span class="tab-icon">📝</span>
+    <span class="tab-lbl">Notizen</span>
+  </div>
+  <div class="tab-item">
+    <span class="tab-icon">🧮</span>
+    <span class="tab-lbl">Rechner</span>
+  </div>
+  <div class="tab-item">
+    <span class="tab-icon">📊</span>
+    <span class="tab-lbl">Ergebnisse</span>
+  </div>
+  <div class="tab-item">
+    <span class="tab-icon">🏠</span>
+    <span class="tab-lbl">Dashboard</span>
+  </div>
+</div>
+
+</body>
+</html>

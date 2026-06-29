@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1024">
+<title>Bonifatus – Student Dashboard</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html,body{width:1024px;height:1366px;overflow:hidden;font-family:-apple-system,system-ui,'Helvetica Neue',sans-serif;background:#F9FAFB;}
+
+.promo-banner{height:76px;background:linear-gradient(135deg,#4F46E5 0%,#7C3AED 100%);display:flex;flex-direction:column;align-items:center;justify-content:center;color:white;text-align:center;}
+.promo-banner h1{font-size:22px;font-weight:800;letter-spacing:-0.4px;}
+.promo-banner p{font-size:13px;opacity:.85;margin-top:3px;letter-spacing:.2px;}
+
+.status-bar{height:44px;background:linear-gradient(135deg,#5550E8 0%,#8040EE 100%);display:flex;align-items:center;justify-content:space-between;padding:0 24px;color:white;}
+.status-bar .time{font-size:15px;font-weight:600;}
+.status-bar .dynamic-island{width:124px;height:28px;background:#000;border-radius:20px;}
+.status-bar .icons{display:flex;align-items:center;gap:7px;}
+
+.app-header{height:60px;background:linear-gradient(135deg,#6254EE 0%,#8B44EE 100%);display:flex;align-items:center;justify-content:space-between;padding:0 24px;color:white;border-bottom:1px solid rgba(255,255,255,.1);}
+.app-header .greeting{font-size:18px;font-weight:700;}
+.app-header .hdr-date{font-size:12px;opacity:.8;margin-top:2px;}
+.app-header .avatar{width:40px;height:40px;background:rgba(255,255,255,.25);border:2px solid rgba(255,255,255,.5);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:800;flex-shrink:0;}
+
+.split-pane{display:flex;flex-direction:row;height:calc(1366px - 76px - 44px - 60px - 60px);overflow:hidden;}
+
+.left-panel{width:340px;min-width:340px;background:#F9FAFB;border-right:1px solid #E5E7EB;padding:20px 16px;overflow-y:auto;display:flex;flex-direction:column;}
+.right-panel{flex:1;background:white;padding:20px;overflow-y:auto;display:flex;flex-direction:column;gap:16px;}
+
+.sec-label{font-size:11px;font-weight:700;color:#9CA3AF;letter-spacing:.8px;text-transform:uppercase;margin-bottom:10px;}
+
+.grade-row{display:flex;align-items:center;gap:11px;padding:10px 12px;background:white;border-radius:12px;border:1px solid #E5E7EB;margin-bottom:8px;box-shadow:0 1px 2px rgba(0,0,0,.04);}
+.subj-icon{width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;}
+.grade-row .info{flex:1;min-width:0;}
+.grade-row .info .sname{font-size:14px;font-weight:600;color:#111827;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.grade-row .info .stype{font-size:11px;color:#6B7280;margin-top:2px;}
+
+.gbadge{height:32px;min-width:52px;border-radius:999px;display:inline-flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;padding:0 10px;flex-shrink:0;}
+.t-best{color:#10B981;background:#D1FAE5;}
+.t-second{color:#6366F1;background:#E0E7FF;}
+.t-third{color:#F59E0B;background:#FEF3C7;}
+.t-below{color:#EF4444;background:#FEE2E2;}
+
+.streak-card{background:linear-gradient(135deg,#FFFBEB 0%,#FEF3C7 100%);border:1px solid #FDE68A;border-radius:12px;padding:14px 16px;display:flex;align-items:center;gap:12px;margin-top:8px;}
+.streak-card .s-icon{font-size:30px;}
+.streak-num{font-size:16px;font-weight:800;color:#92400E;}
+.streak-sub{font-size:11px;color:#B45309;margin-top:2px;}
+
+.stat-row{display:flex;gap:10px;}
+.stat-card{flex:1;background:white;border:1px solid #E5E7EB;border-radius:12px;padding:14px 10px;text-align:center;box-shadow:0 1px 3px rgba(0,0,0,.05);}
+.stat-val{font-size:20px;font-weight:800;color:#4F46E5;}
+.stat-lbl{font-size:11px;color:#6B7280;margin-top:4px;font-weight:500;line-height:1.3;}
+
+.subj-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;}
+.scard{background:white;border:1px solid #E5E7EB;border-radius:12px;padding:12px 8px;display:flex;flex-direction:column;align-items:center;gap:3px;box-shadow:0 1px 3px rgba(0,0,0,.04);}
+.scard-emoji{font-size:20px;margin-bottom:3px;}
+.scard-name{font-size:11px;font-weight:600;color:#374151;text-align:center;line-height:1.2;}
+.scard-avg{font-size:24px;font-weight:800;margin-top:4px;line-height:1;}
+.scard-lbl{font-size:10px;color:#9CA3AF;}
+
+.sem-card{background:white;border:1px solid #E5E7EB;border-radius:12px;padding:18px 20px;display:flex;align-items:center;gap:16px;box-shadow:0 1px 3px rgba(0,0,0,.05);}
+.sem-left .sem-title{font-size:14px;font-weight:700;color:#111827;}
+.sem-left .sem-sub{font-size:12px;color:#6B7280;margin-top:2px;}
+.prog-wrap{flex:1;}
+.prog-label{font-size:11px;color:#6B7280;margin-bottom:6px;}
+.prog-track{height:8px;background:#E5E7EB;border-radius:99px;overflow:hidden;}
+.prog-fill{height:100%;background:linear-gradient(90deg,#4F46E5,#7C3AED);border-radius:99px;}
+.prog-foot{font-size:11px;color:#9CA3AF;margin-top:5px;}
+.sem-avg{font-size:32px;font-weight:800;color:#6366F1;white-space:nowrap;}
+
+.tab-bar{height:60px;background:white;border-top:1px solid #E5E7EB;display:flex;align-items:center;}
+.tab-item{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;}
+.tab-icon{font-size:20px;}
+.tab-lbl{font-size:10px;color:#9CA3AF;font-weight:500;}
+.tab-item.active .tab-lbl{color:#4F46E5;font-weight:700;}
+
+@media(max-width:800px){
+  .left-panel{width:260px;min-width:260px;}
+  .subj-grid{grid-template-columns:repeat(3,1fr);}
+  .stat-val{font-size:17px;}
+}
+@media(max-width:600px){
+  html,body{width:600px;height:960px;}
+  .split-pane{flex-direction:column;height:auto;}
+  .left-panel{width:100%;min-width:unset;border-right:none;border-bottom:1px solid #E5E7EB;}
+  .subj-grid{grid-template-columns:repeat(2,1fr);}
+}
+</style>
+</head>
+<body>
+
+<!-- Promo Banner -->
+<div class="promo-banner">
+  <h1>Immer den Überblick</h1>
+  <p>Noten · Schnitt · Fortschritt</p>
+</div>
+
+<!-- Status Bar -->
+<div class="status-bar">
+  <span class="time">9:41</span>
+  <div class="dynamic-island"></div>
+  <div class="icons">
+    <svg width="17" height="12" viewBox="0 0 17 12" fill="white"><rect x="0" y="6" width="3" height="6" rx="1"/><rect x="4.5" y="4" width="3" height="8" rx="1"/><rect x="9" y="2" width="3" height="10" rx="1"/><rect x="13.5" y="0" width="3" height="12" rx="1"/></svg>
+    <svg width="16" height="12" viewBox="0 0 16 12" fill="white"><path d="M8 2.5C10.4 2.5 12.5 3.5 14 5.1L15.3 3.7C13.4 1.7 10.8.5 8 .5S2.6 1.7.7 3.7L2 5.1C3.5 3.5 5.6 2.5 8 2.5Z" opacity=".5"/><path d="M8 5.5C9.6 5.5 11 6.1 12.1 7.1L13.4 5.7C12 4.4 10.1 3.5 8 3.5S4 4.4 2.6 5.7L3.9 7.1C5 6.1 6.4 5.5 8 5.5Z" opacity=".75"/><circle cx="8" cy="10" r="1.8"/></svg>
+    <svg width="26" height="12" viewBox="0 0 26 12" fill="none"><rect x=".75" y=".75" width="21.5" height="10.5" rx="2.25" stroke="white" stroke-width="1.5"/><rect x="2.5" y="2.5" width="15" height="7" rx="1" fill="white"/><path d="M23.5 4C24.4 4.4 25 5.1 25 6S24.4 7.6 23.5 8V4Z" fill="white" opacity=".5"/></svg>
+    <span style="font-size:13px;font-weight:600;">87%</span>
+  </div>
+</div>
+
+<!-- App Header -->
+<div class="app-header">
+  <div>
+    <div class="greeting">Guten Morgen, Max! 👋</div>
+    <div class="hdr-date">Montag, 29. Juni</div>
+  </div>
+  <div class="avatar">M</div>
+</div>
+
+<!-- Split Pane -->
+<div class="split-pane">
+
+  <!-- LEFT PANEL -->
+  <div class="left-panel">
+    <div class="sec-label" style="margin-top:4px;">Zuletzt eingetragen</div>
+
+    <div class="grade-row">
+      <div class="subj-icon" style="background:#E0E7FF;">🔢</div>
+      <div class="info"><div class="sname">Mathematik</div><div class="stype">Klassenarbeit · heute</div></div>
+      <span class="gbadge t-second">2.0</span>
+    </div>
+    <div class="grade-row">
+      <div class="subj-icon" style="background:#D1FAE5;">📖</div>
+      <div class="info"><div class="sname">Deutsch</div><div class="stype">Aufsatz · gestern</div></div>
+      <span class="gbadge t-best">1.7</span>
+    </div>
+    <div class="grade-row">
+      <div class="subj-icon" style="background:#E0E7FF;">🌍</div>
+      <div class="info"><div class="sname">Englisch</div><div class="stype">Vokabeltest · Mo</div></div>
+      <span class="gbadge t-second">2.3</span>
+    </div>
+    <div class="grade-row">
+      <div class="subj-icon" style="background:#D1FAE5;">🏛️</div>
+      <div class="info"><div class="sname">Geschichte</div><div class="stype">Referat · Fr</div></div>
+      <span class="gbadge t-best">1.0</span>
+    </div>
+    <div class="grade-row">
+      <div class="subj-icon" style="background:#FEF3C7;">🌿</div>
+      <div class="info"><div class="sname">Biologie</div><div class="stype">Praktikum · Do</div></div>
+      <span class="gbadge t-third">3.0</span>
+    </div>
+    <div class="grade-row">
+      <div class="subj-icon" style="background:#D1FAE5;">🏃</div>
+      <div class="info"><div class="sname">Sport</div><div class="stype">Praktisch · Di</div></div>
+      <span class="gbadge t-best">1.3</span>
+    </div>
+
+    <!-- two more grade rows to fill space -->
+    <div class="grade-row">
+      <div class="subj-icon" style="background:#E0E7FF;">⚛️</div>
+      <div class="info"><div class="sname">Physik</div><div class="stype">Klausur · Do</div></div>
+      <span class="gbadge t-second">2.0</span>
+    </div>
+    <div class="grade-row">
+      <div class="subj-icon" style="background:#FEF3C7;">🧪</div>
+      <div class="info"><div class="sname">Chemie</div><div class="stype">Test · Mi</div></div>
+      <span class="gbadge t-third">3.3</span>
+    </div>
+
+    <div style="padding-top:14px;">
+      <div class="sec-label">Diese Woche</div>
+      <div style="background:white;border:1px solid #E5E7EB;border-radius:12px;padding:12px 14px;display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+        <div style="text-align:center;">
+          <div style="font-size:20px;font-weight:800;color:#6366F1;">1.9</div>
+          <div style="font-size:10px;color:#9CA3AF;margin-top:2px;">Ø diese Woche</div>
+        </div>
+        <div style="text-align:center;">
+          <div style="font-size:20px;font-weight:800;color:#10B981;">1.0</div>
+          <div style="font-size:10px;color:#9CA3AF;margin-top:2px;">Beste Note</div>
+        </div>
+        <div style="text-align:center;">
+          <div style="font-size:20px;font-weight:800;color:#F59E0B;">3.3</div>
+          <div style="font-size:10px;color:#9CA3AF;margin-top:2px;">Schlechteste</div>
+        </div>
+        <div style="text-align:center;">
+          <div style="font-size:20px;font-weight:800;color:#374151;">8</div>
+          <div style="font-size:10px;color:#9CA3AF;margin-top:2px;">Noten diese Woche</div>
+        </div>
+      </div>
+    </div>
+
+    <div style="padding-top:14px;">
+      <div class="sec-label">Streak</div>
+      <div class="streak-card">
+        <div class="s-icon">🔥</div>
+        <div>
+          <div class="streak-num">7-Tage-Streak</div>
+          <div class="streak-sub">Weiter so! Morgen wieder eintragen</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- RIGHT PANEL -->
+  <div class="right-panel">
+    <!-- Stat Cards -->
+    <div class="stat-row">
+      <div class="stat-card">
+        <div class="stat-val">Ø 2.3</div>
+        <div class="stat-lbl">Gesamtschnitt</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-val">🔥 7</div>
+        <div class="stat-lbl">Tage-Streak</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-val">42</div>
+        <div class="stat-lbl">Noten</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-val">8</div>
+        <div class="stat-lbl">Fächer</div>
+      </div>
+    </div>
+
+    <!-- Subject Grid -->
+    <div>
+      <div class="sec-label">Fächer Übersicht</div>
+      <div class="subj-grid">
+        <div class="scard">
+          <div class="scard-emoji">🔢</div>
+          <div class="scard-name">Mathematik</div>
+          <div class="scard-avg" style="color:#6366F1;">2.2</div>
+          <div class="scard-lbl">Ø Schnitt</div>
+        </div>
+        <div class="scard">
+          <div class="scard-emoji">📖</div>
+          <div class="scard-name">Deutsch</div>
+          <div class="scard-avg" style="color:#10B981;">1.8</div>
+          <div class="scard-lbl">Ø Schnitt</div>
+        </div>
+        <div class="scard">
+          <div class="scard-emoji">🌍</div>
+          <div class="scard-name">Englisch</div>
+          <div class="scard-avg" style="color:#6366F1;">2.1</div>
+          <div class="scard-lbl">Ø Schnitt</div>
+        </div>
+        <div class="scard">
+          <div class="scard-emoji">🏛️</div>
+          <div class="scard-name">Geschichte</div>
+          <div class="scard-avg" style="color:#10B981;">1.5</div>
+          <div class="scard-lbl">Ø Schnitt</div>
+        </div>
+        <div class="scard">
+          <div class="scard-emoji">🌿</div>
+          <div class="scard-name">Biologie</div>
+          <div class="scard-avg" style="color:#6366F1;">2.7</div>
+          <div class="scard-lbl">Ø Schnitt</div>
+        </div>
+        <div class="scard">
+          <div class="scard-emoji">⚛️</div>
+          <div class="scard-name">Physik</div>
+          <div class="scard-avg" style="color:#6366F1;">2.4</div>
+          <div class="scard-lbl">Ø Schnitt</div>
+        </div>
+        <div class="scard">
+          <div class="scard-emoji">🧪</div>
+          <div class="scard-name">Chemie</div>
+          <div class="scard-avg" style="color:#F59E0B;">3.1</div>
+          <div class="scard-lbl">Ø Schnitt</div>
+        </div>
+        <div class="scard">
+          <div class="scard-emoji">🏃</div>
+          <div class="scard-name">Sport</div>
+          <div class="scard-avg" style="color:#10B981;">1.3</div>
+          <div class="scard-lbl">Ø Schnitt</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Semester Card -->
+    <div class="sem-card">
+      <div class="sem-left">
+        <div class="sem-title">Aktuelles Semester</div>
+        <div class="sem-sub">Semester 1 · 2025/26</div>
+      </div>
+      <div class="prog-wrap">
+        <div class="prog-label">Fortschritt · 70 %</div>
+        <div class="prog-track"><div class="prog-fill" style="width:70%;"></div></div>
+        <div class="prog-foot">8 Fächer · 42 Noten</div>
+      </div>
+      <div class="sem-avg">Ø 2.3</div>
+    </div>
+
+    <!-- Grade trend section -->
+    <div>
+      <div class="sec-label">Notenverlauf</div>
+      <div style="background:white;border:1px solid #E5E7EB;border-radius:14px;padding:18px 20px;box-shadow:0 1px 3px rgba(0,0,0,.05);">
+        <div style="display:flex;gap:0;border-bottom:1px solid #F3F4F6;padding-bottom:14px;margin-bottom:14px;">
+          <div style="flex:1;text-align:center;border-right:1px solid #F3F4F6;">
+            <div style="font-size:11px;color:#9CA3AF;margin-bottom:4px;">S1 2024/25</div>
+            <div style="font-size:24px;font-weight:800;color:#6366F1;">2.5</div>
+          </div>
+          <div style="flex:1;text-align:center;border-right:1px solid #F3F4F6;">
+            <div style="font-size:11px;color:#9CA3AF;margin-bottom:4px;">S2 2024/25</div>
+            <div style="font-size:24px;font-weight:800;color:#10B981;">2.1</div>
+          </div>
+          <div style="flex:1;text-align:center;">
+            <div style="font-size:11px;color:#4F46E5;font-weight:600;margin-bottom:4px;">Jetzt ●</div>
+            <div style="font-size:24px;font-weight:800;color:#6366F1;">2.3</div>
+          </div>
+        </div>
+        <!-- Mini bar chart -->
+        <div style="display:flex;align-items:flex-end;gap:8px;height:56px;padding:0 8px;">
+          <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;">
+            <div style="width:100%;background:#C7D2FE;border-radius:4px 4px 0 0;height:36px;"></div>
+            <div style="font-size:9px;color:#9CA3AF;">S1</div>
+          </div>
+          <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;">
+            <div style="width:100%;background:#10B981;border-radius:4px 4px 0 0;height:48px;"></div>
+            <div style="font-size:9px;color:#9CA3AF;">S2</div>
+          </div>
+          <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;">
+            <div style="width:100%;background:#6366F1;border-radius:4px 4px 0 0;height:42px;border:2px solid #4F46E5;"></div>
+            <div style="font-size:9px;color:#4F46E5;font-weight:600;">Aktuell</div>
+          </div>
+        </div>
+        <div style="margin-top:8px;font-size:11px;color:#6B7280;text-align:center;">↑ Verbesserung von 0.4 seit S1 2024/25</div>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /split-pane -->
+
+<!-- Bottom Tab Bar -->
+<div class="tab-bar">
+  <div class="tab-item">
+    <span class="tab-icon">📝</span>
+    <span class="tab-lbl">Notizen</span>
+  </div>
+  <div class="tab-item">
+    <span class="tab-icon">🧮</span>
+    <span class="tab-lbl">Rechner</span>
+  </div>
+  <div class="tab-item">
+    <span class="tab-icon">📊</span>
+    <span class="tab-lbl">Ergebnisse</span>
+  </div>
+  <div class="tab-item active">
+    <span class="tab-icon">🏠</span>
+    <span class="tab-lbl">Dashboard</span>
+  </div>
+</div>
+
+</body>
+</html>

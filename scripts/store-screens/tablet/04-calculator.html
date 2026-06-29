@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1024">
+<title>Bonifatus – Notenrechner</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html,body{width:1024px;height:1366px;overflow:hidden;font-family:-apple-system,system-ui,'Helvetica Neue',sans-serif;background:#F9FAFB;}
+
+.promo-banner{height:76px;background:linear-gradient(135deg,#4F46E5 0%,#7C3AED 100%);display:flex;flex-direction:column;align-items:center;justify-content:center;color:white;text-align:center;}
+.promo-banner h1{font-size:22px;font-weight:800;letter-spacing:-.4px;}
+.promo-banner p{font-size:13px;opacity:.85;margin-top:3px;}
+
+.status-bar{height:44px;background:linear-gradient(135deg,#5550E8 0%,#8040EE 100%);display:flex;align-items:center;justify-content:space-between;padding:0 24px;color:white;}
+.status-bar .time{font-size:15px;font-weight:600;}
+.status-bar .dynamic-island{width:124px;height:28px;background:#000;border-radius:20px;}
+.status-bar .icons{display:flex;align-items:center;gap:7px;}
+
+.app-header{height:60px;background:linear-gradient(135deg,#6254EE 0%,#8B44EE 100%);display:flex;align-items:center;justify-content:space-between;padding:0 24px;color:white;}
+.app-header .hdr-title{font-size:19px;font-weight:700;}
+.app-header .sem-btn{background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.3);border-radius:20px;padding:6px 14px;font-size:13px;font-weight:600;color:white;}
+
+.split-pane{display:flex;flex-direction:row;height:calc(1366px - 76px - 44px - 60px - 60px);overflow:hidden;}
+
+.left-panel{width:420px;min-width:420px;background:#F9FAFB;border-right:1px solid #E5E7EB;padding:20px;overflow-y:auto;display:flex;flex-direction:column;gap:0;}
+.right-panel{flex:1;background:white;padding:22px;overflow-y:auto;display:flex;flex-direction:column;gap:18px;}
+
+.sec-label{font-size:11px;font-weight:700;color:#9CA3AF;letter-spacing:.8px;text-transform:uppercase;margin-bottom:10px;}
+
+/* Subject rows */
+.subj-row{display:flex;align-items:center;gap:10px;padding:12px 14px;background:white;border:1px solid #E5E7EB;border-radius:12px;margin-bottom:8px;box-shadow:0 1px 2px rgba(0,0,0,.04);}
+.subj-icon{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0;}
+.sr-name{flex:1;font-size:14px;font-weight:600;color:#111827;}
+.sr-input{width:64px;height:36px;background:#F9FAFB;border:1.5px solid #E5E7EB;border-radius:8px;text-align:center;font-size:16px;font-weight:700;color:#4F46E5;display:flex;align-items:center;justify-content:center;}
+.sr-weight{font-size:12px;color:#9CA3AF;font-weight:500;width:36px;text-align:right;}
+
+.add-btn{padding:12px 16px;background:white;border:1.5px dashed #C7D2FE;border-radius:12px;color:#6366F1;font-size:14px;font-weight:600;text-align:center;margin-top:4px;}
+
+/* Sliders */
+.slider-section{margin-top:12px;display:flex;flex-direction:column;gap:12px;}
+.slider-row{display:flex;align-items:center;gap:12px;}
+.slider-lbl{font-size:13px;font-weight:600;color:#374151;width:90px;flex-shrink:0;}
+.slider-track{flex:1;height:8px;background:#E5E7EB;border-radius:99px;overflow:visible;position:relative;}
+.slider-fill{height:8px;border-radius:99px;position:absolute;left:0;top:0;}
+.slider-thumb{width:20px;height:20px;border-radius:50%;border:2px solid white;box-shadow:0 1px 4px rgba(0,0,0,.2);position:absolute;top:50%;transform:translateY(-50%);}
+.slider-val{font-size:14px;font-weight:700;width:40px;text-align:right;}
+
+/* Result card */
+.result-card{border:2px solid #4F46E5;border-radius:16px;padding:24px;background:linear-gradient(135deg,#F5F3FF 0%,#EDE9FE 100%);display:flex;align-items:center;justify-content:space-between;}
+.rc-left{}
+.rc-small-lbl{font-size:11px;font-weight:700;color:#6B7280;letter-spacing:.8px;text-transform:uppercase;margin-bottom:6px;}
+.rc-grade{font-size:64px;font-weight:900;color:#4F46E5;line-height:1;letter-spacing:-2px;}
+.rc-gut{font-size:22px;font-weight:700;color:#10B981;margin-top:4px;}
+.rc-tier{display:inline-flex;align-items:center;height:28px;border-radius:999px;background:#E0E7FF;color:#6366F1;font-size:13px;font-weight:700;padding:0 12px;margin-top:8px;}
+.rc-right{text-align:center;}
+.rc-ring{width:90px;height:90px;border-radius:50%;border:8px solid #4F46E5;display:flex;flex-direction:column;align-items:center;justify-content:center;background:white;}
+.rc-ring-pct{font-size:18px;font-weight:800;color:#4F46E5;}
+.rc-ring-lbl{font-size:10px;color:#6B7280;}
+
+/* Breakdown table */
+.breakdown-table{border:1px solid #E5E7EB;border-radius:12px;overflow:hidden;}
+.bt-header{display:grid;grid-template-columns:1fr 70px 90px 24px;padding:10px 14px;background:#F9FAFB;border-bottom:1px solid #E5E7EB;}
+.bt-col{font-size:11px;font-weight:700;color:#9CA3AF;letter-spacing:.5px;text-transform:uppercase;}
+.bt-row{display:grid;grid-template-columns:1fr 70px 90px 24px;padding:12px 14px;border-bottom:1px solid #F3F4F6;align-items:center;}
+.bt-row:last-child{border-bottom:none;}
+.bt-subj{font-size:14px;font-weight:600;color:#111827;}
+.bt-avg{font-size:14px;font-weight:700;}
+.bt-contrib{font-size:13px;color:#6B7280;}
+.tier-dot{width:10px;height:10px;border-radius:50%;}
+
+.save-btn{width:100%;padding:16px;background:linear-gradient(135deg,#4F46E5 0%,#7C3AED 100%);border-radius:12px;font-size:16px;font-weight:700;color:white;text-align:center;box-shadow:0 4px 12px rgba(79,70,229,.35);}
+
+.tab-bar{height:60px;background:white;border-top:1px solid #E5E7EB;display:flex;align-items:center;}
+.tab-item{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;}
+.tab-icon{font-size:20px;}
+.tab-lbl{font-size:10px;color:#9CA3AF;font-weight:500;}
+.tab-item.active .tab-lbl{color:#4F46E5;font-weight:700;}
+
+@media(max-width:800px){
+  .left-panel{width:320px;min-width:320px;}
+}
+@media(max-width:600px){
+  html,body{width:600px;height:960px;}
+  .split-pane{flex-direction:column;height:auto;}
+  .left-panel{width:100%;min-width:unset;border-right:none;border-bottom:1px solid #E5E7EB;}
+}
+</style>
+</head>
+<body>
+
+<!-- Promo Banner -->
+<div class="promo-banner">
+  <h1>Berechne deinen Schnitt vorab</h1>
+  <p>Gewichtete Noten, live berechnet</p>
+</div>
+
+<!-- Status Bar -->
+<div class="status-bar">
+  <span class="time">9:41</span>
+  <div class="dynamic-island"></div>
+  <div class="icons">
+    <svg width="17" height="12" viewBox="0 0 17 12" fill="white"><rect x="0" y="6" width="3" height="6" rx="1"/><rect x="4.5" y="4" width="3" height="8" rx="1"/><rect x="9" y="2" width="3" height="10" rx="1"/><rect x="13.5" y="0" width="3" height="12" rx="1"/></svg>
+    <svg width="16" height="12" viewBox="0 0 16 12" fill="white"><path d="M8 2.5C10.4 2.5 12.5 3.5 14 5.1L15.3 3.7C13.4 1.7 10.8.5 8 .5S2.6 1.7.7 3.7L2 5.1C3.5 3.5 5.6 2.5 8 2.5Z" opacity=".5"/><path d="M8 5.5C9.6 5.5 11 6.1 12.1 7.1L13.4 5.7C12 4.4 10.1 3.5 8 3.5S4 4.4 2.6 5.7L3.9 7.1C5 6.1 6.4 5.5 8 5.5Z" opacity=".75"/><circle cx="8" cy="10" r="1.8"/></svg>
+    <svg width="26" height="12" viewBox="0 0 26 12" fill="none"><rect x=".75" y=".75" width="21.5" height="10.5" rx="2.25" stroke="white" stroke-width="1.5"/><rect x="2.5" y="2.5" width="15" height="7" rx="1" fill="white"/><path d="M23.5 4C24.4 4.4 25 5.1 25 6S24.4 7.6 23.5 8V4Z" fill="white" opacity=".5"/></svg>
+    <span style="font-size:13px;font-weight:600;">87%</span>
+  </div>
+</div>
+
+<!-- App Header -->
+<div class="app-header">
+  <div class="hdr-title">Notenrechner</div>
+  <div class="sem-btn">Semester 1 · 2025/26 ▼</div>
+</div>
+
+<!-- Split Pane -->
+<div class="split-pane">
+
+  <!-- LEFT PANEL -->
+  <div class="left-panel">
+    <div class="sec-label" style="margin-top:4px;">Fächer &amp; Noten</div>
+
+    <div class="subj-row">
+      <div class="subj-icon" style="background:#E0E7FF;">🔢</div>
+      <div class="sr-name">Mathematik</div>
+      <div class="sr-input" style="color:#6366F1;">2.0</div>
+      <div class="sr-weight">75%</div>
+    </div>
+    <div class="subj-row">
+      <div class="subj-icon" style="background:#D1FAE5;">📖</div>
+      <div class="sr-name">Deutsch</div>
+      <div class="sr-input" style="color:#10B981;">1.7</div>
+      <div class="sr-weight">75%</div>
+    </div>
+    <div class="subj-row">
+      <div class="subj-icon" style="background:#E0E7FF;">🌍</div>
+      <div class="sr-name">Englisch</div>
+      <div class="sr-input" style="color:#6366F1;">2.3</div>
+      <div class="sr-weight">75%</div>
+    </div>
+    <div class="subj-row">
+      <div class="subj-icon" style="background:#D1FAE5;">🏛️</div>
+      <div class="sr-name">Geschichte</div>
+      <div class="sr-input" style="color:#10B981;">1.0</div>
+      <div class="sr-weight">50%</div>
+    </div>
+    <div class="subj-row">
+      <div class="subj-icon" style="background:#FEF3C7;">🌿</div>
+      <div class="sr-name">Biologie</div>
+      <div class="sr-input" style="color:#6366F1;">3.0</div>
+      <div class="sr-weight">75%</div>
+    </div>
+    <div class="subj-row">
+      <div class="subj-icon" style="background:#E0E7FF;">⚛️</div>
+      <div class="sr-name">Physik</div>
+      <div class="sr-input" style="color:#6366F1;">2.4</div>
+      <div class="sr-weight">75%</div>
+    </div>
+
+    <div class="add-btn">+ Fach hinzufügen</div>
+
+    <div class="divider" style="height:1px;background:#E5E7EB;margin:16px 0;"></div>
+
+    <div class="sec-label">Gewichtung</div>
+    <div class="slider-section">
+      <div class="slider-row">
+        <div class="slider-lbl">Klausuren</div>
+        <div class="slider-track" style="flex:1;position:relative;height:8px;background:#E0E7FF;border-radius:99px;">
+          <div class="slider-fill" style="width:75%;background:#4F46E5;height:8px;border-radius:99px;position:absolute;left:0;top:0;"></div>
+          <div class="slider-thumb" style="background:#4F46E5;left:calc(75% - 10px);top:50%;transform:translateY(-50%);width:20px;height:20px;border-radius:50%;border:2px solid white;box-shadow:0 1px 4px rgba(0,0,0,.25);position:absolute;"></div>
+        </div>
+        <div class="slider-val" style="color:#4F46E5;">75%</div>
+      </div>
+      <div class="slider-row">
+        <div class="slider-lbl">Mitarbeit</div>
+        <div class="slider-track" style="flex:1;position:relative;height:8px;background:#FEF3C7;border-radius:99px;">
+          <div class="slider-fill" style="width:25%;background:#F59E0B;height:8px;border-radius:99px;position:absolute;left:0;top:0;"></div>
+          <div class="slider-thumb" style="background:#F59E0B;left:calc(25% - 10px);top:50%;transform:translateY(-50%);width:20px;height:20px;border-radius:50%;border:2px solid white;box-shadow:0 1px 4px rgba(0,0,0,.25);position:absolute;"></div>
+        </div>
+        <div class="slider-val" style="color:#F59E0B;">25%</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- RIGHT PANEL -->
+  <div class="right-panel">
+
+    <!-- Result Card -->
+    <div class="result-card">
+      <div class="rc-left">
+        <div class="rc-small-lbl">Aktuelles Ergebnis</div>
+        <div class="rc-grade">Ø 2.3</div>
+        <div class="rc-gut">Gut</div>
+        <div><span class="rc-tier">2. Tier</span></div>
+      </div>
+      <div class="rc-right">
+        <div class="rc-ring">
+          <div class="rc-ring-pct">70%</div>
+          <div class="rc-ring-lbl">Semester</div>
+        </div>
+        <div style="font-size:12px;color:#6B7280;margin-top:8px;">6 Fächer · 36 Noten</div>
+      </div>
+    </div>
+
+    <!-- Breakdown Table -->
+    <div>
+      <div class="sec-label">Fächer Auswertung</div>
+      <div class="breakdown-table">
+        <div class="bt-header">
+          <div class="bt-col">Fach</div>
+          <div class="bt-col">Ø Note</div>
+          <div class="bt-col">Gewichtet</div>
+          <div class="bt-col"></div>
+        </div>
+        <div class="bt-row">
+          <div class="bt-subj">🔢 Mathematik</div>
+          <div class="bt-avg" style="color:#6366F1;">2.2</div>
+          <div class="bt-contrib">→ 16.5%</div>
+          <div class="tier-dot" style="background:#6366F1;"></div>
+        </div>
+        <div class="bt-row">
+          <div class="bt-subj">📖 Deutsch</div>
+          <div class="bt-avg" style="color:#10B981;">1.8</div>
+          <div class="bt-contrib">→ 13.5%</div>
+          <div class="tier-dot" style="background:#10B981;"></div>
+        </div>
+        <div class="bt-row">
+          <div class="bt-subj">🌍 Englisch</div>
+          <div class="bt-avg" style="color:#6366F1;">2.1</div>
+          <div class="bt-contrib">→ 15.8%</div>
+          <div class="tier-dot" style="background:#6366F1;"></div>
+        </div>
+        <div class="bt-row">
+          <div class="bt-subj">🏛️ Geschichte</div>
+          <div class="bt-avg" style="color:#10B981;">1.5</div>
+          <div class="bt-contrib">→ 7.5%</div>
+          <div class="tier-dot" style="background:#10B981;"></div>
+        </div>
+        <div class="bt-row">
+          <div class="bt-subj">🌿 Biologie</div>
+          <div class="bt-avg" style="color:#6366F1;">2.7</div>
+          <div class="bt-contrib">→ 20.3%</div>
+          <div class="tier-dot" style="background:#6366F1;"></div>
+        </div>
+        <div class="bt-row">
+          <div class="bt-subj">⚛️ Physik</div>
+          <div class="bt-avg" style="color:#6366F1;">2.4</div>
+          <div class="bt-contrib">→ 18.0%</div>
+          <div class="tier-dot" style="background:#6366F1;"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="save-btn">Ergebnis speichern</div>
+
+  </div>
+</div>
+
+<!-- Bottom Tab Bar -->
+<div class="tab-bar">
+  <div class="tab-item">
+    <span class="tab-icon">📝</span>
+    <span class="tab-lbl">Notizen</span>
+  </div>
+  <div class="tab-item active">
+    <span class="tab-icon">🧮</span>
+    <span class="tab-lbl">Rechner</span>
+  </div>
+  <div class="tab-item">
+    <span class="tab-icon">📊</span>
+    <span class="tab-lbl">Ergebnisse</span>
+  </div>
+  <div class="tab-item">
+    <span class="tab-icon">🏠</span>
+    <span class="tab-lbl">Dashboard</span>
+  </div>
+</div>
+
+</body>
+</html>

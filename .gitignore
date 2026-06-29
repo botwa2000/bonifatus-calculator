@@ -84,3 +84,5 @@ ios/App/build/
 ios/App/DerivedData/
 ios/App/App/public/
 ios/App/capacitor.config.json
+.vercel
+screenshots/store/

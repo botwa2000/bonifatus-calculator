@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1024">
+<title>Bonifatus – Belohnungen</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html,body{width:1024px;height:1366px;overflow:hidden;font-family:-apple-system,system-ui,'Helvetica Neue',sans-serif;background:#F9FAFB;}
+
+.promo-banner{height:76px;background:linear-gradient(135deg,#4F46E5 0%,#7C3AED 100%);display:flex;flex-direction:column;align-items:center;justify-content:center;color:white;text-align:center;}
+.promo-banner h1{font-size:22px;font-weight:800;letter-spacing:-.4px;}
+.promo-banner p{font-size:13px;opacity:.85;margin-top:3px;}
+
+.status-bar{height:44px;background:linear-gradient(135deg,#5550E8 0%,#8040EE 100%);display:flex;align-items:center;justify-content:space-between;padding:0 24px;color:white;}
+.status-bar .time{font-size:15px;font-weight:600;}
+.status-bar .dynamic-island{width:124px;height:28px;background:#000;border-radius:20px;}
+.status-bar .icons{display:flex;align-items:center;gap:7px;}
+
+.app-header{height:60px;background:linear-gradient(135deg,#6254EE 0%,#8B44EE 100%);display:flex;align-items:center;justify-content:space-between;padding:0 24px;color:white;}
+.app-header .hdr-title{font-size:19px;font-weight:700;}
+.app-header .hdr-sub{font-size:13px;opacity:.8;}
+
+.content{height:calc(1366px - 76px - 44px - 60px - 60px);background:#F9FAFB;overflow-y:auto;padding:20px 24px;display:flex;flex-direction:column;gap:20px;}
+
+/* Child selector tabs */
+.child-tabs{display:flex;gap:8px;}
+.child-tab{padding:9px 22px;border-radius:999px;font-size:14px;font-weight:600;background:white;border:1.5px solid #E5E7EB;color:#6B7280;cursor:pointer;}
+.child-tab.active{background:#4F46E5;border-color:#4F46E5;color:white;box-shadow:0 2px 8px rgba(79,70,229,.3);}
+
+/* Points card */
+.points-card{background:linear-gradient(135deg,#4F46E5 0%,#7C3AED 100%);border-radius:20px;padding:28px 32px;display:flex;align-items:center;justify-content:space-between;box-shadow:0 8px 24px rgba(79,70,229,.35);}
+.pc-left .pc-pts{font-size:48px;font-weight:900;color:white;line-height:1;letter-spacing:-2px;}
+.pc-left .pc-sub{font-size:14px;color:rgba(255,255,255,.75);margin-top:6px;}
+.pc-right{min-width:220px;}
+.pc-next-lbl{font-size:12px;color:rgba(255,255,255,.7);margin-bottom:8px;}
+.pc-prog-track{height:10px;background:rgba(255,255,255,.25);border-radius:99px;overflow:hidden;}
+.pc-prog-fill{height:100%;background:white;border-radius:99px;}
+.pc-prog-labels{display:flex;justify-content:space-between;margin-top:6px;}
+.pc-prog-labels span{font-size:12px;color:rgba(255,255,255,.75);font-weight:600;}
+.pc-level{display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,.2);border-radius:999px;padding:6px 14px;font-size:13px;font-weight:700;color:white;margin-top:10px;}
+
+.sec-label{font-size:11px;font-weight:700;color:#9CA3AF;letter-spacing:.8px;text-transform:uppercase;}
+
+/* Badges grid */
+.badges-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;}
+.badge-card{border-radius:16px;padding:20px 16px;display:flex;flex-direction:column;align-items:center;gap:8px;box-shadow:0 2px 8px rgba(0,0,0,.08);}
+.badge-card.unlocked{}
+.badge-card.locked{opacity:.65;position:relative;}
+.badge-emoji{font-size:48px;line-height:1;}
+.badge-title{font-size:15px;font-weight:800;color:#111827;text-align:center;}
+.badge-sub{font-size:12px;color:#6B7280;text-align:center;line-height:1.4;}
+.lock-overlay{position:absolute;top:12px;right:12px;font-size:20px;}
+.prog-mini{width:100%;background:rgba(0,0,0,.1);border-radius:99px;height:6px;overflow:hidden;margin-top:4px;}
+.prog-mini-fill{height:100%;border-radius:99px;background:rgba(0,0,0,.25);}
+
+/* Activity card */
+.activity-card{background:white;border:1px solid #E5E7EB;border-radius:16px;padding:18px 20px;box-shadow:0 1px 4px rgba(0,0,0,.05);}
+.ac-header{font-size:11px;font-weight:700;color:#9CA3AF;letter-spacing:.8px;text-transform:uppercase;margin-bottom:14px;}
+.ac-row{display:flex;align-items:flex-start;gap:12px;padding:12px 0;border-bottom:1px solid #F3F4F6;}
+.ac-row:last-child{border-bottom:none;padding-bottom:0;}
+.ac-icon{width:40px;height:40px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;}
+.ac-body{flex:1;}
+.ac-pts{font-size:16px;font-weight:800;color:#4F46E5;}
+.ac-desc{font-size:13px;color:#374151;margin-top:2px;}
+.ac-time{font-size:11px;color:#9CA3AF;margin-top:3px;}
+
+.tab-bar{height:60px;background:white;border-top:1px solid #E5E7EB;display:flex;align-items:center;}
+.tab-item{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;}
+.tab-icon{font-size:20px;}
+.tab-lbl{font-size:10px;color:#9CA3AF;font-weight:500;}
+.tab-item.active .tab-lbl{color:#4F46E5;font-weight:700;}
+
+@media(max-width:800px){
+  .badges-grid{grid-template-columns:repeat(3,1fr);}
+  .pc-pts{font-size:36px !important;}
+}
+@media(max-width:600px){
+  html,body{width:600px;height:960px;}
+  .badges-grid{grid-template-columns:repeat(2,1fr);}
+  .points-card{flex-direction:column;align-items:flex-start;gap:16px;}
+}
+</style>
+</head>
+<body>
+
+<!-- Promo Banner -->
+<div class="promo-banner">
+  <h1>Leistungen belohnen und motivieren</h1>
+  <p>Punkte und Badges für gute Noten</p>
+</div>
+
+<!-- Status Bar -->
+<div class="status-bar">
+  <span class="time">9:41</span>
+  <div class="dynamic-island"></div>
+  <div class="icons">
+    <svg width="17" height="12" viewBox="0 0 17 12" fill="white"><rect x="0" y="6" width="3" height="6" rx="1"/><rect x="4.5" y="4" width="3" height="8" rx="1"/><rect x="9" y="2" width="3" height="10" rx="1"/><rect x="13.5" y="0" width="3" height="12" rx="1"/></svg>
+    <svg width="16" height="12" viewBox="0 0 16 12" fill="white"><path d="M8 2.5C10.4 2.5 12.5 3.5 14 5.1L15.3 3.7C13.4 1.7 10.8.5 8 .5S2.6 1.7.7 3.7L2 5.1C3.5 3.5 5.6 2.5 8 2.5Z" opacity=".5"/><path d="M8 5.5C9.6 5.5 11 6.1 12.1 7.1L13.4 5.7C12 4.4 10.1 3.5 8 3.5S4 4.4 2.6 5.7L3.9 7.1C5 6.1 6.4 5.5 8 5.5Z" opacity=".75"/><circle cx="8" cy="10" r="1.8"/></svg>
+    <svg width="26" height="12" viewBox="0 0 26 12" fill="none"><rect x=".75" y=".75" width="21.5" height="10.5" rx="2.25" stroke="white" stroke-width="1.5"/><rect x="2.5" y="2.5" width="15" height="7" rx="1" fill="white"/><path d="M23.5 4C24.4 4.4 25 5.1 25 6S24.4 7.6 23.5 8V4Z" fill="white" opacity=".5"/></svg>
+    <span style="font-size:13px;font-weight:600;">87%</span>
+  </div>
+</div>
+
+<!-- App Header -->
+<div class="app-header">
+  <div class="hdr-title">Belohnungen</div>
+  <div class="hdr-sub">Max M.</div>
+</div>
+
+<!-- Content -->
+<div class="content">
+
+  <!-- Child Selector Tabs -->
+  <div class="child-tabs">
+    <div class="child-tab active">✓ Max</div>
+    <div class="child-tab">Lena</div>
+  </div>
+
+  <!-- Points Card -->
+  <div class="points-card">
+    <div class="pc-left">
+      <div class="pc-pts">350 Punkte</div>
+      <div class="pc-sub">Gesammelt diese Saison</div>
+      <div class="pc-level">⭐ Level 3 · Fleißiger Schüler</div>
+    </div>
+    <div class="pc-right">
+      <div class="pc-next-lbl">Nächstes Level: 500 Punkte</div>
+      <div class="pc-prog-track">
+        <div class="pc-prog-fill" style="width:70%;"></div>
+      </div>
+      <div class="pc-prog-labels">
+        <span>350 Pkt</span>
+        <span>500 Pkt</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Badges Section -->
+  <div>
+    <div class="sec-label" style="margin-bottom:12px;">Errungenschaften</div>
+    <div class="badges-grid">
+
+      <!-- Unlocked 1: Sehr Gut Woche -->
+      <div class="badge-card unlocked" style="background:linear-gradient(135deg,#FEF3C7,#FDE68A);">
+        <div class="badge-emoji">🏆</div>
+        <div class="badge-title">Sehr Gut Woche</div>
+        <div class="badge-sub">3× Note 1 in einer Woche</div>
+        <div style="display:inline-flex;align-items:center;height:24px;border-radius:999px;background:rgba(180,130,0,.15);color:#92400E;font-size:11px;font-weight:700;padding:0 10px;margin-top:2px;">Freigeschaltet ✓</div>
+      </div>
+
+      <!-- Unlocked 2: 7-Tage Streak -->
+      <div class="badge-card unlocked" style="background:linear-gradient(135deg,#EEF2FF,#C7D2FE);">
+        <div class="badge-emoji">⭐</div>
+        <div class="badge-title">7-Tage Streak</div>
+        <div class="badge-sub">7 Tage in Folge eingetragen</div>
+        <div style="display:inline-flex;align-items:center;height:24px;border-radius:999px;background:rgba(99,102,241,.15);color:#4338CA;font-size:11px;font-weight:700;padding:0 10px;margin-top:2px;">Freigeschaltet ✓</div>
+      </div>
+
+      <!-- Unlocked 3: 10 Noten -->
+      <div class="badge-card unlocked" style="background:linear-gradient(135deg,#D1FAE5,#6EE7B7);">
+        <div class="badge-emoji">📚</div>
+        <div class="badge-title">10 Noten</div>
+        <div class="badge-sub">10 Noten eingetragen</div>
+        <div style="display:inline-flex;align-items:center;height:24px;border-radius:999px;background:rgba(16,185,129,.15);color:#065F46;font-size:11px;font-weight:700;padding:0 10px;margin-top:2px;">Freigeschaltet ✓</div>
+      </div>
+
+      <!-- Locked 1: Schnitt unter 2.0 -->
+      <div class="badge-card locked" style="background:white;border:1.5px solid #E5E7EB;position:relative;">
+        <div class="lock-overlay">🔒</div>
+        <div class="badge-emoji" style="opacity:.5;">🎯</div>
+        <div class="badge-title" style="color:#6B7280;">Schnitt unter 2.0</div>
+        <div class="badge-sub">fast geschafft! Ø 2.3</div>
+        <div style="width:100%;">
+          <div style="font-size:11px;color:#9CA3AF;text-align:center;margin-bottom:4px;">77% erreicht</div>
+          <div class="prog-mini"><div class="prog-mini-fill" style="width:77%;background:#9CA3AF;"></div></div>
+        </div>
+      </div>
+
+      <!-- Locked 2: 30-Tage Streak -->
+      <div class="badge-card locked" style="background:white;border:1.5px solid #E5E7EB;position:relative;">
+        <div class="lock-overlay">🔒</div>
+        <div class="badge-emoji" style="opacity:.5;">🔥</div>
+        <div class="badge-title" style="color:#6B7280;">30-Tage Streak</div>
+        <div class="badge-sub">23/30 Tage</div>
+        <div style="width:100%;">
+          <div style="font-size:11px;color:#9CA3AF;text-align:center;margin-bottom:4px;">77% erreicht</div>
+          <div class="prog-mini"><div class="prog-mini-fill" style="width:77%;background:#9CA3AF;"></div></div>
+        </div>
+      </div>
+
+      <!-- Locked 3: Klassenbester -->
+      <div class="badge-card locked" style="background:white;border:1.5px solid #E5E7EB;position:relative;">
+        <div class="lock-overlay">🔒</div>
+        <div class="badge-emoji" style="opacity:.5;">🌟</div>
+        <div class="badge-title" style="color:#6B7280;">Klassenbester</div>
+        <div class="badge-sub">Noch nicht freigeschaltet</div>
+        <div style="width:100%;">
+          <div style="font-size:11px;color:#9CA3AF;text-align:center;margin-bottom:4px;">0% erreicht</div>
+          <div class="prog-mini"><div class="prog-mini-fill" style="width:0%;background:#9CA3AF;"></div></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Recent Activity -->
+  <div class="activity-card">
+    <div class="ac-header">Letzte Aktivität</div>
+
+    <div class="ac-row">
+      <div class="ac-icon" style="background:#FEF3C7;">🏆</div>
+      <div class="ac-body">
+        <div class="ac-pts">+50 Punkte</div>
+        <div class="ac-desc">Sehr Gut Woche abgeschlossen · 3× Note 1 in einer Woche</div>
+        <div class="ac-time">gestern · vor 1 Tag</div>
+      </div>
+    </div>
+
+    <div class="ac-row">
+      <div class="ac-icon" style="background:#EEF2FF;">⭐</div>
+      <div class="ac-body">
+        <div class="ac-pts">+25 Punkte</div>
+        <div class="ac-desc">7-Tage Streak erreicht · 7 Tage in Folge eingetragen</div>
+        <div class="ac-time">vor 3 Tagen</div>
+      </div>
+    </div>
+
+    <div class="ac-row">
+      <div class="ac-icon" style="background:#D1FAE5;">📚</div>
+      <div class="ac-body">
+        <div class="ac-pts">+10 Punkte</div>
+        <div class="ac-desc">10 Noten eingetragen · Meilenstein erreicht</div>
+        <div class="ac-time">vor einer Woche</div>
+      </div>
+    </div>
+
+  </div>
+
+</div>
+
+<!-- Bottom Tab Bar -->
+<div class="tab-bar">
+  <div class="tab-item">
+    <span class="tab-icon">👨‍👩‍👧</span>
+    <span class="tab-lbl">Kinder</span>
+  </div>
+  <div class="tab-item">
+    <span class="tab-icon">🏠</span>
+    <span class="tab-lbl">Dashboard</span>
+  </div>
+  <div class="tab-item active">
+    <span class="tab-icon">🏆</span>
+    <span class="tab-lbl">Belohnungen</span>
+  </div>
+</div>
+
+</body>
+</html>

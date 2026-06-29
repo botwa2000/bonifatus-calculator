@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1024">
+<title>Bonifatus – Note eintragen</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html,body{width:1024px;height:1366px;overflow:hidden;font-family:-apple-system,system-ui,'Helvetica Neue',sans-serif;background:#F9FAFB;}
+
+.promo-banner{height:76px;background:linear-gradient(135deg,#4F46E5 0%,#7C3AED 100%);display:flex;flex-direction:column;align-items:center;justify-content:center;color:white;text-align:center;}
+.promo-banner h1{font-size:22px;font-weight:800;letter-spacing:-.4px;}
+.promo-banner p{font-size:13px;opacity:.85;margin-top:3px;}
+
+.status-bar{height:44px;background:linear-gradient(135deg,#5550E8 0%,#8040EE 100%);display:flex;align-items:center;justify-content:space-between;padding:0 24px;color:white;}
+.status-bar .time{font-size:15px;font-weight:600;}
+.status-bar .dynamic-island{width:124px;height:28px;background:#000;border-radius:20px;}
+.status-bar .icons{display:flex;align-items:center;gap:7px;}
+
+.app-header{height:60px;background:linear-gradient(135deg,#6254EE 0%,#8B44EE 100%);display:flex;align-items:center;gap:14px;padding:0 24px;color:white;}
+.app-header .back-btn{width:36px;height:36px;background:rgba(255,255,255,.2);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;}
+.app-header .hdr-title{font-size:18px;font-weight:700;flex:1;}
+.app-header .hdr-right{font-size:13px;opacity:.8;}
+
+.content{height:calc(1366px - 76px - 44px - 60px - 60px);background:#F9FAFB;display:flex;align-items:flex-start;justify-content:center;padding:28px 24px;overflow-y:auto;}
+
+.form-row{display:flex;gap:24px;width:100%;max-width:880px;}
+.form-col{flex:1;display:flex;flex-direction:column;gap:20px;}
+
+.field-group{display:flex;flex-direction:column;gap:8px;}
+.field-label{font-size:11px;font-weight:700;color:#6B7280;letter-spacing:.8px;text-transform:uppercase;}
+
+.dropdown-btn{width:100%;padding:14px 16px;background:white;border:1.5px solid #E5E7EB;border-radius:12px;font-size:16px;font-weight:600;color:#111827;display:flex;align-items:center;justify-content:space-between;box-shadow:0 1px 3px rgba(0,0,0,.06);}
+.dropdown-btn .chevron{font-size:13px;color:#9CA3AF;}
+
+.chips-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.chip{padding:13px 16px;background:white;border:1.5px solid #E5E7EB;border-radius:10px;font-size:14px;font-weight:500;color:#374151;text-align:center;display:flex;align-items:center;justify-content:center;gap:6px;box-shadow:0 1px 2px rgba(0,0,0,.04);}
+.chip.active{background:#EEF2FF;border-color:#6366F1;color:#4F46E5;font-weight:700;}
+.chip .chip-check{font-size:14px;}
+
+.date-field{width:100%;padding:14px 16px;background:white;border:1.5px solid #E5E7EB;border-radius:12px;font-size:15px;font-weight:500;color:#111827;display:flex;align-items:center;gap:10px;box-shadow:0 1px 3px rgba(0,0,0,.06);}
+.date-field .cal-icon{font-size:18px;}
+
+.grade-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;}
+.gkey{height:88px;background:white;border:1.5px solid #E5E7EB;border-radius:14px;font-size:22px;font-weight:700;color:#374151;display:flex;align-items:center;justify-content:center;box-shadow:0 1px 3px rgba(0,0,0,.05);}
+.gkey.active{background:#4F46E5;border-color:#4F46E5;color:white;box-shadow:0 4px 12px rgba(79,70,229,.4);}
+.gkey.empty{background:#F9FAFB;border-color:#F3F4F6;}
+
+.save-btn{width:100%;padding:18px;background:linear-gradient(135deg,#4F46E5 0%,#7C3AED 100%);border-radius:14px;font-size:17px;font-weight:700;color:white;text-align:center;box-shadow:0 4px 14px rgba(79,70,229,.4);margin-top:4px;letter-spacing:.2px;}
+
+.note-hint{background:#EEF2FF;border:1px solid #C7D2FE;border-radius:10px;padding:12px 14px;font-size:13px;color:#4338CA;display:flex;align-items:center;gap:8px;}
+.note-hint .hint-icon{font-size:16px;}
+
+.tab-bar{height:60px;background:white;border-top:1px solid #E5E7EB;display:flex;align-items:center;}
+.tab-item{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;}
+.tab-icon{font-size:20px;}
+.tab-lbl{font-size:10px;color:#9CA3AF;font-weight:500;}
+.tab-item.active .tab-lbl{color:#4F46E5;font-weight:700;}
+
+@media(max-width:800px){
+  .form-row{max-width:680px;}
+  .gkey{height:56px;font-size:16px;}
+}
+@media(max-width:600px){
+  html,body{width:600px;height:960px;}
+  .form-row{flex-direction:column;}
+  .gkey{height:52px;}
+}
+</style>
+</head>
+<body>
+
+<!-- Promo Banner -->
+<div class="promo-banner">
+  <h1>Note eintragen in Sekunden</h1>
+  <p>Fach, Note, Typ — fertig</p>
+</div>
+
+<!-- Status Bar -->
+<div class="status-bar">
+  <span class="time">9:41</span>
+  <div class="dynamic-island"></div>
+  <div class="icons">
+    <svg width="17" height="12" viewBox="0 0 17 12" fill="white"><rect x="0" y="6" width="3" height="6" rx="1"/><rect x="4.5" y="4" width="3" height="8" rx="1"/><rect x="9" y="2" width="3" height="10" rx="1"/><rect x="13.5" y="0" width="3" height="12" rx="1"/></svg>
+    <svg width="16" height="12" viewBox="0 0 16 12" fill="white"><path d="M8 2.5C10.4 2.5 12.5 3.5 14 5.1L15.3 3.7C13.4 1.7 10.8.5 8 .5S2.6 1.7.7 3.7L2 5.1C3.5 3.5 5.6 2.5 8 2.5Z" opacity=".5"/><path d="M8 5.5C9.6 5.5 11 6.1 12.1 7.1L13.4 5.7C12 4.4 10.1 3.5 8 3.5S4 4.4 2.6 5.7L3.9 7.1C5 6.1 6.4 5.5 8 5.5Z" opacity=".75"/><circle cx="8" cy="10" r="1.8"/></svg>
+    <svg width="26" height="12" viewBox="0 0 26 12" fill="none"><rect x=".75" y=".75" width="21.5" height="10.5" rx="2.25" stroke="white" stroke-width="1.5"/><rect x="2.5" y="2.5" width="15" height="7" rx="1" fill="white"/><path d="M23.5 4C24.4 4.4 25 5.1 25 6S24.4 7.6 23.5 8V4Z" fill="white" opacity=".5"/></svg>
+    <span style="font-size:13px;font-weight:600;">87%</span>
+  </div>
+</div>
+
+<!-- App Header -->
+<div class="app-header">
+  <div class="back-btn">‹</div>
+  <div class="hdr-title">Neue Note</div>
+  <div class="hdr-right">9. Klasse · Gymnasium</div>
+</div>
+
+<!-- Content -->
+<div class="content">
+  <div class="form-row">
+
+    <!-- LEFT COLUMN -->
+    <div class="form-col">
+
+      <div class="field-group">
+        <div class="field-label">Fach</div>
+        <div class="dropdown-btn">
+          <span>🔢&nbsp;&nbsp;Mathematik</span>
+          <span class="chevron">▼</span>
+        </div>
+      </div>
+
+      <div class="field-group">
+        <div class="field-label">Notentyp</div>
+        <div class="chips-grid">
+          <div class="chip active"><span class="chip-check">✓</span> Klassenarbeit</div>
+          <div class="chip">Hausaufgaben</div>
+          <div class="chip">Mündlich</div>
+          <div class="chip">Test</div>
+        </div>
+      </div>
+
+      <div class="field-group">
+        <div class="field-label">Datum</div>
+        <div class="date-field">
+          <span class="cal-icon">📅</span>
+          <span>Heute, 29. Juni 2026</span>
+        </div>
+      </div>
+
+      <div class="field-group">
+        <div class="field-label">Kommentar (optional)</div>
+        <div style="width:100%;padding:14px 16px;background:white;border:1.5px solid #E5E7EB;border-radius:12px;font-size:14px;color:#9CA3AF;min-height:80px;box-shadow:0 1px 3px rgba(0,0,0,.06);">Notiz hinzufügen…</div>
+      </div>
+
+      <div class="note-hint">
+        <span class="hint-icon">💡</span>
+        <span>Klassenarbeiten werden mit <strong>75%</strong> gewichtet</span>
+      </div>
+
+      <!-- Subject stats card -->
+      <div style="background:white;border:1.5px solid #E5E7EB;border-radius:14px;padding:18px;box-shadow:0 1px 3px rgba(0,0,0,.06);">
+        <div style="font-size:11px;font-weight:700;color:#9CA3AF;letter-spacing:.8px;text-transform:uppercase;margin-bottom:14px;">Mathematik · Aktueller Stand</div>
+        <div style="display:flex;gap:12px;">
+          <div style="flex:1;text-align:center;padding:12px;background:#E0E7FF;border-radius:10px;">
+            <div style="font-size:22px;font-weight:800;color:#6366F1;">2.2</div>
+            <div style="font-size:10px;color:#6B7280;margin-top:3px;">Ø Schnitt</div>
+          </div>
+          <div style="flex:1;text-align:center;padding:12px;background:#F3F4F6;border-radius:10px;">
+            <div style="font-size:22px;font-weight:800;color:#374151;">6</div>
+            <div style="font-size:10px;color:#6B7280;margin-top:3px;">Einträge</div>
+          </div>
+          <div style="flex:1;text-align:center;padding:12px;background:#D1FAE5;border-radius:10px;">
+            <div style="font-size:22px;font-weight:800;color:#10B981;">1.7</div>
+            <div style="font-size:10px;color:#6B7280;margin-top:3px;">Beste Note</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- RIGHT COLUMN -->
+    <div class="form-col">
+
+      <div class="field-group">
+        <div class="field-label">Note</div>
+        <div class="grade-grid">
+          <div class="gkey">1.0</div>
+          <div class="gkey">1.3</div>
+          <div class="gkey">1.7</div>
+          <div class="gkey active">2.0</div>
+          <div class="gkey">2.3</div>
+          <div class="gkey">2.7</div>
+          <div class="gkey">3.0</div>
+          <div class="gkey">3.3</div>
+          <div class="gkey">3.7</div>
+          <div class="gkey">4.0</div>
+          <div class="gkey">4.3</div>
+          <div class="gkey">5.0</div>
+          <div class="gkey">6.0</div>
+          <div class="gkey empty"></div>
+          <div class="gkey empty"></div>
+          <div class="gkey empty"></div>
+        </div>
+      </div>
+
+      <!-- Selected Grade Preview -->
+      <div style="background:#EEF2FF;border:2px solid #6366F1;border-radius:14px;padding:20px;display:flex;align-items:center;justify-content:space-between;">
+        <div>
+          <div style="font-size:11px;font-weight:700;color:#6B7280;letter-spacing:.8px;text-transform:uppercase;margin-bottom:4px;">Gewählte Note</div>
+          <div style="font-size:48px;font-weight:900;color:#4F46E5;line-height:1;">2.0</div>
+          <div style="font-size:14px;color:#6B7280;margin-top:4px;">Gut · 2. Tier</div>
+        </div>
+        <div style="text-align:right;">
+          <div style="font-size:11px;color:#6B7280;margin-bottom:4px;">Mathematik</div>
+          <span style="height:32px;min-width:80px;border-radius:999px;display:inline-flex;align-items:center;justify-content:center;font-size:15px;font-weight:700;padding:0 14px;color:#6366F1;background:#E0E7FF;">Klassenarbeit</span>
+        </div>
+      </div>
+
+      <div class="save-btn">Speichern</div>
+
+      <!-- Recent entries for this subject -->
+      <div style="background:white;border:1.5px solid #E5E7EB;border-radius:14px;padding:18px;box-shadow:0 1px 3px rgba(0,0,0,.06);">
+        <div style="font-size:11px;font-weight:700;color:#9CA3AF;letter-spacing:.8px;text-transform:uppercase;margin-bottom:14px;">Letzte Einträge · Mathematik</div>
+        <div style="display:flex;flex-direction:column;gap:10px;">
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;background:#F9FAFB;border-radius:10px;">
+            <div>
+              <div style="font-size:14px;font-weight:600;color:#111827;">Klassenarbeit</div>
+              <div style="font-size:12px;color:#9CA3AF;margin-top:2px;">15. Juni 2026</div>
+            </div>
+            <div style="font-size:24px;font-weight:800;color:#6366F1;">1.7</div>
+          </div>
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;background:#F9FAFB;border-radius:10px;">
+            <div>
+              <div style="font-size:14px;font-weight:600;color:#111827;">Test</div>
+              <div style="font-size:12px;color:#9CA3AF;margin-top:2px;">3. Juni 2026</div>
+            </div>
+            <div style="font-size:24px;font-weight:800;color:#6366F1;">2.3</div>
+          </div>
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;background:#F9FAFB;border-radius:10px;">
+            <div>
+              <div style="font-size:14px;font-weight:600;color:#111827;">Mündlich</div>
+              <div style="font-size:12px;color:#9CA3AF;margin-top:2px;">28. Mai 2026</div>
+            </div>
+            <div style="font-size:24px;font-weight:800;color:#10B981;">1.3</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- Bottom Tab Bar -->
+<div class="tab-bar">
+  <div class="tab-item active">
+    <span class="tab-icon">📝</span>
+    <span class="tab-lbl">Notizen</span>
+  </div>
+  <div class="tab-item">
+    <span class="tab-icon">🧮</span>
+    <span class="tab-lbl">Rechner</span>
+  </div>
+  <div class="tab-item">
+    <span class="tab-icon">📊</span>
+    <span class="tab-lbl">Ergebnisse</span>
+  </div>
+  <div class="tab-item">
+    <span class="tab-icon">🏠</span>
+    <span class="tab-lbl">Dashboard</span>
+  </div>
+</div>
+
+</body>
+</html>
