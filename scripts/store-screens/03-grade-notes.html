@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=390">
+<title>Bonifatus – Meine Notizen</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    width: 390px; height: 844px; overflow: hidden;
+    font-family: -apple-system, system-ui, BlinkMacSystemFont, 'Helvetica Neue', sans-serif;
+    background: #F9FAFB;
+  }
+  @media (min-width: 600px) {
+    body {
+      width: 100vw; height: 100vh;
+      background: linear-gradient(135deg, #4F46E5, #7C3AED);
+      display: flex; align-items: center; justify-content: center;
+    }
+    .phone-wrap {
+      width: 390px; height: 844px; background: white;
+      border-radius: 40px; overflow: hidden;
+      box-shadow: 0 40px 120px rgba(0,0,0,0.4);
+    }
+  }
+  .phone-wrap { width: 390px; height: 844px; overflow: hidden; position: relative; background: #F9FAFB; }
+
+  .promo {
+    height: 76px; background: linear-gradient(135deg, #4F46E5, #7C3AED);
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    padding: 0 20px;
+  }
+  .promo-title { color: white; font-size: 18px; font-weight: 700; text-align: center; line-height: 1.2; }
+  .promo-sub { color: rgba(255,255,255,0.85); font-size: 12px; text-align: center; margin-top: 3px; }
+
+  .status-bar {
+    height: 44px; background: white;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 20px; position: relative; border-bottom: 1px solid #F3F4F6;
+  }
+  .status-time { color: #111827; font-size: 15px; font-weight: 600; }
+  .dynamic-island {
+    position: absolute; left: 50%; transform: translateX(-50%);
+    width: 120px; height: 30px; background: #000; border-radius: 20px; top: 7px;
+  }
+  .status-icons { display: flex; align-items: center; gap: 6px; }
+  .status-icons svg { fill: #111827; }
+  .battery-text { color: #111827; font-size: 12px; font-weight: 500; }
+
+  .app-header {
+    background: white; padding: 12px 20px 0;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .header-title { font-size: 26px; font-weight: 800; color: #111827; }
+  .filter-btn { width: 36px; height: 36px; background: #F3F4F6; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 18px; }
+
+  /* Filter chips */
+  .filter-row { display: flex; gap: 8px; padding: 10px 16px 8px; overflow: hidden; }
+  .filter-chip {
+    padding: 6px 14px; border-radius: 20px; font-size: 13px; font-weight: 500;
+    background: white; color: #374151; border: 1.5px solid #E5E7EB; white-space: nowrap;
+  }
+  .filter-chip.active { background: #4F46E5; color: white; border-color: #4F46E5; font-weight: 600; }
+
+  .content { padding: 4px 16px 0; overflow: hidden; }
+
+  .section-header {
+    font-size: 13px; font-weight: 700; color: #6B7280;
+    text-transform: uppercase; letter-spacing: 0.6px;
+    margin: 8px 0 6px;
+  }
+
+  .grade-list { background: white; border-radius: 14px; overflow: hidden; box-shadow: 0 1px 6px rgba(0,0,0,0.07); margin-bottom: 10px; }
+  .grade-row {
+    display: flex; align-items: center; padding: 11px 14px;
+    border-bottom: 1px solid #F3F4F6; gap: 11px;
+  }
+  .grade-row:last-child { border-bottom: none; }
+
+  .subject-icon {
+    width: 38px; height: 38px; border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 19px; flex-shrink: 0;
+  }
+  .subject-info { flex: 1; min-width: 0; }
+  .subject-name { font-size: 14px; font-weight: 600; color: #111827; }
+  .subject-meta { font-size: 11px; color: #6B7280; margin-top: 1px; }
+  .right-col { display: flex; flex-direction: column; align-items: flex-end; gap: 3px; }
+  .grade-badge { padding: 4px 10px; border-radius: 20px; font-size: 14px; font-weight: 700; }
+  .grade-green { background: #D1FAE5; color: #065F46; }
+  .grade-indigo { background: #E0E7FF; color: #3730A3; }
+  .grade-amber { background: #FEF3C7; color: #92400E; }
+  .grade-date { font-size: 11px; color: #9CA3AF; }
+
+  .bottom-nav {
+    position: absolute; bottom: 0; left: 0; right: 0;
+    height: 83px; background: white; border-top: 1px solid #E5E7EB;
+    display: flex; align-items: flex-start; justify-content: space-around;
+    padding-top: 10px;
+  }
+  .nav-item { display: flex; flex-direction: column; align-items: center; gap: 3px; flex: 1; }
+  .nav-icon { font-size: 22px; line-height: 1; }
+  .nav-label { font-size: 10px; font-weight: 500; color: #6B7280; }
+  .nav-item.active .nav-label { color: #4F46E5; font-weight: 700; }
+  .home-indicator {
+    position: absolute; bottom: 8px; left: 50%; transform: translateX(-50%);
+    width: 135px; height: 5px; background: #1C1C1E; border-radius: 3px;
+  }
+
+  /* FAB */
+  .fab {
+    position: absolute; bottom: 95px; right: 20px;
+    width: 52px; height: 52px; border-radius: 50%;
+    background: linear-gradient(135deg, #4F46E5, #7C3AED);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 24px; color: white;
+    box-shadow: 0 4px 16px rgba(79,70,229,0.45);
+  }
+</style>
+</head>
+<body>
+<div class="phone-wrap">
+
+  <!-- Promo Banner -->
+  <div class="promo">
+    <div class="promo-title">Alle Noten, perfekt organisiert</div>
+    <div class="promo-sub">Nach Woche und Fach sortiert</div>
+  </div>
+
+  <!-- Status Bar -->
+  <div class="status-bar">
+    <div class="status-time">9:41</div>
+    <div class="dynamic-island"></div>
+    <div class="status-icons">
+      <svg width="17" height="12" viewBox="0 0 17 12"><rect x="0" y="4" width="3" height="8" rx="1"/><rect x="4.5" y="2.5" width="3" height="9.5" rx="1"/><rect x="9" y="0.5" width="3" height="11.5" rx="1"/><rect x="13.5" y="0" width="3" height="12" rx="1"/></svg>
+      <svg width="16" height="12" viewBox="0 0 16 12"><path d="M8 3C5.5 3 3.2 4 1.5 5.7L0 4.2C2.1 2.1 4.9 1 8 1s5.9 1.1 8 3.2L14.5 5.7C12.8 4 10.5 3 8 3z"/><path d="M8 7c-1.4 0-2.6.5-3.5 1.4L3 7C4.3 5.7 6 5 8 5s3.7.7 5 2L11.5 8.4C10.6 7.5 9.4 7 8 7z"/><circle cx="8" cy="11" r="1.5"/></svg>
+      <span class="battery-text">87%</span>
+    </div>
+  </div>
+
+  <!-- App Header -->
+  <div class="app-header">
+    <div class="header-title">Meine Notizen</div>
+    <div class="filter-btn">⚙️</div>
+  </div>
+
+  <!-- Filter Chips -->
+  <div class="filter-row">
+    <div class="filter-chip active">Alle ✓</div>
+    <div class="filter-chip">Mathematik</div>
+    <div class="filter-chip">Deutsch</div>
+    <div class="filter-chip">Englisch</div>
+  </div>
+
+  <!-- Content -->
+  <div class="content">
+    <div class="section-header">Diese Woche</div>
+    <div class="grade-list">
+      <div class="grade-row">
+        <div class="subject-icon" style="background:#EDE9FE;">➗</div>
+        <div class="subject-info">
+          <div class="subject-name">Mathematik</div>
+          <div class="subject-meta">Klassenarbeit</div>
+        </div>
+        <div class="right-col">
+          <div class="grade-badge grade-green">2.0</div>
+          <div class="grade-date">heute</div>
+        </div>
+      </div>
+      <div class="grade-row">
+        <div class="subject-icon" style="background:#FEF3C7;">📖</div>
+        <div class="subject-info">
+          <div class="subject-name">Deutsch</div>
+          <div class="subject-meta">Aufsatz</div>
+        </div>
+        <div class="right-col">
+          <div class="grade-badge grade-green">1.7</div>
+          <div class="grade-date">gestern</div>
+        </div>
+      </div>
+      <div class="grade-row">
+        <div class="subject-icon" style="background:#DBEAFE;">🌍</div>
+        <div class="subject-info">
+          <div class="subject-name">Englisch</div>
+          <div class="subject-meta">Vokabeltest</div>
+        </div>
+        <div class="right-col">
+          <div class="grade-badge grade-indigo">2.3</div>
+          <div class="grade-date">Mo</div>
+        </div>
+      </div>
+      <div class="grade-row">
+        <div class="subject-icon" style="background:#D1FAE5;">🏛️</div>
+        <div class="subject-info">
+          <div class="subject-name">Geschichte</div>
+          <div class="subject-meta">Referat</div>
+        </div>
+        <div class="right-col">
+          <div class="grade-badge grade-green">1.0</div>
+          <div class="grade-date">Fr</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section-header">Letzte Woche</div>
+    <div class="grade-list">
+      <div class="grade-row">
+        <div class="subject-icon" style="background:#E0E7FF;">⚛️</div>
+        <div class="subject-info">
+          <div class="subject-name">Physik</div>
+          <div class="subject-meta">Klausur</div>
+        </div>
+        <div class="right-col">
+          <div class="grade-badge grade-green">2.0</div>
+          <div class="grade-date">23. Jun</div>
+        </div>
+      </div>
+      <div class="grade-row">
+        <div class="subject-icon" style="background:#FEE2E2;">🧪</div>
+        <div class="subject-info">
+          <div class="subject-name">Chemie</div>
+          <div class="subject-meta">Mündlich</div>
+        </div>
+        <div class="right-col">
+          <div class="grade-badge grade-amber">3.0</div>
+          <div class="grade-date">22. Jun</div>
+        </div>
+      </div>
+      <div class="grade-row">
+        <div class="subject-icon" style="background:#D1FAE5;">⚽</div>
+        <div class="subject-info">
+          <div class="subject-name">Sport</div>
+          <div class="subject-meta">Praktische Prüfung</div>
+        </div>
+        <div class="right-col">
+          <div class="grade-badge grade-green">1.3</div>
+          <div class="grade-date">20. Jun</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- FAB -->
+  <div class="fab">+</div>
+
+  <!-- Bottom Nav -->
+  <div class="bottom-nav">
+    <div class="nav-item active">
+      <span class="nav-icon">📝</span>
+      <span class="nav-label">Notizen</span>
+    </div>
+    <div class="nav-item">
+      <span class="nav-icon">🧮</span>
+      <span class="nav-label">Rechner</span>
+    </div>
+    <div class="nav-item">
+      <span class="nav-icon">📊</span>
+      <span class="nav-label">Ergebnisse</span>
+    </div>
+    <div class="nav-item">
+      <span class="nav-icon">🏠</span>
+      <span class="nav-label">Dashboard</span>
+    </div>
+    <div class="home-indicator"></div>
+  </div>
+
+</div>
+</body>
+</html>

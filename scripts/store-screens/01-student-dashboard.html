@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=390">
+<title>Bonifatus – Student Dashboard</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    width: 390px; height: 844px; overflow: hidden;
+    font-family: -apple-system, system-ui, BlinkMacSystemFont, 'Helvetica Neue', sans-serif;
+    background: #F9FAFB;
+  }
+
+  /* Tablet: center phone in gradient bg */
+  @media (min-width: 600px) {
+    body {
+      width: 100vw; height: 100vh; overflow: hidden;
+      background: linear-gradient(135deg, #4F46E5, #7C3AED);
+      display: flex; align-items: center; justify-content: center;
+    }
+    .phone-wrap {
+      width: 390px; height: 844px; background: white;
+      border-radius: 40px; overflow: hidden;
+      box-shadow: 0 40px 120px rgba(0,0,0,0.4);
+    }
+  }
+
+  .phone-wrap { width: 390px; height: 844px; overflow: hidden; position: relative; background: #F9FAFB; }
+
+  /* Promo banner */
+  .promo {
+    height: 76px; background: linear-gradient(135deg, #4F46E5, #7C3AED);
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    padding: 0 20px;
+  }
+  .promo-title { color: white; font-size: 18px; font-weight: 700; text-align: center; line-height: 1.2; }
+  .promo-sub { color: rgba(255,255,255,0.85); font-size: 12px; text-align: center; margin-top: 3px; }
+
+  /* Status bar */
+  .status-bar {
+    height: 44px; background: linear-gradient(135deg, #4338CA, #6D28D9);
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 20px; position: relative;
+  }
+  .status-time { color: white; font-size: 15px; font-weight: 600; }
+  .dynamic-island {
+    position: absolute; left: 50%; transform: translateX(-50%);
+    width: 120px; height: 30px; background: #000;
+    border-radius: 20px; top: 7px;
+  }
+  .status-icons { display: flex; align-items: center; gap: 6px; }
+  .status-icons svg { fill: white; }
+  .battery-text { color: white; font-size: 12px; font-weight: 500; }
+
+  /* App header */
+  .app-header {
+    background: linear-gradient(180deg, #4338CA 0%, #6D28D9 100%);
+    padding: 14px 20px 18px;
+  }
+  .header-row { display: flex; align-items: center; justify-content: space-between; }
+  .greeting { color: white; font-size: 20px; font-weight: 700; }
+  .date-text { color: rgba(255,255,255,0.75); font-size: 13px; margin-top: 2px; }
+  .avatar-gear { display: flex; align-items: center; gap: 10px; }
+  .avatar {
+    width: 38px; height: 38px; border-radius: 50%;
+    background: rgba(255,255,255,0.25); border: 2px solid rgba(255,255,255,0.5);
+    display: flex; align-items: center; justify-content: center;
+    color: white; font-size: 16px; font-weight: 700;
+  }
+  .gear-icon { color: rgba(255,255,255,0.8); font-size: 20px; }
+
+  /* Stats row */
+  .stats-row {
+    display: flex; gap: 10px; padding: 14px 14px 0;
+  }
+  .stat-card {
+    flex: 1; background: white; border-radius: 14px;
+    padding: 12px 10px; text-align: center;
+    box-shadow: 0 1px 6px rgba(0,0,0,0.08);
+  }
+  .stat-value { font-size: 22px; font-weight: 800; color: #1F2937; line-height: 1; }
+  .stat-value.indigo { color: #4F46E5; }
+  .stat-value.amber { color: #F59E0B; }
+  .stat-label { font-size: 10px; color: #6B7280; margin-top: 4px; font-weight: 500; letter-spacing: 0.3px; }
+
+  /* Content scroll area */
+  .content { padding: 12px 14px 0; overflow: hidden; }
+
+  /* Section header */
+  .section-header {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 8px;
+  }
+  .section-title { font-size: 15px; font-weight: 700; color: #111827; }
+  .section-link { font-size: 13px; color: #4F46E5; font-weight: 500; }
+
+  /* Grade rows */
+  .grade-list { background: white; border-radius: 14px; overflow: hidden; box-shadow: 0 1px 6px rgba(0,0,0,0.07); }
+  .grade-row {
+    display: flex; align-items: center; padding: 11px 14px;
+    border-bottom: 1px solid #F3F4F6; gap: 10px;
+  }
+  .grade-row:last-child { border-bottom: none; }
+  .subject-icon {
+    width: 36px; height: 36px; border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px; flex-shrink: 0;
+  }
+  .subject-info { flex: 1; min-width: 0; }
+  .subject-name { font-size: 14px; font-weight: 600; color: #111827; }
+  .subject-meta { font-size: 11px; color: #6B7280; margin-top: 1px; }
+  .grade-badge {
+    padding: 4px 10px; border-radius: 20px;
+    font-size: 14px; font-weight: 700; flex-shrink: 0;
+  }
+  .grade-green { background: #D1FAE5; color: #065F46; }
+  .grade-indigo { background: #E0E7FF; color: #3730A3; }
+  .grade-amber { background: #FEF3C7; color: #92400E; }
+  .grade-red { background: #FEE2E2; color: #991B1B; }
+
+  /* Semester card */
+  .semester-card {
+    background: white; border-radius: 14px; padding: 14px;
+    box-shadow: 0 1px 6px rgba(0,0,0,0.07); margin-top: 10px;
+  }
+  .semester-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+  .semester-name { font-size: 14px; font-weight: 600; color: #374151; }
+  .semester-avg { font-size: 22px; font-weight: 800; color: #4F46E5; }
+  .progress-bar-bg { height: 6px; background: #E5E7EB; border-radius: 3px; }
+  .progress-bar-fill { height: 6px; background: linear-gradient(90deg, #4F46E5, #7C3AED); border-radius: 3px; width: 70%; }
+  .semester-footer { display: flex; justify-content: space-between; margin-top: 6px; }
+  .semester-meta { font-size: 11px; color: #6B7280; }
+
+  /* Bottom nav */
+  .bottom-nav {
+    position: absolute; bottom: 0; left: 0; right: 0;
+    height: 83px; background: white;
+    border-top: 1px solid #E5E7EB;
+    display: flex; align-items: flex-start; justify-content: space-around;
+    padding-top: 10px;
+  }
+  .nav-item { display: flex; flex-direction: column; align-items: center; gap: 3px; flex: 1; }
+  .nav-icon { font-size: 22px; line-height: 1; }
+  .nav-label { font-size: 10px; font-weight: 500; color: #6B7280; }
+  .nav-item.active .nav-icon { font-size: 22px; }
+  .nav-item.active .nav-label { color: #4F46E5; font-weight: 700; }
+  .home-indicator {
+    position: absolute; bottom: 8px; left: 50%; transform: translateX(-50%);
+    width: 135px; height: 5px; background: #1C1C1E; border-radius: 3px;
+  }
+</style>
+</head>
+<body>
+<div class="phone-wrap">
+
+  <!-- Promo Banner -->
+  <div class="promo">
+    <div class="promo-title">Dein Notenspiegel auf einen Blick</div>
+    <div class="promo-sub">Aktuelle Noten, Schnitt und Fortschritt</div>
+  </div>
+
+  <!-- Status Bar -->
+  <div class="status-bar">
+    <div class="status-time">9:41</div>
+    <div class="dynamic-island"></div>
+    <div class="status-icons">
+      <svg width="17" height="12" viewBox="0 0 17 12"><rect x="0" y="4" width="3" height="8" rx="1"/><rect x="4.5" y="2.5" width="3" height="9.5" rx="1"/><rect x="9" y="0.5" width="3" height="11.5" rx="1"/><rect x="13.5" y="0" width="3" height="12" rx="1"/></svg>
+      <svg width="16" height="12" viewBox="0 0 16 12"><path d="M8 3C5.5 3 3.2 4 1.5 5.7L0 4.2C2.1 2.1 4.9 1 8 1s5.9 1.1 8 3.2L14.5 5.7C12.8 4 10.5 3 8 3z"/><path d="M8 7c-1.4 0-2.6.5-3.5 1.4L3 7C4.3 5.7 6 5 8 5s3.7.7 5 2L11.5 8.4C10.6 7.5 9.4 7 8 7z"/><circle cx="8" cy="11" r="1.5"/></svg>
+      <span class="battery-text">87%</span>
+    </div>
+  </div>
+
+  <!-- App Header -->
+  <div class="app-header">
+    <div class="header-row">
+      <div>
+        <div class="greeting">Guten Morgen, Max! 👋</div>
+        <div class="date-text">Montag, 29. Juni</div>
+      </div>
+      <div class="avatar-gear">
+        <div class="avatar">M</div>
+        <div class="gear-icon">⚙️</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Stats Row -->
+  <div class="stats-row">
+    <div class="stat-card">
+      <div class="stat-value indigo">2.3</div>
+      <div class="stat-label">Ø Gesamt&shy;schnitt</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value amber">🔥 7</div>
+      <div class="stat-label">Tage-Streak</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value">42</div>
+      <div class="stat-label">Noten gesamt</div>
+    </div>
+  </div>
+
+  <!-- Recent Grades -->
+  <div class="content">
+    <div class="section-header">
+      <div class="section-title">Zuletzt eingetragen</div>
+      <div class="section-link">Alle →</div>
+    </div>
+    <div class="grade-list">
+      <div class="grade-row">
+        <div class="subject-icon" style="background:#EDE9FE;">➗</div>
+        <div class="subject-info">
+          <div class="subject-name">Mathematik</div>
+          <div class="subject-meta">Klassenarbeit · heute</div>
+        </div>
+        <div class="grade-badge grade-green">2.0</div>
+      </div>
+      <div class="grade-row">
+        <div class="subject-icon" style="background:#FEF3C7;">📖</div>
+        <div class="subject-info">
+          <div class="subject-name">Deutsch</div>
+          <div class="subject-meta">Aufsatz · gestern</div>
+        </div>
+        <div class="grade-badge grade-green">1.7</div>
+      </div>
+      <div class="grade-row">
+        <div class="subject-icon" style="background:#DBEAFE;">🌍</div>
+        <div class="subject-info">
+          <div class="subject-name">Englisch</div>
+          <div class="subject-meta">Vokabeltest · Mo</div>
+        </div>
+        <div class="grade-badge grade-indigo">2.3</div>
+      </div>
+      <div class="grade-row">
+        <div class="subject-icon" style="background:#D1FAE5;">🏛️</div>
+        <div class="subject-info">
+          <div class="subject-name">Geschichte</div>
+          <div class="subject-meta">Referat · Fr</div>
+        </div>
+        <div class="grade-badge grade-green">1.0</div>
+      </div>
+    </div>
+
+    <!-- Semester Card -->
+    <div class="semester-card">
+      <div class="semester-header">
+        <div>
+          <div class="semester-name">Aktuelles Semester</div>
+          <div style="font-size:11px;color:#6B7280;margin-top:2px;">Semester 1 · 2025/26 · 8 Fächer</div>
+        </div>
+        <div class="semester-avg">Ø 2.3</div>
+      </div>
+      <div class="progress-bar-bg"><div class="progress-bar-fill"></div></div>
+      <div class="semester-footer">
+        <span class="semester-meta">Fortschritt: 70%</span>
+        <span class="semester-meta">8 Fächer</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bottom Nav -->
+  <div class="bottom-nav">
+    <div class="nav-item">
+      <span class="nav-icon">📝</span>
+      <span class="nav-label">Notizen</span>
+    </div>
+    <div class="nav-item">
+      <span class="nav-icon">🧮</span>
+      <span class="nav-label">Rechner</span>
+    </div>
+    <div class="nav-item">
+      <span class="nav-icon">📊</span>
+      <span class="nav-label">Ergebnisse</span>
+    </div>
+    <div class="nav-item active">
+      <span class="nav-icon">🏠</span>
+      <span class="nav-label">Dashboard</span>
+    </div>
+    <div class="home-indicator"></div>
+  </div>
+
+</div>
+</body>
+</html>

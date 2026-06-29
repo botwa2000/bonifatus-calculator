@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=390">
+<title>Bonifatus – Ergebnisse</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    width: 390px; height: 844px; overflow: hidden;
+    font-family: -apple-system, system-ui, BlinkMacSystemFont, 'Helvetica Neue', sans-serif;
+    background: #F9FAFB;
+  }
+  @media (min-width: 600px) {
+    body {
+      width: 100vw; height: 100vh;
+      background: linear-gradient(135deg, #4F46E5, #7C3AED);
+      display: flex; align-items: center; justify-content: center;
+    }
+    .phone-wrap {
+      width: 390px; height: 844px; background: white;
+      border-radius: 40px; overflow: hidden;
+      box-shadow: 0 40px 120px rgba(0,0,0,0.4);
+    }
+  }
+  .phone-wrap { width: 390px; height: 844px; overflow: hidden; position: relative; background: #F9FAFB; }
+
+  .promo {
+    height: 76px; background: linear-gradient(135deg, #4F46E5, #7C3AED);
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    padding: 0 20px;
+  }
+  .promo-title { color: white; font-size: 18px; font-weight: 700; text-align: center; line-height: 1.2; }
+  .promo-sub { color: rgba(255,255,255,0.85); font-size: 12px; text-align: center; margin-top: 3px; }
+
+  .status-bar {
+    height: 44px; background: white;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 20px; position: relative; border-bottom: 1px solid #F3F4F6;
+  }
+  .status-time { color: #111827; font-size: 15px; font-weight: 600; }
+  .dynamic-island {
+    position: absolute; left: 50%; transform: translateX(-50%);
+    width: 120px; height: 30px; background: #000; border-radius: 20px; top: 7px;
+  }
+  .status-icons { display: flex; align-items: center; gap: 6px; }
+  .status-icons svg { fill: #111827; }
+  .battery-text { color: #111827; font-size: 12px; font-weight: 500; }
+
+  .app-header {
+    background: white; padding: 12px 20px 14px;
+    border-bottom: 1px solid #F3F4F6;
+  }
+  .header-title { font-size: 26px; font-weight: 800; color: #111827; }
+  .header-sub { font-size: 13px; color: #6B7280; margin-top: 2px; }
+
+  .content { padding: 14px 16px 0; overflow: hidden; }
+
+  /* Semester result card */
+  .result-card {
+    background: white; border-radius: 16px;
+    box-shadow: 0 1px 6px rgba(0,0,0,0.08);
+    margin-bottom: 10px; overflow: hidden;
+    display: flex;
+  }
+  .card-border-indigo { border-left: 4px solid #4F46E5; }
+  .card-border-green { border-left: 4px solid #10B981; }
+  .card-border-amber { border-left: 4px solid #F59E0B; }
+  .card-inner { flex: 1; padding: 14px 14px 14px 12px; }
+  .card-top { display: flex; align-items: center; justify-content: space-between; }
+  .semester-label { font-size: 14px; font-weight: 700; color: #111827; }
+  .semester-avg-big { font-size: 28px; font-weight: 900; color: #4F46E5; line-height: 1; }
+  .semester-avg-green { color: #10B981; }
+  .semester-avg-amber { color: #F59E0B; }
+  .card-bottom { display: flex; align-items: center; justify-content: space-between; margin-top: 8px; }
+  .card-meta { font-size: 12px; color: #6B7280; }
+  .chevron { font-size: 18px; color: #D1D5DB; }
+
+  /* Subject mini-pills */
+  .subject-pills { display: flex; gap: 5px; flex-wrap: wrap; margin-top: 8px; }
+  .subject-pill {
+    font-size: 11px; font-weight: 600; padding: 3px 8px;
+    border-radius: 8px; background: #F3F4F6; color: #374151;
+  }
+
+  /* Best semester summary */
+  .best-row {
+    background: linear-gradient(135deg, #D1FAE5, #A7F3D0);
+    border-radius: 14px; padding: 14px 16px;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .best-label { font-size: 14px; font-weight: 600; color: #065F46; }
+  .best-sub { font-size: 12px; color: #059669; margin-top: 2px; }
+  .best-avg { font-size: 28px; font-weight: 900; color: #10B981; }
+  .trophy { font-size: 26px; }
+
+  .bottom-nav {
+    position: absolute; bottom: 0; left: 0; right: 0;
+    height: 83px; background: white; border-top: 1px solid #E5E7EB;
+    display: flex; align-items: flex-start; justify-content: space-around;
+    padding-top: 10px;
+  }
+  .nav-item { display: flex; flex-direction: column; align-items: center; gap: 3px; flex: 1; }
+  .nav-icon { font-size: 22px; line-height: 1; }
+  .nav-label { font-size: 10px; font-weight: 500; color: #6B7280; }
+  .nav-item.active .nav-label { color: #4F46E5; font-weight: 700; }
+  .home-indicator {
+    position: absolute; bottom: 8px; left: 50%; transform: translateX(-50%);
+    width: 135px; height: 5px; background: #1C1C1E; border-radius: 3px;
+  }
+</style>
+</head>
+<body>
+<div class="phone-wrap">
+
+  <!-- Promo Banner -->
+  <div class="promo">
+    <div class="promo-title">Semesterergebnisse auf einen Blick</div>
+    <div class="promo-sub">Abschlusszeugnis schon vor Ausgabe kennen</div>
+  </div>
+
+  <!-- Status Bar -->
+  <div class="status-bar">
+    <div class="status-time">9:41</div>
+    <div class="dynamic-island"></div>
+    <div class="status-icons">
+      <svg width="17" height="12" viewBox="0 0 17 12"><rect x="0" y="4" width="3" height="8" rx="1"/><rect x="4.5" y="2.5" width="3" height="9.5" rx="1"/><rect x="9" y="0.5" width="3" height="11.5" rx="1"/><rect x="13.5" y="0" width="3" height="12" rx="1"/></svg>
+      <svg width="16" height="12" viewBox="0 0 16 12"><path d="M8 3C5.5 3 3.2 4 1.5 5.7L0 4.2C2.1 2.1 4.9 1 8 1s5.9 1.1 8 3.2L14.5 5.7C12.8 4 10.5 3 8 3z"/><path d="M8 7c-1.4 0-2.6.5-3.5 1.4L3 7C4.3 5.7 6 5 8 5s3.7.7 5 2L11.5 8.4C10.6 7.5 9.4 7 8 7z"/><circle cx="8" cy="11" r="1.5"/></svg>
+      <span class="battery-text">87%</span>
+    </div>
+  </div>
+
+  <!-- App Header -->
+  <div class="app-header">
+    <div class="header-title">Ergebnisse</div>
+    <div class="header-sub">Max M. · 9. Klasse, Gymnasium</div>
+  </div>
+
+  <!-- Content -->
+  <div class="content">
+
+    <!-- Semester 1 2025/26 -->
+    <div class="result-card card-border-indigo">
+      <div class="card-inner">
+        <div class="card-top">
+          <div>
+            <div class="semester-label">Semester 1 · 2025/26</div>
+            <div class="card-meta">8 Fächer · Jun 2026</div>
+          </div>
+          <div style="display:flex;align-items:center;gap:6px;">
+            <div class="semester-avg-big">2.3</div>
+            <div class="chevron">›</div>
+          </div>
+        </div>
+        <div class="subject-pills">
+          <span class="subject-pill" style="background:#EDE9FE;color:#4F46E5;">Mathe 2.2</span>
+          <span class="subject-pill" style="background:#D1FAE5;color:#065F46;">Deutsch 1.8</span>
+          <span class="subject-pill" style="background:#DBEAFE;color:#1D4ED8;">Englisch 2.1</span>
+          <span class="subject-pill" style="background:#D1FAE5;color:#065F46;">Geschichte 1.5</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Semester 2 2024/25 -->
+    <div class="result-card card-border-green">
+      <div class="card-inner">
+        <div class="card-top">
+          <div>
+            <div class="semester-label">Semester 2 · 2024/25</div>
+            <div class="card-meta">8 Fächer · Feb 2025</div>
+          </div>
+          <div style="display:flex;align-items:center;gap:6px;">
+            <div class="semester-avg-big semester-avg-green">2.1</div>
+            <div class="chevron">›</div>
+          </div>
+        </div>
+        <div class="subject-pills">
+          <span class="subject-pill" style="background:#EDE9FE;color:#4F46E5;">Mathe 2.0</span>
+          <span class="subject-pill" style="background:#D1FAE5;color:#065F46;">Deutsch 1.7</span>
+          <span class="subject-pill" style="background:#D1FAE5;color:#065F46;">Sport 1.3</span>
+          <span class="subject-pill" style="background:#FEF3C7;color:#92400E;">Bio 2.8</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Semester 1 2024/25 -->
+    <div class="result-card card-border-amber">
+      <div class="card-inner">
+        <div class="card-top">
+          <div>
+            <div class="semester-label">Semester 1 · 2024/25</div>
+            <div class="card-meta">7 Fächer · Jun 2024</div>
+          </div>
+          <div style="display:flex;align-items:center;gap:6px;">
+            <div class="semester-avg-big semester-avg-amber">2.5</div>
+            <div class="chevron">›</div>
+          </div>
+        </div>
+        <div class="subject-pills">
+          <span class="subject-pill" style="background:#EDE9FE;color:#4F46E5;">Mathe 2.5</span>
+          <span class="subject-pill" style="background:#FEF3C7;color:#92400E;">Chemie 3.0</span>
+          <span class="subject-pill" style="background:#DBEAFE;color:#1D4ED8;">Englisch 2.3</span>
+          <span class="subject-pill" style="background:#D1FAE5;color:#065F46;">Sport 1.7</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Best semester -->
+    <div class="best-row">
+      <div class="trophy">🏆</div>
+      <div>
+        <div class="best-label">Bestes Semester</div>
+        <div class="best-sub">Semester 2 · 2024/25</div>
+      </div>
+      <div class="best-avg">Ø 2.1</div>
+    </div>
+
+  </div>
+
+  <!-- Bottom Nav -->
+  <div class="bottom-nav">
+    <div class="nav-item">
+      <span class="nav-icon">📝</span>
+      <span class="nav-label">Notizen</span>
+    </div>
+    <div class="nav-item">
+      <span class="nav-icon">🧮</span>
+      <span class="nav-label">Rechner</span>
+    </div>
+    <div class="nav-item active">
+      <span class="nav-icon">📊</span>
+      <span class="nav-label">Ergebnisse</span>
+    </div>
+    <div class="nav-item">
+      <span class="nav-icon">🏠</span>
+      <span class="nav-label">Dashboard</span>
+    </div>
+    <div class="home-indicator"></div>
+  </div>
+
+</div>
+</body>
+</html>

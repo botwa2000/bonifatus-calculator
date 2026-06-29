@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=390">
+<title>Bonifatus – Eltern-Dashboard</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    width: 390px; height: 844px; overflow: hidden;
+    font-family: -apple-system, system-ui, BlinkMacSystemFont, 'Helvetica Neue', sans-serif;
+    background: #F9FAFB;
+  }
+  @media (min-width: 600px) {
+    body {
+      width: 100vw; height: 100vh;
+      background: linear-gradient(135deg, #4F46E5, #7C3AED);
+      display: flex; align-items: center; justify-content: center;
+    }
+    .phone-wrap {
+      width: 390px; height: 844px; background: white;
+      border-radius: 40px; overflow: hidden;
+      box-shadow: 0 40px 120px rgba(0,0,0,0.4);
+    }
+  }
+  .phone-wrap { width: 390px; height: 844px; overflow: hidden; position: relative; background: #F9FAFB; }
+
+  .promo {
+    height: 76px; background: linear-gradient(135deg, #4F46E5, #7C3AED);
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    padding: 0 20px;
+  }
+  .promo-title { color: white; font-size: 18px; font-weight: 700; text-align: center; line-height: 1.2; }
+  .promo-sub { color: rgba(255,255,255,0.85); font-size: 12px; text-align: center; margin-top: 3px; }
+
+  .status-bar {
+    height: 44px; background: linear-gradient(135deg, #4338CA, #6D28D9);
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 20px; position: relative;
+  }
+  .status-time { color: white; font-size: 15px; font-weight: 600; }
+  .dynamic-island {
+    position: absolute; left: 50%; transform: translateX(-50%);
+    width: 120px; height: 30px; background: #000; border-radius: 20px; top: 7px;
+  }
+  .status-icons { display: flex; align-items: center; gap: 6px; }
+  .status-icons svg { fill: white; }
+  .battery-text { color: white; font-size: 12px; font-weight: 500; }
+
+  .app-header {
+    background: linear-gradient(180deg, #4338CA 0%, #7C3AED 100%);
+    padding: 14px 20px 18px;
+  }
+  .header-row { display: flex; align-items: center; justify-content: space-between; }
+  .greeting { color: white; font-size: 20px; font-weight: 700; }
+  .date-text { color: rgba(255,255,255,0.75); font-size: 13px; margin-top: 2px; }
+  .avatar {
+    width: 40px; height: 40px; border-radius: 50%;
+    background: rgba(255,255,255,0.25); border: 2px solid rgba(255,255,255,0.5);
+    display: flex; align-items: center; justify-content: center;
+    color: white; font-size: 17px; font-weight: 700;
+  }
+
+  /* Activity banner */
+  .activity-banner {
+    margin: 10px 16px 0;
+    background: linear-gradient(135deg, #EEF2FF, #EDE9FE);
+    border-radius: 12px; padding: 11px 14px;
+    display: flex; align-items: center; gap: 10px;
+    border: 1px solid #C7D2FE;
+  }
+  .activity-icon { font-size: 20px; flex-shrink: 0; }
+  .activity-text { font-size: 13px; color: #3730A3; font-weight: 500; line-height: 1.3; }
+  .activity-time { font-size: 11px; color: #6B7280; margin-top: 2px; }
+
+  .content { padding: 10px 16px 0; overflow: hidden; }
+
+  .section-header {
+    display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;
+  }
+  .section-title { font-size: 16px; font-weight: 700; color: #111827; }
+  .section-link { font-size: 13px; color: #4F46E5; font-weight: 500; }
+
+  /* Child card */
+  .child-card {
+    background: white; border-radius: 16px;
+    box-shadow: 0 1px 6px rgba(0,0,0,0.08); margin-bottom: 10px;
+    overflow: hidden;
+  }
+  .child-main { padding: 14px; }
+  .child-top { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; }
+  .child-avatar {
+    width: 46px; height: 46px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 20px; font-weight: 700; color: white; flex-shrink: 0;
+  }
+  .child-avatar-indigo { background: linear-gradient(135deg, #4F46E5, #7C3AED); }
+  .child-avatar-emerald { background: linear-gradient(135deg, #10B981, #059669); }
+  .child-name { font-size: 16px; font-weight: 700; color: #111827; }
+  .child-class { font-size: 12px; color: #6B7280; margin-top: 1px; }
+  .child-avg { font-size: 26px; font-weight: 900; }
+  .child-avg-indigo { color: #4F46E5; }
+  .child-avg-emerald { color: #10B981; }
+
+  .status-row { display: flex; align-items: center; gap: 6px; margin-bottom: 8px; }
+  .status-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+  .dot-green { background: #10B981; }
+  .dot-yellow { background: #F59E0B; }
+  .status-text { font-size: 12px; color: #374151; }
+
+  .last-grade-row {
+    display: flex; align-items: center; justify-content: space-between;
+    background: #F9FAFB; border-radius: 10px; padding: 8px 12px;
+  }
+  .last-grade-label { font-size: 12px; color: #6B7280; }
+  .last-grade-value { font-size: 13px; font-weight: 600; color: #111827; }
+  .grade-badge { padding: 3px 9px; border-radius: 14px; font-size: 12px; font-weight: 700; }
+  .grade-green { background: #D1FAE5; color: #065F46; }
+  .grade-emerald { background: #D1FAE5; color: #065F46; }
+
+  .child-footer {
+    border-top: 1px solid #F3F4F6; padding: 10px 14px;
+    display: flex; justify-content: center;
+  }
+  .view-btn { font-size: 13px; font-weight: 600; color: #4F46E5; }
+
+  .bottom-nav {
+    position: absolute; bottom: 0; left: 0; right: 0;
+    height: 83px; background: white; border-top: 1px solid #E5E7EB;
+    display: flex; align-items: flex-start; justify-content: space-around;
+    padding-top: 10px;
+  }
+  .nav-item { display: flex; flex-direction: column; align-items: center; gap: 3px; flex: 1; }
+  .nav-icon { font-size: 22px; line-height: 1; }
+  .nav-label { font-size: 10px; font-weight: 500; color: #6B7280; }
+  .nav-item.active .nav-label { color: #4F46E5; font-weight: 700; }
+  .home-indicator {
+    position: absolute; bottom: 8px; left: 50%; transform: translateX(-50%);
+    width: 135px; height: 5px; background: #1C1C1E; border-radius: 3px;
+  }
+</style>
+</head>
+<body>
+<div class="phone-wrap">
+
+  <!-- Promo Banner -->
+  <div class="promo">
+    <div class="promo-title">Als Elternteil immer informiert</div>
+    <div class="promo-sub">Noten aller Kinder im Überblick</div>
+  </div>
+
+  <!-- Status Bar -->
+  <div class="status-bar">
+    <div class="status-time">9:41</div>
+    <div class="dynamic-island"></div>
+    <div class="status-icons">
+      <svg width="17" height="12" viewBox="0 0 17 12"><rect x="0" y="4" width="3" height="8" rx="1"/><rect x="4.5" y="2.5" width="3" height="9.5" rx="1"/><rect x="9" y="0.5" width="3" height="11.5" rx="1"/><rect x="13.5" y="0" width="3" height="12" rx="1"/></svg>
+      <svg width="16" height="12" viewBox="0 0 16 12"><path d="M8 3C5.5 3 3.2 4 1.5 5.7L0 4.2C2.1 2.1 4.9 1 8 1s5.9 1.1 8 3.2L14.5 5.7C12.8 4 10.5 3 8 3z"/><path d="M8 7c-1.4 0-2.6.5-3.5 1.4L3 7C4.3 5.7 6 5 8 5s3.7.7 5 2L11.5 8.4C10.6 7.5 9.4 7 8 7z"/><circle cx="8" cy="11" r="1.5"/></svg>
+      <span class="battery-text">87%</span>
+    </div>
+  </div>
+
+  <!-- App Header -->
+  <div class="app-header">
+    <div class="header-row">
+      <div>
+        <div class="greeting">Guten Morgen, Sandra! 👋</div>
+        <div class="date-text">Montag, 29. Juni</div>
+      </div>
+      <div class="avatar">S</div>
+    </div>
+  </div>
+
+  <!-- Activity Banner -->
+  <div class="activity-banner">
+    <div class="activity-icon">🔔</div>
+    <div>
+      <div class="activity-text">Max hat eine neue Note eingetragen: <strong>Mathe 2.0</strong></div>
+      <div class="activity-time">vor 15 Minuten</div>
+    </div>
+  </div>
+
+  <!-- Content -->
+  <div class="content">
+    <div class="section-header">
+      <div class="section-title">Meine Kinder</div>
+      <div class="section-link">Details →</div>
+    </div>
+
+    <!-- Max -->
+    <div class="child-card">
+      <div class="child-main">
+        <div class="child-top">
+          <div class="child-avatar child-avatar-indigo">M</div>
+          <div style="flex:1">
+            <div class="child-name">Max M.</div>
+            <div class="child-class">9. Klasse · Gymnasium</div>
+          </div>
+          <div class="child-avg child-avg-indigo">Ø 2.3</div>
+        </div>
+        <div class="status-row">
+          <div class="status-dot dot-green"></div>
+          <div class="status-text">Zuletzt aktiv: heute, 9:25 Uhr</div>
+        </div>
+        <div class="last-grade-row">
+          <div>
+            <div class="last-grade-label">Letzte Note</div>
+            <div class="last-grade-value">Mathematik · Klassenarbeit</div>
+          </div>
+          <div class="grade-badge grade-green">2.0</div>
+        </div>
+      </div>
+      <div class="child-footer">
+        <div class="view-btn">Alle Fächer ansehen ›</div>
+      </div>
+    </div>
+
+    <!-- Lena -->
+    <div class="child-card">
+      <div class="child-main">
+        <div class="child-top">
+          <div class="child-avatar child-avatar-emerald">L</div>
+          <div style="flex:1">
+            <div class="child-name">Lena M.</div>
+            <div class="child-class">6. Klasse · Gymnasium</div>
+          </div>
+          <div class="child-avg child-avg-emerald">Ø 1.9</div>
+        </div>
+        <div class="status-row">
+          <div class="status-dot dot-yellow"></div>
+          <div class="status-text">Zuletzt aktiv: gestern</div>
+        </div>
+        <div class="last-grade-row">
+          <div>
+            <div class="last-grade-label">Letzte Note</div>
+            <div class="last-grade-value">Sport · Praktische Prüfung</div>
+          </div>
+          <div class="grade-badge grade-green">1.0</div>
+        </div>
+      </div>
+      <div class="child-footer">
+        <div class="view-btn">Alle Fächer ansehen ›</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bottom Nav (parent) -->
+  <div class="bottom-nav">
+    <div class="nav-item">
+      <span class="nav-icon">👨‍👩‍👧</span>
+      <span class="nav-label">Kinder</span>
+    </div>
+    <div class="nav-item active">
+      <span class="nav-icon">🏠</span>
+      <span class="nav-label">Dashboard</span>
+    </div>
+    <div class="nav-item">
+      <span class="nav-icon">🏆</span>
+      <span class="nav-label">Belohnungen</span>
+    </div>
+    <div class="home-indicator"></div>
+  </div>
+
+</div>
+</body>
+</html>
