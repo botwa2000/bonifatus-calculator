@@ -1,11 +1,17 @@
 #!/usr/bin/env bash
+# Local deploy script — for manual deploys from a developer machine.
+# GitHub Actions (.github/workflows/deploy-web.yml) handles automatic deploys on push.
+#
+# Usage: ./deploy.sh <prod|dev> [--secrets-file path]
+#
+# Secrets file format: KEY=VALUE (one per line, # for comments)
+# Required secrets: DATABASE_URL, NEXTAUTH_SECRET, MOBILE_JWT_SECRET,
+#   TURNSTILE_SECRET_KEY, EMAIL_HOST, EMAIL_PORT, EMAIL_SECURE,
+#   EMAIL_USER, EMAIL_PASSWORD, FMP_API_KEY
 set -euo pipefail
 
-# Bonifatus deploy script
-# Usage: ./deploy.sh <prod|dev> [--secrets-file path]
-
-# On Windows (Git Bash), OpenSSH may not be in PATH — add it if needed
 if ! command -v ssh >/dev/null 2>&1; then
+  # Git Bash on Windows may not have OpenSSH in PATH
   export PATH="$PATH:/c/Windows/System32/OpenSSH"
 fi
 
@@ -53,24 +59,26 @@ else
 fi
 
 STACK_NAME="bonifatus-${ENV}"
+SERVER="root@159.69.180.183"
 
-# Update secrets if requested
+# Update Docker Swarm secrets if a secrets file was provided
 if [[ -n "$SECRETS_FILE" ]]; then
   [[ ! -f "$SECRETS_FILE" ]] && { echo "Error: Secrets file not found: $SECRETS_FILE"; exit 1; }
   echo "==> Updating secrets from ${SECRETS_FILE}"
   while IFS='=' read -r key value; do
     [[ -z "$key" || "$key" == \#* ]] && continue
     secret_name="${ENV}_${key}"
-    ssh root@159.69.180.183 "docker secret rm ${secret_name} 2>/dev/null || true"
-    echo -n "$value" | ssh root@159.69.180.183 "docker secret create ${secret_name} -"
+    # Trim whitespace from value
+    value=$(echo "$value" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
+    ssh "$SERVER" "docker secret rm ${secret_name} 2>/dev/null || true"
+    echo -n "$value" | ssh "$SERVER" "docker secret create ${secret_name} -"
     echo "   Created: ${secret_name}"
   done < "$SECRETS_FILE"
 fi
 
 echo "==> Deploying ${ENV} to bonifatus-hetzner"
 
-# Single SSH session: pull → build → deploy → health check
-ssh root@159.69.180.183 bash -s <<EOF
+ssh "$SERVER" bash -s <<EOF
 set -euo pipefail
 
 echo "=== [1/5] Pulling latest ${BRANCH} ==="
@@ -92,18 +100,17 @@ docker stack deploy -c ${STACK_FILE} ${STACK_NAME}
 echo "=== [4/5] Forcing service update ==="
 docker service update --force --image ${IMAGE_TAG} ${STACK_NAME}_app
 
-echo "=== [5/5] Health check (waiting 20s) ==="
-sleep 20
+echo "=== [5/5] Health check (waiting 25s) ==="
+sleep 25
 HEALTH=\$(curl -sf http://localhost:${PORT}/api/health || echo 'FAIL')
-echo "Response: \$HEALTH"
 
 if echo "\$HEALTH" | grep -q '"status":"ok"'; then
   echo "==> ${DOMAIN} is healthy!"
 else
-  echo "==> Health check failed. Check logs:"
-  echo "    ssh bonifatus-hetzner 'docker service logs ${STACK_NAME}_app --tail 50'"
+  echo "==> Health check failed. Last service logs:"
+  docker service logs ${STACK_NAME}_app --tail 30
   exit 1
 fi
 EOF
 
-echo "==> Done. Verify at https://${DOMAIN}"
+echo "==> Done: https://${DOMAIN}"

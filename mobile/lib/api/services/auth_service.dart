@@ -37,7 +37,7 @@ class AuthService {
     if (token == null) return AuthSessionState.unauthenticated();
 
     try {
-      final resp = await _client.get('/api/auth/me');
+      final resp = await _client.get('/api/mobile/auth/me');
       return AuthSessionState(
         isAuthenticated: true,
         userId: resp.data['id'] as String?,
@@ -55,19 +55,15 @@ class AuthService {
     required String email,
     required String password,
   }) async {
-    final resp = await _client.post('/api/auth/signin', data: {
+    final resp = await _client.post('/api/mobile/auth/signin', data: {
       'email': email,
       'password': password,
     });
 
     final token = resp.data['accessToken'] as String?;
-    final refreshToken = resp.data['refreshToken'] as String?;
     if (token == null) throw Exception('No access token in response');
 
     await _storage.write(key: AppConstants.keyAccessToken, value: token);
-    if (refreshToken != null) {
-      await _storage.write(key: AppConstants.keyRefreshToken, value: refreshToken);
-    }
 
     return AuthSessionState(
       isAuthenticated: true,
@@ -76,6 +72,46 @@ class AuthService {
       name: resp.data['user']?['name'] as String?,
       email: resp.data['user']?['email'] as String?,
     );
+  }
+
+  Future<({String userId, String email})> register({
+    required String email,
+    required String password,
+    required String fullName,
+    required String dateOfBirth,
+    required String role,
+    String? turnstileToken,
+  }) async {
+    final body = <String, dynamic>{
+      'email': email,
+      'password': password,
+      'fullName': fullName,
+      'dateOfBirth': dateOfBirth,
+      'role': role,
+    };
+    if (turnstileToken != null) body['turnstileToken'] = turnstileToken;
+
+    final resp = await _client.post('/api/auth/register', data: body);
+    return (
+      userId: resp.data['userId'] as String,
+      email: resp.data['email'] as String,
+    );
+  }
+
+  Future<void> verifyEmail({
+    required String userId,
+    required String code,
+    String purpose = 'email_verification',
+  }) async {
+    await _client.post('/api/auth/verify-email', data: {
+      'userId': userId,
+      'code': code,
+      'purpose': purpose,
+    });
+  }
+
+  Future<void> forgotPassword({required String email}) async {
+    await _client.post('/api/auth/forgot-password', data: {'email': email});
   }
 
   Future<void> logout() async {

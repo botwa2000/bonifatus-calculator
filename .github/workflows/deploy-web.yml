@@ -1,0 +1,107 @@
+name: Deploy Web — Hetzner Docker Swarm
+
+on:
+  push:
+    branches:
+      - main
+      - dev
+    paths-ignore:
+      - 'mobile/**'
+      - 'docs/**'
+      - '*.md'
+
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Target environment'
+        required: true
+        default: 'prod'
+        type: choice
+        options:
+          - prod
+          - dev
+
+jobs:
+  deploy:
+    name: Deploy to Hetzner (${{ github.ref == 'refs/heads/main' && 'prod' || 'dev' }})
+    runs-on: ubuntu-latest
+    environment: ${{ github.ref == 'refs/heads/main' && 'production' || 'development' }}
+
+    steps:
+      - name: Resolve environment
+        id: env
+        run: |
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            ENV="${{ inputs.environment }}"
+          elif [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
+            ENV="prod"
+          else
+            ENV="dev"
+          fi
+          echo "name=$ENV" >> "$GITHUB_OUTPUT"
+          if [[ "$ENV" == "prod" ]]; then
+            echo "port=3000"             >> "$GITHUB_OUTPUT"
+            echo "domain=bonifatus.com"  >> "$GITHUB_OUTPUT"
+            echo "image=bonifatus:prod"  >> "$GITHUB_OUTPUT"
+            echo "stack=bonifatus-prod"  >> "$GITHUB_OUTPUT"
+            echo "repo_dir=/home/deploy/bonifatus-calculator" >> "$GITHUB_OUTPUT"
+            echo "app_url=https://bonifatus.com"              >> "$GITHUB_OUTPUT"
+            echo "turnstile_key=0x4AAAAAAB7cH7pweCPsYnpL"    >> "$GITHUB_OUTPUT"
+          else
+            echo "port=3001"                 >> "$GITHUB_OUTPUT"
+            echo "domain=dev.bonifatus.com"  >> "$GITHUB_OUTPUT"
+            echo "image=bonifatus:dev"       >> "$GITHUB_OUTPUT"
+            echo "stack=bonifatus-dev"       >> "$GITHUB_OUTPUT"
+            echo "repo_dir=/home/deploy/bonifatus-dev" >> "$GITHUB_OUTPUT"
+            echo "app_url=https://dev.bonifatus.com"   >> "$GITHUB_OUTPUT"
+            echo "turnstile_key=0x4AAAAAACWJz491rhjNxKNi" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: 159.69.180.183
+          username: root
+          key: ${{ secrets.HETZNER_SSH_PRIVATE_KEY }}
+          script_stop: true
+          script: |
+            set -euo pipefail
+            ENV="${{ steps.env.outputs.name }}"
+            REPO_DIR="${{ steps.env.outputs.repo_dir }}"
+            IMAGE_TAG="${{ steps.env.outputs.image }}"
+            STACK="${{ steps.env.outputs.stack }}"
+            STACK_FILE="docker-stack.${ENV}.yml"
+            APP_URL="${{ steps.env.outputs.app_url }}"
+            PORT="${{ steps.env.outputs.port }}"
+            DOMAIN="${{ steps.env.outputs.domain }}"
+            TURNSTILE_KEY="${{ steps.env.outputs.turnstile_key }}"
+
+            echo "=== [1/5] Pull latest ==="
+            cd "$REPO_DIR"
+            git fetch origin
+            git checkout "${{ github.ref_name }}"
+            git pull origin "${{ github.ref_name }}"
+
+            echo "=== [2/5] Build image ==="
+            docker build \
+              --build-arg NEXT_PUBLIC_TURNSTILE_SITE_KEY="$TURNSTILE_KEY" \
+              --build-arg NEXT_PUBLIC_APP_URL="$APP_URL" \
+              --build-arg NEXT_PUBLIC_DEBUG_LEVEL="${{ steps.env.outputs.name == 'prod' && 'none' || 'verbose' }}" \
+              -t "$IMAGE_TAG" .
+
+            echo "=== [3/5] Deploy stack ==="
+            docker stack deploy -c "$STACK_FILE" "$STACK"
+
+            echo "=== [4/5] Force service update ==="
+            docker service update --force --image "$IMAGE_TAG" "${STACK}_app"
+
+            echo "=== [5/5] Health check ==="
+            sleep 25
+            HEALTH=$(curl -sf "http://localhost:${PORT}/api/health" || echo 'FAIL')
+            if echo "$HEALTH" | grep -q '"status":"ok"'; then
+              echo "==> $DOMAIN is healthy"
+            else
+              echo "==> Health check failed: $HEALTH"
+              docker service logs "${STACK}_app" --tail 30
+              exit 1
+            fi

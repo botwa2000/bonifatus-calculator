@@ -8,6 +8,7 @@ services:
     secrets:
       - prod_DATABASE_URL
       - prod_NEXTAUTH_SECRET
+      - prod_MOBILE_JWT_SECRET
       - prod_TURNSTILE_SECRET_KEY
       - prod_EMAIL_HOST
       - prod_EMAIL_PORT
@@ -40,6 +41,8 @@ secrets:
   prod_DATABASE_URL:
     external: true
   prod_NEXTAUTH_SECRET:
+    external: true
+  prod_MOBILE_JWT_SECRET:
     external: true
   prod_TURNSTILE_SECRET_KEY:
     external: true

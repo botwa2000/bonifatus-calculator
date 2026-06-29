@@ -21,10 +21,6 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       body: 'Parents and students see the same insights — grades, bonuses, and trends over time.'),
   ];
 
-  Widget _buildLogo() => Center(
-    child: Image.asset('assets/images/logo.png', width: 96, height: 96),
-  );
-
   @override
   void dispose() { _controller.dispose(); super.dispose(); }
 

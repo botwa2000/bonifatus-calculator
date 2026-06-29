@@ -1,16 +1,32 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../models/calculator_config.dart';
+import '../../providers/calculator_config_provider.dart';
+import '../../providers/term_results_provider.dart';
 
-class CalculatorScreen extends StatefulWidget {
+class CalculatorScreen extends ConsumerStatefulWidget {
   const CalculatorScreen({super.key});
 
   @override
-  State<CalculatorScreen> createState() => _CalculatorScreenState();
+  ConsumerState<CalculatorScreen> createState() => _CalculatorScreenState();
 }
 
-class _CalculatorScreenState extends State<CalculatorScreen> {
+class _CalculatorScreenState extends ConsumerState<CalculatorScreen> {
   final List<_SubjectEntry> _subjects = [];
+  bool _saving = false;
+
+  // Term metadata
+  String _termType = 'S1';
+  String _schoolYear = _defaultSchoolYear();
+
+  static String _defaultSchoolYear() {
+    final now = DateTime.now();
+    final year = now.month >= 8 ? now.year : now.year - 1;
+    return '$year/${(year + 1).toString().substring(2)}';
+  }
 
   String _tierForAverage(double avg) {
     if (avg < 1.5) return 'best';
@@ -46,16 +62,16 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
   }
 
   String _formatGrade(double grade) {
-    if (grade == grade.truncateToDouble()) {
-      return grade.toInt().toString();
-    }
+    if (grade == grade.truncateToDouble()) return grade.toInt().toString();
     return grade.toStringAsFixed(1);
   }
 
-  void _showAddSubjectSheet() {
+  void _showAddSubjectSheet(CalculatorConfig config) {
     final subjectCtrl = TextEditingController();
     final gradeCtrl = TextEditingController();
     final formKey = GlobalKey<FormState>();
+    SubjectItem? pickedSubject =
+        config.subjects.isNotEmpty ? config.subjects.first : null;
 
     showModalBottomSheet<void>(
       context: context,
@@ -65,100 +81,196 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
       builder: (sheetCtx) {
-        return Padding(
-          padding: EdgeInsets.only(
-            left: 20,
-            right: 20,
-            top: 24,
-            bottom: MediaQuery.of(sheetCtx).viewInsets.bottom + 24,
-          ),
-          child: Form(
-            key: formKey,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Center(
-                  child: Container(
-                    width: 40,
-                    height: 4,
-                    decoration: BoxDecoration(
-                      color: AppColors.neutral200,
-                      borderRadius: BorderRadius.circular(2),
+        return StatefulBuilder(builder: (ctx, setSheetState) {
+          return Padding(
+            padding: EdgeInsets.only(
+              left: 20,
+              right: 20,
+              top: 24,
+              bottom: MediaQuery.of(sheetCtx).viewInsets.bottom + 24,
+            ),
+            child: Form(
+              key: formKey,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Center(
+                    child: Container(
+                      width: 40,
+                      height: 4,
+                      decoration: BoxDecoration(
+                        color: AppColors.neutral200,
+                        borderRadius: BorderRadius.circular(2),
+                      ),
                     ),
                   ),
-                ),
-                const SizedBox(height: 20),
-                Text(
-                  'Add Subject',
-                  style: Theme.of(sheetCtx).textTheme.titleLarge?.copyWith(
-                        color: AppColors.neutral900,
+                  const SizedBox(height: 20),
+                  Text(
+                    'Add Subject',
+                    style: Theme.of(sheetCtx).textTheme.titleLarge?.copyWith(
+                          color: AppColors.neutral900,
+                        ),
+                  ),
+                  const SizedBox(height: 20),
+                  if (config.subjects.isNotEmpty) ...[
+                    const Text(
+                      'Subject',
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.neutral600,
                       ),
-                ),
-                const SizedBox(height: 20),
-                TextFormField(
-                  controller: subjectCtrl,
-                  decoration: const InputDecoration(
-                    labelText: 'Subject name',
-                    hintText: 'e.g. Mathematics',
-                  ),
-                  textCapitalization: TextCapitalization.words,
-                  validator: (v) {
-                    if (v == null || v.trim().isEmpty) {
-                      return 'Please enter a subject name';
-                    }
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 14),
-                TextFormField(
-                  controller: gradeCtrl,
-                  decoration: const InputDecoration(
-                    labelText: 'Grade (1 to 6)',
-                    hintText: 'e.g. 2',
-                  ),
-                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                  inputFormatters: [
-                    FilteringTextInputFormatter.allow(RegExp(r'[0-9.]')),
+                    ),
+                    const SizedBox(height: 8),
+                    DropdownButtonFormField<SubjectItem>(
+                      // ignore: deprecated_member_use
+                      value: pickedSubject,
+                      decoration: const InputDecoration(
+                        border: OutlineInputBorder(),
+                        contentPadding:
+                            EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                      ),
+                      items: config.subjects
+                          .map((s) => DropdownMenuItem(
+                              value: s, child: Text(s.name)))
+                          .toList(),
+                      onChanged: (s) {
+                        setSheetState(() => pickedSubject = s);
+                        if (s != null) subjectCtrl.text = s.name;
+                      },
+                      validator: (v) =>
+                          v == null ? 'Please select a subject' : null,
+                    ),
+                    const SizedBox(height: 14),
+                  ] else ...[
+                    TextFormField(
+                      controller: subjectCtrl,
+                      decoration: const InputDecoration(
+                        labelText: 'Subject name',
+                        hintText: 'e.g. Mathematics',
+                      ),
+                      textCapitalization: TextCapitalization.words,
+                      validator: (v) {
+                        if (v == null || v.trim().isEmpty) {
+                          return 'Please enter a subject name';
+                        }
+                        return null;
+                      },
+                    ),
+                    const SizedBox(height: 14),
                   ],
-                  validator: (v) {
-                    if (v == null || v.trim().isEmpty) {
-                      return 'Please enter a grade';
-                    }
-                    final parsed = double.tryParse(v.trim());
-                    if (parsed == null || parsed < 1 || parsed > 6) {
-                      return 'Grade must be between 1 and 6';
-                    }
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 24),
-                ElevatedButton(
-                  onPressed: () {
-                    if (formKey.currentState!.validate()) {
-                      setState(() {
-                        _subjects.add(
-                          _SubjectEntry(
-                            subject: subjectCtrl.text.trim(),
+                  TextFormField(
+                    controller: gradeCtrl,
+                    decoration: InputDecoration(
+                      labelText:
+                          'Grade (${config.defaultGradingSystem.minGrade.toInt()} to ${config.defaultGradingSystem.maxGrade.toInt()})',
+                      hintText: 'e.g. 2',
+                    ),
+                    keyboardType:
+                        const TextInputType.numberWithOptions(decimal: true),
+                    inputFormatters: [
+                      FilteringTextInputFormatter.allow(RegExp(r'[0-9.]')),
+                    ],
+                    validator: (v) {
+                      if (v == null || v.trim().isEmpty) {
+                        return 'Please enter a grade';
+                      }
+                      final parsed = double.tryParse(v.trim());
+                      final min = config.defaultGradingSystem.minGrade;
+                      final max = config.defaultGradingSystem.maxGrade;
+                      if (parsed == null || parsed < min || parsed > max) {
+                        return 'Grade must be between ${min.toInt()} and ${max.toInt()}';
+                      }
+                      return null;
+                    },
+                  ),
+                  const SizedBox(height: 24),
+                  ElevatedButton(
+                    onPressed: () {
+                      if (formKey.currentState!.validate()) {
+                        final subjectName = config.subjects.isNotEmpty
+                            ? (pickedSubject?.name ?? subjectCtrl.text.trim())
+                            : subjectCtrl.text.trim();
+                        final subjectId =
+                            pickedSubject?.id ?? 'custom-${subjectName.toLowerCase()}';
+                        setState(() {
+                          _subjects.add(_SubjectEntry(
+                            subjectId: subjectId,
+                            subject: subjectName,
                             grade: double.parse(gradeCtrl.text.trim()),
-                          ),
-                        );
-                      });
-                      Navigator.of(sheetCtx).pop();
-                    }
-                  },
-                  child: const Text('Add'),
-                ),
-              ],
+                          ));
+                        });
+                        Navigator.of(sheetCtx).pop();
+                      }
+                    },
+                    child: const Text('Add'),
+                  ),
+                ],
+              ),
             ),
-          ),
-        );
+          );
+        });
       },
     );
   }
 
+  Future<void> _saveResult(CalculatorConfig config) async {
+    if (_subjects.isEmpty) return;
+    setState(() => _saving = true);
+
+    try {
+      final subjects = _subjects
+          .map((e) => <String, dynamic>{'subjectId': e.subjectId, 'grade': _formatGrade(e.grade)})
+          .toList();
+
+      await ref.read(termResultsProvider.notifier).saveTerm(
+            gradingSystemId: config.defaultGradingSystem.id,
+            classLevel: 1,
+            termType: _termType,
+            schoolYear: _schoolYear,
+            subjects: subjects,
+          );
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Result saved!'),
+            backgroundColor: AppColors.tierBest,
+          ),
+        );
+        context.go('/student/results');
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to save: $e'),
+            backgroundColor: AppColors.error,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _saving = false);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    final configAsync = ref.watch(calculatorConfigProvider);
+
+    return configAsync.when(
+      loading: () => Scaffold(
+        appBar: AppBar(title: const Text('Grade Calculator')),
+        body: const Center(
+            child: CircularProgressIndicator(color: AppColors.primary)),
+      ),
+      error: (_, __) => _buildScaffold(CalculatorConfig.fallback),
+      data: (config) => _buildScaffold(config),
+    );
+  }
+
+  Widget _buildScaffold(CalculatorConfig config) {
     final hasSubjects = _subjects.isNotEmpty;
     final average = hasSubjects
         ? _subjects.fold(0.0, (sum, e) => sum + e.grade) / _subjects.length
@@ -177,7 +289,7 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
         children: [
           Expanded(
             child: hasSubjects
-                ? _buildSubjectList(context)
+                ? _buildSubjectList(context, config)
                 : _buildEmptyState(context),
           ),
           if (hasSubjects)
@@ -191,10 +303,55 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
                 tierColorLight: tierColorLight,
               ),
             ),
+          // Term metadata row
+          if (hasSubjects)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 0, 20, 8),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: DropdownButtonFormField<String>(
+                      // ignore: deprecated_member_use
+                      value: _termType,
+                      decoration: InputDecoration(
+                        labelText: 'Term',
+                        contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 10, vertical: 8),
+                        border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(10)),
+                        isDense: true,
+                      ),
+                      items: const [
+                        DropdownMenuItem(value: 'S1', child: Text('Semester 1')),
+                        DropdownMenuItem(value: 'S2', child: Text('Semester 2')),
+                      ],
+                      onChanged: (v) =>
+                          setState(() => _termType = v ?? _termType),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: TextFormField(
+                      initialValue: _schoolYear,
+                      decoration: InputDecoration(
+                        labelText: 'School Year',
+                        contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 10, vertical: 8),
+                        border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(10)),
+                        isDense: true,
+                      ),
+                      onChanged: (v) =>
+                          setState(() => _schoolYear = v),
+                    ),
+                  ),
+                ],
+              ),
+            ),
           Padding(
             padding: const EdgeInsets.fromLTRB(20, 0, 20, 0),
             child: OutlinedButton.icon(
-              onPressed: _showAddSubjectSheet,
+              onPressed: () => _showAddSubjectSheet(config),
               icon: const Icon(Icons.add_rounded),
               label: const Text('Add Subject'),
             ),
@@ -203,12 +360,15 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
             Padding(
               padding: const EdgeInsets.fromLTRB(20, 12, 20, 0),
               child: ElevatedButton(
-                onPressed: () {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Saved!')),
-                  );
-                },
-                child: const Text('Save Result'),
+                onPressed: _saving ? null : () => _saveResult(config),
+                child: _saving
+                    ? const SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(
+                            color: Colors.white, strokeWidth: 2),
+                      )
+                    : const Text('Save Result'),
               ),
             ),
           const SizedBox(height: 24),
@@ -258,7 +418,7 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
     );
   }
 
-  Widget _buildSubjectList(BuildContext context) {
+  Widget _buildSubjectList(BuildContext context, CalculatorConfig config) {
     return ListView.separated(
       padding: const EdgeInsets.fromLTRB(20, 16, 20, 16),
       itemCount: _subjects.length,
@@ -348,10 +508,7 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
                   ),
                 ),
                 VerticalDivider(
-                  color: AppColors.neutral200,
-                  width: 24,
-                  thickness: 1,
-                ),
+                    color: AppColors.neutral200, width: 24, thickness: 1),
                 Expanded(
                   child: _ResultStat(
                     label: 'Average',
@@ -360,10 +517,7 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
                   ),
                 ),
                 VerticalDivider(
-                  color: AppColors.neutral200,
-                  width: 24,
-                  thickness: 1,
-                ),
+                    color: AppColors.neutral200, width: 24, thickness: 1),
                 Expanded(
                   child: _ResultStat(
                     label: 'Bonus',
@@ -397,10 +551,15 @@ class _CalculatorScreenState extends State<CalculatorScreen> {
 }
 
 class _SubjectEntry {
+  final String subjectId;
   final String subject;
   final double grade;
 
-  const _SubjectEntry({required this.subject, required this.grade});
+  const _SubjectEntry({
+    required this.subjectId,
+    required this.subject,
+    required this.grade,
+  });
 }
 
 class _ResultStat extends StatelessWidget {

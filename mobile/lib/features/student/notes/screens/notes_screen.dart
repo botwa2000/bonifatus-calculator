@@ -1,66 +1,68 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:intl/intl.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../providers/quick_grades_provider.dart';
+import '../../../../models/quick_grade.dart';
 
-class _NoteItem {
-  final String id;
-  final String subject;
-  final String grade;
-  final int bonusPts;
-  final String date;
-  final String tier;
-  final String cycleId;
+class _WeekGroup {
+  final String weekKey; // ISO "YYYY-MM-DD" of Monday
+  final String label;
+  final List<QuickGrade> grades;
 
-  const _NoteItem({
-    required this.id,
-    required this.subject,
-    required this.grade,
-    required this.bonusPts,
-    required this.date,
-    required this.tier,
-    required this.cycleId,
+  const _WeekGroup({
+    required this.weekKey,
+    required this.label,
+    required this.grades,
   });
 }
 
-class _CycleGroup {
-  final String cycleId;
-  final String label;
-  final List<_NoteItem> notes;
+DateTime _weekStart(DateTime date) {
+  final d = DateTime(date.year, date.month, date.day);
+  return d.subtract(Duration(days: d.weekday - 1));
+}
 
-  const _CycleGroup({
-    required this.cycleId,
-    required this.label,
-    required this.notes,
-  });
+List<_WeekGroup> _groupByWeek(List<QuickGrade> grades) {
+  final map = <String, List<QuickGrade>>{};
+  for (final g in grades) {
+    final ws = _weekStart(g.gradedAt);
+    final key =
+        '${ws.year}-${ws.month.toString().padLeft(2, '0')}-${ws.day.toString().padLeft(2, '0')}';
+    (map[key] ??= []).add(g);
+  }
+
+  final now = DateTime.now();
+  final thisWeekStart = _weekStart(now);
+
+  return map.entries.map((e) {
+    final ws = DateTime.parse(e.key);
+    final we = ws.add(const Duration(days: 6));
+    final fmt = DateFormat('MMM d');
+    final diff = thisWeekStart.difference(ws).inDays;
+    String label;
+    if (diff == 0) {
+      label =
+          'This Week — ${fmt.format(ws)}–${fmt.format(we)}';
+    } else if (diff == 7) {
+      label =
+          'Last Week — ${fmt.format(ws)}–${fmt.format(we)}';
+    } else {
+      label = '${fmt.format(ws)} – ${fmt.format(we)}';
+    }
+    final sorted = [...e.value]
+      ..sort((a, b) => b.gradedAt.compareTo(a.gradedAt));
+    return _WeekGroup(weekKey: e.key, label: label, grades: sorted);
+  }).toList()
+    ..sort((a, b) => b.weekKey.compareTo(a.weekKey));
 }
 
 class NotesScreen extends ConsumerWidget {
   const NotesScreen({super.key});
 
-  static final List<_CycleGroup> _groups = [
-    _CycleGroup(
-      cycleId: "cycle-1",
-      label: "This Week — Jan 13–19",
-      notes: [
-        _NoteItem(id: "n1", subject: "Mathematics", grade: "2", bonusPts: 8, date: "Jan 17", tier: "best", cycleId: "cycle-1"),
-        _NoteItem(id: "n2", subject: "English", grade: "3", bonusPts: 5, date: "Jan 15", tier: "second", cycleId: "cycle-1"),
-        _NoteItem(id: "n3", subject: "Biology", grade: "4", bonusPts: 2, date: "Jan 14", tier: "third", cycleId: "cycle-1"),
-      ],
-    ),
-    _CycleGroup(
-      cycleId: "cycle-2",
-      label: "Last Week — Jan 6–12",
-      notes: [
-        _NoteItem(id: "n4", subject: "Physics", grade: "2", bonusPts: 8, date: "Jan 10", tier: "best", cycleId: "cycle-2"),
-        _NoteItem(id: "n5", subject: "History", grade: "5", bonusPts: 0, date: "Jan 8", tier: "below", cycleId: "cycle-2"),
-      ],
-    ),
-  ];
-
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final isEmpty = _groups.isEmpty;
+    final gradesAsync = ref.watch(quickGradesProvider);
 
     return Scaffold(
       backgroundColor: AppColors.neutral50,
@@ -68,7 +70,7 @@ class NotesScreen extends ConsumerWidget {
         backgroundColor: AppColors.white,
         elevation: 0,
         title: const Text(
-          "Notes",
+          'Notes',
           style: TextStyle(
             color: AppColors.neutral900,
             fontWeight: FontWeight.w700,
@@ -77,22 +79,69 @@ class NotesScreen extends ConsumerWidget {
         ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.add_circle_outline_rounded, color: AppColors.primary),
-            onPressed: () => context.push("/student/notes/capture"),
+            icon: const Icon(Icons.add_circle_outline_rounded,
+                color: AppColors.primary),
+            onPressed: () => context.push('/student/notes/capture'),
           ),
         ],
       ),
       floatingActionButton: FloatingActionButton(
         backgroundColor: AppColors.primary,
         foregroundColor: AppColors.white,
-        onPressed: () => context.push("/student/notes/capture"),
+        onPressed: () => context.push('/student/notes/capture'),
         child: const Icon(Icons.add_rounded),
       ),
-      body: isEmpty ? _buildEmptyState() : _buildContent(context),
+      body: gradesAsync.when(
+        loading: () =>
+            const Center(child: CircularProgressIndicator(color: AppColors.primary)),
+        error: (err, _) => Center(
+          child: Padding(
+            padding: const EdgeInsets.all(32),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(Icons.error_outline,
+                    size: 48, color: AppColors.error),
+                const SizedBox(height: 16),
+                Text(
+                  'Failed to load notes',
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.neutral900,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  err.toString(),
+                  style: const TextStyle(
+                      fontSize: 13, color: AppColors.neutral600),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 20),
+                ElevatedButton(
+                  onPressed: () =>
+                      ref.read(quickGradesProvider.notifier).reload(),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.primary,
+                    foregroundColor: AppColors.white,
+                  ),
+                  child: const Text('Retry'),
+                ),
+              ],
+            ),
+          ),
+        ),
+        data: (grades) {
+          if (grades.isEmpty) return _buildEmptyState(context);
+          final groups = _groupByWeek(grades);
+          return _buildContent(context, ref, groups);
+        },
+      ),
     );
   }
 
-  Widget _buildEmptyState() {
+  Widget _buildEmptyState(BuildContext context) {
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(32),
@@ -114,7 +163,7 @@ class NotesScreen extends ConsumerWidget {
             ),
             const SizedBox(height: 24),
             const Text(
-              "No notes yet",
+              'No notes yet',
               style: TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.w700,
@@ -123,7 +172,7 @@ class NotesScreen extends ConsumerWidget {
             ),
             const SizedBox(height: 8),
             const Text(
-              "Tap + to capture your first grade",
+              'Tap + to capture your first grade',
               style: TextStyle(fontSize: 15, color: AppColors.neutral600),
               textAlign: TextAlign.center,
             ),
@@ -133,10 +182,11 @@ class NotesScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildContent(BuildContext context) {
-    final currentCycle = _groups.first;
-    final totalNotes = currentCycle.notes.length;
-    final totalBonusPts = currentCycle.notes.fold<int>(0, (sum, n) => sum + n.bonusPts);
+  Widget _buildContent(
+      BuildContext context, WidgetRef ref, List<_WeekGroup> groups) {
+    final currentGroup = groups.first;
+    final totalBonusPts =
+        currentGroup.grades.fold<int>(0, (sum, g) => sum + g.bonusPoints);
 
     return CustomScrollView(
       slivers: [
@@ -144,14 +194,14 @@ class NotesScreen extends ConsumerWidget {
           child: Padding(
             padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
             child: _SummaryChipRow(
-              totalNotes: totalNotes,
+              totalNotes: currentGroup.grades.length,
               totalBonusPts: totalBonusPts,
               netPts: totalBonusPts,
-              cycleId: currentCycle.cycleId,
+              weekKey: currentGroup.weekKey,
             ),
           ),
         ),
-        for (final group in _groups) ...[
+        for (final group in groups) ...[
           SliverPersistentHeader(
             pinned: true,
             delegate: _SectionHeaderDelegate(group.label),
@@ -159,16 +209,65 @@ class NotesScreen extends ConsumerWidget {
           SliverList(
             delegate: SliverChildBuilderDelegate(
               (ctx, i) {
-                final note = group.notes[i];
+                final grade = group.grades[i];
                 return Padding(
                   padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
-                  child: _NoteCard(
-                    note: note,
-                    onTap: () => context.push("/student/notes/detail/${note.id}"),
+                  child: Dismissible(
+                    key: Key(grade.id),
+                    direction: DismissDirection.endToStart,
+                    background: Container(
+                      alignment: Alignment.centerRight,
+                      padding: const EdgeInsets.only(right: 20),
+                      decoration: BoxDecoration(
+                        color: AppColors.error,
+                        borderRadius: BorderRadius.circular(14),
+                      ),
+                      child: const Icon(Icons.delete_outline_rounded,
+                          color: Colors.white, size: 24),
+                    ),
+                    confirmDismiss: (_) async {
+                      return await showDialog<bool>(
+                            context: ctx,
+                            builder: (dCtx) => AlertDialog(
+                              shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(16)),
+                              title: const Text('Delete Grade'),
+                              content: const Text(
+                                  'Are you sure you want to delete this grade?'),
+                              actions: [
+                                TextButton(
+                                  onPressed: () =>
+                                      Navigator.of(dCtx).pop(false),
+                                  child: const Text('Cancel'),
+                                ),
+                                ElevatedButton(
+                                  onPressed: () =>
+                                      Navigator.of(dCtx).pop(true),
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: AppColors.error,
+                                    foregroundColor: AppColors.white,
+                                  ),
+                                  child: const Text('Delete'),
+                                ),
+                              ],
+                            ),
+                          ) ??
+                          false;
+                    },
+                    onDismissed: (_) {
+                      ref
+                          .read(quickGradesProvider.notifier)
+                          .deleteGrade(grade.id);
+                    },
+                    child: _NoteCard(
+                      grade: grade,
+                      onTap: () =>
+                          context.push('/student/notes/detail/${grade.id}'),
+                    ),
                   ),
                 );
               },
-              childCount: group.notes.length,
+              childCount: group.grades.length,
             ),
           ),
         ],
@@ -182,13 +281,13 @@ class _SummaryChipRow extends StatelessWidget {
   final int totalNotes;
   final int totalBonusPts;
   final int netPts;
-  final String cycleId;
+  final String weekKey;
 
   const _SummaryChipRow({
     required this.totalNotes,
     required this.totalBonusPts,
     required this.netPts,
-    required this.cycleId,
+    required this.weekKey,
   });
 
   @override
@@ -211,19 +310,19 @@ class _SummaryChipRow extends StatelessWidget {
           Row(
             children: [
               _Chip(
-                label: "$totalNotes notes",
+                label: '$totalNotes notes',
                 icon: Icons.note_alt_outlined,
                 color: AppColors.primary,
               ),
               const SizedBox(width: 8),
               _Chip(
-                label: "+$totalBonusPts pts",
+                label: '+$totalBonusPts pts',
                 icon: Icons.star_outline_rounded,
                 color: AppColors.tierBest,
               ),
               const SizedBox(width: 8),
               _Chip(
-                label: "Net: $netPts pts",
+                label: 'Net: $netPts pts',
                 icon: Icons.account_balance_wallet_outlined,
                 color: netPts >= 0 ? AppColors.tierBest : AppColors.tierBelow,
               ),
@@ -233,7 +332,8 @@ class _SummaryChipRow extends StatelessWidget {
           SizedBox(
             width: double.infinity,
             child: OutlinedButton(
-              onPressed: () => context.push("/student/notes/cycle/$cycleId"),
+              onPressed: () =>
+                  context.push('/student/notes/cycle/$weekKey'),
               style: OutlinedButton.styleFrom(
                 side: const BorderSide(color: AppColors.primary),
                 shape: RoundedRectangleBorder(
@@ -241,7 +341,7 @@ class _SummaryChipRow extends StatelessWidget {
                 ),
               ),
               child: const Text(
-                "View Cycle Summary",
+                'View Cycle Summary',
                 style: TextStyle(
                   color: AppColors.primary,
                   fontWeight: FontWeight.w600,
@@ -290,15 +390,17 @@ class _Chip extends StatelessWidget {
 }
 
 class _NoteCard extends StatelessWidget {
-  final _NoteItem note;
+  final QuickGrade grade;
   final VoidCallback onTap;
 
-  const _NoteCard({required this.note, required this.onTap});
+  const _NoteCard({required this.grade, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
-    final tierColor = AppColors.tierColor(note.tier);
-    final tierColorLight = AppColors.tierColorLight(note.tier);
+    final tierColor = AppColors.tierColor(grade.gradeQualityTier);
+    final tierColorLight = AppColors.tierColorLight(grade.gradeQualityTier);
+    final dateStr = DateFormat('MMM d').format(grade.gradedAt);
+    final subjectLabel = grade.subjectName ?? 'Subject';
 
     return GestureDetector(
       onTap: onTap,
@@ -338,7 +440,7 @@ class _NoteCard extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            note.subject,
+                            subjectLabel,
                             style: const TextStyle(
                               fontWeight: FontWeight.w600,
                               fontSize: 15,
@@ -347,7 +449,7 @@ class _NoteCard extends StatelessWidget {
                           ),
                           const SizedBox(height: 4),
                           Text(
-                            note.date,
+                            dateStr,
                             style: const TextStyle(
                               fontSize: 12,
                               color: AppColors.neutral400,
@@ -369,7 +471,7 @@ class _NoteCard extends StatelessWidget {
                             borderRadius: BorderRadius.circular(20),
                           ),
                           child: Text(
-                            "Grade ${note.grade}",
+                            'Grade ${grade.gradeValue}',
                             style: TextStyle(
                               color: tierColor,
                               fontWeight: FontWeight.w700,
@@ -379,7 +481,7 @@ class _NoteCard extends StatelessWidget {
                         ),
                         const SizedBox(height: 6),
                         Text(
-                          "+${note.bonusPts} pts",
+                          '+${grade.bonusPoints} pts',
                           style: const TextStyle(
                             fontSize: 13,
                             fontWeight: FontWeight.w600,

@@ -1,43 +1,28 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:intl/intl.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../providers/quick_grades_provider.dart';
+import '../../../../models/quick_grade.dart';
 
-class _CycleNote {
-  final String subject;
-  final String grade;
-  final int bonusPts;
-  final String date;
-  final String tier;
-
-  const _CycleNote({
-    required this.subject,
-    required this.grade,
-    required this.bonusPts,
-    required this.date,
-    required this.tier,
-  });
-}
-
-class CycleSummaryScreen extends StatelessWidget {
-  final String cycleId;
+class CycleSummaryScreen extends ConsumerWidget {
+  final String cycleId; // ISO week-start date "YYYY-MM-DD"
 
   const CycleSummaryScreen({super.key, required this.cycleId});
 
-  static const List<_CycleNote> _notes = [
-    _CycleNote(subject: "Mathematics", grade: "2", bonusPts: 8, date: "Jan 17", tier: "best"),
-    _CycleNote(subject: "English", grade: "3", bonusPts: 5, date: "Jan 15", tier: "second"),
-    _CycleNote(subject: "Biology", grade: "4", bonusPts: 2, date: "Jan 14", tier: "third"),
-  ];
+  DateTime? _parseWeekStart() {
+    try {
+      return DateTime.parse(cycleId);
+    } catch (_) {
+      return null;
+    }
+  }
 
   @override
-  Widget build(BuildContext context) {
-    const cycleType = "Weekly";
-    const startDate = "Jan 13, 2025";
-    const endDate = "Jan 19, 2025";
-    const totalPositive = 15;
-    const totalNegative = 0;
-    const netPts = totalPositive - totalNegative;
-    const settlementStatus = "Pending";
+  Widget build(BuildContext context, WidgetRef ref) {
+    final gradesAsync = ref.watch(quickGradesProvider);
+    final weekStart = _parseWeekStart();
 
     return Scaffold(
       backgroundColor: AppColors.neutral50,
@@ -50,7 +35,7 @@ class CycleSummaryScreen extends StatelessWidget {
           onPressed: () => context.pop(),
         ),
         title: const Text(
-          "Cycle Summary",
+          'Cycle Summary',
           style: TextStyle(
             color: AppColors.neutral900,
             fontWeight: FontWeight.w700,
@@ -58,50 +43,92 @@ class CycleSummaryScreen extends StatelessWidget {
           ),
         ),
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildHeaderCard(
-              cycleType: cycleType,
-              startDate: startDate,
-              endDate: endDate,
-              totalPositive: totalPositive,
-              totalNegative: totalNegative,
-              netPts: netPts,
-              settlementStatus: settlementStatus,
-            ),
-            const SizedBox(height: 24),
-            const Text(
-              "Notes in this Cycle",
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w700,
-                color: AppColors.neutral900,
-              ),
-            ),
-            const SizedBox(height: 12),
-            ..._notes.map(
-              (note) => Padding(
-                padding: const EdgeInsets.only(bottom: 10),
-                child: _CycleNoteCard(note: note),
-              ),
-            ),
-            const SizedBox(height: 8),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 4),
-              child: Text(
-                "Cycle ID: $cycleId",
-                style: const TextStyle(
-                  fontSize: 11,
-                  color: AppColors.neutral400,
-                ),
-              ),
-            ),
-            const SizedBox(height: 40),
-          ],
+      body: gradesAsync.when(
+        loading: () => const Center(
+            child: CircularProgressIndicator(color: AppColors.primary)),
+        error: (_, __) => const Center(
+          child: Text('Could not load grades',
+              style: TextStyle(color: AppColors.neutral600)),
         ),
+        data: (allGrades) {
+          List<QuickGrade> weekGrades;
+          DateTime startDate;
+          DateTime endDate;
+
+          if (weekStart != null) {
+            startDate = weekStart;
+            endDate = weekStart.add(const Duration(days: 6));
+            weekGrades = allGrades.where((g) {
+              final d =
+                  DateTime(g.gradedAt.year, g.gradedAt.month, g.gradedAt.day);
+              final s = DateTime(
+                  startDate.year, startDate.month, startDate.day);
+              final e =
+                  DateTime(endDate.year, endDate.month, endDate.day);
+              return !d.isBefore(s) && !d.isAfter(e);
+            }).toList()
+              ..sort((a, b) => b.gradedAt.compareTo(a.gradedAt));
+          } else {
+            weekGrades = [...allGrades]
+              ..sort((a, b) => b.gradedAt.compareTo(a.gradedAt));
+            final now = DateTime.now();
+            startDate = now.subtract(Duration(days: now.weekday - 1));
+            endDate = startDate.add(const Duration(days: 6));
+          }
+
+          final totalPositive = weekGrades
+              .where((g) => g.bonusPoints > 0)
+              .fold<int>(0, (s, g) => s + g.bonusPoints);
+          final netPts = weekGrades.fold<int>(0, (s, g) => s + g.bonusPoints);
+
+          final fmt = DateFormat('MMM d, yyyy');
+          final startStr = fmt.format(startDate);
+          final endStr = fmt.format(endDate);
+
+          return SingleChildScrollView(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildHeaderCard(
+                  cycleType: 'Weekly',
+                  startDate: startStr,
+                  endDate: endStr,
+                  totalPositive: totalPositive,
+                  netPts: netPts,
+                ),
+                const SizedBox(height: 24),
+                const Text(
+                  'Notes in this Cycle',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.neutral900,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                if (weekGrades.isEmpty)
+                  const Center(
+                    child: Padding(
+                      padding: EdgeInsets.symmetric(vertical: 24),
+                      child: Text(
+                        'No grades in this period',
+                        style: TextStyle(color: AppColors.neutral600),
+                      ),
+                    ),
+                  )
+                else
+                  ...weekGrades.map(
+                    (grade) => Padding(
+                      padding: const EdgeInsets.only(bottom: 10),
+                      child: _CycleNoteCard(grade: grade),
+                    ),
+                  ),
+                const SizedBox(height: 40),
+              ],
+            ),
+          );
+        },
       ),
     );
   }
@@ -111,13 +138,11 @@ class CycleSummaryScreen extends StatelessWidget {
     required String startDate,
     required String endDate,
     required int totalPositive,
-    required int totalNegative,
     required int netPts,
-    required String settlementStatus,
   }) {
     final netColor = netPts >= 0 ? AppColors.tierBest : AppColors.tierBelow;
-    final netBg = netPts >= 0 ? AppColors.tierBestLight : AppColors.tierBelowLight;
-    final isPending = settlementStatus == "Pending";
+    final netBg =
+        netPts >= 0 ? AppColors.tierBestLight : AppColors.tierBelowLight;
 
     return Container(
       padding: const EdgeInsets.all(20),
@@ -142,7 +167,8 @@ class CycleSummaryScreen extends StatelessWidget {
           Row(
             children: [
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
                 decoration: BoxDecoration(
                   color: Colors.white.withValues(alpha: 0.2),
                   borderRadius: BorderRadius.circular(20),
@@ -156,41 +182,20 @@ class CycleSummaryScreen extends StatelessWidget {
                   ),
                 ),
               ),
-              const Spacer(),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                decoration: BoxDecoration(
-                  color: isPending
-                      ? AppColors.warning.withValues(alpha: 0.9)
-                      : AppColors.tierBest.withValues(alpha: 0.9),
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Text(
-                  settlementStatus,
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.w700,
-                    fontSize: 12,
-                  ),
-                ),
-              ),
             ],
           ),
           const SizedBox(height: 16),
           Text(
-            "$startDate – $endDate",
-            style: const TextStyle(
-              color: Colors.white70,
-              fontSize: 14,
-            ),
+            '$startDate – $endDate',
+            style: const TextStyle(color: Colors.white70, fontSize: 14),
           ),
           const SizedBox(height: 20),
           Row(
             children: [
               Expanded(
                 child: _StatBox(
-                  label: "Positive",
-                  value: "+$totalPositive pts",
+                  label: 'Positive',
+                  value: '+$totalPositive pts',
                   valueColor: Colors.white,
                   bgColor: Colors.white.withValues(alpha: 0.15),
                 ),
@@ -198,17 +203,8 @@ class CycleSummaryScreen extends StatelessWidget {
               const SizedBox(width: 10),
               Expanded(
                 child: _StatBox(
-                  label: "Negative",
-                  value: "-$totalNegative pts",
-                  valueColor: Colors.white,
-                  bgColor: Colors.white.withValues(alpha: 0.15),
-                ),
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: _StatBox(
-                  label: "Net",
-                  value: "$netPts pts",
+                  label: 'Net',
+                  value: '$netPts pts',
                   valueColor: netColor,
                   bgColor: netBg,
                 ),
@@ -267,14 +263,15 @@ class _StatBox extends StatelessWidget {
 }
 
 class _CycleNoteCard extends StatelessWidget {
-  final _CycleNote note;
+  final QuickGrade grade;
 
-  const _CycleNoteCard({required this.note});
+  const _CycleNoteCard({required this.grade});
 
   @override
   Widget build(BuildContext context) {
-    final tierColor = AppColors.tierColor(note.tier);
-    final tierColorLight = AppColors.tierColorLight(note.tier);
+    final tierColor = AppColors.tierColor(grade.gradeQualityTier);
+    final tierColorLight = AppColors.tierColorLight(grade.gradeQualityTier);
+    final dateStr = DateFormat('MMM d').format(grade.gradedAt);
 
     return Container(
       padding: const EdgeInsets.all(14),
@@ -300,7 +297,7 @@ class _CycleNoteCard extends StatelessWidget {
             ),
             alignment: Alignment.center,
             child: Text(
-              note.grade,
+              grade.gradeValue,
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.w800,
@@ -314,7 +311,7 @@ class _CycleNoteCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  note.subject,
+                  grade.subjectName ?? 'Subject',
                   style: const TextStyle(
                     fontWeight: FontWeight.w600,
                     fontSize: 14,
@@ -322,7 +319,7 @@ class _CycleNoteCard extends StatelessWidget {
                   ),
                 ),
                 Text(
-                  note.date,
+                  dateStr,
                   style: const TextStyle(
                     fontSize: 12,
                     color: AppColors.neutral400,
@@ -332,7 +329,7 @@ class _CycleNoteCard extends StatelessWidget {
             ),
           ),
           Text(
-            "+${note.bonusPts} pts",
+            '+${grade.bonusPoints} pts',
             style: const TextStyle(
               fontSize: 14,
               fontWeight: FontWeight.w700,
