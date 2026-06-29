@@ -19,6 +19,7 @@ import '../../features/student/insights/student_insights_screen.dart';
 import '../../features/student/settings/screens/student_settings_screen.dart';
 import '../../features/parent/dashboard/parent_dashboard_screen.dart';
 import '../../features/parent/children/screens/children_screen.dart';
+import '../../features/parent/children/screens/child_detail_screen.dart';
 import '../../features/parent/rewards/screens/rewards_screen.dart';
 import '../../features/parent/insights/parent_insights_screen.dart';
 import '../../features/parent/settings/screens/parent_settings_screen.dart';
@@ -100,7 +101,17 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         builder: (_, __, child) => ParentShell(child: child),
         routes: [
           GoRoute(path: '/parent/home', builder: (_, __) => const ParentDashboardScreen()),
-          GoRoute(path: '/parent/children', builder: (_, __) => const ChildrenScreen()),
+          GoRoute(
+            path: '/parent/children',
+            builder: (_, __) => const ChildrenScreen(),
+            routes: [
+              GoRoute(
+                path: ':id',
+                builder: (_, state) =>
+                    ChildDetailScreen(childId: state.pathParameters['id']!),
+              ),
+            ],
+          ),
           GoRoute(path: '/parent/rewards', builder: (_, __) => const RewardsScreen()),
           GoRoute(path: '/parent/insights', builder: (_, __) => const ParentInsightsScreen()),
           GoRoute(path: '/parent/settings', builder: (_, __) => const ParentSettingsScreen()),

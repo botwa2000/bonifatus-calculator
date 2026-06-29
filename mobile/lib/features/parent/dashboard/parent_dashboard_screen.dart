@@ -2,109 +2,53 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../auth/providers/auth_provider.dart';
-
-class _SettlementCard {
-  final String childName;
-  final int amount;
-  final String type;
-
-  const _SettlementCard({
-    required this.childName,
-    required this.amount,
-    required this.type,
-  });
-}
-
-class _ActivityItem {
-  final String title;
-  final String subtitle;
-  final IconData icon;
-  final Color iconColor;
-
-  const _ActivityItem({
-    required this.title,
-    required this.subtitle,
-    required this.icon,
-    required this.iconColor,
-  });
-}
+import '../providers/children_provider.dart';
+import '../../../../models/child_data.dart';
 
 class ParentDashboardScreen extends ConsumerWidget {
   const ParentDashboardScreen({super.key});
 
-  static const List<_SettlementCard> _settlements = [
-    _SettlementCard(childName: "Lena M.", amount: 240, type: "Term Grade Bonus"),
-    _SettlementCard(childName: "Tom M.", amount: 100, type: "Term Grade Bonus"),
-  ];
-
-  static const List<_ActivityItem> _activities = [
-    _ActivityItem(
-      title: "Lena M. captured a grade",
-      subtitle: "Mathematics · Grade 2 · +8 pts",
-      icon: Icons.camera_alt_outlined,
-      iconColor: AppColors.tierBest,
-    ),
-    _ActivityItem(
-      title: "Tom M. captured a grade",
-      subtitle: "Physics · Grade 3 · +5 pts",
-      icon: Icons.camera_alt_outlined,
-      iconColor: AppColors.tierSecond,
-    ),
-    _ActivityItem(
-      title: "Weekly cycle settled",
-      subtitle: "Lena M. · Jan 6–12 · 42 pts",
-      icon: Icons.check_circle_outline_rounded,
-      iconColor: AppColors.primary,
-    ),
-  ];
-
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final authAsync = ref.watch(authStateNotifierProvider);
-    final userName = authAsync.valueOrNull?.name ?? "Parent";
+    final userName = authAsync.valueOrNull?.name ?? 'Parent';
+    final childrenAsync = ref.watch(childrenQuickGradesProvider);
 
     return Scaffold(
       backgroundColor: AppColors.neutral50,
       body: SafeArea(
-        child: CustomScrollView(
-          slivers: [
-            SliverToBoxAdapter(
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(20, 24, 20, 0),
-                child: _buildHeader(userName),
+        child: RefreshIndicator(
+          onRefresh: () =>
+              ref.read(childrenQuickGradesProvider.notifier).reload(),
+          child: CustomScrollView(
+            slivers: [
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 24, 20, 0),
+                  child: _buildHeader(userName),
+                ),
               ),
-            ),
-            SliverToBoxAdapter(
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
-                child: _buildSummaryCard(),
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
+                  child: _buildSummaryCard(childrenAsync),
+                ),
               ),
-            ),
-            SliverToBoxAdapter(
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(20, 28, 20, 10),
-                child: _buildSectionTitle("Pending Settlements"),
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 28, 20, 10),
+                  child: _buildSectionTitle('Children Overview'),
+                ),
               ),
-            ),
-            SliverToBoxAdapter(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
-                child: _buildSettlements(context),
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding:
+                      const EdgeInsets.fromLTRB(20, 0, 20, 40),
+                  child: _buildChildrenList(context, childrenAsync),
+                ),
               ),
-            ),
-            SliverToBoxAdapter(
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(20, 28, 20, 10),
-                child: _buildSectionTitle("Recent Activity"),
-              ),
-            ),
-            SliverToBoxAdapter(
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(20, 0, 20, 40),
-                child: _buildActivity(),
-              ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -118,7 +62,7 @@ class ParentDashboardScreen extends ConsumerWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              "Hi $userName",
+              'Hi $userName',
               style: const TextStyle(
                 fontSize: 26,
                 fontWeight: FontWeight.w800,
@@ -126,7 +70,7 @@ class ParentDashboardScreen extends ConsumerWidget {
               ),
             ),
             const Text(
-              "Overview of your children",
+              'Overview of your children',
               style: TextStyle(
                 fontSize: 14,
                 color: AppColors.neutral600,
@@ -150,7 +94,12 @@ class ParentDashboardScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildSummaryCard() {
+  Widget _buildSummaryCard(AsyncValue<List<ChildWithGrades>> childrenAsync) {
+    final children = childrenAsync.valueOrNull ?? [];
+    final childCount = children.length;
+    final totalPending = children.fold<int>(
+        0, (sum, c) => sum + c.totalPendingPoints);
+
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -172,7 +121,7 @@ class ParentDashboardScreen extends ConsumerWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const Text(
-            "Summary",
+            'Summary',
             style: TextStyle(
               color: Colors.white70,
               fontSize: 13,
@@ -184,33 +133,33 @@ class ParentDashboardScreen extends ConsumerWidget {
             children: [
               Expanded(
                 child: _SummaryStatItem(
-                  label: "Children",
-                  value: "2",
+                  label: 'Children',
+                  value: childCount.toString(),
                   icon: Icons.people_outline_rounded,
                 ),
               ),
               Container(
-                width: 1,
-                height: 50,
-                color: Colors.white.withValues(alpha: 0.2),
-              ),
+                  width: 1,
+                  height: 50,
+                  color: Colors.white.withValues(alpha: 0.2)),
               Expanded(
                 child: _SummaryStatItem(
-                  label: "Unsettled",
-                  value: "340 pts",
+                  label: 'Pending',
+                  value: '$totalPending pts',
                   icon: Icons.account_balance_wallet_outlined,
                 ),
               ),
               Container(
-                width: 1,
-                height: 50,
-                color: Colors.white.withValues(alpha: 0.2),
-              ),
+                  width: 1,
+                  height: 50,
+                  color: Colors.white.withValues(alpha: 0.2)),
               Expanded(
                 child: _SummaryStatItem(
-                  label: "Active Cycles",
-                  value: "3",
-                  icon: Icons.loop_rounded,
+                  label: 'Grades',
+                  value: children
+                      .fold<int>(0, (s, c) => s + c.grades.length)
+                      .toString(),
+                  icon: Icons.grade_outlined,
                 ),
               ),
             ],
@@ -231,67 +180,161 @@ class ParentDashboardScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildSettlements(BuildContext context) {
-    return Column(
-      children: _settlements.map((s) {
-        return Padding(
-          padding: const EdgeInsets.only(bottom: 10),
-          child: _SettlementItemCard(settlement: s),
-        );
-      }).toList(),
-    );
-  }
-
-  Widget _buildActivity() {
-    return Container(
-      decoration: BoxDecoration(
-        color: AppColors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.neutral900.withValues(alpha: 0.05),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
+  Widget _buildChildrenList(
+      BuildContext context, AsyncValue<List<ChildWithGrades>> childrenAsync) {
+    return childrenAsync.when(
+      loading: () => const Center(
+          child: CircularProgressIndicator(color: AppColors.primary)),
+      error: (_, __) => const Center(
+        child: Text('Could not load children data',
+            style: TextStyle(color: AppColors.neutral600)),
       ),
-      child: Column(
-        children: List.generate(_activities.length, (i) {
-          final item = _activities[i];
-          return Column(
-            children: [
-              ListTile(
-                leading: Container(
-                  width: 40,
-                  height: 40,
-                  decoration: BoxDecoration(
-                    color: item.iconColor.withValues(alpha: 0.12),
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: Icon(item.icon, size: 20, color: item.iconColor),
+      data: (children) {
+        if (children.isEmpty) {
+          return Container(
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              color: AppColors.white,
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: const Center(
+              child: Text(
+                'No children connected yet.\nGo to Children tab to add one.',
+                textAlign: TextAlign.center,
+                style: TextStyle(color: AppColors.neutral600, fontSize: 14),
+              ),
+            ),
+          );
+        }
+
+        return Column(
+          children: children.map((child) {
+            final tier = child.latestTier;
+            final tierColor = AppColors.tierColor(tier);
+            final tierColorLight = AppColors.tierColorLight(tier);
+            final recentGrades = [...child.grades]
+              ..sort((a, b) => b.gradedAt.compareTo(a.gradedAt));
+
+            return Padding(
+              padding: const EdgeInsets.only(bottom: 12),
+              child: Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: AppColors.white,
+                  borderRadius: BorderRadius.circular(16),
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppColors.neutral900.withValues(alpha: 0.05),
+                      blurRadius: 8,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
                 ),
-                title: Text(
-                  item.title,
-                  style: const TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.neutral900,
-                  ),
-                ),
-                subtitle: Text(
-                  item.subtitle,
-                  style: const TextStyle(
-                    fontSize: 12,
-                    color: AppColors.neutral600,
-                  ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Container(
+                          width: 44,
+                          height: 44,
+                          decoration: const BoxDecoration(
+                            color: AppColors.primaryLight,
+                            shape: BoxShape.circle,
+                          ),
+                          alignment: Alignment.center,
+                          child: Text(
+                            child.childName.substring(0, 1).toUpperCase(),
+                            style: const TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.w700,
+                              color: AppColors.primary,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                child.childName,
+                                style: const TextStyle(
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.w700,
+                                  color: AppColors.neutral900,
+                                ),
+                              ),
+                              Text(
+                                '${child.grades.length} grades · ${child.totalPendingPoints} pts pending',
+                                style: const TextStyle(
+                                  fontSize: 12,
+                                  color: AppColors.neutral600,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                    if (recentGrades.isNotEmpty) ...[
+                      const SizedBox(height: 12),
+                      const Divider(height: 1, color: AppColors.neutral100),
+                      const SizedBox(height: 10),
+                      Text(
+                        'Recent grade',
+                        style: const TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.neutral400,
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 10, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: tierColorLight,
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Text(
+                              recentGrades.first.gradeValue,
+                              style: TextStyle(
+                                fontWeight: FontWeight.w700,
+                                color: tierColor,
+                                fontSize: 16,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 10),
+                          Text(
+                            recentGrades.first.subjectName ?? 'Subject',
+                            style: const TextStyle(
+                              fontSize: 13,
+                              color: AppColors.neutral700,
+                            ),
+                          ),
+                          const Spacer(),
+                          Text(
+                            '+${recentGrades.first.bonusPoints} pts',
+                            style: const TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w600,
+                              color: AppColors.tierBest,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ],
                 ),
               ),
-              if (i < _activities.length - 1)
-                const Divider(height: 1, indent: 16, endIndent: 16, color: AppColors.neutral100),
-            ],
-          );
-        }),
-      ),
+            );
+          }).toList(),
+        );
+      },
     );
   }
 }
@@ -327,112 +370,8 @@ class _SummaryStatItem extends StatelessWidget {
           const SizedBox(height: 2),
           Text(
             label,
-            style: const TextStyle(
-              color: Colors.white60,
-              fontSize: 11,
-            ),
+            style: const TextStyle(color: Colors.white60, fontSize: 11),
             textAlign: TextAlign.center,
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _SettlementItemCard extends StatelessWidget {
-  final _SettlementCard settlement;
-
-  const _SettlementItemCard({required this.settlement});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: AppColors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.neutral900.withValues(alpha: 0.05),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          Container(
-            width: 44,
-            height: 44,
-            decoration: const BoxDecoration(
-              color: AppColors.primaryLight,
-              shape: BoxShape.circle,
-            ),
-            alignment: Alignment.center,
-            child: Text(
-              settlement.childName.substring(0, 1),
-              style: const TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.w700,
-                color: AppColors.primary,
-              ),
-            ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  settlement.childName,
-                  style: const TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w700,
-                    color: AppColors.neutral900,
-                  ),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  settlement.type,
-                  style: const TextStyle(
-                    fontSize: 12,
-                    color: AppColors.neutral600,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              Text(
-                "${settlement.amount} pts",
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w800,
-                  color: AppColors.tierBest,
-                ),
-              ),
-              const SizedBox(height: 4),
-              ElevatedButton(
-                onPressed: () {},
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primary,
-                  foregroundColor: AppColors.white,
-                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
-                  minimumSize: Size.zero,
-                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  textStyle: const TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                child: const Text("Settle"),
-              ),
-            ],
           ),
         ],
       ),
