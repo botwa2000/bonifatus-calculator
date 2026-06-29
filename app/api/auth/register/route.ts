@@ -18,7 +18,7 @@ const registerSchema = z.object({
   fullName: z.string().min(2, 'Name must be at least 2 characters').max(100),
   dateOfBirth: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Invalid date format'),
   role: z.enum(['parent', 'child']),
-  turnstileToken: z.string().min(1, 'Bot verification required'),
+  turnstileToken: z.string().optional(),
 })
 
 function generateCode(): string {
@@ -48,12 +48,22 @@ export async function POST(request: NextRequest) {
     const email = rawEmail.toLowerCase()
 
     const clientIp = getClientIp(request.headers)
-    const turnstileResult = await verifyTurnstileToken(turnstileToken, clientIp)
-    if (!turnstileResult.success) {
-      return NextResponse.json(
-        { success: false, error: 'Bot verification failed. Please try again.' },
-        { status: 400 }
-      )
+    // Skip Turnstile for mobile clients (identified by X-Mobile-Client-Token header)
+    const isMobile = !!request.headers.get('X-Mobile-Client-Token')
+    if (!isMobile) {
+      if (!turnstileToken) {
+        return NextResponse.json(
+          { success: false, error: 'Bot verification required.' },
+          { status: 400 }
+        )
+      }
+      const turnstileResult = await verifyTurnstileToken(turnstileToken, clientIp)
+      if (!turnstileResult.success) {
+        return NextResponse.json(
+          { success: false, error: 'Bot verification failed. Please try again.' },
+          { status: 400 }
+        )
+      }
     }
 
     const passwordValidation = await validatePassword(password, { email, name: fullName })
