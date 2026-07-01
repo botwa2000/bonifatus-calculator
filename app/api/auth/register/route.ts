@@ -15,8 +15,12 @@ import { getVerificationCodeEmail } from '@/lib/email/templates'
 const registerSchema = z.object({
   email: z.string().email('Invalid email address'),
   password: z.string().min(12, 'Password must be at least 12 characters'),
-  fullName: z.string().min(2, 'Name must be at least 2 characters').max(100),
-  dateOfBirth: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Invalid date format'),
+  fullName: z.string().min(2, 'Name must be at least 2 characters').max(100).optional(),
+  name: z.string().min(2, 'Name must be at least 2 characters').max(100).optional(),
+  dateOfBirth: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/, 'Invalid date format')
+    .optional(),
   role: z.enum(['parent', 'child']),
   turnstileToken: z.string().optional(),
 })
@@ -40,11 +44,21 @@ export async function POST(request: NextRequest) {
     const {
       email: rawEmail,
       password,
-      fullName,
-      dateOfBirth,
+      fullName: fullNameField,
+      name: nameField,
+      dateOfBirth: dateOfBirthField,
       role,
       turnstileToken,
     } = validationResult.data
+
+    const fullName = (fullNameField || nameField || '').trim()
+    if (fullName.length < 2) {
+      return NextResponse.json(
+        { success: false, error: 'Name must be at least 2 characters' },
+        { status: 400 }
+      )
+    }
+    const dateOfBirth = dateOfBirthField || '2000-01-01'
     const email = rawEmail.toLowerCase()
 
     const clientIp = getClientIp(request.headers)
@@ -87,15 +101,19 @@ export async function POST(request: NextRequest) {
 
     // Check if email already exists
     const [existing] = await db
-      .select({ id: users.id })
+      .select({ id: users.id, emailVerified: users.emailVerified })
       .from(users)
       .where(eq(users.email, email))
       .limit(1)
     if (existing) {
-      return NextResponse.json(
-        { success: false, error: 'An account with this email already exists' },
-        { status: 400 }
-      )
+      if (existing.emailVerified) {
+        return NextResponse.json(
+          { success: false, error: 'An account with this email already exists' },
+          { status: 400 }
+        )
+      }
+      // Unverified account — delete and allow re-registration
+      await db.delete(users).where(eq(users.email, email))
     }
 
     const hashedPassword = await bcrypt.hash(password, 12)

@@ -1,3 +1,4 @@
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -45,7 +46,14 @@ class _VerifyEmailScreenState extends ConsumerState<VerifyEmailScreen> {
       });
       if (mounted) context.go('/auth/login');
     } catch (e) {
-      setState(() => _error = e.toString().replaceFirst('Exception: ', ''));
+      String msg = 'Verification failed. Please try again.';
+      if (e is DioException) {
+        final data = e.response?.data;
+        if (data is Map && data['error'] != null) {
+          msg = data['error'].toString();
+        }
+      }
+      setState(() => _error = msg);
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }

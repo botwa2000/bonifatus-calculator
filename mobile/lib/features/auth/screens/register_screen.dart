@@ -1,3 +1,4 @@
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -47,20 +48,35 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
       setState(() => _error = 'Passwords do not match');
       return;
     }
+    if (_passCtrl.text.length < 12) {
+      setState(() => _error = 'Password must be at least 12 characters');
+      return;
+    }
     setState(() { _isLoading = true; _error = null; });
     try {
       final client = ref.read(apiClientProvider);
-      await client.post('/api/auth/register', data: {
-        'name': _nameCtrl.text.trim(),
+      final resp = await client.post('/api/auth/register', data: {
+        'fullName': _nameCtrl.text.trim(),
         'email': _emailCtrl.text.trim(),
         'password': _passCtrl.text,
         'role': _role,
+        'dateOfBirth': '2000-01-01',
       });
+      final userId = (resp.data as Map?)?['userId'] as String? ?? '';
       if (mounted) {
-        context.go('/auth/verify-email?email=${Uri.encodeComponent(_emailCtrl.text.trim())}&userId=&purpose=email_verification');
+        context.go('/auth/verify-email?email=${Uri.encodeComponent(_emailCtrl.text.trim())}&userId=${Uri.encodeComponent(userId)}&purpose=email_verification');
       }
     } catch (e) {
-      setState(() => _error = e.toString().replaceFirst('Exception: ', ''));
+      String msg = 'Registration failed. Please try again.';
+      if (e is DioException) {
+        final data = e.response?.data;
+        if (data is Map && data['error'] != null) {
+          msg = data['error'].toString();
+        } else if (data is Map && data['message'] != null) {
+          msg = data['message'].toString();
+        }
+      }
+      setState(() => _error = msg);
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
