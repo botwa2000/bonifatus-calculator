@@ -21,7 +21,7 @@ const saveSchema = z.object({
   subjects: z
     .array(
       z.object({
-        subjectId: z.string().uuid(),
+        subjectId: z.string().min(1), // may be a real UUID or 'custom-*' from mobile clients
         subjectName: z.string().min(1).max(120).optional(),
         grade: z.string().min(1),
         weight: z.number().min(0.1).max(10).default(1),
@@ -65,11 +65,15 @@ export async function POST(request: NextRequest) {
 
     const { defaults, overrides } = await getBonusFactors(user.id, normalizedChildId)
 
-    const subjectIds = payload.subjects.map((s) => s.subjectId)
-    const subjectRows = await db
-      .select({ id: subjects.id, isCoreSubject: subjects.isCoreSubject })
-      .from(subjects)
-      .where(inArray(subjects.id, subjectIds))
+    const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+    const subjectIds = payload.subjects.map((s) => s.subjectId).filter((id) => uuidPattern.test(id))
+    const subjectRows =
+      subjectIds.length > 0
+        ? await db
+            .select({ id: subjects.id, isCoreSubject: subjects.isCoreSubject })
+            .from(subjects)
+            .where(inArray(subjects.id, subjectIds))
+        : []
     const coreMap = new Map(subjectRows.map((s) => [s.id, s.isCoreSubject ?? false]))
 
     const calc = calculateBonus({
