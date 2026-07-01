@@ -86,6 +86,11 @@ export default async function proxy(req: NextRequest) {
       dbg('mw', `public API pass-through: ${pathname}`)
       return NextResponse.next()
     }
+    // Mobile clients send Bearer token + X-Mobile-Client-Token; route handlers validate via requireAuthApi()
+    if (req.headers.get('x-mobile-client-token')) {
+      dbg('mw', `mobile API pass-through: ${pathname}`)
+      return NextResponse.next()
+    }
     if (!hasSessionCookie(req)) {
       dbgWarn('mw', `protected API 401: ${pathname}`)
       return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
