@@ -15,78 +15,92 @@ class ChildrenScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final childrenAsync = ref.watch(childrenQuickGradesProvider);
 
+    // Scaffold has no appBar — nested Scaffold with AppBar collapses body
+    // to zero height inside ShellRoute. Header is a manual Row inside body.
     return Scaffold(
       backgroundColor: AppColors.neutral50,
-      appBar: AppBar(
-        backgroundColor: AppColors.white,
-        elevation: 0,
-        title: const Text(
-          'Children',
-          style: TextStyle(
-            color: AppColors.neutral900,
-            fontWeight: FontWeight.w700,
-            fontSize: 20,
-          ),
-        ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.refresh_rounded, color: AppColors.primary),
-            onPressed: () =>
-                ref.read(childrenQuickGradesProvider.notifier).reload(),
-          ),
-        ],
-      ),
       floatingActionButton: FloatingActionButton(
         backgroundColor: AppColors.primary,
         foregroundColor: AppColors.white,
         onPressed: () => _showInviteDialog(context, ref),
         child: const Icon(Icons.qr_code_rounded),
       ),
-      body: childrenAsync.when(
-        loading: () => const Center(
-            child: CircularProgressIndicator(color: AppColors.primary)),
-        error: (err, _) => Center(
-          child: Padding(
-            padding: const EdgeInsets.all(32),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Icon(Icons.error_outline,
-                    size: 48, color: AppColors.error),
-                const SizedBox(height: 16),
-                const Text(
-                  'Failed to load children',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.neutral900,
+      body: SafeArea(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 16, 4, 8),
+              child: Row(
+                children: [
+                  const Text(
+                    'Children',
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.neutral900,
+                    ),
                   ),
-                ),
-                const SizedBox(height: 8),
-                Text(err.toString(),
-                    style:
-                        const TextStyle(fontSize: 13, color: AppColors.neutral600),
-                    textAlign: TextAlign.center),
-                const SizedBox(height: 20),
-                ElevatedButton(
-                  onPressed: () =>
-                      ref.read(childrenQuickGradesProvider.notifier).reload(),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.primary,
-                    foregroundColor: AppColors.white,
+                  const Spacer(),
+                  IconButton(
+                    icon: const Icon(Icons.refresh_rounded,
+                        color: AppColors.primary),
+                    onPressed: () =>
+                        ref.read(childrenQuickGradesProvider.notifier).reload(),
                   ),
-                  child: const Text('Retry'),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
+            Expanded(
+              child: childrenAsync.when(
+                loading: () => const Center(
+                    child:
+                        CircularProgressIndicator(color: AppColors.primary)),
+                error: (err, _) => Center(
+                  child: Padding(
+                    padding: const EdgeInsets.all(32),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Icon(Icons.error_outline,
+                            size: 48, color: AppColors.error),
+                        const SizedBox(height: 16),
+                        const Text(
+                          'Failed to load children',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.neutral900,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(err.toString(),
+                            style: const TextStyle(
+                                fontSize: 13, color: AppColors.neutral600),
+                            textAlign: TextAlign.center),
+                        const SizedBox(height: 20),
+                        ElevatedButton(
+                          onPressed: () => ref
+                              .read(childrenQuickGradesProvider.notifier)
+                              .reload(),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppColors.primary,
+                            foregroundColor: AppColors.white,
+                          ),
+                          child: const Text('Retry'),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                data: (children) {
+                  if (children.isEmpty) return _buildEmptyState(context, ref);
+                  return _buildList(context, ref, children);
+                },
+              ),
+            ),
+          ],
         ),
-        data: (children) {
-          if (children.isEmpty) {
-            return _buildEmptyState(context, ref);
-          }
-          return _buildList(context, children);
-        },
       ),
     );
   }
@@ -134,7 +148,8 @@ class ChildrenScreen extends ConsumerWidget {
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.primary,
                 foregroundColor: AppColors.white,
-                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
                 shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12)),
               ),
@@ -145,9 +160,10 @@ class ChildrenScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildList(BuildContext context, List<ChildWithGrades> children) {
+  Widget _buildList(
+      BuildContext context, WidgetRef ref, List<ChildWithGrades> children) {
     return ListView.builder(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.fromLTRB(16, 4, 16, 120),
       itemCount: children.length,
       itemBuilder: (ctx, i) {
         final child = children[i];
@@ -172,7 +188,6 @@ class ChildrenScreen extends ConsumerWidget {
 
 class _InviteDialog extends StatefulWidget {
   final WidgetRef ref;
-
   const _InviteDialog({required this.ref});
 
   @override
@@ -192,8 +207,7 @@ class _InviteDialogState extends State<_InviteDialog> {
 
   Future<void> _loadInvite() async {
     try {
-      final service =
-          widget.ref.read(connectionServiceProvider);
+      final service = widget.ref.read(connectionServiceProvider);
       final invite = await service.createInvite();
       if (mounted) {
         setState(() {
@@ -243,7 +257,8 @@ class _InviteDialogState extends State<_InviteDialog> {
               const SizedBox(
                 height: 200,
                 child: Center(
-                    child: CircularProgressIndicator(color: AppColors.primary)),
+                    child:
+                        CircularProgressIndicator(color: AppColors.primary)),
               )
             else if (_error != null)
               SizedBox(
@@ -255,10 +270,8 @@ class _InviteDialogState extends State<_InviteDialog> {
                       const Icon(Icons.error_outline,
                           color: AppColors.error, size: 32),
                       const SizedBox(height: 8),
-                      Text(
-                        'Failed to create invite',
-                        style: const TextStyle(color: AppColors.error),
-                      ),
+                      const Text('Failed to create invite',
+                          style: TextStyle(color: AppColors.error)),
                       const SizedBox(height: 8),
                       TextButton(
                         onPressed: () {
@@ -281,9 +294,9 @@ class _InviteDialogState extends State<_InviteDialog> {
                 backgroundColor: Colors.white,
               ),
               const SizedBox(height: 16),
-              // Code display
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
                 decoration: BoxDecoration(
                   color: AppColors.neutral100,
                   borderRadius: BorderRadius.circular(10),
@@ -303,9 +316,7 @@ class _InviteDialogState extends State<_InviteDialog> {
                     Text(
                       inviteUrl,
                       style: const TextStyle(
-                        fontSize: 10,
-                        color: AppColors.neutral600,
-                      ),
+                          fontSize: 10, color: AppColors.neutral600),
                       textAlign: TextAlign.center,
                     ),
                   ],
@@ -346,100 +357,102 @@ class _ChildCard extends StatelessWidget {
     final tierColorLight = AppColors.tierColorLight(tier);
     final pendingPts = child.totalPendingPoints;
 
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: AppColors.white,
+    return Material(
+      color: AppColors.white,
+      borderRadius: BorderRadius.circular(16),
+      elevation: 2,
+      shadowColor: AppColors.neutral900.withValues(alpha: 0.08),
+      child: InkWell(
+        onTap: onView,
         borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.neutral900.withValues(alpha: 0.06),
-            blurRadius: 10,
-            offset: const Offset(0, 3),
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          Container(
-            width: 48,
-            height: 48,
-            decoration: const BoxDecoration(
-              color: AppColors.primaryLight,
-              shape: BoxShape.circle,
-            ),
-            alignment: Alignment.center,
-            child: Text(
-              child.childName.substring(0, 1).toUpperCase(),
-              style: const TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.w700,
-                color: AppColors.primary,
-              ),
-            ),
-          ),
-          const SizedBox(width: 14),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  child.childName,
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Row(
+            children: [
+              Container(
+                width: 48,
+                height: 48,
+                decoration: const BoxDecoration(
+                  color: AppColors.primaryLight,
+                  shape: BoxShape.circle,
+                ),
+                alignment: Alignment.center,
+                child: Text(
+                  child.childName.substring(0, 1).toUpperCase(),
                   style: const TextStyle(
-                    fontSize: 16,
+                    fontSize: 20,
                     fontWeight: FontWeight.w700,
-                    color: AppColors.neutral900,
+                    color: AppColors.primary,
                   ),
                 ),
-                const SizedBox(height: 6),
-                Row(
+              ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 8, vertical: 3),
-                      decoration: BoxDecoration(
-                        color: tierColorLight,
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Text(
-                        '${child.grades.length} grades',
-                        style: TextStyle(
-                          fontSize: 11,
-                          fontWeight: FontWeight.w600,
-                          color: tierColor,
-                        ),
+                    Text(
+                      child.childName,
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.neutral900,
                       ),
                     ),
-                    const SizedBox(width: 8),
-                    Text(
-                      '$pendingPts pts pending',
-                      style: const TextStyle(
-                        fontSize: 12,
-                        color: AppColors.neutral600,
-                      ),
+                    const SizedBox(height: 6),
+                    Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 8, vertical: 3),
+                          decoration: BoxDecoration(
+                            color: tierColorLight,
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Text(
+                            '${child.grades.length} grades',
+                            style: TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w600,
+                              color: tierColor,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          '$pendingPts pts pending',
+                          style: const TextStyle(
+                            fontSize: 12,
+                            color: AppColors.neutral600,
+                          ),
+                        ),
+                      ],
                     ),
                   ],
                 ),
-              ],
-            ),
+              ),
+              const SizedBox(width: 12),
+              GestureDetector(
+                onTap: onView,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  decoration: BoxDecoration(
+                    color: AppColors.primaryLight,
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: const Text(
+                    'View',
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.primary,
+                    ),
+                  ),
+                ),
+              ),
+            ],
           ),
-          ElevatedButton(
-            onPressed: onView,
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.primaryLight,
-              foregroundColor: AppColors.primary,
-              elevation: 0,
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10)),
-            ),
-            child: const Text(
-              'View',
-              style: TextStyle(fontWeight: FontWeight.w600),
-            ),
-          ),
-        ],
+        ),
       ),
     );
   }
