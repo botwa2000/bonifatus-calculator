@@ -1,3 +1,4 @@
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/theme/app_colors.dart';
@@ -24,6 +25,16 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
     super.dispose();
   }
 
+  String _extractError(dynamic e) {
+    if (e is DioException) {
+      final data = e.response?.data;
+      if (data is Map) {
+        return (data['error'] ?? data['message'] ?? 'Request failed').toString();
+      }
+    }
+    return e.toString().replaceFirst('Exception: ', '');
+  }
+
   Future<void> _sendCode() async {
     setState(() { _isLoading = true; _error = null; });
     try {
@@ -31,7 +42,7 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
       await client.post('/api/auth/forgot-password', data: {'email': _emailCtrl.text.trim()});
       setState(() => _step = 1);
     } catch (e) {
-      setState(() => _error = e.toString().replaceFirst('Exception: ', ''));
+      setState(() => _error = _extractError(e));
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
@@ -52,7 +63,7 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
         context.go('/auth/login');
       }
     } catch (e) {
-      setState(() => _error = e.toString().replaceFirst('Exception: ', ''));
+      setState(() => _error = _extractError(e));
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
