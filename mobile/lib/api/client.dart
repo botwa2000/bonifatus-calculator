@@ -63,8 +63,13 @@ class _AuthInterceptor extends Interceptor {
   @override
   void onError(DioException err, ErrorInterceptorHandler handler) async {
     if (err.response?.statusCode == 401) {
-      // Token expired — clear and let router redirect to login
-      await _storage.deleteAll();
+      // Only clear session when the token validation endpoint rejects us.
+      // Data routes return 401 because they don't yet check Bearer tokens —
+      // that should show a "could not load" error, not log the user out.
+      final path = err.requestOptions.path;
+      if (path.contains('/api/mobile/auth/me')) {
+        await _storage.deleteAll();
+      }
     }
     handler.next(err);
   }

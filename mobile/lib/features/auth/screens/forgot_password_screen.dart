@@ -55,7 +55,7 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
       await client.post('/api/auth/reset-password', data: {
         'email': _emailCtrl.text.trim(),
         'code': _codeCtrl.text.trim(),
-        'password': _passCtrl.text,
+        'newPassword': _passCtrl.text,
       });
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(

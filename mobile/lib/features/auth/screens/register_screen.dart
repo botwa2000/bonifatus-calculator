@@ -143,10 +143,29 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   }
 }
 
-class _Step1 extends StatelessWidget {
+class _Step1 extends StatefulWidget {
   final TextEditingController ctrl;
   final VoidCallback onNext;
   const _Step1({required this.ctrl, required this.onNext});
+  @override
+  State<_Step1> createState() => _Step1State();
+}
+
+class _Step1State extends State<_Step1> {
+  @override
+  void initState() {
+    super.initState();
+    widget.ctrl.addListener(_onTextChanged);
+  }
+
+  @override
+  void dispose() {
+    widget.ctrl.removeListener(_onTextChanged);
+    super.dispose();
+  }
+
+  void _onTextChanged() => setState(() {});
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -159,16 +178,16 @@ class _Step1 extends StatelessWidget {
         Text('This is how you will appear to others.', style: theme.textTheme.bodyLarge?.copyWith(color: AppColors.neutral600)),
         const SizedBox(height: 32),
         TextFormField(
-          controller: ctrl,
+          controller: widget.ctrl,
           textInputAction: TextInputAction.done,
           autofocus: true,
           textCapitalization: TextCapitalization.words,
           decoration: const InputDecoration(labelText: 'Full name', prefixIcon: Icon(Icons.person_outline)),
-          onFieldSubmitted: (_) => onNext(),
+          onFieldSubmitted: (_) => widget.onNext(),
         ),
         const Spacer(),
         ElevatedButton(
-          onPressed: ctrl.text.trim().isEmpty ? null : onNext,
+          onPressed: widget.ctrl.text.trim().isEmpty ? null : widget.onNext,
           child: const Text('Continue'),
         ),
       ]),

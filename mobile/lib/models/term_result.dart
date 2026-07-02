@@ -14,12 +14,28 @@ class SubjectResult {
   });
 
   factory SubjectResult.fromJson(Map<String, dynamic> json) {
+    // API returns snake_case; support both
+    final subjectId = (json['subjectId'] ?? json['subject_id']) as String;
+    final gradeValue = (json['gradeValue'] ?? json['grade_value']) as String;
+    final bonusPoints = (json['bonusPoints'] ?? json['bonus_points']) as int? ?? 0;
+    final tier = (json['gradeQualityTier'] ?? json['grade_quality_tier']) as String?;
+    // subjectName may be nested under subjects.name (JSONB)
+    String? subjectName = (json['subjectName'] ?? json['subject_name']) as String?;
+    if (subjectName == null) {
+      final nested = json['subjects'] as Map<String, dynamic>?;
+      final nameRaw = nested?['name'];
+      if (nameRaw is String) {
+        subjectName = nameRaw;
+      } else if (nameRaw is Map) {
+        subjectName = (nameRaw['en'] ?? nameRaw['de'] ?? nameRaw.values.firstOrNull)?.toString();
+      }
+    }
     return SubjectResult(
-      subjectId: json['subjectId'] as String,
-      subjectName: json['subjectName'] as String?,
-      gradeValue: json['gradeValue'] as String,
-      bonusPoints: json['bonusPoints'] as int? ?? 0,
-      gradeQualityTier: json['gradeQualityTier'] as String?,
+      subjectId: subjectId,
+      subjectName: subjectName,
+      gradeValue: gradeValue,
+      bonusPoints: bonusPoints,
+      gradeQualityTier: tier,
     );
   }
 }
@@ -48,16 +64,21 @@ class TermResult {
   });
 
   factory TermResult.fromJson(Map<String, dynamic> json) {
+    // API returns snake_case; support both
+    final subjectsRaw =
+        (json['subjects'] ?? json['subject_grades']) as List<dynamic>? ?? [];
+    final createdRaw = (json['createdAt'] ?? json['created_at']) as String?;
     return TermResult(
       id: json['id'] as String,
-      schoolYear: json['schoolYear'] as String,
-      termType: json['termType'] as String,
-      classLevel: json['classLevel'] as int? ?? 1,
-      totalBonusPoints: json['totalBonusPoints'] as int? ?? 0,
+      schoolYear: (json['schoolYear'] ?? json['school_year']) as String,
+      termType: (json['termType'] ?? json['term_type']) as String,
+      classLevel: (json['classLevel'] ?? json['class_level']) as int? ?? 1,
+      totalBonusPoints:
+          (json['totalBonusPoints'] ?? json['total_bonus_points']) as int? ?? 0,
       status: json['status'] as String? ?? 'active',
-      termName: json['termName'] as String?,
-      createdAt: DateTime.parse(json['createdAt'] as String),
-      subjects: (json['subjects'] as List<dynamic>? ?? [])
+      termName: (json['termName'] ?? json['term_name']) as String?,
+      createdAt: createdRaw != null ? DateTime.parse(createdRaw) : DateTime.now(),
+      subjects: subjectsRaw
           .map((s) => SubjectResult.fromJson(s as Map<String, dynamic>))
           .toList(),
     );

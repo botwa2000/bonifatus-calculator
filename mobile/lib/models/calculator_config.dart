@@ -14,12 +14,21 @@ class GradingSystem {
   });
 
   factory GradingSystem.fromJson(Map<String, dynamic> json) {
+    // API returns name as JSONB object {"en":..., "de":...} or plain string
+    final nameRaw = json['name'];
+    final name = nameRaw is String
+        ? nameRaw
+        : nameRaw is Map
+            ? (nameRaw['en'] ?? nameRaw.values.firstOrNull ?? 'Unknown').toString()
+            : 'Unknown';
+    // API field names: minValue/maxValue (not minGrade/maxGrade), bestIsHighest (not isLowerBetter)
     return GradingSystem(
       id: json['id'] as String,
-      name: json['name'] as String,
-      minGrade: (json['minGrade'] as num).toDouble(),
-      maxGrade: (json['maxGrade'] as num).toDouble(),
-      isLowerBetter: json['isLowerBetter'] as bool? ?? true,
+      name: name,
+      minGrade: ((json['minGrade'] ?? json['minValue']) as num?)?.toDouble() ?? 1.0,
+      maxGrade: ((json['maxGrade'] ?? json['maxValue']) as num?)?.toDouble() ?? 6.0,
+      isLowerBetter: json['isLowerBetter'] as bool? ??
+          !(json['bestIsHighest'] as bool? ?? true),
     );
   }
 
@@ -50,10 +59,17 @@ class SubjectItem {
   });
 
   factory SubjectItem.fromJson(Map<String, dynamic> json) {
+    final nameRaw = json['name'];
+    final name = nameRaw is String
+        ? nameRaw
+        : nameRaw is Map
+            ? (nameRaw['en'] ?? nameRaw['de'] ?? nameRaw.values.first ?? 'Unknown').toString()
+            : 'Unknown';
     return SubjectItem(
       id: json['id'] as String,
-      name: json['name'] as String,
-      isCoreSubject: json['isCoreSubject'] as bool? ?? false,
+      name: name,
+      isCoreSubject: json['isCoreSubject'] as bool? ??
+          json['is_core_subject'] as bool? ?? false,
     );
   }
 }

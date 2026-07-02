@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../auth/providers/auth_provider.dart';
+import '../../providers/children_provider.dart';
 
 class _TierFactor {
   final String tier;
@@ -19,11 +20,13 @@ class _TierFactor {
 }
 
 class _ChildCycleConfig {
+  final String childId;
   final String childName;
   final String cycleType;
   final double ratio;
 
   const _ChildCycleConfig({
+    required this.childId,
     required this.childName,
     required this.cycleType,
     required this.ratio,
@@ -45,10 +48,8 @@ class _ParentSettingsScreenState extends ConsumerState<ParentSettingsScreen> {
     _TierFactor(tier: "third", label: "Third (Grade 4)", multiplier: 1.0, color: AppColors.tierThird),
   ];
 
-  List<_ChildCycleConfig> _cycleConfigs = const [
-    _ChildCycleConfig(childName: "Lena M.", cycleType: "Weekly", ratio: 0.25),
-    _ChildCycleConfig(childName: "Tom M.", cycleType: "Weekly", ratio: 0.20),
-  ];
+  // childId → local cycle config (in-memory, not yet persisted)
+  final Map<String, _ChildCycleConfig> _cycleOverrides = {};
 
   @override
   Widget build(BuildContext context) {
@@ -93,13 +94,14 @@ class _ParentSettingsScreenState extends ConsumerState<ParentSettingsScreen> {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: AppColors.neutral900.withValues(alpha: 0.05),
+            color: AppColors.neutral900.withOpacity(0.05),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
         ],
       ),
       child: Column(
+        mainAxisSize: MainAxisSize.min,
         children: List.generate(_tierFactors.length, (i) {
           final factor = _tierFactors[i];
           return Column(
@@ -158,75 +160,125 @@ class _ParentSettingsScreenState extends ConsumerState<ParentSettingsScreen> {
   }
 
   Widget _buildCycleConfigCard() {
-    return Container(
-      decoration: BoxDecoration(
-        color: AppColors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.neutral900.withValues(alpha: 0.05),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
+    final childrenAsync = ref.watch(childrenQuickGradesProvider);
+
+    return childrenAsync.when(
+      loading: () => Container(
+        decoration: BoxDecoration(
+          color: AppColors.white,
+          borderRadius: BorderRadius.circular(16),
+        ),
+        padding: const EdgeInsets.all(24),
+        child: const Center(
+            child: CircularProgressIndicator(color: AppColors.primary)),
       ),
-      child: Column(
-        children: List.generate(_cycleConfigs.length, (i) {
-          final config = _cycleConfigs[i];
-          return Column(
-            children: [
-              ListTile(
-                leading: Container(
-                  width: 36,
-                  height: 36,
-                  decoration: const BoxDecoration(
-                    color: AppColors.primaryLight,
-                    shape: BoxShape.circle,
-                  ),
-                  alignment: Alignment.center,
-                  child: Text(
-                    config.childName.substring(0, 1),
-                    style: const TextStyle(
-                      fontWeight: FontWeight.w700,
-                      color: AppColors.primary,
-                      fontSize: 14,
-                    ),
-                  ),
-                ),
-                title: Text(
-                  config.childName,
-                  style: const TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.neutral900,
-                  ),
-                ),
-                subtitle: Text(
-                  "${config.cycleType} · ${(config.ratio * 100).round()}% ratio",
-                  style: const TextStyle(
-                    fontSize: 12,
-                    color: AppColors.neutral600,
-                  ),
-                ),
-                trailing: InkWell(
-                  onTap: () => _showCycleConfigSheet(i, config),
-                  borderRadius: BorderRadius.circular(8),
-                  child: const Padding(
-                    padding: EdgeInsets.all(4),
-                    child: Icon(
-                      Icons.tune_rounded,
-                      size: 20,
-                      color: AppColors.neutral400,
-                    ),
-                  ),
-                ),
-              ),
-              if (i < _cycleConfigs.length - 1)
-                const Divider(height: 1, indent: 16, endIndent: 16, color: AppColors.neutral100),
-            ],
+      error: (_, __) => Container(
+        decoration: BoxDecoration(
+          color: AppColors.white,
+          borderRadius: BorderRadius.circular(16),
+        ),
+        padding: const EdgeInsets.all(16),
+        child: const Text('Failed to load children',
+            style: TextStyle(color: AppColors.neutral600)),
+      ),
+      data: (children) {
+        if (children.isEmpty) {
+          return Container(
+            decoration: BoxDecoration(
+              color: AppColors.white,
+              borderRadius: BorderRadius.circular(16),
+            ),
+            padding: const EdgeInsets.all(16),
+            child: const Text('No children connected',
+                style: TextStyle(color: AppColors.neutral600)),
           );
-        }),
-      ),
+        }
+
+        return Container(
+          decoration: BoxDecoration(
+            color: AppColors.white,
+            borderRadius: BorderRadius.circular(16),
+            boxShadow: [
+              BoxShadow(
+                color: AppColors.neutral900.withOpacity(0.05),
+                blurRadius: 8,
+                offset: const Offset(0, 2),
+              ),
+            ],
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: List.generate(children.length, (i) {
+              final child = children[i];
+              final override = _cycleOverrides[child.childId];
+              final cycleType = override?.cycleType ?? 'Weekly';
+              final ratio = override?.ratio ?? 0.25;
+              final config = _ChildCycleConfig(
+                childId: child.childId,
+                childName: child.childName,
+                cycleType: cycleType,
+                ratio: ratio,
+              );
+              return Column(
+                children: [
+                  ListTile(
+                    leading: Container(
+                      width: 36,
+                      height: 36,
+                      decoration: const BoxDecoration(
+                        color: AppColors.primaryLight,
+                        shape: BoxShape.circle,
+                      ),
+                      alignment: Alignment.center,
+                      child: Text(
+                        config.childName.substring(0, 1).toUpperCase(),
+                        style: const TextStyle(
+                          fontWeight: FontWeight.w700,
+                          color: AppColors.primary,
+                          fontSize: 14,
+                        ),
+                      ),
+                    ),
+                    title: Text(
+                      config.childName,
+                      style: const TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.neutral900,
+                      ),
+                    ),
+                    subtitle: Text(
+                      "${config.cycleType} · ${(config.ratio * 100).round()}% ratio",
+                      style: const TextStyle(
+                        fontSize: 12,
+                        color: AppColors.neutral600,
+                      ),
+                    ),
+                    trailing: InkWell(
+                      onTap: () => _showCycleConfigSheet(config),
+                      borderRadius: BorderRadius.circular(8),
+                      child: const Padding(
+                        padding: EdgeInsets.all(4),
+                        child: Icon(
+                          Icons.tune_rounded,
+                          size: 20,
+                          color: AppColors.neutral400,
+                        ),
+                      ),
+                    ),
+                  ),
+                  if (i < children.length - 1)
+                    const Divider(
+                        height: 1,
+                        indent: 16,
+                        endIndent: 16,
+                        color: AppColors.neutral100),
+                ],
+              );
+            }),
+          ),
+        );
+      },
     );
   }
 
@@ -237,13 +289,14 @@ class _ParentSettingsScreenState extends ConsumerState<ParentSettingsScreen> {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: AppColors.neutral900.withValues(alpha: 0.05),
+            color: AppColors.neutral900.withOpacity(0.05),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
         ],
       ),
       child: Column(
+        mainAxisSize: MainAxisSize.min,
         children: [
           _SettingsTile(
             icon: Icons.person_outline_rounded,
@@ -364,7 +417,7 @@ class _ParentSettingsScreenState extends ConsumerState<ParentSettingsScreen> {
     );
   }
 
-  void _showCycleConfigSheet(int index, _ChildCycleConfig config) {
+  void _showCycleConfigSheet(_ChildCycleConfig config) {
     String currentCycleType = config.cycleType;
     double currentRatio = config.ratio;
     const cycleTypes = ["Daily", "Weekly", "Monthly"];
@@ -475,13 +528,12 @@ class _ParentSettingsScreenState extends ConsumerState<ParentSettingsScreen> {
                 child: ElevatedButton(
                   onPressed: () {
                     setState(() {
-                      final updated = List<_ChildCycleConfig>.from(_cycleConfigs);
-                      updated[index] = _ChildCycleConfig(
+                      _cycleOverrides[config.childId] = _ChildCycleConfig(
+                        childId: config.childId,
                         childName: config.childName,
                         cycleType: currentCycleType,
                         ratio: currentRatio,
                       );
-                      _cycleConfigs = updated;
                     });
                     Navigator.of(ctx).pop();
                   },
