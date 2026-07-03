@@ -6,6 +6,7 @@ import { userProfiles } from '@/drizzle/schema/users'
 import { verificationCodes } from '@/drizzle/schema/security'
 import { eq, and, isNull, gt } from 'drizzle-orm'
 import { verifyTurnstileToken, getClientIp } from '@/lib/auth/turnstile'
+import { validateMobileToken } from '@/lib/auth/validate-mobile-token'
 import { sendEmail } from '@/lib/email/service'
 import { getPasswordResetCodeEmail } from '@/lib/email/templates'
 
@@ -34,8 +35,9 @@ export async function POST(request: NextRequest) {
     const email = rawEmail.toLowerCase()
     const clientIp = getClientIp(request.headers)
 
-    // Skip Turnstile for mobile clients (identified by X-Mobile-Client-Token header)
-    const isMobile = !!request.headers.get('X-Mobile-Client-Token')
+    // Skip Turnstile for verified mobile clients only — validate the HMAC signature
+    const mobileToken = request.headers.get('X-Mobile-Client-Token')
+    const isMobile = validateMobileToken(mobileToken, '/api/auth/forgot-password')
     if (!isMobile) {
       if (!turnstileToken) {
         return NextResponse.json(

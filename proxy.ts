@@ -2,6 +2,44 @@ import { NextRequest, NextResponse } from 'next/server'
 import { routing } from '@/i18n/routing'
 import { dbg, dbgWarn } from '@/lib/debug'
 
+const MOBILE_APP_SECRET = process.env.MOBILE_APP_SECRET ?? 'dev-secret-replace-in-prod'
+const TOKEN_MAX_AGE_MS = 5 * 60 * 1000
+
+// Validates X-Mobile-Client-Token using Web Crypto (Edge-compatible HMAC-SHA256).
+// Format: <hmac_hex>:<timestamp_ms>:<deviceId>  payload: <deviceId>:<timestamp_ms>:<path>
+async function validateMobileTokenEdge(token: string, path: string): Promise<boolean> {
+  const firstColon = token.indexOf(':')
+  const secondColon = token.indexOf(':', firstColon + 1)
+  if (firstColon === -1 || secondColon === -1) return false
+
+  const providedHmac = token.slice(0, firstColon)
+  const timestamp = token.slice(firstColon + 1, secondColon)
+  const deviceId = token.slice(secondColon + 1)
+  if (!providedHmac || !timestamp || !deviceId) return false
+
+  const ts = parseInt(timestamp, 10)
+  if (isNaN(ts) || Math.abs(Date.now() - ts) > TOKEN_MAX_AGE_MS) return false
+
+  const enc = new TextEncoder()
+  const key = await crypto.subtle.importKey(
+    'raw',
+    enc.encode(MOBILE_APP_SECRET),
+    { name: 'HMAC', hash: 'SHA-256' },
+    false,
+    ['sign']
+  )
+  const sig = await crypto.subtle.sign('HMAC', key, enc.encode(`${deviceId}:${timestamp}:${path}`))
+  const computed = Array.from(new Uint8Array(sig))
+    .map((b) => b.toString(16).padStart(2, '0'))
+    .join('')
+
+  if (computed.length !== providedHmac.length) return false
+  let diff = 0
+  for (let i = 0; i < computed.length; i++)
+    diff |= computed.charCodeAt(i) ^ providedHmac.charCodeAt(i)
+  return diff === 0
+}
+
 // Check for session cookie presence (no JWT decoding needed for routing)
 // NextAuth v5 uses authjs.* cookie names; secure prefix when NEXTAUTH_URL is https
 const SESSION_COOKIE_NAMES = [
@@ -86,10 +124,16 @@ export default async function proxy(req: NextRequest) {
       dbg('mw', `public API pass-through: ${pathname}`)
       return NextResponse.next()
     }
-    // Mobile clients send Bearer token + X-Mobile-Client-Token; route handlers validate via requireAuthApi()
-    if (req.headers.get('x-mobile-client-token')) {
-      dbg('mw', `mobile API pass-through: ${pathname}`)
-      return NextResponse.next()
+    // Mobile clients send a signed X-Mobile-Client-Token — validate HMAC before granting pass-through
+    const mobileToken = req.headers.get('x-mobile-client-token')
+    if (mobileToken) {
+      const valid = await validateMobileTokenEdge(mobileToken, pathname)
+      if (valid) {
+        dbg('mw', `mobile API pass-through (token verified): ${pathname}`)
+        return NextResponse.next()
+      }
+      dbgWarn('mw', `mobile token invalid/expired: ${pathname}`)
+      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
     }
     if (!hasSessionCookie(req)) {
       dbgWarn('mw', `protected API 401: ${pathname}`)

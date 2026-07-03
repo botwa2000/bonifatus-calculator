@@ -84,10 +84,10 @@ jobs:
           echo "pubspec version → ${CURRENT}+${CODE}"
 
       - name: Build release App Bundle (AAB)
-        run: cd mobile && flutter build appbundle --release
+        run: cd mobile && flutter build appbundle --release --dart-define=MOBILE_APP_SECRET=${{ secrets.MOBILE_APP_SECRET }}
 
       - name: Build signed release APK (sideload artifact)
-        run: cd mobile && flutter build apk --release
+        run: cd mobile && flutter build apk --release --dart-define=MOBILE_APP_SECRET=${{ secrets.MOBILE_APP_SECRET }}
 
       - name: Upload AAB artifact
         uses: actions/upload-artifact@v4
@@ -135,19 +135,20 @@ jobs:
         env:
           CM_TOKEN: ${{ secrets.CODEMAGIC_API_TOKEN }}
           CERT_KEY: ${{ secrets.CM_CERTIFICATE_PRIVATE_KEY }}
+          APP_SECRET: ${{ secrets.MOBILE_APP_SECRET }}
         run: |
           APP_ID="${{ secrets.BONIFATUS_CODEMAGIC_APP_ID }}"
           if [ -z "$APP_ID" ]; then
             echo "::error::BONIFATUS_CODEMAGIC_APP_ID secret is not set."
             exit 1
           fi
-          # Pass CM_CERTIFICATE_PRIVATE_KEY at trigger time so Codemagic
-          # doesn't need it stored as an app-level variable.
+          # Pass signing cert + MOBILE_APP_SECRET at trigger time as dart-define vars
           PAYLOAD=$(jq -n \
             --arg appId "$APP_ID" \
             --arg key "$CERT_KEY" \
+            --arg secret "$APP_SECRET" \
             '{appId: $appId, workflowId: "flutter-release", branch: "main",
-              environment: {variables: {CM_CERTIFICATE_PRIVATE_KEY: $key}}}')
+              environment: {variables: {CM_CERTIFICATE_PRIVATE_KEY: $key, MOBILE_APP_SECRET: $secret}}}')
           resp=$(curl -s -w "\n%{http_code}" -X POST \
             -H "x-auth-token: $CM_TOKEN" \
             -H "Content-Type: application/json" \
