@@ -10,6 +10,14 @@
 	<string>Bonifatus</string>
 	<key>ITSAppUsesNonExemptEncryption</key>
 	<false/>
+	<key>NSCameraUsageDescription</key>
+	<string>Bonifatus uses the camera to photograph your grade documents and report cards.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Bonifatus can read photos from your library to import grade documents.</string>
+	<key>NSPhotoLibraryAddUsageDescription</key>
+	<string>Bonifatus can save captured grade images to your photo library.</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>Microphone access is required by the camera framework.</string>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIdentifier</key>
