@@ -119,7 +119,7 @@ class _ChildGradesCard extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final pendingGrades = child.grades
-        .where((g) => g.settlementStatus == 'pending')
+        .where((g) => g.settlementStatus == 'unsettled')
         .toList()
       ..sort((a, b) => b.gradedAt.compareTo(a.gradedAt));
     final totalPts =
@@ -199,16 +199,17 @@ class _ChildGradesCard extends ConsumerWidget {
               child: OutlinedButton(
                 onPressed: pendingGrades.isEmpty ? null : () => _showSettleSheet(context, ref, pendingGrades, child),
                 style: OutlinedButton.styleFrom(
-                  side: const BorderSide(color: AppColors.primary),
+                  foregroundColor: AppColors.primary,
+                  disabledForegroundColor: AppColors.neutral400,
+                  side: BorderSide(
+                    color: pendingGrades.isEmpty ? AppColors.neutral200 : AppColors.primary,
+                  ),
                   shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(10)),
                 ),
                 child: const Text(
                   'Settle',
-                  style: TextStyle(
-                    color: AppColors.primary,
-                    fontWeight: FontWeight.w600,
-                  ),
+                  style: TextStyle(fontWeight: FontWeight.w600),
                 ),
               ),
             ),

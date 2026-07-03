@@ -18,6 +18,7 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
   int _step = 0;
   bool _isLoading = false;
   String? _error;
+  DateTime? _lastSentAt;
 
   @override
   void dispose() {
@@ -36,10 +37,19 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
   }
 
   Future<void> _sendCode() async {
+    if (_isLoading) return;
+    // Prevent rapid-fire: enforce 30-second cooldown between sends
+    final now = DateTime.now();
+    if (_lastSentAt != null && now.difference(_lastSentAt!).inSeconds < 30) {
+      final remaining = 30 - now.difference(_lastSentAt!).inSeconds;
+      setState(() => _error = 'Please wait $remaining seconds before requesting another code.');
+      return;
+    }
     setState(() { _isLoading = true; _error = null; });
     try {
       final client = ref.read(apiClientProvider);
       await client.post('/api/auth/forgot-password', data: {'email': _emailCtrl.text.trim()});
+      _lastSentAt = DateTime.now();
       setState(() => _step = 1);
     } catch (e) {
       setState(() => _error = _extractError(e));
@@ -100,7 +110,7 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
       controller: _emailCtrl,
       keyboardType: TextInputType.emailAddress,
       textInputAction: TextInputAction.done,
-      onFieldSubmitted: (_) => _sendCode(),
+      onFieldSubmitted: (_) { if (!_isLoading) _sendCode(); },
       decoration: const InputDecoration(labelText: 'Email', prefixIcon: Icon(Icons.email_outlined)),
     ),
     const SizedBox(height: 24),
@@ -143,7 +153,7 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
     const SizedBox(height: 12),
     Center(
       child: TextButton(
-        onPressed: _sendCode,
+        onPressed: _isLoading ? null : _sendCode,
         child: const Text('Resend code'),
       ),
     ),

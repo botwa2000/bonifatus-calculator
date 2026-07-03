@@ -34,7 +34,7 @@ class ChildQuickGrade {
       gradeValue: json['gradeValue'] as String,
       gradeQualityTier: json['gradeQualityTier'] as String? ?? 'below',
       bonusPoints: json['bonusPoints'] as int? ?? 0,
-      settlementStatus: json['settlementStatus'] as String? ?? 'pending',
+      settlementStatus: json['settlementStatus'] as String? ?? 'unsettled',
       gradedAt: DateTime.parse(json['gradedAt'] as String),
     );
   }
@@ -62,7 +62,7 @@ class ChildWithGrades {
   }
 
   int get totalPendingPoints => grades
-      .where((g) => g.settlementStatus == 'pending')
+      .where((g) => g.settlementStatus == 'unsettled')
       .fold(0, (sum, g) => sum + g.bonusPoints);
 
   String get latestTier {

@@ -242,6 +242,7 @@ class _CalculatorScreenState extends ConsumerState<CalculatorScreen> {
                       hintText: 'e.g. 2',
                     ),
                     keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                    textInputAction: TextInputAction.done,
                     inputFormatters: [
                       FilteringTextInputFormatter.allow(RegExp(r'[0-9.]')),
                     ],
