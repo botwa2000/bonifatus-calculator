@@ -4,7 +4,7 @@ import { db } from '@/lib/db/client'
 import { users } from '@/drizzle/schema/auth'
 import { userProfiles } from '@/drizzle/schema/users'
 import { verificationCodes } from '@/drizzle/schema/security'
-import { eq, and, isNull } from 'drizzle-orm'
+import { eq, and, isNull, gt } from 'drizzle-orm'
 import { verifyTurnstileToken, getClientIp } from '@/lib/auth/turnstile'
 import { sendEmail } from '@/lib/email/service'
 import { getPasswordResetCodeEmail } from '@/lib/email/templates'
@@ -66,6 +66,22 @@ export async function POST(request: NextRequest) {
       .from(userProfiles)
       .where(eq(userProfiles.id, user.id))
       .limit(1)
+
+    // Server-side rate limit: one email per 60 seconds per user
+    const cooldownSince = new Date(Date.now() - 60_000)
+    const [recentCode] = await db
+      .select({ id: verificationCodes.id })
+      .from(verificationCodes)
+      .where(
+        and(
+          eq(verificationCodes.userId, user.id),
+          eq(verificationCodes.purpose, 'password_reset'),
+          isNull(verificationCodes.verifiedAt),
+          gt(verificationCodes.createdAt, cooldownSince)
+        )
+      )
+      .limit(1)
+    if (recentCode) return successResponse
 
     // Invalidate old codes
     await db
