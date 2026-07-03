@@ -54,6 +54,21 @@ class GradeService {
         .toList();
   }
 
+  Future<String> createSettlement({
+    required String childId,
+    required int amount,
+    required List<String> quickGradeIds,
+  }) async {
+    final resp = await _client.post('/api/settlements/create', data: {
+      'childId': childId,
+      'amount': amount.toDouble(),
+      'currency': 'pts',
+      'method': 'app',
+      'quickGradeIds': quickGradeIds,
+    });
+    return resp.data['settlementId'] as String;
+  }
+
   Future<String> saveTerm({
     required String gradingSystemId,
     required int classLevel,

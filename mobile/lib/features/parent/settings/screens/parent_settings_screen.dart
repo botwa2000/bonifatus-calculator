@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../auth/providers/auth_provider.dart';
 import '../../providers/children_provider.dart';
+import '../../../../api/services/connection_service.dart';
 
 class _TierFactor {
   final String tier;
@@ -48,8 +49,27 @@ class _ParentSettingsScreenState extends ConsumerState<ParentSettingsScreen> {
     _TierFactor(tier: "third", label: "Third (Grade 4)", multiplier: 1.0, color: AppColors.tierThird),
   ];
 
-  // childId → local cycle config (in-memory, not yet persisted)
   final Map<String, _ChildCycleConfig> _cycleOverrides = {};
+
+  @override
+  void initState() {
+    super.initState();
+    _loadFactors();
+  }
+
+  Future<void> _loadFactors() async {
+    try {
+      final service = ref.read(connectionServiceProvider);
+      final factors = await service.fetchBonusFactors();
+      if (!mounted || factors.isEmpty) return;
+      setState(() {
+        _tierFactors = _tierFactors.map((f) {
+          final loaded = factors[f.tier];
+          return loaded != null ? _TierFactor(tier: f.tier, label: f.label, multiplier: loaded, color: f.color) : f;
+        }).toList();
+      });
+    } catch (_) {}
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -382,18 +402,21 @@ class _ParentSettingsScreenState extends ConsumerState<ParentSettingsScreen> {
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
-                  onPressed: () {
-                    setState(() {
-                      final updated = List<_TierFactor>.from(_tierFactors);
-                      updated[index] = _TierFactor(
-                        tier: factor.tier,
-                        label: factor.label,
-                        multiplier: double.parse(currentValue.toStringAsFixed(1)),
-                        color: factor.color,
-                      );
-                      _tierFactors = updated;
-                    });
+                  onPressed: () async {
+                    final newMultiplier = double.parse(currentValue.toStringAsFixed(1));
+                    final updated = List<_TierFactor>.from(_tierFactors);
+                    updated[index] = _TierFactor(
+                      tier: factor.tier,
+                      label: factor.label,
+                      multiplier: newMultiplier,
+                      color: factor.color,
+                    );
+                    setState(() => _tierFactors = updated);
                     Navigator.of(ctx).pop();
+                    try {
+                      final factorMap = {for (final f in updated) f.tier: f.multiplier};
+                      await ref.read(connectionServiceProvider).saveBonusFactors(factorMap);
+                    } catch (_) {}
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.primary,

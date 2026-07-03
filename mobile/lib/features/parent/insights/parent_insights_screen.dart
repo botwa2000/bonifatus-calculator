@@ -66,8 +66,10 @@ class ParentInsightsScreen extends ConsumerWidget {
             );
           }
 
-          final totalPts =
+          final pendingPts =
               children.fold(0, (sum, c) => sum + c.totalPendingPoints);
+          final totalEarned = children.fold(
+              0, (sum, c) => sum + c.grades.fold(0, (s, g) => s + g.bonusPoints));
 
           return SingleChildScrollView(
             padding: const EdgeInsets.all(16),
@@ -85,8 +87,8 @@ class ParentInsightsScreen extends ConsumerWidget {
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceAround,
                             children: [
-                              _Stat(label: 'Total Bonus', value: '$totalPts pts'),
-                              _Stat(label: 'Unsettled', value: '$totalPts pts'),
+                              _Stat(label: 'Total Earned', value: '$totalEarned pts'),
+                              _Stat(label: 'Pending', value: '$pendingPts pts'),
                               _Stat(
                                   label: 'Children',
                                   value: '${children.length}'),

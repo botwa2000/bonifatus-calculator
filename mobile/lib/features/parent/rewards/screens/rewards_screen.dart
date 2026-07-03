@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../providers/children_provider.dart';
 import '../../../../models/child_data.dart';
+import '../../../../api/services/grade_service.dart';
 
 class RewardsScreen extends ConsumerWidget {
   const RewardsScreen({super.key});
@@ -110,13 +111,13 @@ class _QuickGradesTab extends StatelessWidget {
   }
 }
 
-class _ChildGradesCard extends StatelessWidget {
+class _ChildGradesCard extends ConsumerWidget {
   final ChildWithGrades child;
 
   const _ChildGradesCard({required this.child});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final pendingGrades = child.grades
         .where((g) => g.settlementStatus == 'pending')
         .toList()
@@ -196,7 +197,7 @@ class _ChildGradesCard extends StatelessWidget {
             child: SizedBox(
               width: double.infinity,
               child: OutlinedButton(
-                onPressed: () => _showSettleSheet(context, child),
+                onPressed: pendingGrades.isEmpty ? null : () => _showSettleSheet(context, ref, pendingGrades, child),
                 style: OutlinedButton.styleFrom(
                   side: const BorderSide(color: AppColors.primary),
                   shape: RoundedRectangleBorder(
@@ -217,90 +218,118 @@ class _ChildGradesCard extends StatelessWidget {
     );
   }
 
-  void _showSettleSheet(BuildContext context, ChildWithGrades child) {
-    final total = child.totalPendingPoints;
+  void _showSettleSheet(BuildContext context, WidgetRef ref, List<ChildQuickGrade> pendingGrades, ChildWithGrades child) {
+    final total = pendingGrades.fold<int>(0, (s, g) => s + g.bonusPoints);
     showModalBottomSheet<void>(
       context: context,
       shape: const RoundedRectangleBorder(
           borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
-      builder: (ctx) => Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Settle Bonus for ${child.childName}',
-              style: const TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.w700,
-                color: AppColors.neutral900,
+      builder: (ctx) {
+        bool settling = false;
+        return StatefulBuilder(builder: (ctx, setSheet) => Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Settle Bonus for ${child.childName}',
+                style: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.neutral900,
+                ),
               ),
-            ),
-            const SizedBox(height: 16),
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: AppColors.tierBestLight,
-                borderRadius: BorderRadius.circular(12),
+              const SizedBox(height: 16),
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: AppColors.tierBestLight,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text(
+                      'Amount to transfer',
+                      style: TextStyle(
+                          color: AppColors.neutral700,
+                          fontWeight: FontWeight.w500),
+                    ),
+                    Text(
+                      '$total pts',
+                      style: const TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.w800,
+                        color: AppColors.tierBest,
+                      ),
+                    ),
+                  ],
+                ),
               ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              const SizedBox(height: 20),
+              Row(
                 children: [
-                  const Text(
-                    'Amount to transfer',
-                    style: TextStyle(
-                        color: AppColors.neutral700,
-                        fontWeight: FontWeight.w500),
+                  Expanded(
+                    child: OutlinedButton(
+                      onPressed: settling ? null : () => Navigator.of(ctx).pop(),
+                      style: OutlinedButton.styleFrom(
+                        side: const BorderSide(color: AppColors.neutral200),
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12)),
+                      ),
+                      child: const Text('Cancel',
+                          style: TextStyle(color: AppColors.neutral700)),
+                    ),
                   ),
-                  Text(
-                    '$total pts',
-                    style: const TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.w800,
-                      color: AppColors.tierBest,
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: ElevatedButton(
+                      onPressed: settling ? null : () async {
+                        setSheet(() => settling = true);
+                        try {
+                          await ref.read(gradeServiceProvider).createSettlement(
+                            childId: child.childId,
+                            amount: total,
+                            quickGradeIds: pendingGrades.map((g) => g.id).toList(),
+                          );
+                          if (ctx.mounted) Navigator.of(ctx).pop();
+                          ref.read(childrenQuickGradesProvider.notifier).reload();
+                          if (context.mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text('Settled!'), backgroundColor: AppColors.tierBest),
+                            );
+                          }
+                        } catch (e) {
+                          setSheet(() => settling = false);
+                          if (ctx.mounted) {
+                            ScaffoldMessenger.of(ctx).showSnackBar(
+                              SnackBar(content: Text('Failed: $e'), backgroundColor: AppColors.error),
+                            );
+                          }
+                        }
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.primary,
+                        foregroundColor: AppColors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12)),
+                      ),
+                      child: settling
+                          ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                          : const Text('Confirm Settle',
+                              style: TextStyle(fontWeight: FontWeight.w700)),
                     ),
                   ),
                 ],
               ),
-            ),
-            const SizedBox(height: 20),
-            Row(
-              children: [
-                Expanded(
-                  child: OutlinedButton(
-                    onPressed: () => Navigator.of(ctx).pop(),
-                    style: OutlinedButton.styleFrom(
-                      side: const BorderSide(color: AppColors.neutral200),
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12)),
-                    ),
-                    child: const Text('Cancel',
-                        style: TextStyle(color: AppColors.neutral700)),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: ElevatedButton(
-                    onPressed: () => Navigator.of(ctx).pop(),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.primary,
-                      foregroundColor: AppColors.white,
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12)),
-                    ),
-                    child: const Text('Confirm Settle',
-                        style: TextStyle(fontWeight: FontWeight.w700)),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-          ],
-        ),
-      ),
+              const SizedBox(height: 16),
+            ],
+          ),
+        ));
+      },
     );
   }
 }

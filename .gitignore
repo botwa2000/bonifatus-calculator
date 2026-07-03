@@ -86,3 +86,6 @@ ios/App/App/public/
 ios/App/capacitor.config.json
 .vercel
 screenshots/store/
+
+# GCP service account keys
+bonifatus-calculator-*.json

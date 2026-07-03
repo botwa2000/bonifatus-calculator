@@ -36,4 +36,31 @@ class ConnectionService {
         await _client.post('/api/connections/redeem', data: {'code': code});
     return resp.data['relationshipId'] as String;
   }
+
+  Future<List<Map<String, dynamic>>> fetchParentConnections() async {
+    final resp = await _client.get('/api/connections/list');
+    final asChild = resp.data['asChild'] as List<dynamic>? ?? [];
+    return asChild.cast<Map<String, dynamic>>();
+  }
+
+  Future<Map<String, double>> fetchBonusFactors() async {
+    final resp = await _client.get('/api/settings/factors');
+    final defaults = resp.data['defaults'] as List<dynamic>? ?? [];
+    final overrides = resp.data['overrides'] as List<dynamic>? ?? [];
+    final result = <String, double>{};
+    for (final f in [...defaults, ...overrides]) {
+      final m = f as Map<String, dynamic>;
+      if (m['factorType'] == 'grade_tier') {
+        result[m['factorKey'] as String] = (m['factorValue'] as num).toDouble();
+      }
+    }
+    return result;
+  }
+
+  Future<void> saveBonusFactors(Map<String, double> tierFactors) async {
+    final factors = tierFactors.entries
+        .map((e) => {'factorType': 'grade_tier', 'factorKey': e.key, 'factorValue': e.value})
+        .toList();
+    await _client.put('/api/settings/factors', data: {'factors': factors});
+  }
 }

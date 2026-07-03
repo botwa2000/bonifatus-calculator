@@ -4,12 +4,37 @@ import 'package:go_router/go_router.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../auth/providers/auth_provider.dart';
+import '../../../../api/services/connection_service.dart';
 
-class StudentSettingsScreen extends ConsumerWidget {
+class StudentSettingsScreen extends ConsumerStatefulWidget {
   const StudentSettingsScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<StudentSettingsScreen> createState() => _StudentSettingsScreenState();
+}
+
+class _StudentSettingsScreenState extends ConsumerState<StudentSettingsScreen> {
+  List<Map<String, dynamic>> _parentConnections = [];
+  bool _connectionsLoaded = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadConnections();
+  }
+
+  Future<void> _loadConnections() async {
+    try {
+      final service = ref.read(connectionServiceProvider);
+      final connections = await service.fetchParentConnections();
+      if (mounted) setState(() { _parentConnections = connections; _connectionsLoaded = true; });
+    } catch (_) {
+      if (mounted) setState(() => _connectionsLoaded = true);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.neutral50,
       appBar: AppBar(
@@ -39,7 +64,7 @@ class StudentSettingsScreen extends ConsumerWidget {
           const SizedBox(height: 8),
           _buildAppCard(context),
           const SizedBox(height: 20),
-          _buildLogoutButton(context, ref),
+          _buildLogoutButton(context),
           const SizedBox(height: 32),
         ],
       ),
@@ -50,44 +75,66 @@ class StudentSettingsScreen extends ConsumerWidget {
     return _Card(
       children: [
         _SettingsTile(
-          icon: Icons.person_outline_rounded,
-          label: "Edit Profile",
-          onTap: () {},
-        ),
-        const Divider(height: 1, indent: 56, color: AppColors.neutral100),
-        _SettingsTile(
           icon: Icons.lock_outline_rounded,
           label: "Change Password",
           onTap: () => context.push("/auth/forgot-password"),
-        ),
-        const Divider(height: 1, indent: 56, color: AppColors.neutral100),
-        _SettingsTile(
-          icon: Icons.language_rounded,
-          label: "Language",
-          trailing: const Text(
-            "English",
-            style: TextStyle(fontSize: 13, color: AppColors.neutral400),
-          ),
-          onTap: () => _showLanguageDialog(context),
         ),
       ],
     );
   }
 
   Widget _buildConnectedParentsCard(BuildContext context) {
+    if (!_connectionsLoaded) {
+      return const _Card(children: [
+        Padding(
+          padding: EdgeInsets.all(16),
+          child: Center(child: SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.primary))),
+        ),
+      ]);
+    }
+
     return _Card(
       children: [
-        _SettingsTile(
-          icon: Icons.people_outline_rounded,
-          label: "No parents connected",
-          trailing: TextButton.icon(
-            onPressed: () => _showQrScannerSheet(context),
-            icon: const Icon(Icons.qr_code_scanner_rounded, size: 16, color: AppColors.primary),
-            label: const Text("Scan QR", style: TextStyle(fontSize: 13, color: AppColors.primary, fontWeight: FontWeight.w600)),
+        if (_parentConnections.isEmpty)
+          _SettingsTile(
+            icon: Icons.people_outline_rounded,
+            label: "No parents connected",
+            trailing: _scanQrButton(context),
+            onTap: () => _showQrScannerSheet(context),
+          )
+        else ...[
+          ..._parentConnections.asMap().entries.map((entry) {
+            final conn = entry.value;
+            final parentName = conn['parentName'] as String? ?? conn['parentEmail'] as String? ?? 'Parent';
+            return Column(
+              children: [
+                _SettingsTile(
+                  icon: Icons.person_outline_rounded,
+                  label: parentName,
+                  trailing: const Icon(Icons.check_circle_rounded, color: AppColors.tierBest, size: 20),
+                  onTap: () {},
+                ),
+                if (entry.key < _parentConnections.length - 1)
+                  const Divider(height: 1, indent: 56, color: AppColors.neutral100),
+              ],
+            );
+          }),
+          const Divider(height: 1, indent: 56, color: AppColors.neutral100),
+          _SettingsTile(
+            icon: Icons.qr_code_scanner_rounded,
+            label: "Add another parent",
+            onTap: () => _showQrScannerSheet(context),
           ),
-          onTap: () => _showQrScannerSheet(context),
-        ),
+        ],
       ],
+    );
+  }
+
+  Widget _scanQrButton(BuildContext context) {
+    return TextButton.icon(
+      onPressed: () => _showQrScannerSheet(context),
+      icon: const Icon(Icons.qr_code_scanner_rounded, size: 16, color: AppColors.primary),
+      label: const Text("Scan QR", style: TextStyle(fontSize: 13, color: AppColors.primary, fontWeight: FontWeight.w600)),
     );
   }
 
@@ -95,29 +142,20 @@ class StudentSettingsScreen extends ConsumerWidget {
     return _Card(
       children: [
         _SettingsTile(
-          icon: Icons.dark_mode_outlined,
-          label: "Theme",
-          trailing: const Text(
-            "System",
-            style: TextStyle(fontSize: 13, color: AppColors.neutral400),
-          ),
-          onTap: () {},
-        ),
-        const Divider(height: 1, indent: 56, color: AppColors.neutral100),
-        _SettingsTile(
           icon: Icons.info_outline_rounded,
           label: "About",
-          onTap: () => _showAboutDialog(context),
+          onTap: () => showAboutDialog(context: context, applicationName: "Bonifatus", applicationVersion: "2.0.0",
+            applicationLegalese: "Grade rewards tracker for students"),
         ),
       ],
     );
   }
 
-  Widget _buildLogoutButton(BuildContext context, WidgetRef ref) {
+  Widget _buildLogoutButton(BuildContext context) {
     return SizedBox(
       width: double.infinity,
       child: OutlinedButton.icon(
-        onPressed: () => _logout(context, ref),
+        onPressed: () => _logout(context),
         icon: const Icon(Icons.logout_rounded, color: AppColors.error),
         label: const Text(
           "Log Out",
@@ -132,32 +170,10 @@ class StudentSettingsScreen extends ConsumerWidget {
     );
   }
 
-  void _showLanguageDialog(BuildContext context) {
-    showDialog<void>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Text("Language", style: TextStyle(fontWeight: FontWeight.w700)),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: ["English", "Deutsch", "Francais"].map((lang) {
-            final selected = lang == "English";
-            return ListTile(
-              title: Text(lang),
-              trailing: selected ? const Icon(Icons.check_rounded, color: AppColors.primary) : null,
-              onTap: () => Navigator.of(ctx).pop(),
-            );
-          }).toList(),
-        ),
-        actions: [
-          TextButton(onPressed: () => Navigator.of(ctx).pop(), child: const Text("Cancel")),
-        ],
-      ),
-    );
-  }
-
   void _showQrScannerSheet(BuildContext context) {
     final controller = MobileScannerController();
+    bool redeemed = false;
+
     showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
@@ -191,8 +207,35 @@ class StudentSettingsScreen extends ConsumerWidget {
                 borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
                 child: MobileScanner(
                   controller: controller,
-                  onDetect: (capture) {
-                    if (capture.barcodes.isNotEmpty) { controller.dispose(); Navigator.of(ctx).pop(); }
+                  onDetect: (capture) async {
+                    if (redeemed || capture.barcodes.isEmpty) return;
+                    final raw = capture.barcodes.first.rawValue ?? '';
+                    // Extract 6-digit code — may be bare code or embedded in URL
+                    String code = raw.trim();
+                    if (code.contains('code=')) {
+                      code = Uri.tryParse(code)?.queryParameters['code'] ?? code;
+                    }
+                    // Accept only 6-digit numeric codes
+                    if (!RegExp(r'^\d{6}$').hasMatch(code)) return;
+                    redeemed = true;
+                    controller.dispose();
+                    if (ctx.mounted) Navigator.of(ctx).pop();
+                    try {
+                      await ref.read(connectionServiceProvider).redeemCode(code);
+                      _loadConnections();
+                      if (context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Parent connected!'), backgroundColor: AppColors.tierBest),
+                        );
+                      }
+                    } catch (e) {
+                      redeemed = false;
+                      if (context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text('Failed: $e'), backgroundColor: AppColors.error),
+                        );
+                      }
+                    }
                   },
                 ),
               ),
@@ -203,12 +246,7 @@ class StudentSettingsScreen extends ConsumerWidget {
     );
   }
 
-  void _showAboutDialog(BuildContext context) {
-    showAboutDialog(context: context, applicationName: "Bonifatus", applicationVersion: "1.0.0",
-      applicationLegalese: "Grade rewards tracker for students");
-  }
-
-  Future<void> _logout(BuildContext context, WidgetRef ref) async {
+  Future<void> _logout(BuildContext context) async {
     await ref.read(authStateNotifierProvider.notifier).logout();
     if (context.mounted) context.go("/onboarding");
   }
@@ -226,14 +264,14 @@ class _Card extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: AppColors.neutral900.withOpacity(0.05),
+            color: AppColors.neutral900.withValues(alpha: 0.05),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
         ],
       ),
       child: Column(
-        mainAxisSize: MainAxisSize.min,  // fix: prevents unbounded height in ListView
+        mainAxisSize: MainAxisSize.min,
         children: children,
       ),
     );

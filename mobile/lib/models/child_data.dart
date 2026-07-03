@@ -20,10 +20,17 @@ class ChildQuickGrade {
   });
 
   factory ChildQuickGrade.fromJson(Map<String, dynamic> json) {
+    final nameRaw = json['subjectName'];
+    String? subjectName;
+    if (nameRaw is String) {
+      subjectName = nameRaw;
+    } else if (nameRaw is Map) {
+      subjectName = (nameRaw['en'] ?? nameRaw['de'] ?? nameRaw.values.firstOrNull)?.toString();
+    }
     return ChildQuickGrade(
       id: json['id'] as String,
       subjectId: json['subjectId'] as String,
-      subjectName: json['subjectName'] as String?,
+      subjectName: subjectName,
       gradeValue: json['gradeValue'] as String,
       gradeQualityTier: json['gradeQualityTier'] as String? ?? 'below',
       bonusPoints: json['bonusPoints'] as int? ?? 0,

@@ -67,11 +67,17 @@ class _CalculatorScreenState extends ConsumerState<CalculatorScreen> {
   }
 
   void _showAddSubjectSheet(CalculatorConfig config) {
-    final subjectCtrl = TextEditingController();
+    final searchCtrl = TextEditingController();
     final gradeCtrl = TextEditingController();
     final formKey = GlobalKey<FormState>();
-    SubjectItem? pickedSubject =
-        config.subjects.isNotEmpty ? config.subjects.first : null;
+    SubjectItem? pickedSubject;
+    String searchQuery = '';
+
+    // Sort: core subjects first, then alphabetical
+    final allSubjects = [...config.subjects]..sort((a, b) {
+        if (a.isCoreSubject != b.isCoreSubject) return a.isCoreSubject ? -1 : 1;
+        return a.name.compareTo(b.name);
+      });
 
     showModalBottomSheet<void>(
       context: context,
@@ -82,6 +88,13 @@ class _CalculatorScreenState extends ConsumerState<CalculatorScreen> {
       ),
       builder: (sheetCtx) {
         return StatefulBuilder(builder: (ctx, setSheetState) {
+          final filtered = searchQuery.isEmpty
+              ? allSubjects
+              : allSubjects.where((s) => s.name.toLowerCase().contains(searchQuery.toLowerCase())).toList();
+
+          final coreSubjects = filtered.where((s) => s.isCoreSubject).toList();
+          final otherSubjects = filtered.where((s) => !s.isCoreSubject).toList();
+
           return Padding(
             padding: EdgeInsets.only(
               left: 20,
@@ -112,70 +125,128 @@ class _CalculatorScreenState extends ConsumerState<CalculatorScreen> {
                           color: AppColors.neutral900,
                         ),
                   ),
-                  const SizedBox(height: 20),
-                  if (config.subjects.isNotEmpty) ...[
-                    const Text(
-                      'Subject',
-                      style: TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.neutral600,
+                  const SizedBox(height: 16),
+
+                  // Search field
+                  TextField(
+                    controller: searchCtrl,
+                    autofocus: config.subjects.length > 6,
+                    decoration: InputDecoration(
+                      hintText: 'Search subjects…',
+                      prefixIcon: const Icon(Icons.search_rounded, color: AppColors.neutral400),
+                      suffixIcon: searchQuery.isNotEmpty
+                          ? IconButton(
+                              icon: const Icon(Icons.clear_rounded, size: 18),
+                              onPressed: () {
+                                searchCtrl.clear();
+                                setSheetState(() { searchQuery = ''; pickedSubject = null; });
+                              },
+                            )
+                          : null,
+                      filled: true,
+                      fillColor: AppColors.neutral50,
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+                    ),
+                    onChanged: (v) => setSheetState(() { searchQuery = v; pickedSubject = null; }),
+                  ),
+                  const SizedBox(height: 12),
+
+                  // Subject list — scrollable, max ~240px
+                  if (config.subjects.isNotEmpty)
+                    ConstrainedBox(
+                      constraints: const BoxConstraints(maxHeight: 240),
+                      child: SingleChildScrollView(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            if (coreSubjects.isNotEmpty) ...[
+                              if (otherSubjects.isNotEmpty)
+                                Padding(
+                                  padding: const EdgeInsets.only(bottom: 6),
+                                  child: Text('Core Subjects',
+                                    style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700,
+                                        color: AppColors.neutral400, letterSpacing: 0.5)),
+                                ),
+                              Wrap(
+                                spacing: 8,
+                                runSpacing: 8,
+                                children: coreSubjects.map((s) => _SubjectChip(
+                                  subject: s,
+                                  selected: pickedSubject?.id == s.id,
+                                  onTap: () => setSheetState(() => pickedSubject = s),
+                                )).toList(),
+                              ),
+                            ],
+                            if (otherSubjects.isNotEmpty) ...[
+                              if (coreSubjects.isNotEmpty) const SizedBox(height: 12),
+                              if (coreSubjects.isNotEmpty)
+                                Padding(
+                                  padding: const EdgeInsets.only(bottom: 6),
+                                  child: Text('Other Subjects',
+                                    style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700,
+                                        color: AppColors.neutral400, letterSpacing: 0.5)),
+                                ),
+                              Wrap(
+                                spacing: 8,
+                                runSpacing: 8,
+                                children: otherSubjects.map((s) => _SubjectChip(
+                                  subject: s,
+                                  selected: pickedSubject?.id == s.id,
+                                  onTap: () => setSheetState(() => pickedSubject = s),
+                                )).toList(),
+                              ),
+                            ],
+                            if (filtered.isEmpty)
+                              Padding(
+                                padding: const EdgeInsets.symmetric(vertical: 12),
+                                child: Text('No subjects match "$searchQuery"',
+                                    style: const TextStyle(color: AppColors.neutral400, fontSize: 13)),
+                              ),
+                          ],
+                        ),
                       ),
                     ),
-                    const SizedBox(height: 8),
-                    DropdownButtonFormField<SubjectItem>(
-                      // ignore: deprecated_member_use
-                      value: pickedSubject,
-                      decoration: const InputDecoration(
-                        border: OutlineInputBorder(),
-                        contentPadding:
-                            EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+
+                  if (pickedSubject != null) ...[
+                    const SizedBox(height: 16),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      decoration: BoxDecoration(
+                        color: AppColors.primaryLight,
+                        borderRadius: BorderRadius.circular(10),
                       ),
-                      items: config.subjects
-                          .map((s) => DropdownMenuItem(
-                              value: s, child: Text(s.name)))
-                          .toList(),
-                      onChanged: (s) {
-                        setSheetState(() => pickedSubject = s);
-                        if (s != null) subjectCtrl.text = s.name;
-                      },
-                      validator: (v) =>
-                          v == null ? 'Please select a subject' : null,
-                    ),
-                    const SizedBox(height: 14),
-                  ] else ...[
-                    TextFormField(
-                      controller: subjectCtrl,
-                      decoration: const InputDecoration(
-                        labelText: 'Subject name',
-                        hintText: 'e.g. Mathematics',
+                      child: Row(
+                        children: [
+                          const Icon(Icons.check_circle_rounded, color: AppColors.primary, size: 16),
+                          const SizedBox(width: 8),
+                          Text(pickedSubject!.name,
+                              style: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.w600, fontSize: 14)),
+                        ],
                       ),
-                      textCapitalization: TextCapitalization.words,
-                      validator: (v) {
-                        if (v == null || v.trim().isEmpty) {
-                          return 'Please enter a subject name';
-                        }
-                        return null;
-                      },
                     ),
-                    const SizedBox(height: 14),
                   ],
+
+                  const SizedBox(height: 14),
+                  FormField<SubjectItem>(
+                    validator: (_) => pickedSubject == null ? 'Please select a subject' : null,
+                    builder: (state) => state.hasError
+                        ? Text(state.errorText!, style: const TextStyle(color: AppColors.error, fontSize: 12))
+                        : const SizedBox.shrink(),
+                  ),
+
                   TextFormField(
                     controller: gradeCtrl,
                     decoration: InputDecoration(
-                      labelText:
-                          'Grade (${config.defaultGradingSystem.minGrade.toInt()} to ${config.defaultGradingSystem.maxGrade.toInt()})',
+                      labelText: 'Grade (${config.defaultGradingSystem.minGrade.toInt()} – ${config.defaultGradingSystem.maxGrade.toInt()})',
                       hintText: 'e.g. 2',
                     ),
-                    keyboardType:
-                        const TextInputType.numberWithOptions(decimal: true),
+                    keyboardType: const TextInputType.numberWithOptions(decimal: true),
                     inputFormatters: [
                       FilteringTextInputFormatter.allow(RegExp(r'[0-9.]')),
                     ],
                     validator: (v) {
-                      if (v == null || v.trim().isEmpty) {
-                        return 'Please enter a grade';
-                      }
+                      if (v == null || v.trim().isEmpty) return 'Please enter a grade';
                       final parsed = double.tryParse(v.trim());
                       final min = config.defaultGradingSystem.minGrade;
                       final max = config.defaultGradingSystem.maxGrade;
@@ -186,25 +257,29 @@ class _CalculatorScreenState extends ConsumerState<CalculatorScreen> {
                     },
                   ),
                   const SizedBox(height: 24),
-                  ElevatedButton(
-                    onPressed: () {
-                      if (formKey.currentState!.validate()) {
-                        final subjectName = config.subjects.isNotEmpty
-                            ? (pickedSubject?.name ?? subjectCtrl.text.trim())
-                            : subjectCtrl.text.trim();
-                        final subjectId =
-                            pickedSubject?.id ?? 'custom-${subjectName.toLowerCase()}';
-                        setState(() {
-                          _subjects.add(_SubjectEntry(
-                            subjectId: subjectId,
-                            subject: subjectName,
-                            grade: double.parse(gradeCtrl.text.trim()),
-                          ));
-                        });
-                        Navigator.of(sheetCtx).pop();
-                      }
-                    },
-                    child: const Text('Add'),
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      onPressed: () {
+                        if (formKey.currentState!.validate() && pickedSubject != null) {
+                          setState(() {
+                            _subjects.add(_SubjectEntry(
+                              subjectId: pickedSubject!.id,
+                              subject: pickedSubject!.name,
+                              grade: double.parse(gradeCtrl.text.trim()),
+                            ));
+                          });
+                          Navigator.of(sheetCtx).pop();
+                        }
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.primary,
+                        foregroundColor: AppColors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      ),
+                      child: const Text('Add Subject', style: TextStyle(fontWeight: FontWeight.w700)),
+                    ),
                   ),
                 ],
               ),
@@ -593,6 +668,41 @@ class _ResultStat extends StatelessWidget {
               ),
         ),
       ],
+    );
+  }
+}
+
+class _SubjectChip extends StatelessWidget {
+  final SubjectItem subject;
+  final bool selected;
+  final VoidCallback onTap;
+
+  const _SubjectChip({required this.subject, required this.selected, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 150),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+        decoration: BoxDecoration(
+          color: selected ? AppColors.primary : AppColors.neutral100,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: selected ? AppColors.primary : AppColors.neutral200,
+            width: 1.5,
+          ),
+        ),
+        child: Text(
+          subject.name,
+          style: TextStyle(
+            fontSize: 13,
+            fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
+            color: selected ? AppColors.white : AppColors.neutral700,
+          ),
+        ),
+      ),
     );
   }
 }
