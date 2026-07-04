@@ -27,20 +27,27 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
     setState(() => _error = null);
-    try {
-      await ref.read(authStateNotifierProvider.notifier).login(
-        email: _emailCtrl.text.trim(),
-        password: _passCtrl.text,
-      );
-    } catch (e) {
-      setState(() => _error = e.toString().replaceFirst('Exception: ', ''));
-    }
+    await ref.read(authStateNotifierProvider.notifier).login(
+      email: _emailCtrl.text.trim(),
+      password: _passCtrl.text,
+    );
+    // Errors land in AsyncValue.error() — picked up by ref.listen in build()
+    // Navigation on success is handled by the GoRouter redirect via _AuthListenable
   }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isLoading = ref.watch(authStateNotifierProvider).isLoading;
+
+    // Surface errors from AsyncValue.guard() — they don't propagate via throw
+    ref.listen(authStateNotifierProvider, (_, next) {
+      next.whenOrNull(
+        error: (err, _) => setState(
+          () => _error = err.toString().replaceFirst('Exception: ', ''),
+        ),
+      );
+    });
 
     return Scaffold(
       backgroundColor: AppColors.white,
@@ -78,11 +85,15 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   const SizedBox(height: 16),
                 ],
 
+                AutofillGroup(
+                  child: Column(
+                    children: [
                 TextFormField(
                   controller: _emailCtrl,
                   keyboardType: TextInputType.emailAddress,
                   textInputAction: TextInputAction.next,
                   autocorrect: false,
+                  autofillHints: const [AutofillHints.email, AutofillHints.username],
                   decoration: const InputDecoration(labelText: 'Email', prefixIcon: Icon(Icons.email_outlined)),
                   validator: (v) => (v == null || !v.contains('@')) ? 'Enter a valid email' : null,
                 ),
@@ -91,6 +102,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   controller: _passCtrl,
                   obscureText: _obscure,
                   textInputAction: TextInputAction.done,
+                  autofillHints: const [AutofillHints.password],
                   onFieldSubmitted: (_) => _submit(),
                   decoration: InputDecoration(
                     labelText: 'Password',
@@ -101,6 +113,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     ),
                   ),
                   validator: (v) => (v == null || v.isEmpty) ? 'Enter your password' : null,
+                ),
+                    ],
+                  ),
                 ),
                 const SizedBox(height: 12),
                 Align(
