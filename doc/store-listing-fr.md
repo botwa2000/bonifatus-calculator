@@ -3,36 +3,33 @@
 ## Play Store
 
 **Nom de l'application** (max 50 caractères):
-Bonifatus – Notes & Récompenses Familiales
+Bonifatus – Récompenses scolaires & suivi
 
 **Description courte** (max 80 caractères):
-Suivez les notes, gagnez des points bonus et transformez les succès scolaires en récompenses.
+Calculez des récompenses scolaires basées sur les notes et suivez les progrès.
 
 **Description complète** (max 4000 caractères):
-Bonifatus donne du sens aux notes scolaires pour toute la famille.
+Un outil pratique pour les parents et les élèves afin de transformer les résultats scolaires en récompenses concrètes. Bonifatus vous aide à créer des systèmes d'incitation basés sur les notes et à suivre les progrès académiques au fil du temps.
 
-Les élèves photographient leurs notes avec leur téléphone – l'application les lit automatiquement et calcule des points bonus selon les performances. Les parents fixent les récompenses. Tout le monde y gagne.
+Si vous récompensez vos enfants pour leurs bonnes notes — ou souhaitez commencer — la question est toujours la même : combien vaut vraiment une bonne note ? Est-ce pareil dans toutes les matières ? Et si vous avez plusieurs enfants, comment appliquer le même système équitablement à un enfant de dix ans et à un adolescent de quinze ans ?
 
-**Pour les élèves :**
-• Capturez vos notes instantanément avec la caméra (OCR)
-• Regardez vos points bonus augmenter à chaque bonne note
-• Utilisez la Calculatrice de notes pour prévoir votre moyenne
-• Suivez vos progrès dans l'onglet Analyses
+Bonifatus répond à cette question et s'occupe ensuite du calcul automatiquement. Chaque note saisie vaut immédiatement ce que le système indique — sans approximations, sans renégociations, sans « mais la dernière fois tu m'avais donné plus ». Les points se traduisent en bonus en argent, en temps d'écran ou toute autre récompense. Les mêmes règles s'appliquent à chaque enfant. Âges différents, matières différentes, même résultat équitable.
+
+Pour les enfants, les points sont visibles en temps réel. Ils savent exactement ce que chaque note leur a rapporté et vers quoi ils travaillent. C'est plus motivant que n'importe quelle promesse vague.
 
 **Pour les parents :**
-• Vue en temps réel de toutes les notes de vos enfants
-• Configurez les facteurs de bonus pour récompenser l'excellence
-• Réglez les points et distribuez les récompenses à votre rythme
-• Configurez le suivi hebdomadaire des notes en cours
+• Calcul automatique des récompenses après chaque note
+• Vue d'ensemble de tous les enfants avec des règles cohérentes et équitables
+• Système bonus flexible — ajustable par note et par matière, ou prêt à l'emploi
+• Vous décidez ce que valent les points : argent, temps d'écran ou toute autre récompense
 
-**Système de notation :**
-Compatible avec la notation allemande (1–6) avec des multiplicateurs configurables :
-• Niveau 1 (notes 1–2) : bonus 2,0×
-• Niveau 2 (note 3) : bonus 1,5×
-• Niveau 3 (note 4) : bonus 1,0×
+**Pour les enfants :**
+• Les points se mettent à jour instantanément après chaque note
+• Progression claire vers la prochaine récompense
+• Calculateur de notes pour prévisualiser la moyenne avant les résultats
 
 **Confidentialité :**
-Pas de publicité. Pas de suivi. Les données de votre famille restent sur nos serveurs sécurisés en Europe.
+Aucune publicité. Aucun suivi. Les données de votre famille restent sur des serveurs européens sécurisés.
 
 ---
 
@@ -42,39 +39,50 @@ Pas de publicité. Pas de suivi. Les données de votre famille restent sur nos s
 Bonifatus
 
 **Sous-titre** (max 30 caractères):
-Notes & Récompenses en Famille
+Récompenses scolaires & suivi
 
 **Texte promotionnel** (max 170 caractères):
-Chaque bonne note devient une récompense. Les élèves capturent leurs notes, gagnent des points – les parents choisissent les prix. La réussite scolaire devient fun.
+Un outil pratique pour transformer les résultats scolaires en récompenses concrètes — basé sur les notes, suivi dans le temps.
 
 **Mots-clés** (max 100 caractères):
-notes,école,récompense,bonus,points,élèves,parents,calculateur,famille,apprentissage,suivi
+notes,récompense,bonus,famille,école,enfants,points,argent,parents,calcul,équité,motivation
 
 **Description** (max 4000 caractères):
-Bonifatus crée le lien entre la performance scolaire et la motivation familiale.
+Un outil pratique pour les parents et les élèves afin de transformer les résultats scolaires en récompenses concrètes. Bonifatus vous aide à créer des systèmes d'incitation basés sur les notes et à suivre les progrès académiques au fil du temps.
 
-Les élèves utilisent leur caméra pour capturer les notes – la technologie OCR les lit automatiquement. Les points bonus sont calculés instantanément selon des facteurs de niveau configurables. Les parents voient tout en temps réel et définissent les récompenses.
+Si vous récompensez vos enfants pour leurs bonnes notes — ou souhaitez commencer — la question est toujours la même : combien vaut vraiment une bonne note ? Est-ce pareil dans toutes les matières ? Et si vous avez plusieurs enfants, comment appliquer le même système équitablement à tous ?
 
-**Fonctionnalités élèves :**
-• Capture de notes par caméra avec OCR automatique
-• Calcul de points bonus avec multiplicateurs par niveau
-• Calculatrice de notes : ajoutez des matières, voyez votre moyenne
-• Analyses : historique des points bonus et distribution des notes
-• Carnet : suivez les notes en cours entre les bulletins
+Bonifatus répond à cette question et s'occupe ensuite du calcul automatiquement. Chaque note saisie vaut immédiatement ce que le système indique — sans approximations, sans renégociations, sans « mais la dernière fois tu m'avais donné plus ». Les mêmes règles s'appliquent à chaque enfant. Âges différents, matières différentes, même résultat équitable.
 
-**Fonctionnalités parents :**
-• Vue en temps réel de tous les enfants connectés
-• Niveaux de bonus configurables (2×, 1,5×, 1×)
-• Révision des notes rapides et règlement en un tap
-• Analyses avec moyennes et tendances par enfant
-• Lien par QR code pour connecter les enfants en toute sécurité
+Pour les enfants, les points sont visibles en temps réel. Ils savent exactement ce que chaque note leur a rapporté et vers quoi ils travaillent.
 
 **Comment ça marche :**
 
-1. Les parents créent un compte et configurent le système de bonus
-2. Les enfants se connectent en scannant un QR code
-3. Les élèves photographient leurs notes – l'app les lit
-4. Les points bonus s'accumulent automatiquement
-5. Les parents vérifient, approuvent et distribuent les récompenses
+1. Les enfants saisissent leurs notes après chaque devoir ou bulletin
+2. Les points se calculent instantanément et automatiquement
+3. Les parents voient tous leurs enfants en un coup d'œil — mêmes règles, équitable pour tous
+4. Versez le bonus en argent ou toute autre récompense, quand vous le souhaitez
 
-Pas de publicité. Pas d'abonnement. Données hébergées sur des serveurs européens sécurisés.
+Aucune publicité. Aucun abonnement. Données hébergées sur des serveurs européens sécurisés.
+
+---
+
+## À propos (in-app)
+
+Bonifatus calcule des récompenses scolaires à partir des notes et suit les progrès dans le temps.
+
+Il existe parce que récompenser les enfants équitablement pour leurs notes est plus difficile qu'il n'y paraît. La plupart des parents qui le font — ou veulent commencer — se heurtent aux mêmes questions : combien vaut exactement une très bonne note par rapport à une note moyenne ? Un excellent résultat en sport compte-t-il autant qu'en maths ? Et si vous avez deux enfants d'âges différents, comment appliquer le même critère aux deux sans que l'un se sente lésé ?
+
+La réponse est un système que tout le monde peut voir et auquel tout le monde peut faire confiance. Vous définissez ce que chaque note vaut, l'application tient le score. Vos enfants gagnent selon ses règles, vous versez ce qu'elle indique.
+
+Pas de négociations. Pas d'incohérence. Un système sur lequel toute la famille peut compter.
+
+---
+
+## Accroches (marketing / réseaux sociaux)
+
+- Calculez des récompenses scolaires. Suivez les progrès. Tout le monde sait où il en est.
+- La bonne note arrive à la maison. Les points sont déjà calculés. L'enfant le sait. Le parent le sait. Personne ne négocie.
+- Une récompense juste et automatique pour chaque note — identique pour chaque enfant.
+- Vos enfants savent exactement ce que leurs notes ont rapporté. Vous aussi.
+- Moins d'approximations. Plus de motivation.

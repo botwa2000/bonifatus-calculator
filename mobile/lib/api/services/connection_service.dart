@@ -3,6 +3,7 @@ import '../client.dart';
 import '../../models/child_data.dart';
 import '../../models/invite_code.dart';
 
+
 final connectionServiceProvider = Provider<ConnectionService>((ref) {
   return ConnectionService(ref.read(apiClientProvider));
 });
@@ -62,5 +63,22 @@ class ConnectionService {
         .map((e) => {'factorType': 'grade_tier', 'factorKey': e.key, 'factorValue': e.value})
         .toList();
     await _client.put('/api/settings/factors', data: {'factors': factors});
+  }
+
+  Future<List<ChildTermResult>> fetchChildTermResults(String childId) async {
+    final resp = await _client.get('/api/parent/children/grades');
+    final children = resp.data['children'] as List<dynamic>? ?? [];
+    for (final c in children) {
+      final childObj = c['child'] as Map<String, dynamic>?;
+      final id = childObj?['id'] as String?;
+      if (id == childId) {
+        final terms = c['terms'] as List<dynamic>? ?? [];
+        return terms
+            .map((t) => ChildTermResult.fromJson(t as Map<String, dynamic>))
+            .toList()
+          ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
+      }
+    }
+    return [];
   }
 }
