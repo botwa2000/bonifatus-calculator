@@ -72,7 +72,11 @@ export async function POST(request: NextRequest) {
       },
     })
   } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err)
     console.error('[mobile/auth/signin]', err)
-    return NextResponse.json({ success: false, error: 'Unexpected error' }, { status: 500 })
+    return NextResponse.json(
+      { success: false, error: 'Unexpected error', detail: msg },
+      { status: 500 }
+    )
   }
 }
