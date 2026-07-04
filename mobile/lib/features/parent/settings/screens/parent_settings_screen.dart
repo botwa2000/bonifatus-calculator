@@ -8,6 +8,7 @@ import '../../../auth/providers/auth_provider.dart';
 import '../../providers/children_provider.dart';
 import '../../../../api/services/connection_service.dart';
 import '../../../../api/services/biometric_service.dart';
+import '../../../../api/services/profile_service.dart';
 
 // Language metadata shared with student settings
 const _kLanguages = [
@@ -272,11 +273,11 @@ class _ParentSettingsScreenState extends ConsumerState<ParentSettingsScreen> {
   Widget _buildAccountCard(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
     return _Card(children: [
-      _SettingsTile(icon: Icons.person_outline_rounded, label: 'Edit Profile', onTap: () {}),
+      _SettingsTile(icon: Icons.person_outline_rounded, label: 'Edit Profile', onTap: () => _showEditProfileSheet(context)),
       Divider(height: 1, indent: 56, color: cs.outlineVariant),
-      _SettingsTile(icon: Icons.lock_outline_rounded, label: 'Change Password', onTap: () {}),
+      _SettingsTile(icon: Icons.lock_outline_rounded, label: 'Change Password', onTap: () => _showChangePasswordSheet(context)),
       Divider(height: 1, indent: 56, color: cs.outlineVariant),
-      _SettingsTile(icon: Icons.email_outlined, label: 'Change Email', onTap: () {}),
+      _SettingsTile(icon: Icons.email_outlined, label: 'Change Email', onTap: () => _showChangeEmailSheet(context)),
       if (_biometricAvailable) ...[
         Divider(height: 1, indent: 56, color: cs.outlineVariant),
         ListTile(
@@ -516,6 +517,232 @@ class _ParentSettingsScreenState extends ConsumerState<ParentSettingsScreen> {
     );
   }
 
+  void _showEditProfileSheet(BuildContext context) {
+    final authState = ref.read(authStateNotifierProvider).valueOrNull;
+    final nameCtrl = TextEditingController(text: authState?.name ?? '');
+    final formKey = GlobalKey<FormState>();
+
+    showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+      builder: (ctx) => Padding(
+        padding: EdgeInsets.only(
+          bottom: MediaQuery.of(ctx).viewInsets.bottom,
+          left: 24, right: 24, top: 24,
+        ),
+        child: Form(
+          key: formKey,
+          child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
+            const Text('Edit Profile', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w700)),
+            const SizedBox(height: 20),
+            TextFormField(
+              controller: nameCtrl,
+              decoration: const InputDecoration(labelText: 'Full Name', border: OutlineInputBorder()),
+              textCapitalization: TextCapitalization.words,
+              validator: (v) => (v == null || v.trim().isEmpty) ? 'Name cannot be empty' : null,
+            ),
+            const SizedBox(height: 20),
+            SizedBox(
+              width: double.infinity,
+              child: _SaveButton(onPressed: () async {
+                if (!formKey.currentState!.validate()) return;
+                Navigator.of(ctx).pop();
+                try {
+                  await ref.read(profileServiceProvider).updateProfile(fullName: nameCtrl.text.trim());
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Profile updated')),
+                    );
+                  }
+                } catch (e) {
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('Failed: $e'), backgroundColor: AppColors.error),
+                    );
+                  }
+                }
+              }),
+            ),
+            const SizedBox(height: 24),
+          ]),
+        ),
+      ),
+    );
+  }
+
+  void _showChangePasswordSheet(BuildContext context) {
+    final pwCtrl = TextEditingController();
+    final confirmCtrl = TextEditingController();
+    final formKey = GlobalKey<FormState>();
+    bool obscure = true;
+
+    showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setSheetState) => Padding(
+          padding: EdgeInsets.only(
+            bottom: MediaQuery.of(ctx).viewInsets.bottom,
+            left: 24, right: 24, top: 24,
+          ),
+          child: Form(
+            key: formKey,
+            child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
+              const Text('Change Password', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w700)),
+              const SizedBox(height: 20),
+              TextFormField(
+                controller: pwCtrl,
+                obscureText: obscure,
+                decoration: InputDecoration(
+                  labelText: 'New Password',
+                  border: const OutlineInputBorder(),
+                  suffixIcon: IconButton(
+                    icon: Icon(obscure ? Icons.visibility_off_outlined : Icons.visibility_outlined),
+                    onPressed: () => setSheetState(() => obscure = !obscure),
+                  ),
+                ),
+                validator: (v) {
+                  if (v == null || v.isEmpty) return 'Enter a password';
+                  if (v.length < 12) return 'Minimum 12 characters';
+                  return null;
+                },
+              ),
+              const SizedBox(height: 12),
+              TextFormField(
+                controller: confirmCtrl,
+                obscureText: obscure,
+                decoration: const InputDecoration(labelText: 'Confirm Password', border: OutlineInputBorder()),
+                validator: (v) => v != pwCtrl.text ? 'Passwords do not match' : null,
+              ),
+              const SizedBox(height: 20),
+              SizedBox(
+                width: double.infinity,
+                child: _SaveButton(onPressed: () async {
+                  if (!formKey.currentState!.validate()) return;
+                  Navigator.of(ctx).pop();
+                  try {
+                    await ref.read(profileServiceProvider).changePassword(newPassword: pwCtrl.text);
+                    if (context.mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Password changed')),
+                      );
+                    }
+                  } catch (e) {
+                    if (context.mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text('Failed: $e'), backgroundColor: AppColors.error),
+                      );
+                    }
+                  }
+                }),
+              ),
+              const SizedBox(height: 24),
+            ]),
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _showChangeEmailSheet(BuildContext context) {
+    final emailCtrl = TextEditingController();
+    final codeCtrl = TextEditingController();
+    final formKey = GlobalKey<FormState>();
+    bool codeSent = false;
+    bool loading = false;
+
+    showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setSheetState) => Padding(
+          padding: EdgeInsets.only(
+            bottom: MediaQuery.of(ctx).viewInsets.bottom,
+            left: 24, right: 24, top: 24,
+          ),
+          child: Form(
+            key: formKey,
+            child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
+              const Text('Change Email', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w700)),
+              const SizedBox(height: 20),
+              if (!codeSent) ...[
+                TextFormField(
+                  controller: emailCtrl,
+                  decoration: const InputDecoration(labelText: 'New Email Address', border: OutlineInputBorder()),
+                  keyboardType: TextInputType.emailAddress,
+                  validator: (v) {
+                    if (v == null || v.trim().isEmpty) return 'Enter an email';
+                    if (!v.contains('@')) return 'Enter a valid email';
+                    return null;
+                  },
+                ),
+                const SizedBox(height: 20),
+                SizedBox(
+                  width: double.infinity,
+                  child: _SaveButton(
+                    label: loading ? 'Sending…' : 'Send Verification Code',
+                    onPressed: loading ? null : () async {
+                      if (!formKey.currentState!.validate()) return;
+                      setSheetState(() => loading = true);
+                      try {
+                        await ref.read(profileServiceProvider).requestEmailChange(newEmail: emailCtrl.text.trim());
+                        setSheetState(() { codeSent = true; loading = false; });
+                      } catch (e) {
+                        setSheetState(() => loading = false);
+                        if (context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text('Failed: $e'), backgroundColor: AppColors.error),
+                          );
+                        }
+                      }
+                    },
+                  ),
+                ),
+              ] else ...[
+                Text('We sent a 6-digit code to ${emailCtrl.text}.',
+                    style: const TextStyle(fontSize: 13, color: AppColors.neutral600)),
+                const SizedBox(height: 16),
+                TextFormField(
+                  controller: codeCtrl,
+                  decoration: const InputDecoration(labelText: 'Verification Code', border: OutlineInputBorder()),
+                  keyboardType: TextInputType.number,
+                  maxLength: 6,
+                  validator: (v) => (v == null || v.length != 6) ? 'Enter the 6-digit code' : null,
+                ),
+                const SizedBox(height: 20),
+                SizedBox(
+                  width: double.infinity,
+                  child: _SaveButton(onPressed: () async {
+                    if (!formKey.currentState!.validate()) return;
+                    Navigator.of(ctx).pop();
+                    try {
+                      await ref.read(profileServiceProvider).verifyEmailChange(code: codeCtrl.text.trim());
+                      if (context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Email updated')),
+                        );
+                      }
+                    } catch (e) {
+                      if (context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text('Failed: $e'), backgroundColor: AppColors.error),
+                        );
+                      }
+                    }
+                  }),
+                ),
+              ],
+              const SizedBox(height: 24),
+            ]),
+          ),
+        ),
+      ),
+    );
+  }
+
   Future<void> _logout(BuildContext context) async {
     await ref.read(authStateNotifierProvider.notifier).logout();
     if (context.mounted) context.go('/onboarding');
@@ -589,4 +816,23 @@ class _SettingsTile extends StatelessWidget {
       onTap: onTap,
     );
   }
+}
+
+class _SaveButton extends StatelessWidget {
+  final VoidCallback? onPressed;
+  final String label;
+  const _SaveButton({required this.onPressed, this.label = 'Save'});
+
+  @override
+  Widget build(BuildContext context) => ElevatedButton(
+    onPressed: onPressed,
+    style: ElevatedButton.styleFrom(
+      backgroundColor: AppColors.primary,
+      foregroundColor: AppColors.white,
+      disabledBackgroundColor: AppColors.neutral200,
+      padding: const EdgeInsets.symmetric(vertical: 14),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+    ),
+    child: Text(label, style: const TextStyle(fontWeight: FontWeight.w700)),
+  );
 }

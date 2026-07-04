@@ -5,6 +5,9 @@ class AppConstants {
   static const String bundleId = 'com.bonifatus.app';
   static const String appName = 'Bonifatus';
 
+  // First-launch flag (SharedPreferences, not secure storage)
+  static const String keySeenOnboarding = 'seen_onboarding';
+
   // Secure storage keys
   static const String keyAccessToken = 'access_token';
   static const String keyRefreshToken = 'refresh_token';

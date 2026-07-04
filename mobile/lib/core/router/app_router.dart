@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../features/auth/providers/auth_provider.dart';
+import '../providers/onboarding_provider.dart';
 import '../../features/auth/screens/onboarding_screen.dart';
 import '../../features/auth/screens/login_screen.dart';
 import '../../features/auth/screens/register_screen.dart';
@@ -35,10 +36,19 @@ final appRouterProvider = Provider<GoRouter>((ref) {
     redirect: (context, state) {
       final authState = ref.read(authStateNotifierProvider);
       final isAuthenticated = authState.valueOrNull?.isAuthenticated ?? false;
+      final hasSeen = ref.read(hasSeenOnboardingProvider);
       final loc = state.matchedLocation;
       final isAuthRoute = loc.startsWith('/auth') || loc == '/onboarding';
 
-      if (!isAuthenticated && !isAuthRoute) return '/onboarding';
+      // Returning user: skip the onboarding walkthrough and go straight to login
+      if (!isAuthenticated && loc == '/onboarding' && hasSeen) return '/auth/login';
+
+      // Any protected route while unauthenticated
+      if (!isAuthenticated && !isAuthRoute) {
+        return hasSeen ? '/auth/login' : '/onboarding';
+      }
+
+      // Authenticated user landing on an auth/onboarding screen → go home
       if (isAuthenticated && isAuthRoute) {
         final role = authState.valueOrNull?.role ?? 'child';
         return role == 'parent' ? '/parent/home' : '/student/home';

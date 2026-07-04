@@ -107,11 +107,14 @@ class ChildDetailScreen extends ConsumerWidget {
   Widget _buildScreen(BuildContext context, WidgetRef ref, ChildWithGrades child) {
     final sortedGrades = [...child.grades]
       ..sort((a, b) => b.gradedAt.compareTo(a.gradedAt));
-    final totalPts =
-        child.grades.fold<int>(0, (s, g) => s + g.bonusPoints);
-    final pendingPts = child.totalPendingPoints;
 
     final termResultsAsync = ref.watch(childTermResultsProvider(childId));
+    final termPts = termResultsAsync.valueOrNull
+            ?.fold<int>(0, (s, t) => s + t.totalBonusPoints) ??
+        0;
+    final totalPts =
+        child.grades.fold<int>(0, (s, g) => s + g.bonusPoints) + termPts;
+    final pendingPts = child.totalPendingPoints;
 
     return Scaffold(
       backgroundColor: AppColors.neutral50,

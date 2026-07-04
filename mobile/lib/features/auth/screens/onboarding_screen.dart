@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import '../../../core/constants/app_constants.dart';
 import '../../../core/theme/app_colors.dart';
 
 class OnboardingScreen extends StatefulWidget {
@@ -24,11 +26,18 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   @override
   void dispose() { _controller.dispose(); super.dispose(); }
 
+  Future<void> _goToLogin() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(AppConstants.keySeenOnboarding, true);
+    if (!mounted) return;
+    context.go('/auth/login');
+  }
+
   void _next() {
     if (_page < _pages.length - 1) {
       _controller.nextPage(duration: const Duration(milliseconds: 300), curve: Curves.easeInOut);
     } else {
-      context.go('/auth/login');
+      _goToLogin();
     }
   }
 
@@ -50,7 +59,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                     color: AppColors.neutral900, fontWeight: FontWeight.w700)),
                   const Spacer(),
                   TextButton(
-                    onPressed: () => context.go('/auth/login'),
+                    onPressed: _goToLogin,
                     child: Text('Skip', style: theme.textTheme.labelLarge?.copyWith(color: AppColors.neutral400)),
                   ),
                 ],
