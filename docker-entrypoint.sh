@@ -14,7 +14,7 @@ if [ -d "$SECRETS_DIR" ]; then
       secret_name=$(basename "$secret_file")
       # Strip env prefix (prod_ or dev_)
       var_name=$(echo "$secret_name" | sed 's/^prod_//;s/^dev_//')
-      export "$var_name"="$(cat "$secret_file")"
+      export "$var_name"="$(tr -d '\r\n' < "$secret_file")"
     fi
   done
 fi
