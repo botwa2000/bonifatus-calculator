@@ -1,7 +1,14 @@
+import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../../core/constants/app_constants.dart';
 import '../client.dart';
+
+String _serverError(DioException e, String fallback) {
+  final data = e.response?.data;
+  if (data is Map) return (data['error'] ?? data['message'] ?? fallback).toString();
+  return fallback;
+}
 
 final authServiceProvider = Provider<AuthService>((ref) {
   return AuthService(ref.read(apiClientProvider), const FlutterSecureStorage());
@@ -55,23 +62,27 @@ class AuthService {
     required String email,
     required String password,
   }) async {
-    final resp = await _client.post('/api/mobile/auth/signin', data: {
-      'email': email,
-      'password': password,
-    });
+    try {
+      final resp = await _client.post('/api/mobile/auth/signin', data: {
+        'email': email,
+        'password': password,
+      });
 
-    final token = resp.data['accessToken'] as String?;
-    if (token == null) throw Exception('No access token in response');
+      final token = resp.data['accessToken'] as String?;
+      if (token == null) throw Exception('No access token in response');
 
-    await _storage.write(key: AppConstants.keyAccessToken, value: token);
+      await _storage.write(key: AppConstants.keyAccessToken, value: token);
 
-    return AuthSessionState(
-      isAuthenticated: true,
-      userId: resp.data['user']?['id'] as String?,
-      role: resp.data['user']?['role'] as String?,
-      name: resp.data['user']?['name'] as String?,
-      email: resp.data['user']?['email'] as String?,
-    );
+      return AuthSessionState(
+        isAuthenticated: true,
+        userId: resp.data['user']?['id'] as String?,
+        role: resp.data['user']?['role'] as String?,
+        name: resp.data['user']?['name'] as String?,
+        email: resp.data['user']?['email'] as String?,
+      );
+    } on DioException catch (e) {
+      throw Exception(_serverError(e, 'Invalid email or password'));
+    }
   }
 
   Future<({String userId, String email})> register({
