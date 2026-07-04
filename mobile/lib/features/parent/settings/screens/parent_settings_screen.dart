@@ -2,9 +2,22 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/providers/theme_mode_provider.dart';
+import '../../../../core/providers/locale_provider.dart';
 import '../../../auth/providers/auth_provider.dart';
 import '../../providers/children_provider.dart';
 import '../../../../api/services/connection_service.dart';
+import '../../../../api/services/biometric_service.dart';
+
+// Language metadata shared with student settings
+const _kLanguages = [
+  (code: 'en', name: 'English', flag: '🇬🇧'),
+  (code: 'de', name: 'Deutsch', flag: '🇩🇪'),
+  (code: 'fr', name: 'Français', flag: '🇫🇷'),
+  (code: 'it', name: 'Italiano', flag: '🇮🇹'),
+  (code: 'es', name: 'Español', flag: '🇪🇸'),
+  (code: 'ru', name: 'Русский', flag: '🇷🇺'),
+];
 
 class _TierFactor {
   final String tier;
@@ -44,17 +57,19 @@ class ParentSettingsScreen extends ConsumerStatefulWidget {
 
 class _ParentSettingsScreenState extends ConsumerState<ParentSettingsScreen> {
   List<_TierFactor> _tierFactors = const [
-    _TierFactor(tier: "best", label: "Best (Grade 1–2)", multiplier: 2.0, color: AppColors.tierBest),
-    _TierFactor(tier: "second", label: "Second (Grade 3)", multiplier: 1.5, color: AppColors.tierSecond),
-    _TierFactor(tier: "third", label: "Third (Grade 4)", multiplier: 1.0, color: AppColors.tierThird),
+    _TierFactor(tier: 'best', label: 'Best (Grade 1–2)', multiplier: 2.0, color: AppColors.tierBest),
+    _TierFactor(tier: 'second', label: 'Second (Grade 3)', multiplier: 1.5, color: AppColors.tierSecond),
+    _TierFactor(tier: 'third', label: 'Third (Grade 4)', multiplier: 1.0, color: AppColors.tierThird),
   ];
-
   final Map<String, _ChildCycleConfig> _cycleOverrides = {};
+  bool _biometricAvailable = false;
+  bool _biometricEnabled = false;
 
   @override
   void initState() {
     super.initState();
     _loadFactors();
+    _checkBiometric();
   }
 
   Future<void> _loadFactors() async {
@@ -65,283 +80,308 @@ class _ParentSettingsScreenState extends ConsumerState<ParentSettingsScreen> {
       setState(() {
         _tierFactors = _tierFactors.map((f) {
           final loaded = factors[f.tier];
-          return loaded != null ? _TierFactor(tier: f.tier, label: f.label, multiplier: loaded, color: f.color) : f;
+          return loaded != null
+              ? _TierFactor(tier: f.tier, label: f.label, multiplier: loaded, color: f.color)
+              : f;
         }).toList();
       });
     } catch (_) {}
   }
 
+  Future<void> _checkBiometric() async {
+    final svc = ref.read(biometricServiceProvider);
+    final available = await svc.canAuthenticate();
+    final enabled = available ? await svc.isEnabled() : false;
+    if (!mounted) return;
+    setState(() {
+      _biometricAvailable = available;
+      _biometricEnabled = enabled;
+    });
+  }
+
+  Future<void> _toggleBiometric(bool value) async {
+    final svc = ref.read(biometricServiceProvider);
+    if (value) {
+      final authed = await svc.authenticate(reason: 'Verify to enable biometric login');
+      if (!authed) return;
+    }
+    await svc.setEnabled(value);
+    if (mounted) setState(() => _biometricEnabled = value);
+  }
+
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final cs = theme.colorScheme;
+    final currentThemeMode = ref.watch(themeModeProvider).valueOrNull ?? ThemeMode.system;
+    final currentLocale = ref.watch(localeProvider).valueOrNull;
+
     return Scaffold(
-      backgroundColor: AppColors.neutral50,
+      backgroundColor: cs.surfaceContainerLowest,
       appBar: AppBar(
-        backgroundColor: AppColors.white,
+        backgroundColor: cs.surface,
         elevation: 0,
-        title: const Text(
-          "Settings",
-          style: TextStyle(
-            color: AppColors.neutral900,
-            fontWeight: FontWeight.w700,
-            fontSize: 20,
-          ),
-        ),
+        title: Text('Settings', style: TextStyle(color: cs.onSurface, fontWeight: FontWeight.w700, fontSize: 20)),
       ),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
-          _SectionHeader(title: "Grade Bonus Factors"),
+          _SectionHeader(title: 'Preferences'),
           const SizedBox(height: 8),
-          _buildTierFactorsCard(),
+          _buildPreferencesCard(context, currentThemeMode, currentLocale),
           const SizedBox(height: 20),
-          _SectionHeader(title: "Ongoing Notes Config"),
+          _SectionHeader(title: 'Grade Bonus Factors'),
           const SizedBox(height: 8),
-          _buildCycleConfigCard(),
+          _buildTierFactorsCard(context),
           const SizedBox(height: 20),
-          _SectionHeader(title: "Account"),
+          _SectionHeader(title: 'Ongoing Notes Config'),
           const SizedBox(height: 8),
-          _buildAccountCard(),
+          _buildCycleConfigCard(context),
+          const SizedBox(height: 20),
+          _SectionHeader(title: 'Account'),
+          const SizedBox(height: 8),
+          _buildAccountCard(context),
           const SizedBox(height: 32),
         ],
       ),
     );
   }
 
-  Widget _buildTierFactorsCard() {
-    return Container(
-      decoration: BoxDecoration(
-        color: AppColors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.neutral900.withOpacity(0.05),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: List.generate(_tierFactors.length, (i) {
-          final factor = _tierFactors[i];
-          return Column(
-            children: [
-              ListTile(
-                leading: Container(
-                  width: 10,
-                  height: 10,
-                  decoration: BoxDecoration(
-                    color: factor.color,
-                    shape: BoxShape.circle,
-                  ),
-                ),
-                title: Text(
-                  factor.label,
-                  style: const TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w500,
-                    color: AppColors.neutral900,
-                  ),
-                ),
-                trailing: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      "${factor.multiplier}x",
-                      style: const TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w700,
-                        color: AppColors.primary,
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    InkWell(
-                      onTap: () => _showMultiplierSheet(i, factor),
-                      borderRadius: BorderRadius.circular(8),
-                      child: const Padding(
-                        padding: EdgeInsets.all(4),
-                        child: Icon(
-                          Icons.edit_outlined,
-                          size: 18,
-                          color: AppColors.neutral400,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              if (i < _tierFactors.length - 1)
-                const Divider(height: 1, indent: 16, endIndent: 16, color: AppColors.neutral100),
+  Widget _buildPreferencesCard(BuildContext context, ThemeMode currentThemeMode, Locale? currentLocale) {
+    final theme = Theme.of(context);
+    final cs = theme.colorScheme;
+    final localeLabel = _localeLabel(currentLocale);
+
+    return _Card(children: [
+      Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Text('Appearance', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: cs.onSurfaceVariant)),
+          const SizedBox(height: 10),
+          SegmentedButton<ThemeMode>(
+            segments: const [
+              ButtonSegment(value: ThemeMode.system, label: Text('System'), icon: Icon(Icons.brightness_auto_rounded, size: 16)),
+              ButtonSegment(value: ThemeMode.light, label: Text('Light'), icon: Icon(Icons.light_mode_rounded, size: 16)),
+              ButtonSegment(value: ThemeMode.dark, label: Text('Dark'), icon: Icon(Icons.dark_mode_rounded, size: 16)),
             ],
-          );
-        }),
+            selected: {currentThemeMode},
+            onSelectionChanged: (s) =>
+                ref.read(themeModeProvider.notifier).setThemeMode(s.first),
+            style: ButtonStyle(
+              visualDensity: VisualDensity.compact,
+              textStyle: WidgetStateProperty.all(const TextStyle(fontSize: 12)),
+            ),
+          ),
+        ]),
       ),
-    );
+      Divider(height: 1, indent: 16, endIndent: 16, color: cs.outlineVariant),
+      ListTile(
+        leading: Icon(Icons.language_rounded, color: cs.onSurfaceVariant, size: 22),
+        title: Text('Language', style: TextStyle(fontSize: 15, color: cs.onSurface, fontWeight: FontWeight.w500)),
+        trailing: Row(mainAxisSize: MainAxisSize.min, children: [
+          Text(localeLabel, style: TextStyle(fontSize: 14, color: cs.onSurfaceVariant)),
+          const SizedBox(width: 4),
+          Icon(Icons.chevron_right_rounded, color: cs.outlineVariant),
+        ]),
+        onTap: () => _showLanguagePicker(context),
+      ),
+    ]);
   }
 
-  Widget _buildCycleConfigCard() {
+  Widget _buildTierFactorsCard(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    return _Card(children: List.generate(_tierFactors.length, (i) {
+      final factor = _tierFactors[i];
+      return Column(children: [
+        ListTile(
+          leading: Container(
+            width: 10, height: 10,
+            decoration: BoxDecoration(color: factor.color, shape: BoxShape.circle),
+          ),
+          title: Text(factor.label, style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: cs.onSurface)),
+          trailing: Row(mainAxisSize: MainAxisSize.min, children: [
+            Text('${factor.multiplier}x', style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: AppColors.primary)),
+            const SizedBox(width: 8),
+            InkWell(
+              onTap: () => _showMultiplierSheet(i, factor),
+              borderRadius: BorderRadius.circular(8),
+              child: const Padding(padding: EdgeInsets.all(4),
+                  child: Icon(Icons.edit_outlined, size: 18, color: AppColors.neutral400)),
+            ),
+          ]),
+        ),
+        if (i < _tierFactors.length - 1)
+          Divider(height: 1, indent: 16, endIndent: 16, color: cs.outlineVariant),
+      ]);
+    }));
+  }
+
+  Widget _buildCycleConfigCard(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
     final childrenAsync = ref.watch(childrenQuickGradesProvider);
 
     return childrenAsync.when(
-      loading: () => Container(
-        decoration: BoxDecoration(
-          color: AppColors.white,
-          borderRadius: BorderRadius.circular(16),
-        ),
-        padding: const EdgeInsets.all(24),
-        child: const Center(
-            child: CircularProgressIndicator(color: AppColors.primary)),
-      ),
-      error: (_, __) => Container(
-        decoration: BoxDecoration(
-          color: AppColors.white,
-          borderRadius: BorderRadius.circular(16),
-        ),
-        padding: const EdgeInsets.all(16),
-        child: const Text('Failed to load children',
-            style: TextStyle(color: AppColors.neutral600)),
-      ),
+      loading: () => _Card(children: [
+        Padding(padding: const EdgeInsets.all(24),
+            child: Center(child: const CircularProgressIndicator(color: AppColors.primary))),
+      ]),
+      error: (_, __) => _Card(children: [
+        Padding(padding: const EdgeInsets.all(16),
+            child: Text('Failed to load children', style: TextStyle(color: cs.onSurfaceVariant))),
+      ]),
       data: (children) {
         if (children.isEmpty) {
-          return Container(
-            decoration: BoxDecoration(
-              color: AppColors.white,
-              borderRadius: BorderRadius.circular(16),
-            ),
-            padding: const EdgeInsets.all(16),
-            child: const Text('No children connected',
-                style: TextStyle(color: AppColors.neutral600)),
-          );
+          return _Card(children: [
+            Padding(padding: const EdgeInsets.all(16),
+                child: Text('No children connected', style: TextStyle(color: cs.onSurfaceVariant))),
+          ]);
         }
-
-        return Container(
-          decoration: BoxDecoration(
-            color: AppColors.white,
-            borderRadius: BorderRadius.circular(16),
-            boxShadow: [
-              BoxShadow(
-                color: AppColors.neutral900.withOpacity(0.05),
-                blurRadius: 8,
-                offset: const Offset(0, 2),
+        return _Card(children: List.generate(children.length, (i) {
+          final child = children[i];
+          final override = _cycleOverrides[child.childId];
+          final cycleType = override?.cycleType ?? 'Weekly';
+          final ratio = override?.ratio ?? 0.25;
+          final config = _ChildCycleConfig(childId: child.childId, childName: child.childName, cycleType: cycleType, ratio: ratio);
+          return Column(children: [
+            ListTile(
+              leading: Container(
+                width: 36, height: 36,
+                decoration: const BoxDecoration(color: AppColors.primaryLight, shape: BoxShape.circle),
+                alignment: Alignment.center,
+                child: Text(config.childName.substring(0, 1).toUpperCase(),
+                    style: const TextStyle(fontWeight: FontWeight.w700, color: AppColors.primary, fontSize: 14)),
               ),
-            ],
+              title: Text(config.childName, style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: cs.onSurface)),
+              subtitle: Text('${config.cycleType} · ${(config.ratio * 100).round()}% ratio',
+                  style: TextStyle(fontSize: 12, color: cs.onSurfaceVariant)),
+              trailing: InkWell(
+                onTap: () => _showCycleConfigSheet(config),
+                borderRadius: BorderRadius.circular(8),
+                child: const Padding(padding: EdgeInsets.all(4),
+                    child: Icon(Icons.tune_rounded, size: 20, color: AppColors.neutral400)),
+              ),
+            ),
+            if (i < children.length - 1)
+              Divider(height: 1, indent: 16, endIndent: 16, color: cs.outlineVariant),
+          ]);
+        }));
+      },
+    );
+  }
+
+  Widget _buildAccountCard(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    return _Card(children: [
+      _SettingsTile(icon: Icons.person_outline_rounded, label: 'Edit Profile', onTap: () {}),
+      Divider(height: 1, indent: 56, color: cs.outlineVariant),
+      _SettingsTile(icon: Icons.lock_outline_rounded, label: 'Change Password', onTap: () {}),
+      Divider(height: 1, indent: 56, color: cs.outlineVariant),
+      _SettingsTile(icon: Icons.email_outlined, label: 'Change Email', onTap: () {}),
+      if (_biometricAvailable) ...[
+        Divider(height: 1, indent: 56, color: cs.outlineVariant),
+        ListTile(
+          leading: const Icon(Icons.fingerprint_rounded, color: AppColors.neutral600, size: 22),
+          title: const Text('Biometric Login', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w500)),
+          trailing: Switch(
+            value: _biometricEnabled,
+            onChanged: _toggleBiometric,
+            activeThumbColor: AppColors.primary,
+            activeTrackColor: AppColors.primaryLight,
           ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: List.generate(children.length, (i) {
-              final child = children[i];
-              final override = _cycleOverrides[child.childId];
-              final cycleType = override?.cycleType ?? 'Weekly';
-              final ratio = override?.ratio ?? 0.25;
-              final config = _ChildCycleConfig(
-                childId: child.childId,
-                childName: child.childName,
-                cycleType: cycleType,
-                ratio: ratio,
-              );
-              return Column(
-                children: [
-                  ListTile(
-                    leading: Container(
-                      width: 36,
-                      height: 36,
-                      decoration: const BoxDecoration(
-                        color: AppColors.primaryLight,
-                        shape: BoxShape.circle,
-                      ),
-                      alignment: Alignment.center,
-                      child: Text(
-                        config.childName.substring(0, 1).toUpperCase(),
-                        style: const TextStyle(
-                          fontWeight: FontWeight.w700,
-                          color: AppColors.primary,
-                          fontSize: 14,
-                        ),
-                      ),
-                    ),
-                    title: Text(
-                      config.childName,
-                      style: const TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.neutral900,
-                      ),
-                    ),
-                    subtitle: Text(
-                      "${config.cycleType} · ${(config.ratio * 100).round()}% ratio",
-                      style: const TextStyle(
-                        fontSize: 12,
-                        color: AppColors.neutral600,
-                      ),
-                    ),
-                    trailing: InkWell(
-                      onTap: () => _showCycleConfigSheet(config),
-                      borderRadius: BorderRadius.circular(8),
-                      child: const Padding(
-                        padding: EdgeInsets.all(4),
-                        child: Icon(
-                          Icons.tune_rounded,
-                          size: 20,
-                          color: AppColors.neutral400,
-                        ),
-                      ),
-                    ),
-                  ),
-                  if (i < children.length - 1)
-                    const Divider(
-                        height: 1,
-                        indent: 16,
-                        endIndent: 16,
-                        color: AppColors.neutral100),
-                ],
-              );
-            }),
+          onTap: () => _toggleBiometric(!_biometricEnabled),
+        ),
+      ],
+      Divider(height: 1, indent: 56, color: cs.outlineVariant),
+      _SettingsTile(
+        icon: Icons.logout_rounded, label: 'Log Out',
+        iconColor: AppColors.error, labelColor: AppColors.error,
+        onTap: () => _logout(context),
+      ),
+      Divider(height: 1, indent: 56, color: cs.outlineVariant),
+      _SettingsTile(
+        icon: Icons.delete_outline_rounded, label: 'Delete Account',
+        iconColor: AppColors.error, labelColor: AppColors.error,
+        onTap: () => _confirmDeleteAccount(context),
+      ),
+    ]);
+  }
+
+  // ── Sheets & Dialogs ─────────────────────────────────────────────────────
+
+  void _showLanguagePicker(BuildContext context) {
+    final current = ref.read(localeProvider).valueOrNull;
+    showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+      builder: (ctx) {
+        final cs = Theme.of(ctx).colorScheme;
+        return SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 8),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(width: 40, height: 4, margin: const EdgeInsets.only(bottom: 16),
+                    decoration: BoxDecoration(color: cs.outlineVariant, borderRadius: BorderRadius.circular(2))),
+                Padding(padding: const EdgeInsets.fromLTRB(20, 0, 20, 12),
+                    child: Text('Language', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w700, color: cs.onSurface))),
+                ListTile(
+                  leading: const Text('🌐', style: TextStyle(fontSize: 22)),
+                  title: Text('Auto (System)', style: TextStyle(color: cs.onSurface)),
+                  trailing: current == null ? Icon(Icons.check_rounded, color: AppColors.primary) : null,
+                  onTap: () {
+                    ref.read(localeProvider.notifier).setLocale(null);
+                    Navigator.of(ctx).pop();
+                  },
+                ),
+                const Divider(height: 1, indent: 16, endIndent: 16),
+                ..._kLanguages.map((lang) => ListTile(
+                  leading: Text(lang.flag, style: const TextStyle(fontSize: 22)),
+                  title: Text(lang.name, style: TextStyle(color: cs.onSurface)),
+                  trailing: current?.languageCode == lang.code
+                      ? const Icon(Icons.check_rounded, color: AppColors.primary)
+                      : null,
+                  onTap: () {
+                    ref.read(localeProvider.notifier).setLocale(Locale(lang.code));
+                    Navigator.of(ctx).pop();
+                  },
+                )),
+                const SizedBox(height: 8),
+              ],
+            ),
           ),
         );
       },
     );
   }
 
-  Widget _buildAccountCard() {
-    return Container(
-      decoration: BoxDecoration(
-        color: AppColors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.neutral900.withOpacity(0.05),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          _SettingsTile(
-            icon: Icons.person_outline_rounded,
-            label: "Edit Profile",
-            onTap: () {},
-          ),
-          const Divider(height: 1, indent: 56, color: AppColors.neutral100),
-          _SettingsTile(
-            icon: Icons.lock_outline_rounded,
-            label: "Change Password",
-            onTap: () {},
-          ),
-          const Divider(height: 1, indent: 56, color: AppColors.neutral100),
-          _SettingsTile(
-            icon: Icons.email_outlined,
-            label: "Change Email",
-            onTap: () {},
-          ),
-          const Divider(height: 1, indent: 56, color: AppColors.neutral100),
-          _SettingsTile(
-            icon: Icons.logout_rounded,
-            label: "Log Out",
-            iconColor: AppColors.error,
-            labelColor: AppColors.error,
-            onTap: () => _logout(context),
+  void _confirmDeleteAccount(BuildContext context) {
+    showDialog<void>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Delete Account'),
+        content: const Text(
+          'This will permanently delete your account and all data. This action cannot be undone.',
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.of(ctx).pop(), child: const Text('Cancel')),
+          TextButton(
+            onPressed: () async {
+              Navigator.of(ctx).pop();
+              try {
+                await ref.read(authStateNotifierProvider.notifier).deleteAccount();
+                if (context.mounted) context.go('/onboarding');
+              } catch (e) {
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Failed to delete account: $e'), backgroundColor: AppColors.error),
+                  );
+                }
+              }
+            },
+            style: TextButton.styleFrom(foregroundColor: AppColors.error),
+            child: const Text('Delete Account'),
           ),
         ],
       ),
@@ -350,91 +390,50 @@ class _ParentSettingsScreenState extends ConsumerState<ParentSettingsScreen> {
 
   void _showMultiplierSheet(int index, _TierFactor factor) {
     double currentValue = factor.multiplier;
-
     showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
       builder: (ctx) => StatefulBuilder(
         builder: (ctx, setSheetState) => Padding(
           padding: const EdgeInsets.all(24),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                "Edit Multiplier: ${factor.label}",
-                style: const TextStyle(
-                  fontSize: 17,
-                  fontWeight: FontWeight.w700,
-                  color: AppColors.neutral900,
+          child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Text('Edit Multiplier: ${factor.label}',
+                style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w700, color: AppColors.neutral900)),
+            const SizedBox(height: 20),
+            Center(child: Text('${currentValue.toStringAsFixed(1)}x',
+                style: const TextStyle(fontSize: 36, fontWeight: FontWeight.w800, color: AppColors.primary))),
+            Slider(value: currentValue, min: 0.5, max: 3.0, divisions: 25, activeColor: AppColors.primary,
+                onChanged: (v) => setSheetState(() => currentValue = v)),
+            const Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+              Text('0.5x', style: TextStyle(fontSize: 12, color: AppColors.neutral400)),
+              Text('3.0x', style: TextStyle(fontSize: 12, color: AppColors.neutral400)),
+            ]),
+            const SizedBox(height: 20),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: () async {
+                  final newMultiplier = double.parse(currentValue.toStringAsFixed(1));
+                  final updated = List<_TierFactor>.from(_tierFactors);
+                  updated[index] = _TierFactor(tier: factor.tier, label: factor.label, multiplier: newMultiplier, color: factor.color);
+                  setState(() => _tierFactors = updated);
+                  Navigator.of(ctx).pop();
+                  try {
+                    final factorMap = {for (final f in updated) f.tier: f.multiplier};
+                    await ref.read(connectionServiceProvider).saveBonusFactors(factorMap);
+                  } catch (_) {}
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primary, foregroundColor: AppColors.white,
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                 ),
+                child: const Text('Save', style: TextStyle(fontWeight: FontWeight.w700)),
               ),
-              const SizedBox(height: 20),
-              Center(
-                child: Text(
-                  "${currentValue.toStringAsFixed(1)}x",
-                  style: const TextStyle(
-                    fontSize: 36,
-                    fontWeight: FontWeight.w800,
-                    color: AppColors.primary,
-                  ),
-                ),
-              ),
-              Slider(
-                value: currentValue,
-                min: 0.5,
-                max: 3.0,
-                divisions: 25,
-                activeColor: AppColors.primary,
-                onChanged: (v) => setSheetState(() => currentValue = v),
-              ),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: const [
-                  Text("0.5x", style: TextStyle(fontSize: 12, color: AppColors.neutral400)),
-                  Text("3.0x", style: TextStyle(fontSize: 12, color: AppColors.neutral400)),
-                ],
-              ),
-              const SizedBox(height: 20),
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: () async {
-                    final newMultiplier = double.parse(currentValue.toStringAsFixed(1));
-                    final updated = List<_TierFactor>.from(_tierFactors);
-                    updated[index] = _TierFactor(
-                      tier: factor.tier,
-                      label: factor.label,
-                      multiplier: newMultiplier,
-                      color: factor.color,
-                    );
-                    setState(() => _tierFactors = updated);
-                    Navigator.of(ctx).pop();
-                    try {
-                      final factorMap = {for (final f in updated) f.tier: f.multiplier};
-                      await ref.read(connectionServiceProvider).saveBonusFactors(factorMap);
-                    } catch (_) {}
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.primary,
-                    foregroundColor: AppColors.white,
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                  child: const Text(
-                    "Save",
-                    style: TextStyle(fontWeight: FontWeight.w700),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 16),
-            ],
-          ),
+            ),
+            const SizedBox(height: 16),
+          ]),
         ),
       ),
     );
@@ -443,140 +442,75 @@ class _ParentSettingsScreenState extends ConsumerState<ParentSettingsScreen> {
   void _showCycleConfigSheet(_ChildCycleConfig config) {
     String currentCycleType = config.cycleType;
     double currentRatio = config.ratio;
-    const cycleTypes = ["Daily", "Weekly", "Monthly"];
+    const cycleTypes = ['Daily', 'Weekly', 'Monthly'];
 
     showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
       builder: (ctx) => StatefulBuilder(
         builder: (ctx, setSheetState) => Padding(
-          padding: EdgeInsets.only(
-            bottom: MediaQuery.of(ctx).viewInsets.bottom,
-            left: 24,
-            right: 24,
-            top: 24,
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                "Config for ${config.childName}",
-                style: const TextStyle(
-                  fontSize: 17,
-                  fontWeight: FontWeight.w700,
-                  color: AppColors.neutral900,
+          padding: EdgeInsets.only(bottom: MediaQuery.of(ctx).viewInsets.bottom, left: 24, right: 24, top: 24),
+          child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Text('Config for ${config.childName}',
+                style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w700, color: AppColors.neutral900)),
+            const SizedBox(height: 20),
+            const Text('Cycle Type', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.neutral600)),
+            const SizedBox(height: 10),
+            Row(children: cycleTypes.map((type) {
+              final selected = type == currentCycleType;
+              return Expanded(child: GestureDetector(
+                onTap: () => setSheetState(() => currentCycleType = type),
+                child: Container(
+                  margin: const EdgeInsets.symmetric(horizontal: 4),
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  decoration: BoxDecoration(
+                    color: selected ? AppColors.primary : AppColors.neutral100,
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  alignment: Alignment.center,
+                  child: Text(type, style: TextStyle(
+                    color: selected ? AppColors.white : AppColors.neutral700,
+                    fontWeight: FontWeight.w600, fontSize: 13,
+                  )),
                 ),
-              ),
-              const SizedBox(height: 20),
-              const Text(
-                "Cycle Type",
-                style: TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.neutral600,
+              ));
+            }).toList()),
+            const SizedBox(height: 20),
+            Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+              const Text('Bonus Ratio', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.neutral600)),
+              Text('${(currentRatio * 100).round()}%',
+                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: AppColors.primary)),
+            ]),
+            Slider(value: currentRatio, min: 0.05, max: 1.0, divisions: 19, activeColor: AppColors.primary,
+                onChanged: (v) => setSheetState(() => currentRatio = v)),
+            const Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+              Text('5%', style: TextStyle(fontSize: 12, color: AppColors.neutral400)),
+              Text('100%', style: TextStyle(fontSize: 12, color: AppColors.neutral400)),
+            ]),
+            const SizedBox(height: 20),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: () {
+                  setState(() {
+                    _cycleOverrides[config.childId] = _ChildCycleConfig(
+                      childId: config.childId, childName: config.childName,
+                      cycleType: currentCycleType, ratio: currentRatio,
+                    );
+                  });
+                  Navigator.of(ctx).pop();
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primary, foregroundColor: AppColors.white,
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                 ),
+                child: const Text('Save', style: TextStyle(fontWeight: FontWeight.w700)),
               ),
-              const SizedBox(height: 10),
-              Row(
-                children: cycleTypes.map((type) {
-                  final selected = type == currentCycleType;
-                  return Expanded(
-                    child: GestureDetector(
-                      onTap: () => setSheetState(() => currentCycleType = type),
-                      child: Container(
-                        margin: const EdgeInsets.symmetric(horizontal: 4),
-                        padding: const EdgeInsets.symmetric(vertical: 12),
-                        decoration: BoxDecoration(
-                          color: selected ? AppColors.primary : AppColors.neutral100,
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        alignment: Alignment.center,
-                        child: Text(
-                          type,
-                          style: TextStyle(
-                            color: selected ? AppColors.white : AppColors.neutral700,
-                            fontWeight: FontWeight.w600,
-                            fontSize: 13,
-                          ),
-                        ),
-                      ),
-                    ),
-                  );
-                }).toList(),
-              ),
-              const SizedBox(height: 20),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  const Text(
-                    "Bonus Ratio",
-                    style: TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.neutral600,
-                    ),
-                  ),
-                  Text(
-                    "${(currentRatio * 100).round()}%",
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w700,
-                      color: AppColors.primary,
-                    ),
-                  ),
-                ],
-              ),
-              Slider(
-                value: currentRatio,
-                min: 0.05,
-                max: 1.0,
-                divisions: 19,
-                activeColor: AppColors.primary,
-                onChanged: (v) => setSheetState(() => currentRatio = v),
-              ),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: const [
-                  Text("5%", style: TextStyle(fontSize: 12, color: AppColors.neutral400)),
-                  Text("100%", style: TextStyle(fontSize: 12, color: AppColors.neutral400)),
-                ],
-              ),
-              const SizedBox(height: 20),
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: () {
-                    setState(() {
-                      _cycleOverrides[config.childId] = _ChildCycleConfig(
-                        childId: config.childId,
-                        childName: config.childName,
-                        cycleType: currentCycleType,
-                        ratio: currentRatio,
-                      );
-                    });
-                    Navigator.of(ctx).pop();
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.primary,
-                    foregroundColor: AppColors.white,
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                  child: const Text(
-                    "Save",
-                    style: TextStyle(fontWeight: FontWeight.w700),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 24),
-            ],
-          ),
+            ),
+            const SizedBox(height: 24),
+          ]),
         ),
       ),
     );
@@ -584,30 +518,48 @@ class _ParentSettingsScreenState extends ConsumerState<ParentSettingsScreen> {
 
   Future<void> _logout(BuildContext context) async {
     await ref.read(authStateNotifierProvider.notifier).logout();
-    if (context.mounted) {
-      context.go("/onboarding");
+    if (context.mounted) context.go('/onboarding');
+  }
+
+  static String _localeLabel(Locale? locale) {
+    if (locale == null) return 'Auto';
+    for (final lang in _kLanguages) {
+      if (lang.code == locale.languageCode) return '${lang.flag} ${lang.name}';
     }
+    return locale.languageCode.toUpperCase();
+  }
+}
+
+class _Card extends StatelessWidget {
+  final List<Widget> children;
+  const _Card({required this.children});
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    return Container(
+      decoration: BoxDecoration(
+        color: cs.surface,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 8, offset: const Offset(0, 2)),
+        ],
+      ),
+      child: Column(mainAxisSize: MainAxisSize.min, children: children),
+    );
   }
 }
 
 class _SectionHeader extends StatelessWidget {
   final String title;
-
   const _SectionHeader({required this.title});
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
     return Padding(
       padding: const EdgeInsets.only(left: 4, bottom: 4),
-      child: Text(
-        title,
-        style: const TextStyle(
-          fontSize: 13,
-          fontWeight: FontWeight.w700,
-          color: AppColors.neutral600,
-          letterSpacing: 0.3,
-        ),
-      ),
+      child: Text(title, style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: cs.onSurfaceVariant, letterSpacing: 0.3)),
     );
   }
 }
@@ -629,20 +581,11 @@ class _SettingsTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
     return ListTile(
-      leading: Icon(icon, color: iconColor ?? AppColors.neutral600, size: 22),
-      title: Text(
-        label,
-        style: TextStyle(
-          fontSize: 15,
-          color: labelColor ?? AppColors.neutral900,
-          fontWeight: FontWeight.w500,
-        ),
-      ),
-      trailing: const Icon(
-        Icons.chevron_right_rounded,
-        color: AppColors.neutral400,
-      ),
+      leading: Icon(icon, color: iconColor ?? cs.onSurfaceVariant, size: 22),
+      title: Text(label, style: TextStyle(fontSize: 15, color: labelColor ?? cs.onSurface, fontWeight: FontWeight.w500)),
+      trailing: Icon(Icons.chevron_right_rounded, color: cs.outlineVariant),
       onTap: onTap,
     );
   }

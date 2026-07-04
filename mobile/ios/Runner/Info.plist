@@ -10,6 +10,8 @@
 	<string>Bonifatus</string>
 	<key>ITSAppUsesNonExemptEncryption</key>
 	<false/>
+	<key>NSFaceIDUsageDescription</key>
+	<string>Bonifatus uses Face ID to let you sign in quickly and securely.</string>
 	<key>NSCameraUsageDescription</key>
 	<string>Bonifatus uses the camera to photograph your grade documents and report cards.</string>
 	<key>NSPhotoLibraryUsageDescription</key>

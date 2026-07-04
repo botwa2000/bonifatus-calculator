@@ -131,4 +131,9 @@ class AuthService {
     } catch (_) {}
     await _storage.deleteAll();
   }
+
+  Future<void> deleteAccount() async {
+    await _client.post('/api/profile/delete', data: {});
+    await _storage.deleteAll();
+  }
 }

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../api/services/biometric_service.dart';
 import '../providers/auth_provider.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
@@ -15,7 +16,28 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   final _emailCtrl = TextEditingController();
   final _passCtrl = TextEditingController();
   bool _obscure = true;
+  bool _biometricAvailable = false;
+  bool _biometricAutoTriggered = false;
   String? _error;
+
+  @override
+  void initState() {
+    super.initState();
+    _initBiometric();
+  }
+
+  Future<void> _initBiometric() async {
+    final svc = ref.read(biometricServiceProvider);
+    final enabled = await svc.isEnabled();
+    if (!enabled) return;
+    final canAuth = await svc.canAuthenticate();
+    if (!mounted) return;
+    setState(() => _biometricAvailable = canAuth);
+    if (canAuth && !_biometricAutoTriggered) {
+      _biometricAutoTriggered = true;
+      _loginWithBiometrics();
+    }
+  }
 
   @override
   void dispose() {
@@ -31,8 +53,14 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       email: _emailCtrl.text.trim(),
       password: _passCtrl.text,
     );
-    // Errors land in AsyncValue.error() — picked up by ref.listen in build()
-    // Navigation on success is handled by the GoRouter redirect via _AuthListenable
+  }
+
+  Future<void> _loginWithBiometrics() async {
+    setState(() => _error = null);
+    final svc = ref.read(biometricServiceProvider);
+    final authed = await svc.authenticate();
+    if (!authed || !mounted) return;
+    await ref.read(authStateNotifierProvider.notifier).loginWithBiometrics();
   }
 
   @override
@@ -40,7 +68,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     final theme = Theme.of(context);
     final isLoading = ref.watch(authStateNotifierProvider).isLoading;
 
-    // Surface errors from AsyncValue.guard() — they don't propagate via throw
     ref.listen(authStateNotifierProvider, (_, next) {
       next.whenOrNull(
         error: (err, _) => setState(
@@ -88,32 +115,32 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 AutofillGroup(
                   child: Column(
                     children: [
-                TextFormField(
-                  controller: _emailCtrl,
-                  keyboardType: TextInputType.emailAddress,
-                  textInputAction: TextInputAction.next,
-                  autocorrect: false,
-                  autofillHints: const [AutofillHints.email, AutofillHints.username],
-                  decoration: const InputDecoration(labelText: 'Email', prefixIcon: Icon(Icons.email_outlined)),
-                  validator: (v) => (v == null || !v.contains('@')) ? 'Enter a valid email' : null,
-                ),
-                const SizedBox(height: 16),
-                TextFormField(
-                  controller: _passCtrl,
-                  obscureText: _obscure,
-                  textInputAction: TextInputAction.done,
-                  autofillHints: const [AutofillHints.password],
-                  onFieldSubmitted: (_) => _submit(),
-                  decoration: InputDecoration(
-                    labelText: 'Password',
-                    prefixIcon: const Icon(Icons.lock_outline),
-                    suffixIcon: IconButton(
-                      icon: Icon(_obscure ? Icons.visibility_outlined : Icons.visibility_off_outlined),
-                      onPressed: () => setState(() => _obscure = !_obscure),
-                    ),
-                  ),
-                  validator: (v) => (v == null || v.isEmpty) ? 'Enter your password' : null,
-                ),
+                      TextFormField(
+                        controller: _emailCtrl,
+                        keyboardType: TextInputType.emailAddress,
+                        textInputAction: TextInputAction.next,
+                        autocorrect: false,
+                        autofillHints: const [AutofillHints.email, AutofillHints.username],
+                        decoration: const InputDecoration(labelText: 'Email', prefixIcon: Icon(Icons.email_outlined)),
+                        validator: (v) => (v == null || !v.contains('@')) ? 'Enter a valid email' : null,
+                      ),
+                      const SizedBox(height: 16),
+                      TextFormField(
+                        controller: _passCtrl,
+                        obscureText: _obscure,
+                        textInputAction: TextInputAction.done,
+                        autofillHints: const [AutofillHints.password],
+                        onFieldSubmitted: (_) => _submit(),
+                        decoration: InputDecoration(
+                          labelText: 'Password',
+                          prefixIcon: const Icon(Icons.lock_outline),
+                          suffixIcon: IconButton(
+                            icon: Icon(_obscure ? Icons.visibility_outlined : Icons.visibility_off_outlined),
+                            onPressed: () => setState(() => _obscure = !_obscure),
+                          ),
+                        ),
+                        validator: (v) => (v == null || v.isEmpty) ? 'Enter your password' : null,
+                      ),
                     ],
                   ),
                 ),
@@ -133,6 +160,22 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                           child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
                       : const Text('Sign In'),
                 ),
+
+                if (_biometricAvailable) ...[
+                  const SizedBox(height: 12),
+                  OutlinedButton.icon(
+                    onPressed: isLoading ? null : _loginWithBiometrics,
+                    icon: const Icon(Icons.fingerprint_rounded),
+                    label: const Text('Sign in with Biometrics'),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: AppColors.primary,
+                      side: const BorderSide(color: AppColors.primary),
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    ),
+                  ),
+                ],
+
                 const SizedBox(height: 24),
                 Row(mainAxisAlignment: MainAxisAlignment.center, children: [
                   Text("Don't have an account? ", style: theme.textTheme.bodyMedium),

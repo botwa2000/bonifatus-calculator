@@ -34,6 +34,23 @@ class AuthStateNotifier extends AsyncNotifier<AuthState> {
     await service.logout();
     state = AsyncValue.data(AuthState.unauthenticated());
   }
+
+  Future<void> loginWithBiometrics() async {
+    state = const AsyncValue.loading();
+    state = await AsyncValue.guard(() async {
+      final service = ref.read(authServiceProvider);
+      final session = await service.restoreSession();
+      if (!session.isAuthenticated) throw Exception('Session expired. Please sign in with your password.');
+      return session;
+    });
+  }
+
+  Future<void> deleteAccount() async {
+    state = const AsyncValue.loading();
+    final service = ref.read(authServiceProvider);
+    await service.deleteAccount();
+    state = AsyncValue.data(AuthState.unauthenticated());
+  }
 }
 
 final authStateNotifierProvider =
