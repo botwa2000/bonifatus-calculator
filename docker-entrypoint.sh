@@ -19,4 +19,11 @@ if [ -d "$SECRETS_DIR" ]; then
   done
 fi
 
+# In Docker, `localhost` in DATABASE_URL refers to the container loopback, not the host.
+# Replace with host.docker.internal (mapped to the Docker host via extra_hosts in the stack).
+if [ -n "$DATABASE_URL" ]; then
+  DATABASE_URL=$(echo "$DATABASE_URL" | sed 's|@localhost:|@host.docker.internal:|')
+  export DATABASE_URL
+fi
+
 exec "$@"

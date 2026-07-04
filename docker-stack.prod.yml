@@ -16,6 +16,8 @@ services:
       - prod_EMAIL_USER
       - prod_EMAIL_PASSWORD
       - prod_FMP_API_KEY
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     environment:
       - NODE_ENV=production
       - PORT=3000
