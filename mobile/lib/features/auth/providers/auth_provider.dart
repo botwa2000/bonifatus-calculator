@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../api/services/auth_service.dart';
 
@@ -7,6 +8,15 @@ typedef AuthState = AuthSessionState;
 class AuthStateNotifier extends AsyncNotifier<AuthState> {
   @override
   Future<AuthState> build() async {
+    if (kIsWeb && kDebugMode) {
+      return const AuthState(
+        isAuthenticated: true,
+        userId: 'demo-parent-id',
+        role: 'parent',
+        name: 'Alexander Perel',
+        email: 'alexander.perel@gmail.com',
+      );
+    }
     final service = ref.read(authServiceProvider);
     return service.restoreSession();
   }

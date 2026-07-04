@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -7,8 +8,39 @@ import '../../providers/children_provider.dart';
 import '../../../../models/child_data.dart';
 import '../../../../api/services/connection_service.dart';
 
+List<ChildTermResult> _demoTermResults() => [
+      ChildTermResult(
+        id: 'tr1',
+        schoolYear: '2024/25',
+        termType: 'semester_2',
+        classLevel: 7,
+        totalBonusPoints: 14,
+        createdAt: DateTime(2025, 6, 15),
+        subjects: [
+          const ChildSubjectGrade(id: 'sg1', subjectName: 'Mathematics', gradeValue: '2', gradeQualityTier: 'best', bonusPoints: 4),
+          const ChildSubjectGrade(id: 'sg2', subjectName: 'German', gradeValue: '1', gradeQualityTier: 'best', bonusPoints: 4),
+          const ChildSubjectGrade(id: 'sg3', subjectName: 'English', gradeValue: '3', gradeQualityTier: 'second', bonusPoints: 2),
+          const ChildSubjectGrade(id: 'sg4', subjectName: 'Physics', gradeValue: '2', gradeQualityTier: 'best', bonusPoints: 4),
+        ],
+      ),
+      ChildTermResult(
+        id: 'tr2',
+        schoolYear: '2024/25',
+        termType: 'semester_1',
+        classLevel: 7,
+        totalBonusPoints: 10,
+        createdAt: DateTime(2025, 1, 20),
+        subjects: [
+          const ChildSubjectGrade(id: 'sg5', subjectName: 'Mathematics', gradeValue: '3', gradeQualityTier: 'second', bonusPoints: 2),
+          const ChildSubjectGrade(id: 'sg6', subjectName: 'German', gradeValue: '2', gradeQualityTier: 'best', bonusPoints: 4),
+          const ChildSubjectGrade(id: 'sg7', subjectName: 'English', gradeValue: '2', gradeQualityTier: 'best', bonusPoints: 4),
+        ],
+      ),
+    ];
+
 final childTermResultsProvider =
     FutureProvider.family<List<ChildTermResult>, String>((ref, childId) async {
+  if (kIsWeb && kDebugMode) return _demoTermResults();
   final service = ref.read(connectionServiceProvider);
   return service.fetchChildTermResults(childId);
 });
