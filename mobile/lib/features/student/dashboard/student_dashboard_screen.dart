@@ -139,7 +139,7 @@ class StudentDashboardScreen extends ConsumerWidget {
               .subtract(const Duration(seconds: 1)));
     }).toList();
     final weekPts =
-        thisWeekGrades.fold<int>(0, (sum, g) => sum + g.bonusPoints);
+        thisWeekGrades.fold<double>(0.0, (sum, g) => sum + g.bonusPoints);
 
     return Container(
       decoration: BoxDecoration(
@@ -177,7 +177,7 @@ class StudentDashboardScreen extends ConsumerWidget {
           ),
           const SizedBox(height: 12),
           Text(
-            '$weekPts pts',
+            '${weekPts % 1 == 0 ? weekPts.toInt() : weekPts.toStringAsFixed(1)} pts',
             style: Theme.of(context).textTheme.displayLarge?.copyWith(
                   color: AppColors.white,
                   fontWeight: FontWeight.w700,
@@ -290,7 +290,7 @@ class StudentDashboardScreen extends ConsumerWidget {
                           ),
                         ),
                         Text(
-                          '+${grade.bonusPoints} pts',
+                          '+${grade.bonusPoints % 1 == 0 ? grade.bonusPoints.toInt() : grade.bonusPoints.toStringAsFixed(1)} pts',
                           style: Theme.of(context)
                               .textTheme
                               .labelSmall
@@ -401,7 +401,7 @@ class StudentDashboardScreen extends ConsumerWidget {
                         borderRadius: BorderRadius.circular(20),
                       ),
                       child: Text(
-                        '${term.totalBonusPoints} pts',
+                        '${term.totalBonusPoints % 1 == 0 ? term.totalBonusPoints.toInt() : term.totalBonusPoints.toStringAsFixed(1)} pts',
                         style:
                             Theme.of(context).textTheme.labelSmall?.copyWith(
                                   color: color,

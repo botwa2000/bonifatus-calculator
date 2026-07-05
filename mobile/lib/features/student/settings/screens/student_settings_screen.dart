@@ -9,15 +9,7 @@ import '../../../auth/providers/auth_provider.dart';
 import '../../../../api/services/connection_service.dart';
 import '../../../../api/services/biometric_service.dart';
 import '../../../../api/services/profile_service.dart';
-
-const _kLanguages = [
-  (code: 'en', name: 'English', flag: '🇬🇧'),
-  (code: 'de', name: 'Deutsch', flag: '🇩🇪'),
-  (code: 'fr', name: 'Français', flag: '🇫🇷'),
-  (code: 'it', name: 'Italiano', flag: '🇮🇹'),
-  (code: 'es', name: 'Español', flag: '🇪🇸'),
-  (code: 'ru', name: 'Русский', flag: '🇷🇺'),
-];
+import '../../../../core/constants/app_constants.dart';
 
 class StudentSettingsScreen extends ConsumerStatefulWidget {
   const StudentSettingsScreen({super.key});
@@ -294,7 +286,7 @@ class _StudentSettingsScreenState extends ConsumerState<StudentSettingsScreen> {
                 },
               ),
               const Divider(height: 1, indent: 16, endIndent: 16),
-              ..._kLanguages.map((lang) => ListTile(
+              ...AppConstants.languages.map((lang) => ListTile(
                 leading: Text(lang.flag, style: const TextStyle(fontSize: 22)),
                 title: Text(lang.name, style: TextStyle(color: cs.onSurface)),
                 trailing: current?.languageCode == lang.code
@@ -598,7 +590,7 @@ class _StudentSettingsScreenState extends ConsumerState<StudentSettingsScreen> {
 
   static String _localeLabel(Locale? locale) {
     if (locale == null) return 'Auto';
-    for (final lang in _kLanguages) {
+    for (final lang in AppConstants.languages) {
       if (lang.code == locale.languageCode) return '${lang.flag} ${lang.name}';
     }
     return locale.languageCode.toUpperCase();

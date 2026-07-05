@@ -78,8 +78,8 @@ class CycleSummaryScreen extends ConsumerWidget {
 
           final totalPositive = weekGrades
               .where((g) => g.bonusPoints > 0)
-              .fold<int>(0, (s, g) => s + g.bonusPoints);
-          final netPts = weekGrades.fold<int>(0, (s, g) => s + g.bonusPoints);
+              .fold<double>(0.0, (s, g) => s + g.bonusPoints);
+          final netPts = weekGrades.fold<double>(0.0, (s, g) => s + g.bonusPoints);
 
           final fmt = DateFormat('MMM d, yyyy');
           final startStr = fmt.format(startDate);
@@ -137,8 +137,8 @@ class CycleSummaryScreen extends ConsumerWidget {
     required String cycleType,
     required String startDate,
     required String endDate,
-    required int totalPositive,
-    required int netPts,
+    required double totalPositive,
+    required double netPts,
   }) {
     final netColor = netPts >= 0 ? AppColors.tierBest : AppColors.tierBelow;
     final netBg =
@@ -195,7 +195,7 @@ class CycleSummaryScreen extends ConsumerWidget {
               Expanded(
                 child: _StatBox(
                   label: 'Positive',
-                  value: '+$totalPositive pts',
+                  value: '+${totalPositive % 1 == 0 ? totalPositive.toInt() : totalPositive.toStringAsFixed(1)} pts',
                   valueColor: Colors.white,
                   bgColor: Colors.white.withValues(alpha: 0.15),
                 ),
@@ -204,7 +204,7 @@ class CycleSummaryScreen extends ConsumerWidget {
               Expanded(
                 child: _StatBox(
                   label: 'Net',
-                  value: '$netPts pts',
+                  value: '${netPts % 1 == 0 ? netPts.toInt() : netPts.toStringAsFixed(1)} pts',
                   valueColor: netColor,
                   bgColor: netBg,
                 ),
@@ -329,7 +329,7 @@ class _CycleNoteCard extends StatelessWidget {
             ),
           ),
           Text(
-            '+${grade.bonusPoints} pts',
+            '+${grade.bonusPoints % 1 == 0 ? grade.bonusPoints.toInt() : grade.bonusPoints.toStringAsFixed(1)} pts',
             style: const TextStyle(
               fontSize: 14,
               fontWeight: FontWeight.w700,

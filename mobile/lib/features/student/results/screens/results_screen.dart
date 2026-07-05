@@ -192,7 +192,7 @@ class _TermCard extends StatelessWidget {
                         style: theme.textTheme.titleMedium),
                     const SizedBox(height: 2),
                     Text(
-                      '${term.totalBonusPoints} pts · ${term.subjects.length} subjects',
+                      '${term.totalBonusPoints % 1 == 0 ? term.totalBonusPoints.toInt() : term.totalBonusPoints.toStringAsFixed(1)} pts · ${term.subjects.length} subjects',
                       style: theme.textTheme.bodyMedium?.copyWith(
                         color: term.totalBonusPoints >= 0
                             ? AppColors.success

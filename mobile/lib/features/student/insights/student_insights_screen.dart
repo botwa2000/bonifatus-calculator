@@ -63,7 +63,7 @@ class _InsightsBody extends StatelessWidget {
     final now = DateTime.now();
 
     // Last 6 months bar chart data
-    final monthBuckets = <int, int>{}; // month-index (0=oldest) → pts
+    final monthBuckets = <int, double>{}; // month-index (0=oldest) → pts
     final monthLabels = <String>[];
     for (int i = 5; i >= 0; i--) {
       final m = DateTime(now.year, now.month - i);
@@ -73,10 +73,10 @@ class _InsightsBody extends StatelessWidget {
       final monthsAgo = (now.year - g.gradedAt.year) * 12 + (now.month - g.gradedAt.month);
       if (monthsAgo >= 0 && monthsAgo < 6) {
         final bucket = 5 - monthsAgo;
-        monthBuckets[bucket] = (monthBuckets[bucket] ?? 0) + g.bonusPoints;
+        monthBuckets[bucket] = (monthBuckets[bucket] ?? 0.0) + g.bonusPoints;
       }
     }
-    final maxY = monthBuckets.values.fold(0, (m, v) => v > m ? v : m).toDouble();
+    final maxY = monthBuckets.values.fold(0.0, (m, v) => v > m ? v : m);
 
     // Tier distribution pie chart
     final tierCounts = <String, int>{'best': 0, 'second': 0, 'third': 0, 'below': 0};
@@ -93,8 +93,8 @@ class _InsightsBody extends StatelessWidget {
     // This week stats
     final weekStart = now.subtract(Duration(days: now.weekday - 1));
     final weekGrades = grades.where((g) => !g.gradedAt.isBefore(DateTime(weekStart.year, weekStart.month, weekStart.day))).toList();
-    final weekPts = weekGrades.fold(0, (s, g) => s + g.bonusPoints);
-    final weekSettled = weekGrades.where((g) => g.settlementStatus == 'settled').fold(0, (s, g) => s + g.bonusPoints);
+    final weekPts = weekGrades.fold(0.0, (s, g) => s + g.bonusPoints);
+    final weekSettled = weekGrades.where((g) => g.settlementStatus == 'settled').fold(0.0, (s, g) => s + g.bonusPoints);
     final weekNet = weekPts - weekSettled;
 
     return SingleChildScrollView(
@@ -202,8 +202,8 @@ class _InsightsBody extends StatelessWidget {
               const SizedBox(height: 8),
               Row(mainAxisAlignment: MainAxisAlignment.spaceAround, children: [
                 _BigStat(label: 'Grades', value: weekGrades.length.toString()),
-                _BigStat(label: 'Earned', value: '+$weekPts pts'),
-                _BigStat(label: 'Unsettled', value: '+$weekNet pts'),
+                _BigStat(label: 'Earned', value: '+${weekPts % 1 == 0 ? weekPts.toInt() : weekPts.toStringAsFixed(1)} pts'),
+                _BigStat(label: 'Unsettled', value: '+${weekNet % 1 == 0 ? weekNet.toInt() : weekNet.toStringAsFixed(1)} pts'),
               ]),
             ]),
           ),
@@ -220,9 +220,9 @@ class _InsightsBody extends StatelessWidget {
               Row(mainAxisAlignment: MainAxisAlignment.spaceAround, children: [
                 _BigStat(label: 'Grades', value: total.toString()),
                 _BigStat(label: 'Total Pts',
-                    value: '+${grades.fold(0, (s, g) => s + g.bonusPoints)} pts'),
+                    value: () { final v = grades.fold<double>(0.0, (s, g) => s + g.bonusPoints); return '+${v % 1 == 0 ? v.toInt() : v.toStringAsFixed(1)} pts'; }()),
                 _BigStat(label: 'Pending',
-                    value: '+${grades.where((g) => g.settlementStatus == 'pending').fold(0, (s, g) => s + g.bonusPoints)} pts'),
+                    value: () { final v = grades.where((g) => g.settlementStatus == 'pending').fold<double>(0.0, (s, g) => s + g.bonusPoints); return '+${v % 1 == 0 ? v.toInt() : v.toStringAsFixed(1)} pts'; }()),
               ]),
             ]),
           ),

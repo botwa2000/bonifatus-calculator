@@ -150,15 +150,44 @@ class TermTypeItem {
   }
 }
 
+class CategoryItem {
+  final String id;
+  final String code;
+  final String name;
+
+  const CategoryItem({
+    required this.id,
+    required this.code,
+    required this.name,
+  });
+
+  factory CategoryItem.fromJson(Map<String, dynamic> json) {
+    final nameRaw = json['name'];
+    final name = nameRaw is String
+        ? nameRaw
+        : nameRaw is Map
+            ? (nameRaw['en'] ?? nameRaw['de'] ?? nameRaw.values.firstOrNull ?? 'Unknown')
+                .toString()
+            : 'Unknown';
+    return CategoryItem(
+      id: json['id'] as String,
+      code: (json['code'] as String?) ?? '',
+      name: name,
+    );
+  }
+}
+
 class SubjectItem {
   final String id;
   final String name;
   final bool isCoreSubject;
+  final String? categoryId;
 
   const SubjectItem({
     required this.id,
     required this.name,
     required this.isCoreSubject,
+    this.categoryId,
   });
 
   factory SubjectItem.fromJson(Map<String, dynamic> json) {
@@ -175,6 +204,7 @@ class SubjectItem {
       isCoreSubject: json['isCoreSubject'] as bool? ??
           json['is_core_subject'] as bool? ??
           false,
+      categoryId: (json['categoryId'] ?? json['category_id']) as String?,
     );
   }
 }
@@ -182,12 +212,14 @@ class SubjectItem {
 class CalculatorConfig {
   final List<GradingSystem> gradingSystems;
   final List<SubjectItem> subjects;
+  final List<CategoryItem> categories;
   final List<BonusFactor> bonusFactors;
   final List<TermTypeItem> termTypes;
 
   const CalculatorConfig({
     required this.gradingSystems,
     required this.subjects,
+    this.categories = const [],
     this.bonusFactors = const [],
     this.termTypes = const [],
   });
@@ -210,6 +242,9 @@ class CalculatorConfig {
           .toList(),
       subjects: (json['subjects'] as List<dynamic>? ?? [])
           .map((s) => SubjectItem.fromJson(s as Map<String, dynamic>))
+          .toList(),
+      categories: (json['categories'] as List<dynamic>? ?? [])
+          .map((c) => CategoryItem.fromJson(c as Map<String, dynamic>))
           .toList(),
       bonusFactors: (json['bonusFactorDefaults'] as List<dynamic>? ?? [])
           .map((f) => BonusFactor.fromJson(f as Map<String, dynamic>))

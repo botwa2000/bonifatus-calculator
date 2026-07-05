@@ -2,7 +2,7 @@ class SubjectResult {
   final String subjectId;
   final String? subjectName;
   final String gradeValue;
-  final int bonusPoints;
+  final double bonusPoints;
   final String? gradeQualityTier;
 
   const SubjectResult({
@@ -17,7 +17,7 @@ class SubjectResult {
     // API returns snake_case; support both
     final subjectId = (json['subjectId'] ?? json['subject_id']) as String;
     final gradeValue = (json['gradeValue'] ?? json['grade_value']) as String;
-    final bonusPoints = (json['bonusPoints'] ?? json['bonus_points']) as int? ?? 0;
+    final bonusPoints = ((json['bonusPoints'] ?? json['bonus_points']) as num?)?.toDouble() ?? 0.0;
     final tier = (json['gradeQualityTier'] ?? json['grade_quality_tier']) as String?;
     // subjectName may be nested under subjects.name (JSONB)
     String? subjectName = (json['subjectName'] ?? json['subject_name']) as String?;
@@ -45,7 +45,7 @@ class TermResult {
   final String schoolYear;
   final String termType;
   final int classLevel;
-  final int totalBonusPoints;
+  final double totalBonusPoints;
   final String status;
   final String? termName;
   final DateTime createdAt;
@@ -74,7 +74,7 @@ class TermResult {
       termType: (json['termType'] ?? json['term_type']) as String,
       classLevel: (json['classLevel'] ?? json['class_level']) as int? ?? 1,
       totalBonusPoints:
-          (json['totalBonusPoints'] ?? json['total_bonus_points']) as int? ?? 0,
+          ((json['totalBonusPoints'] ?? json['total_bonus_points']) as num?)?.toDouble() ?? 0.0,
       status: json['status'] as String? ?? 'active',
       termName: (json['termName'] ?? json['term_name']) as String?,
       createdAt: createdRaw != null ? DateTime.parse(createdRaw) : DateTime.now(),

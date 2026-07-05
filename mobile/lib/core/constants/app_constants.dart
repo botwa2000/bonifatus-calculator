@@ -27,6 +27,16 @@ class AppConstants {
   // Supported locales
   static const List<String> supportedLocales = ['en', 'de', 'fr', 'it', 'es', 'ru'];
 
+  // Language metadata for UI selectors — (code, name, flag)
+  static const languages = [
+    (code: 'en', name: 'English', flag: '🇬🇧'),
+    (code: 'de', name: 'Deutsch', flag: '🇩🇪'),
+    (code: 'fr', name: 'Français', flag: '🇫🇷'),
+    (code: 'it', name: 'Italiano', flag: '🇮🇹'),
+    (code: 'es', name: 'Español', flag: '🇪🇸'),
+    (code: 'ru', name: 'Русский', flag: '🇷🇺'),
+  ];
+
   // Grade tiers
   static const String tierBest = 'best';
   static const String tierSecond = 'second';

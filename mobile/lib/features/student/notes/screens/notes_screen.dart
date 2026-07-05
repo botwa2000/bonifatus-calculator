@@ -186,7 +186,7 @@ class NotesScreen extends ConsumerWidget {
       BuildContext context, WidgetRef ref, List<_WeekGroup> groups) {
     final currentGroup = groups.first;
     final totalBonusPts =
-        currentGroup.grades.fold<int>(0, (sum, g) => sum + g.bonusPoints);
+        currentGroup.grades.fold<double>(0.0, (sum, g) => sum + g.bonusPoints);
 
     return CustomScrollView(
       slivers: [
@@ -279,8 +279,8 @@ class NotesScreen extends ConsumerWidget {
 
 class _SummaryChipRow extends StatelessWidget {
   final int totalNotes;
-  final int totalBonusPts;
-  final int netPts;
+  final double totalBonusPts;
+  final double netPts;
   final String weekKey;
 
   const _SummaryChipRow({
@@ -316,13 +316,13 @@ class _SummaryChipRow extends StatelessWidget {
               ),
               const SizedBox(width: 8),
               _Chip(
-                label: '+$totalBonusPts pts',
+                label: '+${totalBonusPts % 1 == 0 ? totalBonusPts.toInt() : totalBonusPts.toStringAsFixed(1)} pts',
                 icon: Icons.star_outline_rounded,
                 color: AppColors.tierBest,
               ),
               const SizedBox(width: 8),
               _Chip(
-                label: 'Net: $netPts pts',
+                label: 'Net: ${netPts % 1 == 0 ? netPts.toInt() : netPts.toStringAsFixed(1)} pts',
                 icon: Icons.account_balance_wallet_outlined,
                 color: netPts >= 0 ? AppColors.tierBest : AppColors.tierBelow,
               ),
@@ -481,7 +481,7 @@ class _NoteCard extends StatelessWidget {
                         ),
                         const SizedBox(height: 6),
                         Text(
-                          '+${grade.bonusPoints} pts',
+                          '+${grade.bonusPoints % 1 == 0 ? grade.bonusPoints.toInt() : grade.bonusPoints.toStringAsFixed(1)} pts',
                           style: const TextStyle(
                             fontSize: 13,
                             fontWeight: FontWeight.w600,

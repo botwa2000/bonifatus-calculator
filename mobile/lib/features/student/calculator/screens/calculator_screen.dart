@@ -117,10 +117,27 @@ class _CalculatorScreenState extends ConsumerState<CalculatorScreen> {
                       .contains(searchQuery.toLowerCase()))
                   .toList();
 
-          final coreSubjects =
-              filtered.where((s) => s.isCoreSubject).toList();
-          final otherSubjects =
-              filtered.where((s) => !s.isCoreSubject).toList();
+          // Group by category if categories are available, else fall back to core/other
+          final categoriesAvailable = config.categories.isNotEmpty &&
+              filtered.any((s) => s.categoryId != null);
+          final Map<String, List<SubjectItem>> groupedSubjects;
+          if (categoriesAvailable) {
+            final catMap = {for (final c in config.categories) c.id: c};
+            groupedSubjects = {};
+            for (final s in filtered) {
+              final catName = s.categoryId != null && catMap.containsKey(s.categoryId)
+                  ? catMap[s.categoryId]!.name
+                  : 'Other';
+              (groupedSubjects[catName] ??= []).add(s);
+            }
+          } else {
+            final core = filtered.where((s) => s.isCoreSubject).toList();
+            final other = filtered.where((s) => !s.isCoreSubject).toList();
+            groupedSubjects = {
+              if (core.isNotEmpty) 'Core Subjects': core,
+              if (other.isNotEmpty) 'Other': other,
+            };
+          }
 
           final gradeValues = system.gradeValues;
           final useGradeChips = gradeValues.isNotEmpty && gradeValues.length <= 10;
@@ -203,12 +220,14 @@ class _CalculatorScreenState extends ConsumerState<CalculatorScreen> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            if (coreSubjects.isNotEmpty) ...[
-                              if (otherSubjects.isNotEmpty)
-                                const Padding(
-                                  padding: EdgeInsets.only(bottom: 6),
-                                  child: Text('Core Subjects',
-                                      style: TextStyle(
+                            for (final entry in groupedSubjects.entries) ...[
+                              if (groupedSubjects.length > 1)
+                                Padding(
+                                  padding: EdgeInsets.only(
+                                      top: groupedSubjects.keys.first == entry.key ? 0 : 12,
+                                      bottom: 6),
+                                  child: Text(entry.key,
+                                      style: const TextStyle(
                                           fontSize: 11,
                                           fontWeight: FontWeight.w700,
                                           color: AppColors.neutral400,
@@ -217,33 +236,7 @@ class _CalculatorScreenState extends ConsumerState<CalculatorScreen> {
                               Wrap(
                                 spacing: 8,
                                 runSpacing: 8,
-                                children: coreSubjects
-                                    .map((s) => _SubjectChip(
-                                          subject: s,
-                                          selected: pickedSubject?.id == s.id,
-                                          onTap: () => setSheet(
-                                              () => pickedSubject = s),
-                                        ))
-                                    .toList(),
-                              ),
-                            ],
-                            if (otherSubjects.isNotEmpty) ...[
-                              if (coreSubjects.isNotEmpty)
-                                const SizedBox(height: 12),
-                              if (coreSubjects.isNotEmpty)
-                                const Padding(
-                                  padding: EdgeInsets.only(bottom: 6),
-                                  child: Text('Other Subjects',
-                                      style: TextStyle(
-                                          fontSize: 11,
-                                          fontWeight: FontWeight.w700,
-                                          color: AppColors.neutral400,
-                                          letterSpacing: 0.5)),
-                                ),
-                              Wrap(
-                                spacing: 8,
-                                runSpacing: 8,
-                                children: otherSubjects
+                                children: entry.value
                                     .map((s) => _SubjectChip(
                                           subject: s,
                                           selected: pickedSubject?.id == s.id,

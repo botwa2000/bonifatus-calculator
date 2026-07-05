@@ -82,7 +82,7 @@ class TermDetailScreen extends ConsumerWidget {
                             const SizedBox(width: 24),
                             _Stat(
                               label: 'Bonus',
-                              value: '${term.totalBonusPoints} pts',
+                              value: '${term.totalBonusPoints % 1 == 0 ? term.totalBonusPoints.toInt() : term.totalBonusPoints.toStringAsFixed(1)} pts',
                               color: AppColors.success,
                             ),
                             const SizedBox(width: 24),
@@ -142,7 +142,7 @@ class TermDetailScreen extends ConsumerWidget {
                                   ),
                                   const SizedBox(width: 12),
                                   Text(
-                                    '+${subject.bonusPoints} pts',
+                                    '+${subject.bonusPoints % 1 == 0 ? subject.bonusPoints.toInt() : subject.bonusPoints.toStringAsFixed(1)} pts',
                                     style: const TextStyle(
                                       fontSize: 12,
                                       color: AppColors.success,

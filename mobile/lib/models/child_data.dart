@@ -34,7 +34,7 @@ class ChildQuickGrade {
       subjectName: subjectName,
       gradeValue: json['gradeValue'] as String,
       gradeQualityTier: json['gradeQualityTier'] as String? ?? 'below',
-      bonusPoints: json['bonusPoints'] as int? ?? 0,
+      bonusPoints: ((json['bonusPoints']) as num?)?.toInt() ?? 0,
       settlementStatus: json['settlementStatus'] as String? ?? 'unsettled',
       gradedAt: DateTime.parse(json['gradedAt'] as String),
     );
