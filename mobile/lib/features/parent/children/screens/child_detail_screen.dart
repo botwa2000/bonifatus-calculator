@@ -480,6 +480,49 @@ class _GradeCard extends StatelessWidget {
 
   const _GradeCard({required this.grade});
 
+  void _showDetail(BuildContext context) {
+    final tier = grade.gradeQualityTier;
+    final color = AppColors.tierColor(tier);
+    final lightColor = AppColors.tierColorLight(tier);
+    showModalBottomSheet<void>(
+      context: context,
+      shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+      builder: (_) => Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(mainAxisSize: MainAxisSize.min, children: [
+          Container(width: 40, height: 4,
+              decoration: BoxDecoration(color: AppColors.neutral200, borderRadius: BorderRadius.circular(2))),
+          const SizedBox(height: 16),
+          Row(children: [
+            Container(width: 56, height: 56,
+              decoration: BoxDecoration(color: lightColor, borderRadius: BorderRadius.circular(14)),
+              alignment: Alignment.center,
+              child: Text(grade.gradeValue,
+                style: TextStyle(fontSize: 24, fontWeight: FontWeight.w800, color: color))),
+            const SizedBox(width: 16),
+            Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Text(grade.subjectName ?? 'Subject',
+                style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w700, color: AppColors.neutral900)),
+              Text(DateFormat('MMMM d, yyyy').format(grade.gradedAt),
+                style: const TextStyle(fontSize: 13, color: AppColors.neutral400)),
+            ])),
+          ]),
+          const SizedBox(height: 20),
+          Row(children: [
+            Expanded(child: _DetailChip(label: 'Bonus', value: '+${grade.bonusPoints} pts', color: AppColors.tierBest, bg: AppColors.tierBestLight)),
+            const SizedBox(width: 10),
+            Expanded(child: _DetailChip(label: 'Status',
+              value: grade.settlementStatus == 'settled' ? 'Settled' : 'Pending',
+              color: grade.settlementStatus == 'settled' ? AppColors.tierBest : AppColors.tierThird,
+              bg: grade.settlementStatus == 'settled' ? AppColors.tierBestLight : AppColors.tierThirdLight)),
+          ]),
+          const SizedBox(height: 16),
+        ]),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final tier = grade.gradeQualityTier;
@@ -487,7 +530,10 @@ class _GradeCard extends StatelessWidget {
     final tierColorLight = AppColors.tierColorLight(tier);
     final dateStr = DateFormat('MMM d, yyyy').format(grade.gradedAt);
 
-    return Container(
+    return InkWell(
+      onTap: () => _showDetail(context),
+      borderRadius: BorderRadius.circular(14),
+      child: Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
         color: AppColors.white,
@@ -580,6 +626,23 @@ class _GradeCard extends StatelessWidget {
           ),
         ],
       ),
+      ),
     );
   }
+}
+
+class _DetailChip extends StatelessWidget {
+  final String label, value;
+  final Color color, bg;
+  const _DetailChip({required this.label, required this.value, required this.color, required this.bg});
+  @override
+  Widget build(BuildContext context) => Container(
+    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+    decoration: BoxDecoration(color: bg, borderRadius: BorderRadius.circular(10)),
+    child: Column(children: [
+      Text(label, style: const TextStyle(fontSize: 11, color: AppColors.neutral400)),
+      const SizedBox(height: 2),
+      Text(value, style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: color)),
+    ]),
+  );
 }

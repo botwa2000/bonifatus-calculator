@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../models/child_data.dart';
 import '../providers/children_provider.dart';
@@ -101,6 +102,7 @@ class ParentInsightsScreen extends ConsumerWidget {
                 ...children.map((child) {
                   final avg = _computeAvg(child.grades);
                   return _ChildInsightCard(
+                    childId: child.childId,
                     name: child.childName,
                     avgGradeLabel: avg != null ? avg.toStringAsFixed(1) : '—',
                     pts: child.totalPendingPoints,
@@ -143,10 +145,11 @@ class _Stat extends StatelessWidget {
 }
 
 class _ChildInsightCard extends StatelessWidget {
-  final String name, avgGradeLabel, tier;
+  final String childId, name, avgGradeLabel, tier;
   final int pts;
   const _ChildInsightCard(
-      {required this.name,
+      {required this.childId,
+      required this.name,
       required this.avgGradeLabel,
       required this.pts,
       required this.tier});
@@ -158,6 +161,9 @@ class _ChildInsightCard extends StatelessWidget {
     final progressValue = pts > 0 ? (pts / 600.0).clamp(0.0, 1.0) : 0.0;
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: () => context.push('/parent/children/$childId'),
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -197,6 +203,7 @@ class _ChildInsightCard extends StatelessWidget {
                   ?.copyWith(color: AppColors.neutral600)),
         ]),
       ),
-    );
+    ),
+  );
   }
 }

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../providers/children_provider.dart';
 import '../../../../models/child_data.dart';
@@ -190,7 +191,10 @@ class _ChildGradesCard extends ConsumerWidget {
                   style: TextStyle(color: AppColors.neutral600)),
             )
           else
-            ...pendingGrades.take(5).map((g) => _GradeRow(grade: g)),
+            ...pendingGrades.take(5).map((g) => _GradeRow(
+              grade: g,
+              onTap: () => context.push('/parent/children/${child.childId}'),
+            )),
           const Divider(height: 1, color: AppColors.neutral100),
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 10, 16, 14),
@@ -337,14 +341,17 @@ class _ChildGradesCard extends ConsumerWidget {
 
 class _GradeRow extends StatelessWidget {
   final ChildQuickGrade grade;
+  final VoidCallback? onTap;
 
-  const _GradeRow({required this.grade});
+  const _GradeRow({required this.grade, this.onTap});
 
   @override
   Widget build(BuildContext context) {
     final tierColor = AppColors.tierColor(grade.gradeQualityTier);
 
-    return Padding(
+    return InkWell(
+      onTap: onTap,
+      child: Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
       child: Row(
         children: [
@@ -392,6 +399,7 @@ class _GradeRow extends StatelessWidget {
           ),
         ],
       ),
+      ),
     );
   }
 }
@@ -420,7 +428,10 @@ class _SummaryTab extends StatelessWidget {
 
         return Card(
           margin: const EdgeInsets.only(bottom: 12),
-          child: Padding(
+          clipBehavior: Clip.antiAlias,
+          child: InkWell(
+            onTap: () => context.push('/parent/children/${child.childId}'),
+            child: Padding(
             padding: const EdgeInsets.all(16),
             child: Row(
               children: [
@@ -480,6 +491,7 @@ class _SummaryTab extends StatelessWidget {
                   ),
                 ),
               ],
+            ),
             ),
           ),
         );

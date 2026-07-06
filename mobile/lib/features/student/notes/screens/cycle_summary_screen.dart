@@ -273,7 +273,10 @@ class _CycleNoteCard extends StatelessWidget {
     final tierColorLight = AppColors.tierColorLight(grade.gradeQualityTier);
     final dateStr = DateFormat('MMM d').format(grade.gradedAt);
 
-    return Container(
+    return InkWell(
+      onTap: () => context.push('/student/notes/detail/${grade.id}'),
+      borderRadius: BorderRadius.circular(14),
+      child: Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
         color: AppColors.white,
@@ -337,6 +340,7 @@ class _CycleNoteCard extends StatelessWidget {
             ),
           ),
         ],
+      ),
       ),
     );
   }

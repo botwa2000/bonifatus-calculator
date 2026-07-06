@@ -203,17 +203,6 @@ class NoteDetailScreen extends ConsumerWidget {
                     ],
                   ),
                 ),
-                const SizedBox(height: 12),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 4),
-                  child: Text(
-                    'Grade ID: ${grade.id}',
-                    style: const TextStyle(
-                      fontSize: 11,
-                      color: AppColors.neutral400,
-                    ),
-                  ),
-                ),
               ],
             ),
           ),

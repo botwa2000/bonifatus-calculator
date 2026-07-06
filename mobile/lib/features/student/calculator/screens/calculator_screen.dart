@@ -17,7 +17,7 @@ class CalculatorScreen extends ConsumerStatefulWidget {
 class _CalculatorScreenState extends ConsumerState<CalculatorScreen> {
   final List<_SubjectEntry> _subjects = [];
   bool _saving = false;
-  bool _settingsExpanded = false;
+  bool _settingsExpanded = true;
 
   String? _selectedSystemId;
   int _classLevel = 7;
@@ -180,7 +180,7 @@ class _CalculatorScreenState extends ConsumerState<CalculatorScreen> {
                     // Subject search
                     TextField(
                       controller: searchCtrl,
-                      autofocus: availableSubjects.length > 6,
+                      autofocus: false,
                       decoration: InputDecoration(
                         hintText: 'Search subjects…',
                         prefixIcon: const Icon(Icons.search_rounded,
@@ -805,7 +805,7 @@ class _CalculatorScreenState extends ConsumerState<CalculatorScreen> {
             ),
             const SizedBox(height: 20),
             const Text(
-              'Add your subjects',
+              'Grade Planner',
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.w700,
@@ -814,22 +814,9 @@ class _CalculatorScreenState extends ConsumerState<CalculatorScreen> {
             ),
             const SizedBox(height: 8),
             const Text(
-              'Tap "Add Subject" below to start entering your grades.',
+              'Set your class and term above, then tap "Add Subject" to enter grades and see your bonus.',
               style: TextStyle(fontSize: 14, color: AppColors.neutral600),
               textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 12),
-            TextButton.icon(
-              onPressed: () =>
-                  setState(() => _settingsExpanded = !_settingsExpanded),
-              icon: const Icon(Icons.tune_rounded, size: 16),
-              label: Text(
-                _settingsExpanded ? 'Hide settings' : 'Configure class & term',
-                style: const TextStyle(fontSize: 13),
-              ),
-              style: TextButton.styleFrom(
-                foregroundColor: AppColors.neutral600,
-              ),
             ),
           ],
         ),
@@ -850,7 +837,10 @@ class _CalculatorScreenState extends ConsumerState<CalculatorScreen> {
         final tierColor = AppColors.tierColor(tier);
         final tierBg = AppColors.tierColorLight(tier);
 
-        return Container(
+        return InkWell(
+          onTap: () => _showEditSubjectSheet(config, index),
+          borderRadius: BorderRadius.circular(14),
+          child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
           decoration: BoxDecoration(
             color: AppColors.white,
@@ -949,8 +939,106 @@ class _CalculatorScreenState extends ConsumerState<CalculatorScreen> {
               ),
             ],
           ),
+          ),
         );
       },
+    );
+  }
+
+  void _showEditSubjectSheet(CalculatorConfig config, int index) {
+    final existing = _subjects[index];
+    final system = _resolveSystem(config);
+    String pickedGrade = existing.grade;
+    double pickedWeight = existing.weight;
+
+    final gradeValues = system.gradeValues;
+    final useGradeChips = gradeValues.isNotEmpty && gradeValues.length <= 10;
+
+    showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: AppColors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (sheetCtx) => StatefulBuilder(builder: (ctx, setSheet) {
+        return Padding(
+          padding: EdgeInsets.only(
+            left: 20, right: 20, top: 24,
+            bottom: MediaQuery.of(sheetCtx).viewInsets.bottom + 24,
+          ),
+          child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Center(child: Container(width: 40, height: 4,
+                decoration: BoxDecoration(color: AppColors.neutral200, borderRadius: BorderRadius.circular(2)))),
+            const SizedBox(height: 20),
+            Row(children: [
+              Expanded(child: Text(existing.subject,
+                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: AppColors.neutral900))),
+              IconButton(
+                icon: const Icon(Icons.delete_outline_rounded, color: AppColors.error),
+                onPressed: () { setState(() => _subjects.removeAt(index)); Navigator.of(sheetCtx).pop(); },
+                tooltip: 'Remove',
+              ),
+            ]),
+            const SizedBox(height: 16),
+            const Text('Grade', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.neutral700)),
+            const SizedBox(height: 8),
+            if (useGradeChips)
+              Wrap(spacing: 8, runSpacing: 8, children: gradeValues.map((g) {
+                final selected = pickedGrade == g;
+                final tier = system.deriveTier(g);
+                final tc = selected ? AppColors.tierColor(tier) : AppColors.neutral400;
+                final tb = selected ? AppColors.tierColorLight(tier) : AppColors.neutral100;
+                return GestureDetector(
+                  onTap: () => setSheet(() => pickedGrade = g),
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 120),
+                    width: 48, height: 48,
+                    decoration: BoxDecoration(color: tb, borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: selected ? tc : AppColors.neutral200, width: selected ? 2 : 1)),
+                    alignment: Alignment.center,
+                    child: Text(g, style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: tc)),
+                  ),
+                );
+              }).toList())
+            else
+              TextFormField(
+                initialValue: existing.grade,
+                decoration: InputDecoration(isDense: true,
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12))),
+                keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                onChanged: (v) => setSheet(() => pickedGrade = v),
+              ),
+            const SizedBox(height: 16),
+            Row(children: [
+              const Text('Weight', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.neutral700)),
+              const Spacer(),
+              _WeightStepper(value: pickedWeight, onChanged: (v) => setSheet(() => pickedWeight = v)),
+            ]),
+            const SizedBox(height: 20),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: pickedGrade.trim().isEmpty ? null : () {
+                  setState(() => _subjects[index] = _SubjectEntry(
+                    subjectId: existing.subjectId,
+                    subject: existing.subject,
+                    grade: pickedGrade.trim(),
+                    weight: pickedWeight,
+                  ));
+                  Navigator.of(sheetCtx).pop();
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primary, foregroundColor: AppColors.white,
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
+                child: const Text('Save Changes', style: TextStyle(fontWeight: FontWeight.w700)),
+              ),
+            ),
+          ]),
+        );
+      }),
     );
   }
 

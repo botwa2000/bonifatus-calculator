@@ -7,7 +7,7 @@ import { eq, and } from 'drizzle-orm'
 
 const schema = z.object({ id: z.string().uuid() })
 
-export async function POST(request: NextRequest) {
+export async function DELETE(request: NextRequest) {
   const body = await request.json()
   const parsed = schema.safeParse(body)
 

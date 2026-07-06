@@ -5,7 +5,7 @@ const TOKEN_MAX_AGE_MS = 5 * 60 * 1000 // 5 minutes — reject replayed tokens
 
 if (process.env.NODE_ENV === 'production' && MOBILE_APP_SECRET === 'dev-secret-replace-in-prod') {
   console.error(
-    '[security] MOBILE_APP_SECRET is using the insecure default. Set it in Vercel env vars.'
+    '[security] MOBILE_APP_SECRET is using the insecure default. Set it in Docker Swarm secrets or .env.local.'
   )
 }
 

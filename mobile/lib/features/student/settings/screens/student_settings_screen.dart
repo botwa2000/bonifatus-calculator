@@ -116,7 +116,8 @@ class _StudentSettingsScreenState extends ConsumerState<StudentSettingsScreen> {
             ],
             selected: {currentThemeMode},
             onSelectionChanged: (s) =>
-                ref.read(themeModeProvider.notifier).setThemeMode(s.first),
+                WidgetsBinding.instance.addPostFrameCallback((_) =>
+                    ref.read(themeModeProvider.notifier).setThemeMode(s.first)),
             style: ButtonStyle(
               visualDensity: VisualDensity.compact,
               textStyle: WidgetStateProperty.all(const TextStyle(fontSize: 12)),
@@ -209,7 +210,7 @@ class _StudentSettingsScreenState extends ConsumerState<StudentSettingsScreen> {
               icon: Icons.person_outline_rounded,
               label: parentName,
               trailing: const Icon(Icons.check_circle_rounded, color: AppColors.tierBest, size: 20),
-              onTap: () {},
+              onTap: () => _showParentConnectionSheet(context, conn),
             ),
             if (entry.key < _parentConnections.length - 1)
               Divider(height: 1, indent: 56, color: cs.outlineVariant),
@@ -281,8 +282,10 @@ class _StudentSettingsScreenState extends ConsumerState<StudentSettingsScreen> {
                 title: Text('Auto (System)', style: TextStyle(color: cs.onSurface)),
                 trailing: current == null ? const Icon(Icons.check_rounded, color: AppColors.primary) : null,
                 onTap: () {
-                  ref.read(localeProvider.notifier).setLocale(null);
                   Navigator.of(ctx).pop();
+                  WidgetsBinding.instance.addPostFrameCallback((_) {
+                    ref.read(localeProvider.notifier).setLocale(null);
+                  });
                 },
               ),
               const Divider(height: 1, indent: 16, endIndent: 16),
@@ -293,8 +296,10 @@ class _StudentSettingsScreenState extends ConsumerState<StudentSettingsScreen> {
                     ? const Icon(Icons.check_rounded, color: AppColors.primary)
                     : null,
                 onTap: () {
-                  ref.read(localeProvider.notifier).setLocale(Locale(lang.code));
                   Navigator.of(ctx).pop();
+                  WidgetsBinding.instance.addPostFrameCallback((_) {
+                    ref.read(localeProvider.notifier).setLocale(Locale(lang.code));
+                  });
                 },
               )),
               const SizedBox(height: 8),
@@ -302,6 +307,53 @@ class _StudentSettingsScreenState extends ConsumerState<StudentSettingsScreen> {
           ),
         );
       },
+    );
+  }
+
+  void _showParentConnectionSheet(BuildContext context, Map<String, dynamic> conn) {
+    final parentName = conn['parentName'] as String? ?? conn['parentEmail'] as String? ?? 'Parent';
+    final parentEmail = conn['parentEmail'] as String? ?? '';
+    final connectedSince = conn['connectedAt'] as String?;
+    showModalBottomSheet<void>(
+      context: context,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+      builder: (ctx) => Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Container(width: 40, height: 4, margin: const EdgeInsets.only(bottom: 20),
+              decoration: BoxDecoration(color: AppColors.neutral200, borderRadius: BorderRadius.circular(2))),
+          Row(children: [
+            Container(width: 48, height: 48, decoration: const BoxDecoration(color: AppColors.primaryLight, shape: BoxShape.circle),
+              alignment: Alignment.center,
+              child: Text(parentName.substring(0, 1).toUpperCase(),
+                style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w700, color: AppColors.primary))),
+            const SizedBox(width: 14),
+            Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Text(parentName, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: AppColors.neutral900)),
+              if (parentEmail.isNotEmpty)
+                Text(parentEmail, style: const TextStyle(fontSize: 13, color: AppColors.neutral600)),
+              if (connectedSince != null)
+                Text('Connected ${connectedSince.substring(0, 10)}',
+                    style: const TextStyle(fontSize: 12, color: AppColors.neutral400)),
+            ]),
+          ]),
+          const SizedBox(height: 24),
+          SizedBox(
+            width: double.infinity,
+            child: OutlinedButton.icon(
+              icon: const Icon(Icons.link_off_rounded, color: AppColors.error),
+              label: const Text('Remove connection', style: TextStyle(color: AppColors.error, fontWeight: FontWeight.w600)),
+              onPressed: () => Navigator.of(ctx).pop(),
+              style: OutlinedButton.styleFrom(
+                side: const BorderSide(color: AppColors.error),
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              ),
+            ),
+          ),
+          const SizedBox(height: 8),
+        ]),
+      ),
     );
   }
 

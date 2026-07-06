@@ -113,13 +113,16 @@ class StudentDashboardScreen extends ConsumerWidget {
           ),
         ),
         const SizedBox(width: 12),
-        const CircleAvatar(
-          backgroundColor: AppColors.primaryLight,
-          radius: 22,
-          child: Icon(
-            Icons.person_rounded,
-            color: AppColors.primary,
-            size: 24,
+        GestureDetector(
+          onTap: () => context.push('/student/settings'),
+          child: const CircleAvatar(
+            backgroundColor: AppColors.primaryLight,
+            radius: 22,
+            child: Icon(
+              Icons.person_rounded,
+              color: AppColors.primary,
+              size: 24,
+            ),
           ),
         ),
       ],
@@ -246,7 +249,9 @@ class StudentDashboardScreen extends ConsumerWidget {
               final color = AppColors.tierColor(grade.gradeQualityTier);
               final lightColor =
                   AppColors.tierColorLight(grade.gradeQualityTier);
-              return Container(
+              return GestureDetector(
+                onTap: () => context.push('/student/notes/detail/${grade.id}'),
+                child: Container(
                 width: 148,
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
@@ -303,6 +308,7 @@ class StudentDashboardScreen extends ConsumerWidget {
                     ),
                   ],
                 ),
+              ),
               );
             },
           ),
@@ -343,7 +349,10 @@ class StudentDashboardScreen extends ConsumerWidget {
 
             return Padding(
               padding: const EdgeInsets.only(bottom: 12),
-              child: Container(
+              child: InkWell(
+                onTap: () => context.push('/student/results/${term.id}'),
+                borderRadius: BorderRadius.circular(16),
+                child: Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
                   color: AppColors.white,
@@ -411,6 +420,7 @@ class StudentDashboardScreen extends ConsumerWidget {
                     ),
                   ],
                 ),
+              ),
               ),
             );
           }).toList(),

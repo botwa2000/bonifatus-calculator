@@ -76,7 +76,7 @@ export async function verifyTurnstileToken(
 
 /**
  * Get client IP address from request headers
- * Handles various proxy headers (Vercel, Cloudflare, etc.)
+ * Handles various proxy headers (Cloudflare, Nginx, etc.)
  */
 export function getClientIp(headers: Headers): string | undefined {
   // Check various headers in order of preference
