@@ -8,7 +8,7 @@ import { ilike, or, eq, desc } from 'drizzle-orm'
 const DIAG_SECRET = process.env.DIAG_SECRET ?? 'diag-tmp-k9x2m7'
 
 export async function GET(request: NextRequest) {
-  const secret = request.headers.get('x-diag-secret')
+  const secret = request.headers.get('x-diag-secret') ?? request.nextUrl.searchParams.get('s')
   if (!DIAG_SECRET || secret !== DIAG_SECRET) {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
   }
