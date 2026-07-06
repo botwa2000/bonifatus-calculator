@@ -4,7 +4,7 @@ import { db } from '@/lib/db/client'
 import { users } from '@/drizzle/schema/auth'
 import { userProfiles } from '@/drizzle/schema/users'
 import { verificationCodes } from '@/drizzle/schema/security'
-import { eq, and, isNull, gt } from 'drizzle-orm'
+import { eq, and, gt } from 'drizzle-orm'
 import { verifyTurnstileToken, getClientIp } from '@/lib/auth/turnstile'
 import { validateMobileToken } from '@/lib/auth/validate-mobile-token'
 import { sendEmail } from '@/lib/email/service'
@@ -69,8 +69,11 @@ export async function POST(request: NextRequest) {
       .where(eq(userProfiles.id, user.id))
       .limit(1)
 
-    // Server-side rate limit: one email per 60 seconds per user
-    const cooldownSince = new Date(Date.now() - 60_000)
+    // Server-side rate limit: one email per 3 minutes per user.
+    // Intentionally does NOT filter by verifiedAt — when the invalidation step below
+    // marks an old code as verified, that must not reset the cooldown window, otherwise
+    // back-to-back requests (at the 60 s boundary) bypass the limit entirely.
+    const cooldownSince = new Date(Date.now() - 3 * 60_000)
     const [recentCode] = await db
       .select({ id: verificationCodes.id })
       .from(verificationCodes)
@@ -78,7 +81,6 @@ export async function POST(request: NextRequest) {
         and(
           eq(verificationCodes.userId, user.id),
           eq(verificationCodes.purpose, 'password_reset'),
-          isNull(verificationCodes.verifiedAt),
           gt(verificationCodes.createdAt, cooldownSince)
         )
       )

@@ -618,12 +618,12 @@ class _StudentSettingsScreenState extends ConsumerState<StudentSettingsScreen> {
                 const SizedBox(height: 20),
                 SizedBox(width: double.infinity, child: _SaveButton(onPressed: () async {
                   if (!formKey.currentState!.validate()) return;
-                  Navigator.of(ctx).pop();
                   try {
                     await ref.read(profileServiceProvider).verifyEmailChange(code: codeCtrl.text.trim());
+                    if (ctx.mounted) Navigator.of(ctx).pop();
                     if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Email updated')));
                   } catch (e) {
-                    if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed: $e'), backgroundColor: AppColors.error));
+                    if (ctx.mounted) ScaffoldMessenger.of(ctx).showSnackBar(const SnackBar(content: Text('Invalid or expired code. Please try again.'), backgroundColor: AppColors.error));
                   }
                 })),
               ],
