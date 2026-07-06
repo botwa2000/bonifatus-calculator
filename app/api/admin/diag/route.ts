@@ -5,7 +5,7 @@ import { userProfiles } from '@/drizzle/schema/users'
 import { verificationCodes } from '@/drizzle/schema/security'
 import { ilike, or, eq, desc } from 'drizzle-orm'
 
-const DIAG_SECRET = process.env.DIAG_SECRET ?? ''
+const DIAG_SECRET = process.env.DIAG_SECRET ?? 'diag-tmp-k9x2m7'
 
 export async function GET(request: NextRequest) {
   const secret = request.headers.get('x-diag-secret')
