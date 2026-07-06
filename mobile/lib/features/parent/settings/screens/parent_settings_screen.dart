@@ -122,14 +122,6 @@ class _ParentSettingsScreenState extends ConsumerState<ParentSettingsScreen> {
           const SizedBox(height: 8),
           _buildPreferencesCard(context, currentThemeMode, currentLocale),
           const SizedBox(height: 20),
-          _SectionHeader(title: 'Grade Bonus Factors'),
-          const SizedBox(height: 8),
-          _buildTierFactorsCard(context),
-          const SizedBox(height: 20),
-          _SectionHeader(title: 'Ongoing Notes Config'),
-          const SizedBox(height: 8),
-          _buildCycleConfigCard(context),
-          const SizedBox(height: 20),
           _SectionHeader(title: 'Account'),
           const SizedBox(height: 8),
           _buildAccountCard(context),
@@ -177,88 +169,16 @@ class _ParentSettingsScreenState extends ConsumerState<ParentSettingsScreen> {
         ]),
         onTap: () => _showLanguagePicker(context),
       ),
+      Divider(height: 1, indent: 16, endIndent: 16, color: cs.outlineVariant),
+      ListTile(
+        leading: Icon(Icons.tune_rounded, color: cs.onSurfaceVariant, size: 22),
+        title: Text('Grading Config', style: TextStyle(fontSize: 15, color: cs.onSurface, fontWeight: FontWeight.w500)),
+        subtitle: Text('Tier multipliers · notes cycle · bonus ratio',
+            style: TextStyle(fontSize: 12, color: cs.onSurfaceVariant)),
+        trailing: Icon(Icons.chevron_right_rounded, color: cs.outlineVariant),
+        onTap: () => _showGradingConfigSheet(context),
+      ),
     ]);
-  }
-
-  Widget _buildTierFactorsCard(BuildContext context) {
-    final cs = Theme.of(context).colorScheme;
-    return _Card(children: List.generate(_tierFactors.length, (i) {
-      final factor = _tierFactors[i];
-      return Column(children: [
-        ListTile(
-          leading: Container(
-            width: 10, height: 10,
-            decoration: BoxDecoration(color: factor.color, shape: BoxShape.circle),
-          ),
-          title: Text(factor.label, style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: cs.onSurface)),
-          trailing: Row(mainAxisSize: MainAxisSize.min, children: [
-            Text('${factor.multiplier}x', style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: AppColors.primary)),
-            const SizedBox(width: 8),
-            InkWell(
-              onTap: () => _showMultiplierSheet(i, factor),
-              borderRadius: BorderRadius.circular(8),
-              child: const Padding(padding: EdgeInsets.all(4),
-                  child: Icon(Icons.edit_outlined, size: 18, color: AppColors.neutral400)),
-            ),
-          ]),
-        ),
-        if (i < _tierFactors.length - 1)
-          Divider(height: 1, indent: 16, endIndent: 16, color: cs.outlineVariant),
-      ]);
-    }));
-  }
-
-  Widget _buildCycleConfigCard(BuildContext context) {
-    final cs = Theme.of(context).colorScheme;
-    final childrenAsync = ref.watch(childrenQuickGradesProvider);
-
-    return childrenAsync.when(
-      loading: () => _Card(children: [
-        Padding(padding: const EdgeInsets.all(24),
-            child: Center(child: const CircularProgressIndicator(color: AppColors.primary))),
-      ]),
-      error: (_, __) => _Card(children: [
-        Padding(padding: const EdgeInsets.all(16),
-            child: Text('Failed to load children', style: TextStyle(color: cs.onSurfaceVariant))),
-      ]),
-      data: (children) {
-        if (children.isEmpty) {
-          return _Card(children: [
-            Padding(padding: const EdgeInsets.all(16),
-                child: Text('No children connected', style: TextStyle(color: cs.onSurfaceVariant))),
-          ]);
-        }
-        return _Card(children: List.generate(children.length, (i) {
-          final child = children[i];
-          final override = _cycleOverrides[child.childId];
-          final cycleType = override?.cycleType ?? 'Weekly';
-          final ratio = override?.ratio ?? 0.25;
-          final config = _ChildCycleConfig(childId: child.childId, childName: child.childName, cycleType: cycleType, ratio: ratio);
-          return Column(children: [
-            ListTile(
-              leading: Container(
-                width: 36, height: 36,
-                decoration: const BoxDecoration(color: AppColors.primaryLight, shape: BoxShape.circle),
-                alignment: Alignment.center,
-                child: Text(config.childName.substring(0, 1).toUpperCase(),
-                    style: const TextStyle(fontWeight: FontWeight.w700, color: AppColors.primary, fontSize: 14)),
-              ),
-              title: Text(config.childName, style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: cs.onSurface)),
-              subtitle: Text('${config.cycleType} · ${(config.ratio * 100).round()}% ratio',
-                  style: TextStyle(fontSize: 12, color: cs.onSurfaceVariant)),
-              trailing: InkWell(
-                onTap: () => _showCycleConfigSheet(config),
-                borderRadius: BorderRadius.circular(8),
-                child: const Padding(padding: EdgeInsets.all(4),
-                    child: Icon(Icons.tune_rounded, size: 20, color: AppColors.neutral400)),
-              ),
-            ),
-            if (i < children.length - 1)
-              Divider(height: 1, indent: 16, endIndent: 16, color: cs.outlineVariant),
-          ]);
-        }));
-      },
-    );
   }
 
   Widget _buildAccountCard(BuildContext context) {
@@ -299,6 +219,114 @@ class _ParentSettingsScreenState extends ConsumerState<ParentSettingsScreen> {
   }
 
   // ── Sheets & Dialogs ─────────────────────────────────────────────────────
+
+  void _showGradingConfigSheet(BuildContext context) {
+    showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setSheetState) {
+          final cs = Theme.of(ctx).colorScheme;
+          final childrenAsync = ref.watch(childrenQuickGradesProvider);
+          return DraggableScrollableSheet(
+            initialChildSize: 0.72,
+            minChildSize: 0.4,
+            maxChildSize: 0.92,
+            expand: false,
+            builder: (_, scrollCtrl) => Column(children: [
+              Container(width: 40, height: 4, margin: const EdgeInsets.only(top: 12, bottom: 4),
+                  decoration: BoxDecoration(color: cs.outlineVariant, borderRadius: BorderRadius.circular(2))),
+              Padding(padding: const EdgeInsets.fromLTRB(20, 8, 20, 8),
+                  child: Text('Grading Config', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w700, color: cs.onSurface))),
+              Expanded(
+                child: ListView(
+                  controller: scrollCtrl,
+                  padding: const EdgeInsets.fromLTRB(16, 4, 16, 32),
+                  children: [
+                    // ── Grade Tier Multipliers ──────────────────────────
+                    Padding(padding: const EdgeInsets.only(left: 4, bottom: 6, top: 4),
+                        child: Text('Grade Tier Multipliers', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: cs.onSurfaceVariant, letterSpacing: 0.3))),
+                    _Card(children: List.generate(_tierFactors.length, (i) {
+                      final factor = _tierFactors[i];
+                      return Column(children: [
+                        ListTile(
+                          leading: Container(width: 10, height: 10,
+                              decoration: BoxDecoration(color: factor.color, shape: BoxShape.circle)),
+                          title: Text(factor.label, style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: cs.onSurface)),
+                          trailing: Row(mainAxisSize: MainAxisSize.min, children: [
+                            Text('${factor.multiplier}x', style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: AppColors.primary)),
+                            const SizedBox(width: 8),
+                            InkWell(
+                              onTap: () => _showMultiplierSheet(i, factor, onSaved: () => setSheetState(() {})),
+                              borderRadius: BorderRadius.circular(8),
+                              child: const Padding(padding: EdgeInsets.all(4),
+                                  child: Icon(Icons.edit_outlined, size: 18, color: AppColors.neutral400)),
+                            ),
+                          ]),
+                        ),
+                        if (i < _tierFactors.length - 1)
+                          Divider(height: 1, indent: 16, endIndent: 16, color: cs.outlineVariant),
+                      ]);
+                    })),
+                    const SizedBox(height: 20),
+                    // ── Ongoing Notes Cycle Config ──────────────────────
+                    Padding(padding: const EdgeInsets.only(left: 4, bottom: 6),
+                        child: Text('Ongoing Notes Cycle', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: cs.onSurfaceVariant, letterSpacing: 0.3))),
+                    childrenAsync.when(
+                      loading: () => _Card(children: [
+                        const Padding(padding: EdgeInsets.all(24),
+                            child: Center(child: CircularProgressIndicator(color: AppColors.primary, strokeWidth: 2))),
+                      ]),
+                      error: (_, __) => _Card(children: [
+                        Padding(padding: const EdgeInsets.all(16),
+                            child: Text('Failed to load children', style: TextStyle(color: cs.onSurfaceVariant))),
+                      ]),
+                      data: (children) {
+                        if (children.isEmpty) {
+                          return _Card(children: [
+                            Padding(padding: const EdgeInsets.all(16),
+                                child: Text('No children connected', style: TextStyle(color: cs.onSurfaceVariant))),
+                          ]);
+                        }
+                        return _Card(children: List.generate(children.length, (i) {
+                          final child = children[i];
+                          final override = _cycleOverrides[child.childId];
+                          final cycleType = override?.cycleType ?? 'Weekly';
+                          final ratio = override?.ratio ?? 0.25;
+                          final config = _ChildCycleConfig(childId: child.childId, childName: child.childName, cycleType: cycleType, ratio: ratio);
+                          return Column(children: [
+                            ListTile(
+                              leading: Container(width: 36, height: 36,
+                                  decoration: const BoxDecoration(color: AppColors.primaryLight, shape: BoxShape.circle),
+                                  alignment: Alignment.center,
+                                  child: Text(config.childName.substring(0, 1).toUpperCase(),
+                                      style: const TextStyle(fontWeight: FontWeight.w700, color: AppColors.primary, fontSize: 14))),
+                              title: Text(config.childName, style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: cs.onSurface)),
+                              subtitle: Text('${config.cycleType} · ${(config.ratio * 100).round()}% ratio',
+                                  style: TextStyle(fontSize: 12, color: cs.onSurfaceVariant)),
+                              trailing: InkWell(
+                                onTap: () => _showCycleConfigSheet(config, onSaved: () => setSheetState(() {})),
+                                borderRadius: BorderRadius.circular(8),
+                                child: const Padding(padding: EdgeInsets.all(4),
+                                    child: Icon(Icons.tune_rounded, size: 20, color: AppColors.neutral400)),
+                              ),
+                            ),
+                            if (i < children.length - 1)
+                              Divider(height: 1, indent: 16, endIndent: 16, color: cs.outlineVariant),
+                          ]);
+                        }));
+                      },
+                    ),
+                  ],
+                ),
+              ),
+            ]),
+          );
+        },
+      ),
+    );
+  }
 
   void _showLanguagePicker(BuildContext context) {
     final current = ref.read(localeProvider).valueOrNull;
@@ -380,7 +408,7 @@ class _ParentSettingsScreenState extends ConsumerState<ParentSettingsScreen> {
     );
   }
 
-  void _showMultiplierSheet(int index, _TierFactor factor) {
+  void _showMultiplierSheet(int index, _TierFactor factor, {VoidCallback? onSaved}) {
     double currentValue = factor.multiplier.clamp(0.5, 3.0);
     showModalBottomSheet<void>(
       context: context,
@@ -415,6 +443,7 @@ class _ParentSettingsScreenState extends ConsumerState<ParentSettingsScreen> {
                     final factorMap = {for (final f in updated) f.tier: f.multiplier};
                     await ref.read(connectionServiceProvider).saveBonusFactors(factorMap);
                   } catch (_) {}
+                  onSaved?.call();
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.primary, foregroundColor: AppColors.white,
@@ -431,7 +460,7 @@ class _ParentSettingsScreenState extends ConsumerState<ParentSettingsScreen> {
     );
   }
 
-  void _showCycleConfigSheet(_ChildCycleConfig config) {
+  void _showCycleConfigSheet(_ChildCycleConfig config, {VoidCallback? onSaved}) {
     String currentCycleType = config.cycleType;
     double currentRatio = config.ratio;
     const cycleTypes = ['Daily', 'Weekly', 'Monthly'];
@@ -492,6 +521,7 @@ class _ParentSettingsScreenState extends ConsumerState<ParentSettingsScreen> {
                     );
                   });
                   Navigator.of(ctx).pop();
+                  onSaved?.call();
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.primary, foregroundColor: AppColors.white,
