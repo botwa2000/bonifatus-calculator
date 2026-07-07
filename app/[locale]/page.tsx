@@ -7,6 +7,7 @@ import { CompoundGrowthWidget } from '@/components/widgets/CompoundGrowthWidget'
 import { Link } from '@/i18n/navigation'
 import { auth } from '@/auth'
 import { AppHeader } from '@/components/layout/AppHeader'
+import { AppStoreBadges } from '@/components/app-store-badges'
 
 export const dynamic = 'force-dynamic'
 
@@ -44,6 +45,7 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
               {t('heroDescription')}
             </p>
             <HeroCta />
+            <AppStoreBadges label={t('downloadAppCta')} />
           </div>
           <div className="hidden md:flex justify-center">
             <Image
@@ -367,6 +369,7 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
               {t('viewDemo')}
             </DemoLinkButton>
           </div>
+          <AppStoreBadges className="justify-center items-center" />
         </div>
       </section>
 
@@ -420,6 +423,10 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
               <p className="text-neutral-600 dark:text-neutral-400 mb-4">
                 {t('footerDescription')}
               </p>
+              <p className="text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">
+                {t('footerGetApp')}
+              </p>
+              <AppStoreBadges />
             </div>
             <div>
               <h3 className="font-semibold text-neutral-900 dark:text-white mb-4">
