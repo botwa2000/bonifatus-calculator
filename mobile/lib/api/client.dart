@@ -68,7 +68,13 @@ class _AuthInterceptor extends Interceptor {
       // that should show a "could not load" error, not log the user out.
       final path = err.requestOptions.path;
       if (path.contains('/api/mobile/auth/me')) {
-        await _storage.deleteAll();
+        // Delete only the expired token — preserve biometric preference and device ID
+        await Future.wait([
+          _storage.delete(key: AppConstants.keyAccessToken),
+          _storage.delete(key: AppConstants.keyRefreshToken),
+          _storage.delete(key: AppConstants.keyUserId),
+          _storage.delete(key: AppConstants.keyUserRole),
+        ]);
       }
     }
     handler.next(err);

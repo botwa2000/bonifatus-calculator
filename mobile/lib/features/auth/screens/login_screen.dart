@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:bonifatus_mobile/l10n/app_localizations.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../api/services/biometric_service.dart';
@@ -66,6 +67,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context)!;
     final isLoading = ref.watch(authStateNotifierProvider).isLoading;
 
     ref.listen(authStateNotifierProvider, (_, next) {
@@ -91,9 +93,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   child: Image.asset('assets/images/logo.png', width: 72, height: 72),
                 ),
                 const SizedBox(height: 24),
-                Text('Welcome back', style: theme.textTheme.displayLarge?.copyWith(color: AppColors.neutral900)),
+                Text(l10n.loginWelcomeBack, style: theme.textTheme.displayLarge?.copyWith(color: AppColors.neutral900)),
                 const SizedBox(height: 8),
-                Text('Sign in to your account', style: theme.textTheme.bodyLarge?.copyWith(color: AppColors.neutral600)),
+                Text(l10n.loginSignInSubtitle, style: theme.textTheme.bodyLarge?.copyWith(color: AppColors.neutral600)),
                 const SizedBox(height: 40),
 
                 if (_error != null) ...[
@@ -121,8 +123,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                         textInputAction: TextInputAction.next,
                         autocorrect: false,
                         autofillHints: const [AutofillHints.email, AutofillHints.username],
-                        decoration: const InputDecoration(labelText: 'Email', prefixIcon: Icon(Icons.email_outlined)),
-                        validator: (v) => (v == null || !v.contains('@')) ? 'Enter a valid email' : null,
+                        decoration: InputDecoration(labelText: l10n.loginEmailLabel, prefixIcon: const Icon(Icons.email_outlined)),
+                        validator: (v) => (v == null || !v.contains('@')) ? l10n.loginEmailValidator : null,
                       ),
                       const SizedBox(height: 16),
                       TextFormField(
@@ -132,14 +134,14 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                         autofillHints: const [AutofillHints.password],
                         onFieldSubmitted: (_) => _submit(),
                         decoration: InputDecoration(
-                          labelText: 'Password',
+                          labelText: l10n.loginPasswordLabel,
                           prefixIcon: const Icon(Icons.lock_outline),
                           suffixIcon: IconButton(
                             icon: Icon(_obscure ? Icons.visibility_outlined : Icons.visibility_off_outlined),
                             onPressed: () => setState(() => _obscure = !_obscure),
                           ),
                         ),
-                        validator: (v) => (v == null || v.isEmpty) ? 'Enter your password' : null,
+                        validator: (v) => (v == null || v.isEmpty) ? l10n.loginPasswordValidator : null,
                       ),
                     ],
                   ),
@@ -149,7 +151,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   alignment: Alignment.centerRight,
                   child: TextButton(
                     onPressed: () => context.push('/auth/forgot-password'),
-                    child: const Text('Forgot password?'),
+                    child: Text(l10n.loginForgotPassword),
                   ),
                 ),
                 const SizedBox(height: 24),
@@ -158,7 +160,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   child: isLoading
                       ? const SizedBox(height: 20, width: 20,
                           child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                      : const Text('Sign In'),
+                      : Text(l10n.loginSignInButton),
                 ),
 
                 if (_biometricAvailable) ...[
@@ -166,7 +168,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   OutlinedButton.icon(
                     onPressed: isLoading ? null : _loginWithBiometrics,
                     icon: const Icon(Icons.fingerprint_rounded),
-                    label: const Text('Sign in with Biometrics'),
+                    label: Text(l10n.loginBiometricButton),
                     style: OutlinedButton.styleFrom(
                       foregroundColor: AppColors.primary,
                       side: const BorderSide(color: AppColors.primary),
@@ -178,10 +180,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
                 const SizedBox(height: 24),
                 Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-                  Text("Don't have an account? ", style: theme.textTheme.bodyMedium),
+                  Text(l10n.loginNoAccountPrompt, style: theme.textTheme.bodyMedium),
                   TextButton(
                     onPressed: () => context.go('/auth/register'),
-                    child: const Text('Sign up'),
+                    child: Text(l10n.loginSignUpLink),
                   ),
                 ]),
               ],

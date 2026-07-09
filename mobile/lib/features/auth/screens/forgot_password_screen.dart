@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+import 'package:bonifatus_mobile/l10n/app_localizations.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../api/client.dart';
@@ -69,7 +70,7 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
       });
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Password updated! Sign in with your new password.')));
+          SnackBar(content: Text(AppLocalizations.of(context)!.forgotPasswordUpdatedSnackbar)));
         context.go('/auth/login');
       }
     } catch (e) {
@@ -85,79 +86,85 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
     return Scaffold(
       appBar: AppBar(
         leading: BackButton(onPressed: () => _step == 1 ? setState(() => _step = 0) : context.pop()),
-        title: const Text('Reset Password'),
+        title: Text(AppLocalizations.of(context)!.forgotPasswordAppBarTitle),
       ),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(24),
-          child: _step == 0 ? _buildStep1(theme) : _buildStep2(theme),
+          child: _step == 0 ? _buildStep1(context, theme) : _buildStep2(context, theme),
         ),
       ),
     );
   }
 
-  Widget _buildStep1(ThemeData theme) => Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-    const SizedBox(height: 24),
-    Text('Forgot your password?', style: theme.textTheme.headlineMedium),
-    const SizedBox(height: 8),
-    Text("Enter your email and we'll send you a reset code.", style: theme.textTheme.bodyLarge?.copyWith(color: AppColors.neutral600)),
-    const SizedBox(height: 32),
-    if (_error != null) ...[
-      _ErrorBox(message: _error!),
-      const SizedBox(height: 16),
-    ],
-    TextFormField(
-      controller: _emailCtrl,
-      keyboardType: TextInputType.emailAddress,
-      textInputAction: TextInputAction.done,
-      onFieldSubmitted: (_) { if (!_isLoading) _sendCode(); },
-      decoration: const InputDecoration(labelText: 'Email', prefixIcon: Icon(Icons.email_outlined)),
-    ),
-    const SizedBox(height: 24),
-    ElevatedButton(
-      onPressed: _isLoading ? null : _sendCode,
-      child: _isLoading ? const _Spinner() : const Text('Send Reset Code'),
-    ),
-  ]);
-
-  Widget _buildStep2(ThemeData theme) => Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-    const SizedBox(height: 24),
-    Text('Check your email', style: theme.textTheme.headlineMedium),
-    const SizedBox(height: 8),
-    Text('Enter the code we sent to ${_emailCtrl.text}.', style: theme.textTheme.bodyLarge?.copyWith(color: AppColors.neutral600)),
-    const SizedBox(height: 32),
-    if (_error != null) ...[
-      _ErrorBox(message: _error!),
-      const SizedBox(height: 16),
-    ],
-    TextFormField(
-      controller: _codeCtrl,
-      keyboardType: TextInputType.number,
-      textInputAction: TextInputAction.next,
-      maxLength: 8,
-      decoration: const InputDecoration(labelText: 'Reset code', prefixIcon: Icon(Icons.pin_outlined)),
-    ),
-    const SizedBox(height: 16),
-    TextFormField(
-      controller: _passCtrl,
-      obscureText: true,
-      textInputAction: TextInputAction.done,
-      onFieldSubmitted: (_) => _resetPassword(),
-      decoration: const InputDecoration(labelText: 'New password', prefixIcon: Icon(Icons.lock_outline)),
-    ),
-    const SizedBox(height: 24),
-    ElevatedButton(
-      onPressed: _isLoading ? null : _resetPassword,
-      child: _isLoading ? const _Spinner() : const Text('Reset Password'),
-    ),
-    const SizedBox(height: 12),
-    Center(
-      child: TextButton(
-        onPressed: _isLoading ? null : _sendCode,
-        child: const Text('Resend code'),
+  Widget _buildStep1(BuildContext context, ThemeData theme) {
+    final l10n = AppLocalizations.of(context)!;
+    return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+      const SizedBox(height: 24),
+      Text(l10n.forgotPasswordStep1Title, style: theme.textTheme.headlineMedium),
+      const SizedBox(height: 8),
+      Text(l10n.forgotPasswordStep1Subtitle, style: theme.textTheme.bodyLarge?.copyWith(color: AppColors.neutral600)),
+      const SizedBox(height: 32),
+      if (_error != null) ...[
+        _ErrorBox(message: _error!),
+        const SizedBox(height: 16),
+      ],
+      TextFormField(
+        controller: _emailCtrl,
+        keyboardType: TextInputType.emailAddress,
+        textInputAction: TextInputAction.done,
+        onFieldSubmitted: (_) { if (!_isLoading) _sendCode(); },
+        decoration: InputDecoration(labelText: l10n.forgotPasswordEmailLabel, prefixIcon: const Icon(Icons.email_outlined)),
       ),
-    ),
-  ]);
+      const SizedBox(height: 24),
+      ElevatedButton(
+        onPressed: _isLoading ? null : _sendCode,
+        child: _isLoading ? const _Spinner() : Text(l10n.forgotPasswordSendCodeButton),
+      ),
+    ]);
+  }
+
+  Widget _buildStep2(BuildContext context, ThemeData theme) {
+    final l10n = AppLocalizations.of(context)!;
+    return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+      const SizedBox(height: 24),
+      Text(l10n.forgotPasswordStep2Title, style: theme.textTheme.headlineMedium),
+      const SizedBox(height: 8),
+      Text(l10n.forgotPasswordStep2Subtitle(_emailCtrl.text), style: theme.textTheme.bodyLarge?.copyWith(color: AppColors.neutral600)),
+      const SizedBox(height: 32),
+      if (_error != null) ...[
+        _ErrorBox(message: _error!),
+        const SizedBox(height: 16),
+      ],
+      TextFormField(
+        controller: _codeCtrl,
+        keyboardType: TextInputType.number,
+        textInputAction: TextInputAction.next,
+        maxLength: 8,
+        decoration: InputDecoration(labelText: l10n.forgotPasswordResetCodeLabel, prefixIcon: const Icon(Icons.pin_outlined)),
+      ),
+      const SizedBox(height: 16),
+      TextFormField(
+        controller: _passCtrl,
+        obscureText: true,
+        textInputAction: TextInputAction.done,
+        onFieldSubmitted: (_) => _resetPassword(),
+        decoration: InputDecoration(labelText: l10n.forgotPasswordNewPasswordLabel, prefixIcon: const Icon(Icons.lock_outline)),
+      ),
+      const SizedBox(height: 24),
+      ElevatedButton(
+        onPressed: _isLoading ? null : _resetPassword,
+        child: _isLoading ? const _Spinner() : Text(l10n.forgotPasswordResetButton),
+      ),
+      const SizedBox(height: 12),
+      Center(
+        child: TextButton(
+          onPressed: _isLoading ? null : _sendCode,
+          child: Text(l10n.forgotPasswordResendCode),
+        ),
+      ),
+    ]);
+  }
 }
 
 class _ErrorBox extends StatelessWidget {

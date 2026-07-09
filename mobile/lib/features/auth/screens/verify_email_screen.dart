@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:bonifatus_mobile/l10n/app_localizations.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../api/client.dart';
@@ -62,16 +63,17 @@ class _VerifyEmailScreenState extends ConsumerState<VerifyEmailScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
-      appBar: AppBar(title: const Text('Verify Email')),
+      appBar: AppBar(title: Text(l10n.verifyEmailAppBarTitle)),
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(24),
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
             const SizedBox(height: 24),
-            Text('Check your email', style: theme.textTheme.headlineMedium),
+            Text(l10n.verifyEmailTitle, style: theme.textTheme.headlineMedium),
             const SizedBox(height: 8),
-            Text('Enter the 6-digit code sent to\n${widget.email}',
+            Text(l10n.verifyEmailSubtitle(widget.email),
               style: theme.textTheme.bodyLarge?.copyWith(color: AppColors.neutral600)),
             const SizedBox(height: 40),
             if (_error != null) ...[
@@ -116,7 +118,7 @@ class _VerifyEmailScreenState extends ConsumerState<VerifyEmailScreen> {
               onPressed: _isLoading || _code.length < 6 ? null : _verify,
               child: _isLoading
                   ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                  : const Text('Verify'),
+                  : Text(l10n.verifyEmailButton),
             ),
           ]),
         ),

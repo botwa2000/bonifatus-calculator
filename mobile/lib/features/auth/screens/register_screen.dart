@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:bonifatus_mobile/l10n/app_localizations.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../api/client.dart';
@@ -85,6 +86,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
       backgroundColor: AppColors.white,
       body: SafeArea(
@@ -132,8 +134,8 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
             Padding(
               padding: const EdgeInsets.fromLTRB(24, 0, 24, 16),
               child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-                Text('Already have an account? ', style: theme.textTheme.bodyMedium),
-                TextButton(onPressed: () => context.go('/auth/login'), child: const Text('Sign in')),
+                Text(l10n.registerAlreadyHaveAccount, style: theme.textTheme.bodyMedium),
+                TextButton(onPressed: () => context.go('/auth/login'), child: Text(l10n.registerSignInLink)),
               ]),
             ),
           ],
@@ -169,26 +171,27 @@ class _Step1State extends State<_Step1> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context)!;
     return Padding(
       padding: const EdgeInsets.all(24),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         const SizedBox(height: 24),
-        Text('What is your name?', style: theme.textTheme.headlineMedium),
+        Text(l10n.registerStep1Title, style: theme.textTheme.headlineMedium),
         const SizedBox(height: 8),
-        Text('This is how you will appear to others.', style: theme.textTheme.bodyLarge?.copyWith(color: AppColors.neutral600)),
+        Text(l10n.registerStep1Subtitle, style: theme.textTheme.bodyLarge?.copyWith(color: AppColors.neutral600)),
         const SizedBox(height: 32),
         TextFormField(
           controller: widget.ctrl,
           textInputAction: TextInputAction.done,
           autofocus: true,
           textCapitalization: TextCapitalization.words,
-          decoration: const InputDecoration(labelText: 'Full name', prefixIcon: Icon(Icons.person_outline)),
+          decoration: InputDecoration(labelText: l10n.registerFullNameLabel, prefixIcon: const Icon(Icons.person_outline)),
           onFieldSubmitted: (_) => widget.onNext(),
         ),
         const Spacer(),
         ElevatedButton(
           onPressed: widget.ctrl.text.trim().isEmpty ? null : widget.onNext,
-          child: const Text('Continue'),
+          child: Text(l10n.registerContinueButton),
         ),
       ]),
     );
@@ -203,21 +206,22 @@ class _Step2 extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context)!;
     return Padding(
       padding: const EdgeInsets.all(24),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         const SizedBox(height: 24),
-        Text('I am a...', style: theme.textTheme.headlineMedium),
+        Text(l10n.registerStep2Title, style: theme.textTheme.headlineMedium),
         const SizedBox(height: 8),
-        Text('Choose your role to get the right experience.', style: theme.textTheme.bodyLarge?.copyWith(color: AppColors.neutral600)),
+        Text(l10n.registerStep2Subtitle, style: theme.textTheme.bodyLarge?.copyWith(color: AppColors.neutral600)),
         const SizedBox(height: 32),
-        _RoleCard(title: 'Student', subtitle: 'Track my grades and earn rewards', icon: Icons.school_outlined,
+        _RoleCard(title: l10n.registerRoleStudentTitle, subtitle: l10n.registerRoleStudentSubtitle, icon: Icons.school_outlined,
           selected: role == 'child', onTap: () => onChanged('child')),
         const SizedBox(height: 12),
-        _RoleCard(title: 'Parent', subtitle: 'Set rewards and monitor my child progress', icon: Icons.family_restroom,
+        _RoleCard(title: l10n.registerRoleParentTitle, subtitle: l10n.registerRoleParentSubtitle, icon: Icons.family_restroom,
           selected: role == 'parent', onTap: () => onChanged('parent')),
         const Spacer(),
-        ElevatedButton(onPressed: onNext, child: const Text('Continue')),
+        ElevatedButton(onPressed: onNext, child: Text(l10n.registerContinueButton)),
       ]),
     );
   }
@@ -276,13 +280,14 @@ class _Step3 extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context)!;
     return SingleChildScrollView(
       padding: const EdgeInsets.all(24),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         const SizedBox(height: 24),
-        Text('Create your account', style: theme.textTheme.headlineMedium),
+        Text(l10n.registerStep3Title, style: theme.textTheme.headlineMedium),
         const SizedBox(height: 8),
-        Text('Almost there!', style: theme.textTheme.bodyLarge?.copyWith(color: AppColors.neutral600)),
+        Text(l10n.registerStep3Subtitle, style: theme.textTheme.bodyLarge?.copyWith(color: AppColors.neutral600)),
         const SizedBox(height: 32),
         if (error != null) ...[
           Container(
@@ -300,7 +305,7 @@ class _Step3 extends StatelessWidget {
           controller: emailCtrl,
           keyboardType: TextInputType.emailAddress,
           textInputAction: TextInputAction.next,
-          decoration: const InputDecoration(labelText: 'Email', prefixIcon: Icon(Icons.email_outlined)),
+          decoration: InputDecoration(labelText: l10n.registerEmailLabel, prefixIcon: const Icon(Icons.email_outlined)),
         ),
         const SizedBox(height: 16),
         TextFormField(
@@ -308,7 +313,7 @@ class _Step3 extends StatelessWidget {
           obscureText: obscure,
           textInputAction: TextInputAction.next,
           decoration: InputDecoration(
-            labelText: 'Password',
+            labelText: l10n.registerPasswordLabel,
             prefixIcon: const Icon(Icons.lock_outline),
             suffixIcon: IconButton(
               icon: Icon(obscure ? Icons.visibility_outlined : Icons.visibility_off_outlined),
@@ -321,14 +326,14 @@ class _Step3 extends StatelessWidget {
           obscureText: obscure,
           textInputAction: TextInputAction.done,
           onFieldSubmitted: (_) => onNext(),
-          decoration: const InputDecoration(labelText: 'Confirm password', prefixIcon: Icon(Icons.lock_outline)),
+          decoration: InputDecoration(labelText: l10n.registerConfirmPasswordLabel, prefixIcon: const Icon(Icons.lock_outline)),
         ),
         const SizedBox(height: 32),
         ElevatedButton(
           onPressed: isLoading ? null : onNext,
           child: isLoading
               ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-              : const Text('Create Account'),
+              : Text(l10n.registerCreateAccountButton),
         ),
       ]),
     );

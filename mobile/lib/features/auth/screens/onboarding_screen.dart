@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:bonifatus_mobile/l10n/app_localizations.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../../core/constants/app_constants.dart';
@@ -14,13 +15,10 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   final _controller = PageController();
   int _page = 0;
 
-  static const _pages = [
-    _Page(emoji: '🏆', title: 'Turn grades into\nrewards',
-      body: 'Students earn bonus points for every good grade. Parents set the rewards. Everyone wins.'),
-    _Page(emoji: '📸', title: 'Snap a grade,\nearn instantly',
-      body: 'Photo any graded school work. The app reads the subject and grade automatically.'),
-    _Page(emoji: '📊', title: 'Track progress\ntogether',
-      body: 'Parents and students see the same insights — grades, bonuses, and trends over time.'),
+  List<_Page> _getPages(AppLocalizations l10n) => [
+    _Page(emoji: '🏆', title: l10n.onboardingPage1Title, body: l10n.onboardingPage1Body),
+    _Page(emoji: '📸', title: l10n.onboardingPage2Title, body: l10n.onboardingPage2Body),
+    _Page(emoji: '📊', title: l10n.onboardingPage3Title, body: l10n.onboardingPage3Body),
   ];
 
   @override
@@ -33,8 +31,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     context.go('/auth/login');
   }
 
-  void _next() {
-    if (_page < _pages.length - 1) {
+  void _next(int pagesLength) {
+    if (_page < pagesLength - 1) {
       _controller.nextPage(duration: const Duration(milliseconds: 300), curve: Curves.easeInOut);
     } else {
       _goToLogin();
@@ -44,6 +42,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context)!;
+    final pages = _getPages(l10n);
     return Scaffold(
       backgroundColor: AppColors.white,
       body: SafeArea(
@@ -60,7 +60,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                   const Spacer(),
                   TextButton(
                     onPressed: _goToLogin,
-                    child: Text('Skip', style: theme.textTheme.labelLarge?.copyWith(color: AppColors.neutral400)),
+                    child: Text(l10n.onboardingSkip, style: theme.textTheme.labelLarge?.copyWith(color: AppColors.neutral400)),
                   ),
                 ],
               ),
@@ -69,8 +69,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               child: PageView.builder(
                 controller: _controller,
                 onPageChanged: (i) => setState(() => _page = i),
-                itemCount: _pages.length,
-                itemBuilder: (_, i) => _PageView(page: _pages[i]),
+                itemCount: pages.length,
+                itemBuilder: (_, i) => _PageView(page: pages[i]),
               ),
             ),
             Padding(
@@ -79,21 +79,21 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 children: [
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
-                    children: List.generate(_pages.length, (i) => _Dot(active: i == _page)),
+                    children: List.generate(pages.length, (i) => _Dot(active: i == _page)),
                   ),
                   const SizedBox(height: 32),
                   ElevatedButton(
-                    onPressed: _next,
-                    child: Text(_page == _pages.length - 1 ? 'Get Started' : 'Next'),
+                    onPressed: () => _next(pages.length),
+                    child: Text(_page == pages.length - 1 ? l10n.onboardingGetStarted : l10n.onboardingNext),
                   ),
                   const SizedBox(height: 12),
                   TextButton(
                     onPressed: () => context.go('/auth/register'),
                     child: RichText(
                       text: TextSpan(style: theme.textTheme.bodyMedium, children: [
-                        const TextSpan(text: "Don't have an account? "),
-                        const TextSpan(text: 'Sign up',
-                          style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.w600)),
+                        TextSpan(text: l10n.onboardingNoAccountPrompt),
+                        TextSpan(text: l10n.onboardingSignUpLink,
+                          style: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.w600)),
                       ]),
                     ),
                   ),

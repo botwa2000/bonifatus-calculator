@@ -53,7 +53,7 @@ class AuthService {
         email: resp.data['email'] as String?,
       );
     } catch (_) {
-      await _storage.deleteAll();
+      await _clearExpiredToken();
       return AuthSessionState.unauthenticated();
     }
   }
@@ -126,14 +126,32 @@ class AuthService {
   }
 
   Future<void> logout() async {
+    // Notify the server fire-and-forget — don't block the UI.
+    // We intentionally keep the access token in storage so biometric login
+    // can restore the session on the next app open (30-day token expiry).
+    // ignore: unawaited_futures
+    _signOutServerAsync();
+  }
+
+  Future<void> _signOutServerAsync() async {
     try {
       await _client.post('/api/auth/signout', data: {});
     } catch (_) {}
-    await _storage.deleteAll();
   }
 
   Future<void> deleteAccount() async {
     await _client.post('/api/profile/delete', data: {});
     await _storage.deleteAll();
+  }
+
+  // Called only when a token is confirmed invalid (401 on /me, or session restore fails).
+  // Preserves biometric preference and device ID.
+  Future<void> _clearExpiredToken() async {
+    await Future.wait([
+      _storage.delete(key: AppConstants.keyAccessToken),
+      _storage.delete(key: AppConstants.keyRefreshToken),
+      _storage.delete(key: AppConstants.keyUserId),
+      _storage.delete(key: AppConstants.keyUserRole),
+    ]);
   }
 }

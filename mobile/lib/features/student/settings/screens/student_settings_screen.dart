@@ -637,7 +637,7 @@ class _StudentSettingsScreenState extends ConsumerState<StudentSettingsScreen> {
 
   Future<void> _logout(BuildContext context) async {
     await ref.read(authStateNotifierProvider.notifier).logout();
-    if (context.mounted) context.go('/onboarding');
+    // GoRouter's redirect guard handles navigation to login once auth state is cleared
   }
 
   static String _localeLabel(Locale? locale) {
