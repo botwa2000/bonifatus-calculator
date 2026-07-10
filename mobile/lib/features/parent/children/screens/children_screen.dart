@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:qr_flutter/qr_flutter.dart';
+import 'package:bonifatus_mobile/l10n/app_localizations.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../api/services/connection_service.dart';
 import '../../../../models/invite_code.dart';
@@ -13,10 +14,9 @@ class ChildrenScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context)!;
     final childrenAsync = ref.watch(childrenQuickGradesProvider);
 
-    // Scaffold has no appBar — nested Scaffold with AppBar collapses body
-    // to zero height inside ShellRoute. Header is a manual Row inside body.
     return Scaffold(
       backgroundColor: AppColors.neutral50,
       floatingActionButton: FloatingActionButton(
@@ -33,9 +33,9 @@ class ChildrenScreen extends ConsumerWidget {
               padding: const EdgeInsets.fromLTRB(20, 16, 4, 8),
               child: Row(
                 children: [
-                  const Text(
-                    'Children',
-                    style: TextStyle(
+                  Text(
+                    l10n.childrenTitle,
+                    style: const TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.w700,
                       color: AppColors.neutral900,
@@ -65,9 +65,9 @@ class ChildrenScreen extends ConsumerWidget {
                         const Icon(Icons.error_outline,
                             size: 48, color: AppColors.error),
                         const SizedBox(height: 16),
-                        const Text(
-                          'Failed to load children',
-                          style: TextStyle(
+                        Text(
+                          l10n.childrenFailedToLoad,
+                          style: const TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.w600,
                             color: AppColors.neutral900,
@@ -87,15 +87,15 @@ class ChildrenScreen extends ConsumerWidget {
                             backgroundColor: AppColors.primary,
                             foregroundColor: AppColors.white,
                           ),
-                          child: const Text('Retry'),
+                          child: Text(l10n.childrenRetry),
                         ),
                       ],
                     ),
                   ),
                 ),
                 data: (children) {
-                  if (children.isEmpty) return _buildEmptyState(context, ref);
-                  return _buildList(context, ref, children);
+                  if (children.isEmpty) return _buildEmptyState(context, ref, l10n);
+                  return _buildList(context, ref, children, l10n);
                 },
               ),
             ),
@@ -105,7 +105,7 @@ class ChildrenScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildEmptyState(BuildContext context, WidgetRef ref) {
+  Widget _buildEmptyState(BuildContext context, WidgetRef ref, AppLocalizations l10n) {
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(32),
@@ -126,25 +126,25 @@ class ChildrenScreen extends ConsumerWidget {
               ),
             ),
             const SizedBox(height: 24),
-            const Text(
-              'No children connected',
-              style: TextStyle(
+            Text(
+              l10n.childrenNoChildrenConnected,
+              style: const TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.w700,
                 color: AppColors.neutral900,
               ),
             ),
             const SizedBox(height: 8),
-            const Text(
-              'Share an invite QR code to connect with a student',
-              style: TextStyle(fontSize: 15, color: AppColors.neutral600),
+            Text(
+              l10n.childrenShareQrHint,
+              style: const TextStyle(fontSize: 15, color: AppColors.neutral600),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 24),
             ElevatedButton.icon(
               onPressed: () => _showInviteDialog(context, ref),
               icon: const Icon(Icons.qr_code_rounded),
-              label: const Text('Show Invite QR'),
+              label: Text(l10n.childrenShowInviteQr),
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.primary,
                 foregroundColor: AppColors.white,
@@ -161,7 +161,7 @@ class ChildrenScreen extends ConsumerWidget {
   }
 
   Widget _buildList(
-      BuildContext context, WidgetRef ref, List<ChildWithGrades> children) {
+      BuildContext context, WidgetRef ref, List<ChildWithGrades> children, AppLocalizations l10n) {
     return ListView.builder(
       padding: const EdgeInsets.fromLTRB(16, 4, 16, 120),
       itemCount: children.length,
@@ -171,6 +171,7 @@ class ChildrenScreen extends ConsumerWidget {
           padding: const EdgeInsets.only(bottom: 12),
           child: _ChildCard(
             child: child,
+            l10n: l10n,
             onView: () => context.push('/parent/children/${child.childId}'),
           ),
         );
@@ -227,6 +228,7 @@ class _InviteDialogState extends State<_InviteDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final inviteUrl = _invite != null
         ? 'https://bonifatus.com/invite?code=${_invite!.code}'
         : null;
@@ -238,18 +240,18 @@ class _InviteDialogState extends State<_InviteDialog> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Text(
-              'Invite a Student',
-              style: TextStyle(
+            Text(
+              l10n.childrenInviteStudent,
+              style: const TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.w700,
                 color: AppColors.neutral900,
               ),
             ),
             const SizedBox(height: 8),
-            const Text(
-              'Ask the student to scan this code in their app',
-              style: TextStyle(fontSize: 13, color: AppColors.neutral600),
+            Text(
+              l10n.childrenScanCodeHint,
+              style: const TextStyle(fontSize: 13, color: AppColors.neutral600),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 20),
@@ -270,8 +272,8 @@ class _InviteDialogState extends State<_InviteDialog> {
                       const Icon(Icons.error_outline,
                           color: AppColors.error, size: 32),
                       const SizedBox(height: 8),
-                      const Text('Failed to create invite',
-                          style: TextStyle(color: AppColors.error)),
+                      Text(l10n.childrenFailedToCreateInvite,
+                          style: const TextStyle(color: AppColors.error)),
                       const SizedBox(height: 8),
                       TextButton(
                         onPressed: () {
@@ -281,7 +283,7 @@ class _InviteDialogState extends State<_InviteDialog> {
                           });
                           _loadInvite();
                         },
-                        child: const Text('Retry'),
+                        child: Text(l10n.childrenRetry),
                       ),
                     ],
                   ),
@@ -334,7 +336,7 @@ class _InviteDialogState extends State<_InviteDialog> {
                   shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(10)),
                 ),
-                child: const Text('Close'),
+                child: Text(l10n.childrenClose),
               ),
             ),
           ],
@@ -347,8 +349,9 @@ class _InviteDialogState extends State<_InviteDialog> {
 class _ChildCard extends StatelessWidget {
   final ChildWithGrades child;
   final VoidCallback onView;
+  final AppLocalizations l10n;
 
-  const _ChildCard({required this.child, required this.onView});
+  const _ChildCard({required this.child, required this.onView, required this.l10n});
 
   @override
   Widget build(BuildContext context) {

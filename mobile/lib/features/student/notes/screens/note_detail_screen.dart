@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
+import 'package:bonifatus_mobile/l10n/app_localizations.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../providers/quick_grades_provider.dart';
 
@@ -12,12 +13,13 @@ class NoteDetailScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context)!;
     final gradesAsync = ref.watch(quickGradesProvider);
 
     return gradesAsync.when(
       loading: () => Scaffold(
         appBar: AppBar(
-          title: const Text('Note Detail'),
+          title: Text(l10n.noteDetailTitle),
           backgroundColor: AppColors.white,
           elevation: 0,
           leading: IconButton(
@@ -31,7 +33,7 @@ class NoteDetailScreen extends ConsumerWidget {
       ),
       error: (_, __) => Scaffold(
         appBar: AppBar(
-          title: const Text('Note Detail'),
+          title: Text(l10n.noteDetailTitle),
           backgroundColor: AppColors.white,
           elevation: 0,
           leading: IconButton(
@@ -40,16 +42,16 @@ class NoteDetailScreen extends ConsumerWidget {
             onPressed: () => context.pop(),
           ),
         ),
-        body: const Center(
-            child: Text('Could not load note',
-                style: TextStyle(color: AppColors.neutral600))),
+        body: Center(
+            child: Text(l10n.noteDetailCouldNotLoad,
+                style: const TextStyle(color: AppColors.neutral600))),
       ),
       data: (grades) {
         final grade = grades.where((g) => g.id == noteId).firstOrNull;
         if (grade == null) {
           return Scaffold(
             appBar: AppBar(
-              title: const Text('Note Detail'),
+              title: Text(l10n.noteDetailTitle),
               backgroundColor: AppColors.white,
               elevation: 0,
               leading: IconButton(
@@ -58,9 +60,9 @@ class NoteDetailScreen extends ConsumerWidget {
                 onPressed: () => context.pop(),
               ),
             ),
-            body: const Center(
-              child: Text('Grade not found',
-                  style: TextStyle(color: AppColors.neutral600)),
+            body: Center(
+              child: Text(l10n.noteDetailNotFound,
+                  style: const TextStyle(color: AppColors.neutral600)),
             ),
           );
         }
@@ -82,9 +84,9 @@ class NoteDetailScreen extends ConsumerWidget {
                   color: AppColors.neutral900),
               onPressed: () => context.pop(),
             ),
-            title: const Text(
-              'Note Detail',
-              style: TextStyle(
+            title: Text(
+              l10n.noteDetailTitle,
+              style: const TextStyle(
                 color: AppColors.neutral900,
                 fontWeight: FontWeight.w700,
                 fontSize: 18,
@@ -94,7 +96,7 @@ class NoteDetailScreen extends ConsumerWidget {
               IconButton(
                 icon: const Icon(Icons.delete_outline_rounded,
                     color: AppColors.error),
-                onPressed: () => _showDeleteDialog(context, ref),
+                onPressed: () => _showDeleteDialog(context, ref, l10n),
               ),
             ],
           ),
@@ -183,22 +185,22 @@ class NoteDetailScreen extends ConsumerWidget {
                       const SizedBox(height: 16),
                       _DetailRow(
                         icon: Icons.schedule_rounded,
-                        label: 'Date Captured',
+                        label: l10n.noteDetailDateCaptured,
                         value: dateStr,
                       ),
                       const SizedBox(height: 12),
                       _DetailRow(
                         icon: Icons.star_outline_rounded,
-                        label: 'Quality Tier',
-                        value: _tierLabel(grade.gradeQualityTier),
+                        label: l10n.noteDetailQualityTier,
+                        value: _tierLabel(grade.gradeQualityTier, l10n),
                       ),
                       const SizedBox(height: 12),
                       _DetailRow(
                         icon: Icons.account_balance_wallet_outlined,
-                        label: 'Settlement',
+                        label: l10n.noteDetailSettlement,
                         value: grade.settlementStatus == 'settled'
-                            ? 'Settled'
-                            : 'Pending',
+                            ? l10n.noteDetailSettled
+                            : l10n.noteDetailPending,
                       ),
                     ],
                   ),
@@ -211,36 +213,34 @@ class NoteDetailScreen extends ConsumerWidget {
     );
   }
 
-  String _tierLabel(String tier) {
+  String _tierLabel(String tier, AppLocalizations l10n) {
     switch (tier) {
       case 'best':
-        return 'Tier 1 — Excellent';
+        return l10n.noteDetailTier1;
       case 'second':
-        return 'Tier 2 — Good';
+        return l10n.noteDetailTier2;
       case 'third':
-        return 'Tier 3 — Satisfactory';
+        return l10n.noteDetailTier3;
       default:
-        return 'Below Threshold';
+        return l10n.noteDetailTierBelow;
     }
   }
 
-  void _showDeleteDialog(BuildContext context, WidgetRef ref) {
+  void _showDeleteDialog(BuildContext context, WidgetRef ref, AppLocalizations l10n) {
     showDialog<void>(
       context: context,
       builder: (ctx) => AlertDialog(
         shape:
             RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Text(
-          'Delete Note',
-          style: TextStyle(fontWeight: FontWeight.w700),
+        title: Text(
+          l10n.noteDetailDeleteTitle,
+          style: const TextStyle(fontWeight: FontWeight.w700),
         ),
-        content: const Text(
-          'Are you sure you want to delete this note? This action cannot be undone.',
-        ),
+        content: Text(l10n.noteDetailDeleteConfirm),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(),
-            child: const Text('Cancel'),
+            child: Text(l10n.noteDetailCancel),
           ),
           ElevatedButton(
             onPressed: () async {
@@ -256,7 +256,7 @@ class NoteDetailScreen extends ConsumerWidget {
               shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(8)),
             ),
-            child: const Text('Delete'),
+            child: Text(l10n.noteDetailDelete),
           ),
         ],
       ),

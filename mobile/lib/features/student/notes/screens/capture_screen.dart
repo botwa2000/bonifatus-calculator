@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:bonifatus_mobile/l10n/app_localizations.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../models/calculator_config.dart';
 import '../../providers/quick_grades_provider.dart';
@@ -44,6 +45,8 @@ class _CaptureScreenState extends ConsumerState<CaptureScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+
     return Scaffold(
       backgroundColor: const Color(0xFF0D0D0D),
       appBar: AppBar(
@@ -53,29 +56,29 @@ class _CaptureScreenState extends ConsumerState<CaptureScreen> {
           icon: const Icon(Icons.close_rounded, color: Colors.white),
           onPressed: () => context.pop(),
         ),
-        title: const Text(
-          'Capture Grade',
-          style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
+        title: Text(
+          l10n.captureTitle,
+          style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
         ),
       ),
       body: switch (_state) {
-        _CaptureState.viewfinder => _buildViewfinder(),
-        _CaptureState.processing => _buildProcessing(),
+        _CaptureState.viewfinder => _buildViewfinder(l10n),
+        _CaptureState.processing => _buildProcessing(l10n),
         _CaptureState.confirming => _buildConfirming(),
       },
     );
   }
 
-  Widget _buildViewfinder() {
+  Widget _buildViewfinder(AppLocalizations l10n) {
     return SafeArea(
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 24),
         child: Column(
           children: [
             const SizedBox(height: 24),
-            const Text(
-              'Position the grade so it is clearly visible',
-              style: TextStyle(
+            Text(
+              l10n.capturePositionGrade,
+              style: const TextStyle(
                 color: Colors.white70,
                 fontSize: 15,
                 height: 1.4,
@@ -139,8 +142,8 @@ class _CaptureScreenState extends ConsumerState<CaptureScreen> {
                     onPressed: _pickFromGallery,
                     icon: const Icon(Icons.photo_library_outlined,
                         color: Colors.white),
-                    label: const Text('Choose from Gallery',
-                        style: TextStyle(color: Colors.white)),
+                    label: Text(l10n.captureChooseFromGallery,
+                        style: const TextStyle(color: Colors.white)),
                     style: OutlinedButton.styleFrom(
                       side: const BorderSide(color: Colors.white38),
                       padding: const EdgeInsets.symmetric(vertical: 14),
@@ -154,7 +157,7 @@ class _CaptureScreenState extends ConsumerState<CaptureScreen> {
                   child: ElevatedButton.icon(
                     onPressed: _simulateCapture,
                     icon: const Icon(Icons.camera_alt_rounded),
-                    label: const Text('Take Photo'),
+                    label: Text(l10n.captureTakePhoto),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.primary,
                       foregroundColor: Colors.white,
@@ -173,16 +176,16 @@ class _CaptureScreenState extends ConsumerState<CaptureScreen> {
     );
   }
 
-  Widget _buildProcessing() {
-    return const Center(
+  Widget _buildProcessing(AppLocalizations l10n) {
+    return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          CircularProgressIndicator(color: AppColors.primary),
-          SizedBox(height: 24),
+          const CircularProgressIndicator(color: AppColors.primary),
+          const SizedBox(height: 24),
           Text(
-            'Loading grade entry...',
-            style: TextStyle(color: Colors.white70, fontSize: 16),
+            l10n.captureLoadingEntry,
+            style: const TextStyle(color: Colors.white70, fontSize: 16),
           ),
         ],
       ),
@@ -236,9 +239,9 @@ class _GradeEntryFormState extends ConsumerState<_GradeEntryForm> {
     if (grades.isNotEmpty) _selectedGrade = grades.first;
   }
 
-  Future<void> _save() async {
+  Future<void> _save(AppLocalizations l10n) async {
     if (_selectedSubject == null || _selectedGrade == null) {
-      setState(() => _error = 'Please select a subject and grade');
+      setState(() => _error = l10n.captureSelectSubjectAndGrade);
       return;
     }
     setState(() {
@@ -265,6 +268,7 @@ class _GradeEntryFormState extends ConsumerState<_GradeEntryForm> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final grades = _selectedSystem.gradeValues;
 
     return SafeArea(
@@ -274,18 +278,18 @@ class _GradeEntryFormState extends ConsumerState<_GradeEntryForm> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const SizedBox(height: 8),
-            const Text(
-              'Enter Grade',
-              style: TextStyle(
+            Text(
+              l10n.captureEnterGrade,
+              style: const TextStyle(
                 color: Colors.white,
                 fontSize: 22,
                 fontWeight: FontWeight.w700,
               ),
             ),
             const SizedBox(height: 6),
-            const Text(
-              'Select the subject and grade value',
-              style: TextStyle(color: Colors.white60, fontSize: 14),
+            Text(
+              l10n.captureSelectSubjectGrade,
+              style: const TextStyle(color: Colors.white60, fontSize: 14),
             ),
             const SizedBox(height: 28),
 
@@ -301,9 +305,9 @@ class _GradeEntryFormState extends ConsumerState<_GradeEntryForm> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
-                    'Subject',
-                    style: TextStyle(
+                  Text(
+                    l10n.captureSubjectLabel,
+                    style: const TextStyle(
                       fontSize: 13,
                       fontWeight: FontWeight.w600,
                       color: Colors.white60,
@@ -311,8 +315,8 @@ class _GradeEntryFormState extends ConsumerState<_GradeEntryForm> {
                   ),
                   const SizedBox(height: 12),
                   if (widget.config.subjects.isEmpty)
-                    const Text('No subjects loaded',
-                        style: TextStyle(color: Colors.white54))
+                    Text(l10n.captureNoSubjectsLoaded,
+                        style: const TextStyle(color: Colors.white54))
                   else
                     Wrap(
                       spacing: 8,
@@ -366,9 +370,9 @@ class _GradeEntryFormState extends ConsumerState<_GradeEntryForm> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const Text(
-                        'Grade',
-                        style: TextStyle(
+                      Text(
+                        l10n.captureGradeLabel,
+                        style: const TextStyle(
                           fontSize: 13,
                           fontWeight: FontWeight.w600,
                           color: Colors.white60,
@@ -449,14 +453,14 @@ class _GradeEntryFormState extends ConsumerState<_GradeEntryForm> {
                       shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12)),
                     ),
-                    child: const Text('Cancel',
-                        style: TextStyle(color: Colors.white70)),
+                    child: Text(l10n.captureCancel,
+                        style: const TextStyle(color: Colors.white70)),
                   ),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
                   child: ElevatedButton(
-                    onPressed: _saving ? null : _save,
+                    onPressed: _saving ? null : () => _save(l10n),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.primary,
                       foregroundColor: Colors.white,
@@ -473,8 +477,8 @@ class _GradeEntryFormState extends ConsumerState<_GradeEntryForm> {
                               strokeWidth: 2,
                             ),
                           )
-                        : const Text('Save Grade',
-                            style: TextStyle(fontWeight: FontWeight.w700)),
+                        : Text(l10n.captureSaveGrade,
+                            style: const TextStyle(fontWeight: FontWeight.w700)),
                   ),
                 ),
               ],

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
+import 'package:bonifatus_mobile/l10n/app_localizations.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../providers/quick_grades_provider.dart';
 import '../../../../models/quick_grade.dart';
@@ -21,6 +22,7 @@ class CycleSummaryScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context)!;
     final gradesAsync = ref.watch(quickGradesProvider);
     final weekStart = _parseWeekStart();
 
@@ -34,9 +36,9 @@ class CycleSummaryScreen extends ConsumerWidget {
               color: AppColors.neutral900),
           onPressed: () => context.pop(),
         ),
-        title: const Text(
-          'Cycle Summary',
-          style: TextStyle(
+        title: Text(
+          l10n.cycleSummaryTitle,
+          style: const TextStyle(
             color: AppColors.neutral900,
             fontWeight: FontWeight.w700,
             fontSize: 18,
@@ -46,9 +48,9 @@ class CycleSummaryScreen extends ConsumerWidget {
       body: gradesAsync.when(
         loading: () => const Center(
             child: CircularProgressIndicator(color: AppColors.primary)),
-        error: (_, __) => const Center(
-          child: Text('Could not load grades',
-              style: TextStyle(color: AppColors.neutral600)),
+        error: (_, __) => Center(
+          child: Text(l10n.cycleSummaryCouldNotLoad,
+              style: const TextStyle(color: AppColors.neutral600)),
         ),
         data: (allGrades) {
           List<QuickGrade> weekGrades;
@@ -91,16 +93,19 @@ class CycleSummaryScreen extends ConsumerWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 _buildHeaderCard(
-                  cycleType: 'Weekly',
+                  context,
+                  cycleType: l10n.cycleSummaryWeekly,
                   startDate: startStr,
                   endDate: endStr,
                   totalPositive: totalPositive,
                   netPts: netPts,
+                  positiveLabel: l10n.cycleSummaryPositive,
+                  netLabel: l10n.cycleSummaryNet,
                 ),
                 const SizedBox(height: 24),
-                const Text(
-                  'Notes in this Cycle',
-                  style: TextStyle(
+                Text(
+                  l10n.cycleSummaryNotesInCycle,
+                  style: const TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w700,
                     color: AppColors.neutral900,
@@ -108,12 +113,12 @@ class CycleSummaryScreen extends ConsumerWidget {
                 ),
                 const SizedBox(height: 12),
                 if (weekGrades.isEmpty)
-                  const Center(
+                  Center(
                     child: Padding(
-                      padding: EdgeInsets.symmetric(vertical: 24),
+                      padding: const EdgeInsets.symmetric(vertical: 24),
                       child: Text(
-                        'No grades in this period',
-                        style: TextStyle(color: AppColors.neutral600),
+                        l10n.cycleSummaryNoGrades,
+                        style: const TextStyle(color: AppColors.neutral600),
                       ),
                     ),
                   )
@@ -133,12 +138,15 @@ class CycleSummaryScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildHeaderCard({
+  Widget _buildHeaderCard(
+    BuildContext context, {
     required String cycleType,
     required String startDate,
     required String endDate,
     required double totalPositive,
     required double netPts,
+    required String positiveLabel,
+    required String netLabel,
   }) {
     final netColor = netPts >= 0 ? AppColors.tierBest : AppColors.tierBelow;
     final netBg =
@@ -194,7 +202,7 @@ class CycleSummaryScreen extends ConsumerWidget {
             children: [
               Expanded(
                 child: _StatBox(
-                  label: 'Positive',
+                  label: positiveLabel,
                   value: '+${totalPositive % 1 == 0 ? totalPositive.toInt() : totalPositive.toStringAsFixed(1)} pts',
                   valueColor: Colors.white,
                   bgColor: Colors.white.withValues(alpha: 0.15),
@@ -203,7 +211,7 @@ class CycleSummaryScreen extends ConsumerWidget {
               const SizedBox(width: 10),
               Expanded(
                 child: _StatBox(
-                  label: 'Net',
+                  label: netLabel,
                   value: '${netPts % 1 == 0 ? netPts.toInt() : netPts.toStringAsFixed(1)} pts',
                   valueColor: netColor,
                   bgColor: netBg,

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:bonifatus_mobile/l10n/app_localizations.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../models/child_data.dart';
 import '../providers/children_provider.dart';
@@ -10,11 +11,12 @@ class ParentInsightsScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context)!;
     final childrenAsync = ref.watch(childrenQuickGradesProvider);
     final theme = Theme.of(context);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Insights')),
+      appBar: AppBar(title: Text(l10n.parentInsightsTitle)),
       body: childrenAsync.when(
         loading: () =>
             const Center(child: CircularProgressIndicator(color: AppColors.primary)),
@@ -26,7 +28,7 @@ class ParentInsightsScreen extends ConsumerWidget {
               children: [
                 const Icon(Icons.error_outline, size: 48, color: AppColors.error),
                 const SizedBox(height: 16),
-                Text('Failed to load insights',
+                Text(l10n.parentInsightsFailedToLoad,
                     style: theme.textTheme.titleMedium),
                 const SizedBox(height: 8),
                 Text(err.toString(),
@@ -35,7 +37,7 @@ class ParentInsightsScreen extends ConsumerWidget {
                 const SizedBox(height: 20),
                 ElevatedButton(
                   onPressed: () => ref.invalidate(childrenQuickGradesProvider),
-                  child: const Text('Retry'),
+                  child: Text(l10n.parentInsightsRetry),
                 ),
               ],
             ),
@@ -43,23 +45,23 @@ class ParentInsightsScreen extends ConsumerWidget {
         ),
         data: (children) {
           if (children.isEmpty) {
-            return const Center(
+            return Center(
               child: Padding(
-                padding: EdgeInsets.all(32),
+                padding: const EdgeInsets.all(32),
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(Icons.insights_outlined,
+                    const Icon(Icons.insights_outlined,
                         size: 64, color: AppColors.neutral400),
-                    SizedBox(height: 16),
-                    Text('No insights yet',
-                        style: TextStyle(
+                    const SizedBox(height: 16),
+                    Text(l10n.parentInsightsNoInsights,
+                        style: const TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.w600,
                             color: AppColors.neutral900)),
-                    SizedBox(height: 8),
-                    Text('Connect children to see their grade insights',
-                        style: TextStyle(color: AppColors.neutral600),
+                    const SizedBox(height: 8),
+                    Text(l10n.parentInsightsNoInsightsHint,
+                        style: const TextStyle(color: AppColors.neutral600),
                         textAlign: TextAlign.center),
                   ],
                 ),
@@ -82,16 +84,16 @@ class ParentInsightsScreen extends ConsumerWidget {
                     child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text('All Children — Summary',
+                          Text(l10n.parentInsightsAllChildrenSummary,
                               style: theme.textTheme.titleMedium),
                           const SizedBox(height: 16),
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceAround,
                             children: [
-                              _Stat(label: 'Total Earned', value: '$totalEarned pts'),
-                              _Stat(label: 'Pending', value: '$pendingPts pts'),
+                              _Stat(label: l10n.parentInsightsTotalEarned, value: '$totalEarned pts'),
+                              _Stat(label: l10n.parentInsightsPending, value: '$pendingPts pts'),
                               _Stat(
-                                  label: 'Children',
+                                  label: l10n.parentInsightsChildren,
                                   value: '${children.length}'),
                             ],
                           ),

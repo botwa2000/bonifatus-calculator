@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:bonifatus_mobile/l10n/app_localizations.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../providers/term_results_provider.dart';
 import '../../../../models/term_result.dart';
@@ -10,6 +11,7 @@ class ResultsScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context)!;
     final termsAsync = ref.watch(termResultsProvider);
     final theme = Theme.of(context);
 
@@ -18,7 +20,7 @@ class ResultsScreen extends ConsumerWidget {
         slivers: [
           SliverAppBar(
             floating: true,
-            title: const Text('Saved Results'),
+            title: Text(l10n.resultsTitle),
             actions: [
               IconButton(
                 icon: const Icon(Icons.add),
@@ -41,9 +43,9 @@ class ResultsScreen extends ConsumerWidget {
                       const Icon(Icons.error_outline,
                           size: 48, color: AppColors.error),
                       const SizedBox(height: 16),
-                      const Text(
-                        'Failed to load results',
-                        style: TextStyle(
+                      Text(
+                        l10n.resultsFailedToLoad,
+                        style: const TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.w600,
                           color: AppColors.neutral900,
@@ -64,7 +66,7 @@ class ResultsScreen extends ConsumerWidget {
                           backgroundColor: AppColors.primary,
                           foregroundColor: AppColors.white,
                         ),
-                        child: const Text('Retry'),
+                        child: Text(l10n.resultsRetry),
                       ),
                     ],
                   ),
@@ -92,7 +94,7 @@ class ResultsScreen extends ConsumerWidget {
                           ),
                           const SizedBox(height: 16),
                           Text(
-                            'No saved results yet',
+                            l10n.resultsNoResults,
                             style:
                                 theme.textTheme.titleMedium?.copyWith(
                               color: AppColors.neutral900,
@@ -100,7 +102,7 @@ class ResultsScreen extends ConsumerWidget {
                           ),
                           const SizedBox(height: 8),
                           Text(
-                            'Use the calculator to save your first term result.',
+                            l10n.resultsUseCalculator,
                             style:
                                 theme.textTheme.bodyMedium?.copyWith(
                               color: AppColors.neutral600,
@@ -111,7 +113,7 @@ class ResultsScreen extends ConsumerWidget {
                           ElevatedButton.icon(
                             onPressed: () => context.go('/student/calculator'),
                             icon: const Icon(Icons.calculate_rounded),
-                            label: const Text('Open Calculator'),
+                            label: Text(l10n.resultsOpenCalculator),
                             style: ElevatedButton.styleFrom(
                               backgroundColor: AppColors.primary,
                               foregroundColor: AppColors.white,

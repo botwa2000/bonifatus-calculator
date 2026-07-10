@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
+import 'package:bonifatus_mobile/l10n/app_localizations.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../providers/quick_grades_provider.dart';
 import '../../../../models/quick_grade.dart';
@@ -23,7 +24,8 @@ DateTime _weekStart(DateTime date) {
   return d.subtract(Duration(days: d.weekday - 1));
 }
 
-List<_WeekGroup> _groupByWeek(List<QuickGrade> grades) {
+List<_WeekGroup> _groupByWeek(
+    List<QuickGrade> grades, String thisWeekStr, String lastWeekStr) {
   final map = <String, List<QuickGrade>>{};
   for (final g in grades) {
     final ws = _weekStart(g.gradedAt);
@@ -42,11 +44,9 @@ List<_WeekGroup> _groupByWeek(List<QuickGrade> grades) {
     final diff = thisWeekStart.difference(ws).inDays;
     String label;
     if (diff == 0) {
-      label =
-          'This Week — ${fmt.format(ws)}–${fmt.format(we)}';
+      label = '$thisWeekStr — ${fmt.format(ws)}–${fmt.format(we)}';
     } else if (diff == 7) {
-      label =
-          'Last Week — ${fmt.format(ws)}–${fmt.format(we)}';
+      label = '$lastWeekStr — ${fmt.format(ws)}–${fmt.format(we)}';
     } else {
       label = '${fmt.format(ws)} – ${fmt.format(we)}';
     }
@@ -62,6 +62,7 @@ class NotesScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context)!;
     final gradesAsync = ref.watch(quickGradesProvider);
 
     return Scaffold(
@@ -69,9 +70,9 @@ class NotesScreen extends ConsumerWidget {
       appBar: AppBar(
         backgroundColor: AppColors.white,
         elevation: 0,
-        title: const Text(
-          'Notes',
-          style: TextStyle(
+        title: Text(
+          l10n.notesTitle,
+          style: const TextStyle(
             color: AppColors.neutral900,
             fontWeight: FontWeight.w700,
             fontSize: 20,
@@ -104,7 +105,7 @@ class NotesScreen extends ConsumerWidget {
                     size: 48, color: AppColors.error),
                 const SizedBox(height: 16),
                 Text(
-                  'Failed to load notes',
+                  l10n.notesFailedToLoad,
                   style: const TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
@@ -126,22 +127,23 @@ class NotesScreen extends ConsumerWidget {
                     backgroundColor: AppColors.primary,
                     foregroundColor: AppColors.white,
                   ),
-                  child: const Text('Retry'),
+                  child: Text(l10n.notesRetry),
                 ),
               ],
             ),
           ),
         ),
         data: (grades) {
-          if (grades.isEmpty) return _buildEmptyState(context);
-          final groups = _groupByWeek(grades);
-          return _buildContent(context, ref, groups);
+          if (grades.isEmpty) return _buildEmptyState(context, l10n);
+          final groups =
+              _groupByWeek(grades, l10n.notesThisWeek, l10n.notesLastWeek);
+          return _buildContent(context, ref, l10n, groups);
         },
       ),
     );
   }
 
-  Widget _buildEmptyState(BuildContext context) {
+  Widget _buildEmptyState(BuildContext context, AppLocalizations l10n) {
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(32),
@@ -162,18 +164,18 @@ class NotesScreen extends ConsumerWidget {
               ),
             ),
             const SizedBox(height: 24),
-            const Text(
-              'No notes yet',
-              style: TextStyle(
+            Text(
+              l10n.notesNoNotesYet,
+              style: const TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.w700,
                 color: AppColors.neutral900,
               ),
             ),
             const SizedBox(height: 8),
-            const Text(
-              'Tap + to capture your first grade',
-              style: TextStyle(fontSize: 15, color: AppColors.neutral600),
+            Text(
+              l10n.notesTapToCaptureFirst,
+              style: const TextStyle(fontSize: 15, color: AppColors.neutral600),
               textAlign: TextAlign.center,
             ),
           ],
@@ -182,8 +184,8 @@ class NotesScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildContent(
-      BuildContext context, WidgetRef ref, List<_WeekGroup> groups) {
+  Widget _buildContent(BuildContext context, WidgetRef ref,
+      AppLocalizations l10n, List<_WeekGroup> groups) {
     final currentGroup = groups.first;
     final totalBonusPts =
         currentGroup.grades.fold<double>(0.0, (sum, g) => sum + g.bonusPoints);
@@ -198,6 +200,7 @@ class NotesScreen extends ConsumerWidget {
               totalBonusPts: totalBonusPts,
               netPts: totalBonusPts,
               weekKey: currentGroup.weekKey,
+              viewCycleSummaryLabel: l10n.notesViewCycleSummary,
             ),
           ),
         ),
@@ -228,29 +231,31 @@ class NotesScreen extends ConsumerWidget {
                     confirmDismiss: (_) async {
                       return await showDialog<bool>(
                             context: ctx,
-                            builder: (dCtx) => AlertDialog(
-                              shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(16)),
-                              title: const Text('Delete Grade'),
-                              content: const Text(
-                                  'Are you sure you want to delete this grade?'),
-                              actions: [
-                                TextButton(
-                                  onPressed: () =>
-                                      Navigator.of(dCtx).pop(false),
-                                  child: const Text('Cancel'),
-                                ),
-                                ElevatedButton(
-                                  onPressed: () =>
-                                      Navigator.of(dCtx).pop(true),
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: AppColors.error,
-                                    foregroundColor: AppColors.white,
+                            builder: (dCtx) {
+                              final dl10n = AppLocalizations.of(dCtx)!;
+                              return AlertDialog(
+                                shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(16)),
+                                title: Text(dl10n.notesDeleteGradeTitle),
+                                content: Text(dl10n.notesDeleteGradeConfirm),
+                                actions: [
+                                  TextButton(
+                                    onPressed: () =>
+                                        Navigator.of(dCtx).pop(false),
+                                    child: Text(dl10n.notesCancel),
                                   ),
-                                  child: const Text('Delete'),
-                                ),
-                              ],
-                            ),
+                                  ElevatedButton(
+                                    onPressed: () =>
+                                        Navigator.of(dCtx).pop(true),
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: AppColors.error,
+                                      foregroundColor: AppColors.white,
+                                    ),
+                                    child: Text(dl10n.notesDelete),
+                                  ),
+                                ],
+                              );
+                            },
                           ) ??
                           false;
                     },
@@ -282,12 +287,14 @@ class _SummaryChipRow extends StatelessWidget {
   final double totalBonusPts;
   final double netPts;
   final String weekKey;
+  final String viewCycleSummaryLabel;
 
   const _SummaryChipRow({
     required this.totalNotes,
     required this.totalBonusPts,
     required this.netPts,
     required this.weekKey,
+    required this.viewCycleSummaryLabel,
   });
 
   @override
@@ -340,9 +347,9 @@ class _SummaryChipRow extends StatelessWidget {
                   borderRadius: BorderRadius.circular(10),
                 ),
               ),
-              child: const Text(
-                'View Cycle Summary',
-                style: TextStyle(
+              child: Text(
+                viewCycleSummaryLabel,
+                style: const TextStyle(
                   color: AppColors.primary,
                   fontWeight: FontWeight.w600,
                 ),

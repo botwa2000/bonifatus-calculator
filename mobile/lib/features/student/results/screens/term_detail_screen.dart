@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:bonifatus_mobile/l10n/app_localizations.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../providers/term_results_provider.dart';
 
@@ -10,19 +11,20 @@ class TermDetailScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context)!;
     final termsAsync = ref.watch(termResultsProvider);
 
     return termsAsync.when(
       loading: () => Scaffold(
-        appBar: AppBar(title: const Text('Term Result')),
+        appBar: AppBar(title: Text(l10n.termDetailTitle)),
         body: const Center(
             child: CircularProgressIndicator(color: AppColors.primary)),
       ),
       error: (_, __) => Scaffold(
-        appBar: AppBar(title: const Text('Term Result')),
-        body: const Center(
-          child: Text('Could not load term',
-              style: TextStyle(color: AppColors.neutral600)),
+        appBar: AppBar(title: Text(l10n.termDetailTitle)),
+        body: Center(
+          child: Text(l10n.termDetailCouldNotLoad,
+              style: const TextStyle(color: AppColors.neutral600)),
         ),
       ),
       data: (terms) {
@@ -31,15 +33,15 @@ class TermDetailScreen extends ConsumerWidget {
         if (term == null) {
           return Scaffold(
             appBar: AppBar(
-              title: const Text('Term Result'),
+              title: Text(l10n.termDetailTitle),
               leading: IconButton(
                 icon: const Icon(Icons.arrow_back_ios_new_rounded),
                 onPressed: () => context.pop(),
               ),
             ),
-            body: const Center(
-              child: Text('Term not found',
-                  style: TextStyle(color: AppColors.neutral600)),
+            body: Center(
+              child: Text(l10n.termDetailNotFound,
+                  style: const TextStyle(color: AppColors.neutral600)),
             ),
           );
         }
@@ -51,7 +53,7 @@ class TermDetailScreen extends ConsumerWidget {
 
         return Scaffold(
           appBar: AppBar(
-            title: const Text('Term Result'),
+            title: Text(l10n.termDetailTitle),
             leading: IconButton(
               icon: const Icon(Icons.arrow_back_ios_new_rounded),
               onPressed: () => context.pop(),
@@ -73,7 +75,7 @@ class TermDetailScreen extends ConsumerWidget {
                         Row(
                           children: [
                             _Stat(
-                              label: 'Average',
+                              label: l10n.termDetailAverage,
                               value: avg != null
                                   ? avg.toStringAsFixed(1)
                                   : '-',
@@ -81,13 +83,13 @@ class TermDetailScreen extends ConsumerWidget {
                             ),
                             const SizedBox(width: 24),
                             _Stat(
-                              label: 'Bonus',
+                              label: l10n.termDetailBonus,
                               value: '${term.totalBonusPoints % 1 == 0 ? term.totalBonusPoints.toInt() : term.totalBonusPoints.toStringAsFixed(1)} pts',
                               color: AppColors.success,
                             ),
                             const SizedBox(width: 24),
                             _Stat(
-                              label: 'Subjects',
+                              label: l10n.termDetailSubjects,
                               value: term.subjects.length.toString(),
                               color: AppColors.neutral600,
                             ),
@@ -98,7 +100,7 @@ class TermDetailScreen extends ConsumerWidget {
                           const Divider(),
                           const SizedBox(height: 12),
                           Text(
-                            'Subject Breakdown',
+                            l10n.termDetailSubjectBreakdown,
                             style: theme.textTheme.labelLarge
                                 ?.copyWith(color: AppColors.neutral600),
                           ),

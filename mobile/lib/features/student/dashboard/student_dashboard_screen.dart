@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
+import 'package:bonifatus_mobile/l10n/app_localizations.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../auth/providers/auth_provider.dart';
 import '../providers/quick_grades_provider.dart';
@@ -14,6 +15,7 @@ class StudentDashboardScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context)!;
     final authAsync = ref.watch(authStateNotifierProvider);
     final userName = authAsync.valueOrNull?.name ?? 'Student';
     final gradesAsync = ref.watch(quickGradesProvider);
@@ -40,34 +42,34 @@ class StudentDashboardScreen extends ConsumerWidget {
               SliverToBoxAdapter(
                 child: Padding(
                   padding: const EdgeInsets.fromLTRB(20, 24, 20, 0),
-                  child: _buildHeader(context, userName),
+                  child: _buildHeader(context, l10n, userName),
                 ),
               ),
               SliverToBoxAdapter(
                 child: Padding(
                   padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
-                  child: _buildHeroCard(context, gradesAsync),
+                  child: _buildHeroCard(context, l10n, gradesAsync),
                 ),
               ),
               SliverToBoxAdapter(
                 child: Padding(
                   padding: const EdgeInsets.fromLTRB(20, 28, 20, 10),
-                  child: _buildSectionTitle(context, 'Recent Notes'),
+                  child: _buildSectionTitle(context, l10n.dashboardRecentNotes),
                 ),
               ),
               SliverToBoxAdapter(
-                child: _buildRecentNotes(context, gradesAsync),
+                child: _buildRecentNotes(context, l10n, gradesAsync),
               ),
               SliverToBoxAdapter(
                 child: Padding(
                   padding: const EdgeInsets.fromLTRB(20, 28, 20, 10),
-                  child: _buildSectionTitle(context, 'Saved Results'),
+                  child: _buildSectionTitle(context, l10n.dashboardSavedResults),
                 ),
               ),
               SliverToBoxAdapter(
                 child: Padding(
                   padding: const EdgeInsets.fromLTRB(20, 0, 20, 0),
-                  child: _buildSavedResults(context, termsAsync),
+                  child: _buildSavedResults(context, l10n, termsAsync),
                 ),
               ),
               SliverToBoxAdapter(
@@ -76,7 +78,7 @@ class StudentDashboardScreen extends ConsumerWidget {
                   child: OutlinedButton.icon(
                     onPressed: () => context.go('/student/calculator'),
                     icon: const Icon(Icons.calculate_rounded),
-                    label: const Text('Quick Calculate'),
+                    label: Text(l10n.dashboardQuickCalculate),
                   ),
                 ),
               ),
@@ -87,7 +89,7 @@ class StudentDashboardScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildHeader(BuildContext context, String name) {
+  Widget _buildHeader(BuildContext context, AppLocalizations l10n, String name) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       crossAxisAlignment: CrossAxisAlignment.center,
@@ -97,14 +99,14 @@ class StudentDashboardScreen extends ConsumerWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'Hi $name \u{1F44B}',
+                l10n.dashboardHiName(name),
                 style: Theme.of(context).textTheme.headlineMedium?.copyWith(
                       color: AppColors.neutral900,
                     ),
               ),
               const SizedBox(height: 4),
               Text(
-                'Track your grades, earn rewards',
+                l10n.dashboardSubtitle,
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                       color: AppColors.neutral600,
                     ),
@@ -130,7 +132,7 @@ class StudentDashboardScreen extends ConsumerWidget {
   }
 
   Widget _buildHeroCard(
-      BuildContext context, AsyncValue<List<QuickGrade>> gradesAsync) {
+      BuildContext context, AppLocalizations l10n, AsyncValue<List<QuickGrade>> gradesAsync) {
     final grades = gradesAsync.valueOrNull ?? [];
 
     // This week grades
@@ -157,7 +159,7 @@ class StudentDashboardScreen extends ConsumerWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                'This Week',
+                l10n.dashboardThisWeek,
                 style: Theme.of(context).textTheme.titleMedium?.copyWith(
                       color: AppColors.white.withValues(alpha: 0.85),
                     ),
@@ -208,27 +210,27 @@ class StudentDashboardScreen extends ConsumerWidget {
   }
 
   Widget _buildRecentNotes(
-      BuildContext context, AsyncValue<List<QuickGrade>> gradesAsync) {
+      BuildContext context, AppLocalizations l10n, AsyncValue<List<QuickGrade>> gradesAsync) {
     return gradesAsync.when(
       loading: () => const SizedBox(
         height: 116,
         child: Center(
             child: CircularProgressIndicator(color: AppColors.primary)),
       ),
-      error: (_, __) => const SizedBox(
+      error: (_, __) => SizedBox(
         height: 60,
         child: Center(
-          child: Text('Could not load notes',
-              style: TextStyle(color: AppColors.neutral600)),
+          child: Text(l10n.dashboardCouldNotLoadNotes,
+              style: const TextStyle(color: AppColors.neutral600)),
         ),
       ),
       data: (grades) {
         if (grades.isEmpty) {
-          return const SizedBox(
+          return SizedBox(
             height: 60,
             child: Center(
-              child: Text('No notes yet',
-                  style: TextStyle(color: AppColors.neutral600)),
+              child: Text(l10n.dashboardNoNotesYet,
+                  style: const TextStyle(color: AppColors.neutral600)),
             ),
           );
         }
@@ -318,24 +320,24 @@ class StudentDashboardScreen extends ConsumerWidget {
   }
 
   Widget _buildSavedResults(
-      BuildContext context, AsyncValue<List<TermResult>> termsAsync) {
+      BuildContext context, AppLocalizations l10n, AsyncValue<List<TermResult>> termsAsync) {
     return termsAsync.when(
       loading: () => const Padding(
         padding: EdgeInsets.all(16),
         child: Center(
             child: CircularProgressIndicator(color: AppColors.primary)),
       ),
-      error: (_, __) => const Padding(
-        padding: EdgeInsets.symmetric(horizontal: 4),
-        child: Text('Could not load results',
-            style: TextStyle(color: AppColors.neutral600)),
+      error: (_, __) => Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 4),
+        child: Text(l10n.dashboardCouldNotLoadResults,
+            style: const TextStyle(color: AppColors.neutral600)),
       ),
       data: (terms) {
         if (terms.isEmpty) {
-          return const Padding(
-            padding: EdgeInsets.symmetric(horizontal: 4),
-            child: Text('No saved results yet',
-                style: TextStyle(color: AppColors.neutral600)),
+          return Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 4),
+            child: Text(l10n.dashboardNoSavedResultsYet,
+                style: const TextStyle(color: AppColors.neutral600)),
           );
         }
 

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fl_chart/fl_chart.dart';
+import 'package:intl/intl.dart';
+import 'package:bonifatus_mobile/l10n/app_localizations.dart';
 import '../../../core/theme/app_colors.dart';
 import '../providers/quick_grades_provider.dart';
 import '../../../models/quick_grade.dart';
@@ -10,10 +12,11 @@ class StudentInsightsScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context)!;
     final gradesAsync = ref.watch(quickGradesProvider);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Insights')),
+      appBar: AppBar(title: Text(l10n.insightsTitle)),
       body: gradesAsync.when(
         loading: () => const Center(child: CircularProgressIndicator(color: AppColors.primary)),
         error: (err, _) => Center(
@@ -22,11 +25,11 @@ class StudentInsightsScreen extends ConsumerWidget {
             children: [
               const Icon(Icons.error_outline, size: 48, color: AppColors.error),
               const SizedBox(height: 12),
-              const Text('Failed to load insights', style: TextStyle(color: AppColors.neutral600)),
+              Text(l10n.insightsFailedToLoad, style: const TextStyle(color: AppColors.neutral600)),
               const SizedBox(height: 16),
               ElevatedButton(
                 onPressed: () => ref.read(quickGradesProvider.notifier).reload(),
-                child: const Text('Retry'),
+                child: Text(l10n.insightsRetry),
               ),
             ],
           ),
@@ -43,17 +46,20 @@ class _InsightsBody extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final locale = Localizations.localeOf(context).languageCode;
+
     if (grades.isEmpty) {
-      return const Center(
+      return Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.bar_chart_rounded, size: 56, color: AppColors.neutral200),
-            SizedBox(height: 12),
-            Text('No grades yet', style: TextStyle(color: AppColors.neutral600, fontSize: 15)),
-            SizedBox(height: 4),
-            Text('Add grades in the Notes tab to see insights.',
-                style: TextStyle(color: AppColors.neutral400, fontSize: 13)),
+            const Icon(Icons.bar_chart_rounded, size: 56, color: AppColors.neutral200),
+            const SizedBox(height: 12),
+            Text(l10n.insightsNoGradesYet, style: const TextStyle(color: AppColors.neutral600, fontSize: 15)),
+            const SizedBox(height: 4),
+            Text(l10n.insightsAddGradesHint,
+                style: const TextStyle(color: AppColors.neutral400, fontSize: 13)),
           ],
         ),
       );
@@ -63,11 +69,11 @@ class _InsightsBody extends StatelessWidget {
     final now = DateTime.now();
 
     // Last 6 months bar chart data
-    final monthBuckets = <int, double>{}; // month-index (0=oldest) → pts
+    final monthBuckets = <int, double>{};
     final monthLabels = <String>[];
     for (int i = 5; i >= 0; i--) {
       final m = DateTime(now.year, now.month - i);
-      monthLabels.add(_monthAbbr(m.month));
+      monthLabels.add(DateFormat('MMM', locale).format(m));
     }
     for (final g in grades) {
       final monthsAgo = (now.year - g.gradedAt.year) * 12 + (now.month - g.gradedAt.month);
@@ -105,7 +111,7 @@ class _InsightsBody extends StatelessWidget {
           child: Padding(
             padding: const EdgeInsets.all(16),
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Text('Bonus Points — Last 6 Months', style: theme.textTheme.titleMedium),
+              Text(l10n.insightsBonusPointsLastMonths, style: theme.textTheme.titleMedium),
               const SizedBox(height: 20),
               SizedBox(
                 height: 160,
@@ -143,10 +149,10 @@ class _InsightsBody extends StatelessWidget {
                 )),
               ),
               if (maxY == 0)
-                const Padding(
-                  padding: EdgeInsets.only(top: 8),
-                  child: Center(child: Text('No bonus points in the last 6 months',
-                      style: TextStyle(color: AppColors.neutral400, fontSize: 12))),
+                Padding(
+                  padding: const EdgeInsets.only(top: 8),
+                  child: Center(child: Text(l10n.insightsNoBonusPoints,
+                      style: const TextStyle(color: AppColors.neutral400, fontSize: 12))),
                 ),
             ]),
           ),
@@ -158,7 +164,7 @@ class _InsightsBody extends StatelessWidget {
           child: Padding(
             padding: const EdgeInsets.all(16),
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Text('Grade Distribution', style: theme.textTheme.titleMedium),
+              Text(l10n.insightsGradeDistribution, style: theme.textTheme.titleMedium),
               const SizedBox(height: 4),
               Text('${grades.length} total grades', style: const TextStyle(fontSize: 12, color: AppColors.neutral400)),
               const SizedBox(height: 16),
@@ -182,10 +188,10 @@ class _InsightsBody extends StatelessWidget {
                 ),
                 const SizedBox(width: 20),
                 Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  _LegendRow(color: AppColors.tierBest, label: 'Best (1–1.4)', pct: pctOf('best')),
-                  _LegendRow(color: AppColors.tierSecond, label: 'Good (1.5–2.4)', pct: pctOf('second')),
-                  _LegendRow(color: AppColors.tierThird, label: 'OK (2.5–3.4)', pct: pctOf('third')),
-                  _LegendRow(color: AppColors.tierBelow, label: 'Below (3.5+)', pct: pctOf('below')),
+                  _LegendRow(color: AppColors.tierBest, label: l10n.insightsTierBest, pct: pctOf('best')),
+                  _LegendRow(color: AppColors.tierSecond, label: l10n.insightsTierGood, pct: pctOf('second')),
+                  _LegendRow(color: AppColors.tierThird, label: l10n.insightsTierOk, pct: pctOf('third')),
+                  _LegendRow(color: AppColors.tierBelow, label: l10n.insightsTierBelow, pct: pctOf('below')),
                 ]),
               ]),
             ]),
@@ -198,12 +204,12 @@ class _InsightsBody extends StatelessWidget {
           child: Padding(
             padding: const EdgeInsets.all(16),
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Text('This Week', style: theme.textTheme.titleMedium),
+              Text(l10n.insightsThisWeek, style: theme.textTheme.titleMedium),
               const SizedBox(height: 8),
               Row(mainAxisAlignment: MainAxisAlignment.spaceAround, children: [
-                _BigStat(label: 'Grades', value: weekGrades.length.toString()),
-                _BigStat(label: 'Earned', value: '+${weekPts % 1 == 0 ? weekPts.toInt() : weekPts.toStringAsFixed(1)} pts'),
-                _BigStat(label: 'Unsettled', value: '+${weekNet % 1 == 0 ? weekNet.toInt() : weekNet.toStringAsFixed(1)} pts'),
+                _BigStat(label: l10n.insightsGrades, value: weekGrades.length.toString()),
+                _BigStat(label: l10n.insightsEarned, value: '+${weekPts % 1 == 0 ? weekPts.toInt() : weekPts.toStringAsFixed(1)} pts'),
+                _BigStat(label: l10n.insightsUnsettled, value: '+${weekNet % 1 == 0 ? weekNet.toInt() : weekNet.toStringAsFixed(1)} pts'),
               ]),
             ]),
           ),
@@ -215,13 +221,13 @@ class _InsightsBody extends StatelessWidget {
           child: Padding(
             padding: const EdgeInsets.all(16),
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Text('All Time', style: theme.textTheme.titleMedium),
+              Text(l10n.insightsAllTime, style: theme.textTheme.titleMedium),
               const SizedBox(height: 8),
               Row(mainAxisAlignment: MainAxisAlignment.spaceAround, children: [
-                _BigStat(label: 'Grades', value: total.toString()),
-                _BigStat(label: 'Total Pts',
+                _BigStat(label: l10n.insightsGrades, value: total.toString()),
+                _BigStat(label: l10n.insightsTotalPts,
                     value: () { final v = grades.fold<double>(0.0, (s, g) => s + g.bonusPoints); return '+${v % 1 == 0 ? v.toInt() : v.toStringAsFixed(1)} pts'; }()),
-                _BigStat(label: 'Pending',
+                _BigStat(label: l10n.insightsPending,
                     value: () { final v = grades.where((g) => g.settlementStatus == 'pending').fold<double>(0.0, (s, g) => s + g.bonusPoints); return '+${v % 1 == 0 ? v.toInt() : v.toStringAsFixed(1)} pts'; }()),
               ]),
             ]),
@@ -229,12 +235,6 @@ class _InsightsBody extends StatelessWidget {
         ),
       ]),
     );
-  }
-
-  static String _monthAbbr(int month) {
-    const abbrs = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-                   'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-    return abbrs[(month - 1) % 12];
   }
 }
 

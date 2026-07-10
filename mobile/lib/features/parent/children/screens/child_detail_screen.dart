@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
+import 'package:bonifatus_mobile/l10n/app_localizations.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../providers/children_provider.dart';
 import '../../../../models/child_data.dart';
@@ -52,12 +53,13 @@ class ChildDetailScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context)!;
     final childrenAsync = ref.watch(childrenQuickGradesProvider);
 
     return childrenAsync.when(
       loading: () => Scaffold(
         appBar: AppBar(
-          title: const Text('Child Detail'),
+          title: Text(l10n.childDetailTitle),
           leading: IconButton(
             icon: const Icon(Icons.arrow_back_ios_new_rounded),
             onPressed: () => context.pop(),
@@ -68,15 +70,15 @@ class ChildDetailScreen extends ConsumerWidget {
       ),
       error: (_, __) => Scaffold(
         appBar: AppBar(
-          title: const Text('Child Detail'),
+          title: Text(l10n.childDetailTitle),
           leading: IconButton(
             icon: const Icon(Icons.arrow_back_ios_new_rounded),
             onPressed: () => context.pop(),
           ),
         ),
-        body: const Center(
-          child: Text('Could not load data',
-              style: TextStyle(color: AppColors.neutral600)),
+        body: Center(
+          child: Text(l10n.childDetailCouldNotLoad,
+              style: const TextStyle(color: AppColors.neutral600)),
         ),
       ),
       data: (children) {
@@ -86,25 +88,25 @@ class ChildDetailScreen extends ConsumerWidget {
         if (child == null) {
           return Scaffold(
             appBar: AppBar(
-              title: const Text('Child Detail'),
+              title: Text(l10n.childDetailTitle),
               leading: IconButton(
                 icon: const Icon(Icons.arrow_back_ios_new_rounded),
                 onPressed: () => context.pop(),
               ),
             ),
-            body: const Center(
-              child: Text('Child not found',
-                  style: TextStyle(color: AppColors.neutral600)),
+            body: Center(
+              child: Text(l10n.childDetailNotFound,
+                  style: const TextStyle(color: AppColors.neutral600)),
             ),
           );
         }
 
-        return _buildScreen(context, ref, child);
+        return _buildScreen(context, ref, child, l10n);
       },
     );
   }
 
-  Widget _buildScreen(BuildContext context, WidgetRef ref, ChildWithGrades child) {
+  Widget _buildScreen(BuildContext context, WidgetRef ref, ChildWithGrades child, AppLocalizations l10n) {
     final sortedGrades = [...child.grades]
       ..sort((a, b) => b.gradedAt.compareTo(a.gradedAt));
 
@@ -140,7 +142,7 @@ class ChildDetailScreen extends ConsumerWidget {
           SliverToBoxAdapter(
             child: Padding(
               padding: const EdgeInsets.all(20),
-              child: _buildSummaryCard(child, totalPts, pendingPts),
+              child: _buildSummaryCard(child, totalPts, pendingPts, l10n),
             ),
           ),
 
@@ -150,9 +152,9 @@ class ChildDetailScreen extends ConsumerWidget {
               padding: const EdgeInsets.fromLTRB(20, 12, 20, 10),
               child: Row(
                 children: [
-                  const Text(
-                    'Term Results',
-                    style: TextStyle(
+                  Text(
+                    l10n.childDetailTermResults,
+                    style: const TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w700,
                       color: AppColors.neutral900,
@@ -199,20 +201,20 @@ class ChildDetailScreen extends ConsumerWidget {
                     Center(child: CircularProgressIndicator(color: AppColors.primary)),
               ),
             ),
-            error: (_, __) => const SliverToBoxAdapter(
+            error: (_, __) => SliverToBoxAdapter(
               child: Padding(
-                padding: EdgeInsets.symmetric(horizontal: 20),
-                child: Text('Could not load term results',
-                    style: TextStyle(color: AppColors.neutral600, fontSize: 13)),
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: Text(l10n.childDetailCouldNotLoadTermResults,
+                    style: const TextStyle(color: AppColors.neutral600, fontSize: 13)),
               ),
             ),
             data: (terms) => terms.isEmpty
-                ? const SliverToBoxAdapter(
+                ? SliverToBoxAdapter(
                     child: Padding(
-                      padding: EdgeInsets.fromLTRB(20, 0, 20, 12),
+                      padding: const EdgeInsets.fromLTRB(20, 0, 20, 12),
                       child: Text(
-                        'No term results saved yet.',
-                        style: TextStyle(
+                        l10n.childDetailNoTermResults,
+                        style: const TextStyle(
                             color: AppColors.neutral400, fontSize: 13),
                       ),
                     ),
@@ -235,9 +237,9 @@ class ChildDetailScreen extends ConsumerWidget {
           SliverToBoxAdapter(
             child: Padding(
               padding: const EdgeInsets.fromLTRB(20, 8, 20, 10),
-              child: const Text(
-                'Quick Grades',
-                style: TextStyle(
+              child: Text(
+                l10n.childDetailQuickGrades,
+                style: const TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w700,
                   color: AppColors.neutral900,
@@ -247,11 +249,11 @@ class ChildDetailScreen extends ConsumerWidget {
           ),
 
           if (sortedGrades.isEmpty)
-            const SliverToBoxAdapter(
+            SliverToBoxAdapter(
               child: Padding(
-                padding: EdgeInsets.fromLTRB(20, 0, 20, 20),
-                child: Text('No quick grades yet',
-                    style: TextStyle(color: AppColors.neutral400, fontSize: 13)),
+                padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
+                child: Text(l10n.childDetailNoQuickGrades,
+                    style: const TextStyle(color: AppColors.neutral400, fontSize: 13)),
               ),
             )
           else
@@ -278,7 +280,7 @@ class ChildDetailScreen extends ConsumerWidget {
   }
 
   Widget _buildSummaryCard(
-      ChildWithGrades child, int totalPts, int pendingPts) {
+      ChildWithGrades child, int totalPts, int pendingPts, AppLocalizations l10n) {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -301,7 +303,7 @@ class ChildDetailScreen extends ConsumerWidget {
           Expanded(
             child: _Stat(
               icon: Icons.grade_outlined,
-              label: 'Grades',
+              label: l10n.childDetailGrades,
               value: child.grades.length.toString(),
             ),
           ),
@@ -310,7 +312,7 @@ class ChildDetailScreen extends ConsumerWidget {
           Expanded(
             child: _Stat(
               icon: Icons.star_outline_rounded,
-              label: 'Total Pts',
+              label: l10n.childDetailTotalPts,
               value: totalPts.toString(),
             ),
           ),
@@ -319,7 +321,7 @@ class ChildDetailScreen extends ConsumerWidget {
           Expanded(
             child: _Stat(
               icon: Icons.pending_outlined,
-              label: 'Pending',
+              label: l10n.childDetailPending,
               value: '$pendingPts pts',
             ),
           ),
@@ -481,6 +483,7 @@ class _GradeCard extends StatelessWidget {
   const _GradeCard({required this.grade});
 
   void _showDetail(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final tier = grade.gradeQualityTier;
     final color = AppColors.tierColor(tier);
     final lightColor = AppColors.tierColorLight(tier);
@@ -510,10 +513,10 @@ class _GradeCard extends StatelessWidget {
           ]),
           const SizedBox(height: 20),
           Row(children: [
-            Expanded(child: _DetailChip(label: 'Bonus', value: '+${grade.bonusPoints} pts', color: AppColors.tierBest, bg: AppColors.tierBestLight)),
+            Expanded(child: _DetailChip(label: l10n.childDetailBonus, value: '+${grade.bonusPoints} pts', color: AppColors.tierBest, bg: AppColors.tierBestLight)),
             const SizedBox(width: 10),
-            Expanded(child: _DetailChip(label: 'Status',
-              value: grade.settlementStatus == 'settled' ? 'Settled' : 'Pending',
+            Expanded(child: _DetailChip(label: l10n.childDetailStatus,
+              value: grade.settlementStatus == 'settled' ? l10n.childDetailSettled : l10n.childDetailPending,
               color: grade.settlementStatus == 'settled' ? AppColors.tierBest : AppColors.tierThird,
               bg: grade.settlementStatus == 'settled' ? AppColors.tierBestLight : AppColors.tierThirdLight)),
           ]),
@@ -525,6 +528,7 @@ class _GradeCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final tier = grade.gradeQualityTier;
     final tierColor = AppColors.tierColor(tier);
     final tierColorLight = AppColors.tierColorLight(tier);
@@ -611,8 +615,8 @@ class _GradeCard extends StatelessWidget {
                 ),
                 child: Text(
                   grade.settlementStatus == 'settled'
-                      ? 'Settled'
-                      : 'Pending',
+                      ? l10n.childDetailSettled
+                      : l10n.childDetailPending,
                   style: TextStyle(
                     fontSize: 10,
                     fontWeight: FontWeight.w600,

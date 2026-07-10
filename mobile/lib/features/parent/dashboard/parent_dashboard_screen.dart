@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:bonifatus_mobile/l10n/app_localizations.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../auth/providers/auth_provider.dart';
 import '../providers/children_provider.dart';
@@ -11,6 +12,7 @@ class ParentDashboardScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context)!;
     final authAsync = ref.watch(authStateNotifierProvider);
     final userName = authAsync.valueOrNull?.name ?? 'Parent';
     final childrenAsync = ref.watch(childrenQuickGradesProvider);
@@ -26,26 +28,26 @@ class ParentDashboardScreen extends ConsumerWidget {
               SliverToBoxAdapter(
                 child: Padding(
                   padding: const EdgeInsets.fromLTRB(20, 24, 20, 0),
-                  child: _buildHeader(userName),
+                  child: _buildHeader(context, l10n, userName),
                 ),
               ),
               SliverToBoxAdapter(
                 child: Padding(
                   padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
-                  child: _buildSummaryCard(childrenAsync),
+                  child: _buildSummaryCard(context, l10n, childrenAsync),
                 ),
               ),
               SliverToBoxAdapter(
                 child: Padding(
                   padding: const EdgeInsets.fromLTRB(20, 28, 20, 10),
-                  child: _buildSectionTitle('Children Overview'),
+                  child: _buildSectionTitle(context, l10n.parentDashboardChildrenOverview),
                 ),
               ),
               SliverToBoxAdapter(
                 child: Padding(
                   padding:
                       const EdgeInsets.fromLTRB(20, 0, 20, 40),
-                  child: _buildChildrenList(context, childrenAsync),
+                  child: _buildChildrenList(context, l10n, childrenAsync),
                 ),
               ),
             ],
@@ -55,7 +57,7 @@ class ParentDashboardScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildHeader(String userName) {
+  Widget _buildHeader(BuildContext context, AppLocalizations l10n, String userName) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
@@ -63,16 +65,16 @@ class ParentDashboardScreen extends ConsumerWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Hi $userName',
+              l10n.parentDashboardHiName(userName),
               style: const TextStyle(
                 fontSize: 26,
                 fontWeight: FontWeight.w800,
                 color: AppColors.neutral900,
               ),
             ),
-            const Text(
-              'Overview of your children',
-              style: TextStyle(
+            Text(
+              l10n.parentDashboardOverview,
+              style: const TextStyle(
                 fontSize: 14,
                 color: AppColors.neutral600,
               ),
@@ -95,7 +97,7 @@ class ParentDashboardScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildSummaryCard(AsyncValue<List<ChildWithGrades>> childrenAsync) {
+  Widget _buildSummaryCard(BuildContext context, AppLocalizations l10n, AsyncValue<List<ChildWithGrades>> childrenAsync) {
     final children = childrenAsync.valueOrNull ?? [];
     final childCount = children.length;
     final totalPending = children.fold<int>(
@@ -121,9 +123,9 @@ class ParentDashboardScreen extends ConsumerWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            'Summary',
-            style: TextStyle(
+          Text(
+            l10n.parentDashboardSummary,
+            style: const TextStyle(
               color: Colors.white70,
               fontSize: 13,
               fontWeight: FontWeight.w500,
@@ -134,7 +136,7 @@ class ParentDashboardScreen extends ConsumerWidget {
             children: [
               Expanded(
                 child: _SummaryStatItem(
-                  label: 'Children',
+                  label: l10n.parentDashboardChildren,
                   value: childCount.toString(),
                   icon: Icons.people_outline_rounded,
                 ),
@@ -145,7 +147,7 @@ class ParentDashboardScreen extends ConsumerWidget {
                   color: Colors.white.withValues(alpha: 0.2)),
               Expanded(
                 child: _SummaryStatItem(
-                  label: 'Pending',
+                  label: l10n.parentDashboardPending,
                   value: '$totalPending pts',
                   icon: Icons.account_balance_wallet_outlined,
                 ),
@@ -156,7 +158,7 @@ class ParentDashboardScreen extends ConsumerWidget {
                   color: Colors.white.withValues(alpha: 0.2)),
               Expanded(
                 child: _SummaryStatItem(
-                  label: 'Grades',
+                  label: l10n.parentDashboardGrades,
                   value: children
                       .fold<int>(0, (s, c) => s + c.grades.length)
                       .toString(),
@@ -170,7 +172,7 @@ class ParentDashboardScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildSectionTitle(String title) {
+  Widget _buildSectionTitle(BuildContext context, String title) {
     return Text(
       title,
       style: const TextStyle(
@@ -182,13 +184,13 @@ class ParentDashboardScreen extends ConsumerWidget {
   }
 
   Widget _buildChildrenList(
-      BuildContext context, AsyncValue<List<ChildWithGrades>> childrenAsync) {
+      BuildContext context, AppLocalizations l10n, AsyncValue<List<ChildWithGrades>> childrenAsync) {
     return childrenAsync.when(
       loading: () => const Center(
           child: CircularProgressIndicator(color: AppColors.primary)),
-      error: (_, __) => const Center(
-        child: Text('Could not load children data',
-            style: TextStyle(color: AppColors.neutral600)),
+      error: (_, __) => Center(
+        child: Text(l10n.parentDashboardCouldNotLoadChildren,
+            style: const TextStyle(color: AppColors.neutral600)),
       ),
       data: (children) {
         if (children.isEmpty) {
@@ -198,11 +200,11 @@ class ParentDashboardScreen extends ConsumerWidget {
               color: AppColors.white,
               borderRadius: BorderRadius.circular(16),
             ),
-            child: const Center(
+            child: Center(
               child: Text(
-                'No children connected yet.\nGo to Children tab to add one.',
+                l10n.parentDashboardNoChildrenConnected,
                 textAlign: TextAlign.center,
-                style: TextStyle(color: AppColors.neutral600, fontSize: 14),
+                style: const TextStyle(color: AppColors.neutral600, fontSize: 14),
               ),
             ),
           );
@@ -286,7 +288,7 @@ class ParentDashboardScreen extends ConsumerWidget {
                       const Divider(height: 1, color: AppColors.neutral100),
                       const SizedBox(height: 10),
                       Text(
-                        'Recent grade',
+                        l10n.parentDashboardRecentGrade,
                         style: const TextStyle(
                           fontSize: 11,
                           fontWeight: FontWeight.w600,
