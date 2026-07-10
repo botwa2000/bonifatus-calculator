@@ -10,6 +10,7 @@ import '../../../../api/services/connection_service.dart';
 import '../../../../api/services/biometric_service.dart';
 import '../../../../api/services/profile_service.dart';
 import '../../../../core/constants/app_constants.dart';
+import '../../../../l10n/app_localizations.dart';
 
 class StudentSettingsScreen extends ConsumerStatefulWidget {
   const StudentSettingsScreen({super.key});
@@ -62,6 +63,7 @@ class _StudentSettingsScreenState extends ConsumerState<StudentSettingsScreen> {
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
+    final l10n = AppLocalizations.of(context)!;
     final currentThemeMode = ref.watch(themeModeProvider).valueOrNull ?? ThemeMode.system;
     final currentLocale = ref.watch(localeProvider).valueOrNull;
 
@@ -70,24 +72,24 @@ class _StudentSettingsScreenState extends ConsumerState<StudentSettingsScreen> {
       appBar: AppBar(
         backgroundColor: cs.surface,
         elevation: 0,
-        title: Text('Settings', style: TextStyle(color: cs.onSurface, fontWeight: FontWeight.w700, fontSize: 20)),
+        title: Text(l10n.settingsTitle, style: TextStyle(color: cs.onSurface, fontWeight: FontWeight.w700, fontSize: 20)),
       ),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
-          _SectionHeader(title: 'Preferences'),
+          _SectionHeader(title: l10n.settingsSectionPreferences),
           const SizedBox(height: 8),
           _buildPreferencesCard(context, currentThemeMode, currentLocale),
           const SizedBox(height: 20),
-          _SectionHeader(title: 'Account'),
+          _SectionHeader(title: l10n.settingsSectionAccount),
           const SizedBox(height: 8),
           _buildAccountCard(context),
           const SizedBox(height: 20),
-          _SectionHeader(title: 'Connected Parents'),
+          _SectionHeader(title: l10n.settingsSectionConnectedParents),
           const SizedBox(height: 8),
           _buildConnectedParentsCard(context),
           const SizedBox(height: 20),
-          _SectionHeader(title: 'App'),
+          _SectionHeader(title: l10n.settingsSectionApp),
           const SizedBox(height: 8),
           _buildAppCard(context),
           const SizedBox(height: 20),
@@ -100,19 +102,20 @@ class _StudentSettingsScreenState extends ConsumerState<StudentSettingsScreen> {
 
   Widget _buildPreferencesCard(BuildContext context, ThemeMode currentThemeMode, Locale? currentLocale) {
     final cs = Theme.of(context).colorScheme;
-    final localeLabel = _localeLabel(currentLocale);
+    final l10n = AppLocalizations.of(context)!;
+    final localeLabel = _localeLabel(l10n, currentLocale);
 
     return _Card(children: [
       Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Text('Appearance', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: cs.onSurfaceVariant)),
+          Text(l10n.settingsAppearanceLabel, style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: cs.onSurfaceVariant)),
           const SizedBox(height: 10),
           SegmentedButton<ThemeMode>(
-            segments: const [
-              ButtonSegment(value: ThemeMode.system, label: Text('System'), icon: Icon(Icons.brightness_auto_rounded, size: 16)),
-              ButtonSegment(value: ThemeMode.light, label: Text('Light'), icon: Icon(Icons.light_mode_rounded, size: 16)),
-              ButtonSegment(value: ThemeMode.dark, label: Text('Dark'), icon: Icon(Icons.dark_mode_rounded, size: 16)),
+            segments: [
+              ButtonSegment(value: ThemeMode.system, label: Text(l10n.settingsThemeSystem), icon: const Icon(Icons.brightness_auto_rounded, size: 16)),
+              ButtonSegment(value: ThemeMode.light, label: Text(l10n.settingsThemeLight), icon: const Icon(Icons.light_mode_rounded, size: 16)),
+              ButtonSegment(value: ThemeMode.dark, label: Text(l10n.settingsThemeDark), icon: const Icon(Icons.dark_mode_rounded, size: 16)),
             ],
             selected: {currentThemeMode},
             onSelectionChanged: (s) =>
@@ -128,7 +131,7 @@ class _StudentSettingsScreenState extends ConsumerState<StudentSettingsScreen> {
       Divider(height: 1, indent: 16, endIndent: 16, color: cs.outlineVariant),
       ListTile(
         leading: Icon(Icons.language_rounded, color: cs.onSurfaceVariant, size: 22),
-        title: Text('Language', style: TextStyle(fontSize: 15, color: cs.onSurface, fontWeight: FontWeight.w500)),
+        title: Text(l10n.settingsLanguageLabel, style: TextStyle(fontSize: 15, color: cs.onSurface, fontWeight: FontWeight.w500)),
         trailing: Row(mainAxisSize: MainAxisSize.min, children: [
           Text(localeLabel, style: TextStyle(fontSize: 14, color: cs.onSurfaceVariant)),
           const SizedBox(width: 4),
@@ -141,29 +144,30 @@ class _StudentSettingsScreenState extends ConsumerState<StudentSettingsScreen> {
 
   Widget _buildAccountCard(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
+    final l10n = AppLocalizations.of(context)!;
     return _Card(children: [
       _SettingsTile(
         icon: Icons.person_outline_rounded,
-        label: 'Edit Profile',
+        label: l10n.settingsEditProfile,
         onTap: () => _showEditProfileSheet(context),
       ),
       Divider(height: 1, indent: 56, color: cs.outlineVariant),
       _SettingsTile(
         icon: Icons.lock_outline_rounded,
-        label: 'Change Password',
+        label: l10n.settingsChangePassword,
         onTap: () => _showChangePasswordSheet(context),
       ),
       Divider(height: 1, indent: 56, color: cs.outlineVariant),
       _SettingsTile(
         icon: Icons.email_outlined,
-        label: 'Change Email',
+        label: l10n.settingsChangeEmail,
         onTap: () => _showChangeEmailSheet(context),
       ),
       if (_biometricAvailable) ...[
         Divider(height: 1, indent: 56, color: cs.outlineVariant),
         ListTile(
           leading: const Icon(Icons.fingerprint_rounded, color: AppColors.neutral600, size: 22),
-          title: const Text('Biometric Login', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w500)),
+          title: Text(l10n.settingsBiometricLogin, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w500)),
           trailing: Switch(
             value: _biometricEnabled,
             onChanged: _toggleBiometric,
@@ -176,7 +180,7 @@ class _StudentSettingsScreenState extends ConsumerState<StudentSettingsScreen> {
       Divider(height: 1, indent: 56, color: cs.outlineVariant),
       _SettingsTile(
         icon: Icons.delete_outline_rounded,
-        label: 'Delete Account',
+        label: l10n.settingsDeleteAccount,
         color: AppColors.error,
         onTap: () => _confirmDeleteAccount(context),
       ),
@@ -184,6 +188,7 @@ class _StudentSettingsScreenState extends ConsumerState<StudentSettingsScreen> {
   }
 
   Widget _buildConnectedParentsCard(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     if (!_connectionsLoaded) {
       return const _Card(children: [
         Padding(padding: EdgeInsets.all(16),
@@ -196,7 +201,7 @@ class _StudentSettingsScreenState extends ConsumerState<StudentSettingsScreen> {
       if (_parentConnections.isEmpty)
         _SettingsTile(
           icon: Icons.people_outline_rounded,
-          label: 'No parents connected',
+          label: l10n.settingsNoParentsConnected,
           trailing: _scanQrButton(context),
           onTap: () => _showQrScannerSheet(context),
         )
@@ -219,7 +224,7 @@ class _StudentSettingsScreenState extends ConsumerState<StudentSettingsScreen> {
         Divider(height: 1, indent: 56, color: Theme.of(context).colorScheme.outlineVariant),
         _SettingsTile(
           icon: Icons.qr_code_scanner_rounded,
-          label: 'Add another parent',
+          label: l10n.settingsAddAnotherParent,
           onTap: () => _showQrScannerSheet(context),
         ),
       ],
@@ -227,31 +232,38 @@ class _StudentSettingsScreenState extends ConsumerState<StudentSettingsScreen> {
   }
 
   Widget _scanQrButton(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return TextButton.icon(
       onPressed: () => _showQrScannerSheet(context),
       icon: const Icon(Icons.qr_code_scanner_rounded, size: 16, color: AppColors.primary),
-      label: const Text('Scan QR', style: TextStyle(fontSize: 13, color: AppColors.primary, fontWeight: FontWeight.w600)),
+      label: Text(l10n.settingsScanQr, style: const TextStyle(fontSize: 13, color: AppColors.primary, fontWeight: FontWeight.w600)),
     );
   }
 
   Widget _buildAppCard(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return _Card(children: [
       _SettingsTile(
         icon: Icons.info_outline_rounded,
-        label: 'About',
-        onTap: () => showAboutDialog(context: context, applicationName: 'Bonifatus', applicationVersion: '2.0.0',
-          applicationLegalese: 'Grade rewards tracker for students'),
+        label: l10n.settingsAbout,
+        onTap: () => showAboutDialog(
+          context: context,
+          applicationName: l10n.settingsAboutAppName,
+          applicationVersion: '2.0.0',
+          applicationLegalese: l10n.settingsAboutLegalese,
+        ),
       ),
     ]);
   }
 
   Widget _buildLogoutButton(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return SizedBox(
       width: double.infinity,
       child: OutlinedButton.icon(
         onPressed: () => _logout(context),
         icon: const Icon(Icons.logout_rounded, color: AppColors.error),
-        label: const Text('Log Out', style: TextStyle(color: AppColors.error, fontWeight: FontWeight.w600)),
+        label: Text(l10n.settingsLogOut, style: const TextStyle(color: AppColors.error, fontWeight: FontWeight.w600)),
         style: OutlinedButton.styleFrom(
           side: const BorderSide(color: AppColors.error),
           padding: const EdgeInsets.symmetric(vertical: 14),
@@ -262,6 +274,7 @@ class _StudentSettingsScreenState extends ConsumerState<StudentSettingsScreen> {
   }
 
   void _showLanguagePicker(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final current = ref.read(localeProvider).valueOrNull;
     showModalBottomSheet<void>(
       context: context,
@@ -276,10 +289,10 @@ class _StudentSettingsScreenState extends ConsumerState<StudentSettingsScreen> {
               Container(width: 40, height: 4, margin: const EdgeInsets.only(bottom: 16),
                   decoration: BoxDecoration(color: cs.outlineVariant, borderRadius: BorderRadius.circular(2))),
               Padding(padding: const EdgeInsets.fromLTRB(20, 0, 20, 12),
-                  child: Text('Language', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w700, color: cs.onSurface))),
+                  child: Text(l10n.settingsLanguageLabel, style: TextStyle(fontSize: 17, fontWeight: FontWeight.w700, color: cs.onSurface))),
               ListTile(
                 leading: const Text('🌐', style: TextStyle(fontSize: 22)),
-                title: Text('Auto (System)', style: TextStyle(color: cs.onSurface)),
+                title: Text(l10n.settingsLanguageAutoSystem, style: TextStyle(color: cs.onSurface)),
                 trailing: current == null ? const Icon(Icons.check_rounded, color: AppColors.primary) : null,
                 onTap: () {
                   Navigator.of(ctx).pop();
@@ -311,6 +324,7 @@ class _StudentSettingsScreenState extends ConsumerState<StudentSettingsScreen> {
   }
 
   void _showParentConnectionSheet(BuildContext context, Map<String, dynamic> conn) {
+    final l10n = AppLocalizations.of(context)!;
     final parentName = conn['parentName'] as String? ?? conn['parentEmail'] as String? ?? 'Parent';
     final parentEmail = conn['parentEmail'] as String? ?? '';
     final connectedSince = conn['connectedAt'] as String?;
@@ -333,7 +347,7 @@ class _StudentSettingsScreenState extends ConsumerState<StudentSettingsScreen> {
               if (parentEmail.isNotEmpty)
                 Text(parentEmail, style: const TextStyle(fontSize: 13, color: AppColors.neutral600)),
               if (connectedSince != null)
-                Text('Connected ${connectedSince.substring(0, 10)}',
+                Text(l10n.settingsConnectedSince(connectedSince.substring(0, 10)),
                     style: const TextStyle(fontSize: 12, color: AppColors.neutral400)),
             ]),
           ]),
@@ -342,7 +356,7 @@ class _StudentSettingsScreenState extends ConsumerState<StudentSettingsScreen> {
             width: double.infinity,
             child: OutlinedButton.icon(
               icon: const Icon(Icons.link_off_rounded, color: AppColors.error),
-              label: const Text('Remove connection', style: TextStyle(color: AppColors.error, fontWeight: FontWeight.w600)),
+              label: Text(l10n.settingsRemoveConnection, style: const TextStyle(color: AppColors.error, fontWeight: FontWeight.w600)),
               onPressed: () => Navigator.of(ctx).pop(),
               style: OutlinedButton.styleFrom(
                 side: const BorderSide(color: AppColors.error),
@@ -358,15 +372,14 @@ class _StudentSettingsScreenState extends ConsumerState<StudentSettingsScreen> {
   }
 
   void _confirmDeleteAccount(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     showDialog<void>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Delete Account'),
-        content: const Text(
-          'This will permanently delete your account and all data. This action cannot be undone.',
-        ),
+        title: Text(l10n.settingsDeleteAccountDialogTitle),
+        content: Text(l10n.settingsDeleteAccountDialogContent),
         actions: [
-          TextButton(onPressed: () => Navigator.of(ctx).pop(), child: const Text('Cancel')),
+          TextButton(onPressed: () => Navigator.of(ctx).pop(), child: Text(l10n.settingsCancel)),
           TextButton(
             onPressed: () async {
               Navigator.of(ctx).pop();
@@ -376,13 +389,13 @@ class _StudentSettingsScreenState extends ConsumerState<StudentSettingsScreen> {
               } catch (e) {
                 if (context.mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('Failed to delete account: $e'), backgroundColor: AppColors.error),
+                    SnackBar(content: Text(l10n.settingsDeleteAccountFailed(e.toString())), backgroundColor: AppColors.error),
                   );
                 }
               }
             },
             style: TextButton.styleFrom(foregroundColor: AppColors.error),
-            child: const Text('Delete Account'),
+            child: Text(l10n.settingsDeleteAccountConfirm),
           ),
         ],
       ),
@@ -390,6 +403,7 @@ class _StudentSettingsScreenState extends ConsumerState<StudentSettingsScreen> {
   }
 
   void _showQrScannerSheet(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final controller = MobileScannerController();
     bool redeemed = false;
 
@@ -403,7 +417,7 @@ class _StudentSettingsScreenState extends ConsumerState<StudentSettingsScreen> {
           Padding(
             padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
             child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-              const Text('Scan Parent QR Code', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w700, color: AppColors.neutral900)),
+              Text(l10n.settingsScanParentQrTitle, style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w700, color: AppColors.neutral900)),
               IconButton(
                 icon: const Icon(Icons.close_rounded),
                 onPressed: () { controller.dispose(); Navigator.of(ctx).pop(); },
@@ -411,10 +425,10 @@ class _StudentSettingsScreenState extends ConsumerState<StudentSettingsScreen> {
             ]),
           ),
           const SizedBox(height: 8),
-          const Padding(
-            padding: EdgeInsets.symmetric(horizontal: 20),
-            child: Text('Point the camera at the QR code shown on the parent device',
-                style: TextStyle(fontSize: 13, color: AppColors.neutral600), textAlign: TextAlign.center),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            child: Text(l10n.settingsScanQrInstructions,
+                style: const TextStyle(fontSize: 13, color: AppColors.neutral600), textAlign: TextAlign.center),
           ),
           const SizedBox(height: 16),
           Expanded(
@@ -438,7 +452,7 @@ class _StudentSettingsScreenState extends ConsumerState<StudentSettingsScreen> {
                     _loadConnections();
                     if (context.mounted) {
                       ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Parent connected!'), backgroundColor: AppColors.tierBest),
+                        SnackBar(content: Text(l10n.settingsParentConnected), backgroundColor: AppColors.tierBest),
                       );
                     }
                   } catch (e) {
@@ -459,6 +473,7 @@ class _StudentSettingsScreenState extends ConsumerState<StudentSettingsScreen> {
   }
 
   void _showEditProfileSheet(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final authState = ref.read(authStateNotifierProvider).valueOrNull;
     final nameCtrl = TextEditingController(text: authState?.name ?? '');
     final formKey = GlobalKey<FormState>();
@@ -472,21 +487,21 @@ class _StudentSettingsScreenState extends ConsumerState<StudentSettingsScreen> {
         child: Form(
           key: formKey,
           child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
-            const Text('Edit Profile', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w700)),
+            Text(l10n.settingsEditProfileTitle, style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w700)),
             const SizedBox(height: 20),
             TextFormField(
               controller: nameCtrl,
-              decoration: const InputDecoration(labelText: 'Full Name', border: OutlineInputBorder()),
+              decoration: InputDecoration(labelText: l10n.settingsFullName, border: const OutlineInputBorder()),
               textCapitalization: TextCapitalization.words,
-              validator: (v) => (v == null || v.trim().isEmpty) ? 'Name cannot be empty' : null,
+              validator: (v) => (v == null || v.trim().isEmpty) ? l10n.settingsNameCannotBeEmpty : null,
             ),
             const SizedBox(height: 20),
-            SizedBox(width: double.infinity, child: _SaveButton(onPressed: () async {
+            SizedBox(width: double.infinity, child: _SaveButton(label: l10n.settingsSave, onPressed: () async {
               if (!formKey.currentState!.validate()) return;
               Navigator.of(ctx).pop();
               try {
                 await ref.read(profileServiceProvider).updateProfile(fullName: nameCtrl.text.trim());
-                if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Profile updated')));
+                if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l10n.settingsProfileUpdated)));
               } catch (e) {
                 if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed: $e'), backgroundColor: AppColors.error));
               }
@@ -499,6 +514,7 @@ class _StudentSettingsScreenState extends ConsumerState<StudentSettingsScreen> {
   }
 
   void _showChangePasswordSheet(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final pwCtrl = TextEditingController();
     final confirmCtrl = TextEditingController();
     final formKey = GlobalKey<FormState>();
@@ -514,13 +530,13 @@ class _StudentSettingsScreenState extends ConsumerState<StudentSettingsScreen> {
           child: Form(
             key: formKey,
             child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
-              const Text('Change Password', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w700)),
+              Text(l10n.settingsChangePasswordTitle, style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w700)),
               const SizedBox(height: 20),
               TextFormField(
                 controller: pwCtrl,
                 obscureText: obscure,
                 decoration: InputDecoration(
-                  labelText: 'New Password',
+                  labelText: l10n.settingsNewPassword,
                   border: const OutlineInputBorder(),
                   suffixIcon: IconButton(
                     icon: Icon(obscure ? Icons.visibility_off_outlined : Icons.visibility_outlined),
@@ -528,8 +544,8 @@ class _StudentSettingsScreenState extends ConsumerState<StudentSettingsScreen> {
                   ),
                 ),
                 validator: (v) {
-                  if (v == null || v.isEmpty) return 'Enter a password';
-                  if (v.length < 12) return 'Minimum 12 characters';
+                  if (v == null || v.isEmpty) return l10n.settingsEnterPassword;
+                  if (v.length < 12) return l10n.settingsMin12Chars;
                   return null;
                 },
               ),
@@ -537,16 +553,16 @@ class _StudentSettingsScreenState extends ConsumerState<StudentSettingsScreen> {
               TextFormField(
                 controller: confirmCtrl,
                 obscureText: obscure,
-                decoration: const InputDecoration(labelText: 'Confirm Password', border: OutlineInputBorder()),
-                validator: (v) => v != pwCtrl.text ? 'Passwords do not match' : null,
+                decoration: InputDecoration(labelText: l10n.settingsConfirmPassword, border: const OutlineInputBorder()),
+                validator: (v) => v != pwCtrl.text ? l10n.settingsPasswordsDoNotMatch : null,
               ),
               const SizedBox(height: 20),
-              SizedBox(width: double.infinity, child: _SaveButton(onPressed: () async {
+              SizedBox(width: double.infinity, child: _SaveButton(label: l10n.settingsSave, onPressed: () async {
                 if (!formKey.currentState!.validate()) return;
                 Navigator.of(ctx).pop();
                 try {
                   await ref.read(profileServiceProvider).changePassword(newPassword: pwCtrl.text);
-                  if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Password changed')));
+                  if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l10n.settingsPasswordChanged)));
                 } catch (e) {
                   if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed: $e'), backgroundColor: AppColors.error));
                 }
@@ -560,6 +576,7 @@ class _StudentSettingsScreenState extends ConsumerState<StudentSettingsScreen> {
   }
 
   void _showChangeEmailSheet(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final emailCtrl = TextEditingController();
     final codeCtrl = TextEditingController();
     final formKey = GlobalKey<FormState>();
@@ -576,22 +593,22 @@ class _StudentSettingsScreenState extends ConsumerState<StudentSettingsScreen> {
           child: Form(
             key: formKey,
             child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
-              const Text('Change Email', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w700)),
+              Text(l10n.settingsChangeEmailTitle, style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w700)),
               const SizedBox(height: 20),
               if (!codeSent) ...[
                 TextFormField(
                   controller: emailCtrl,
-                  decoration: const InputDecoration(labelText: 'New Email Address', border: OutlineInputBorder()),
+                  decoration: InputDecoration(labelText: l10n.settingsNewEmailAddress, border: const OutlineInputBorder()),
                   keyboardType: TextInputType.emailAddress,
                   validator: (v) {
-                    if (v == null || v.trim().isEmpty) return 'Enter an email';
-                    if (!v.contains('@')) return 'Enter a valid email';
+                    if (v == null || v.trim().isEmpty) return l10n.settingsEnterEmail;
+                    if (!v.contains('@')) return l10n.settingsEnterValidEmail;
                     return null;
                   },
                 ),
                 const SizedBox(height: 20),
                 SizedBox(width: double.infinity, child: _SaveButton(
-                  label: loading ? 'Sending…' : 'Send Verification Code',
+                  label: loading ? l10n.settingsSending : l10n.settingsSendVerificationCode,
                   onPressed: loading ? null : () async {
                     if (!formKey.currentState!.validate()) return;
                     setSheetState(() => loading = true);
@@ -605,25 +622,25 @@ class _StudentSettingsScreenState extends ConsumerState<StudentSettingsScreen> {
                   },
                 )),
               ] else ...[
-                Text('We sent a 6-digit code to ${emailCtrl.text}.',
+                Text(l10n.settingsCodeSentTo(emailCtrl.text),
                     style: const TextStyle(fontSize: 13, color: AppColors.neutral600)),
                 const SizedBox(height: 16),
                 TextFormField(
                   controller: codeCtrl,
-                  decoration: const InputDecoration(labelText: 'Verification Code', border: OutlineInputBorder()),
+                  decoration: InputDecoration(labelText: l10n.settingsVerificationCode, border: const OutlineInputBorder()),
                   keyboardType: TextInputType.number,
                   maxLength: 6,
-                  validator: (v) => (v == null || v.length != 6) ? 'Enter the 6-digit code' : null,
+                  validator: (v) => (v == null || v.length != 6) ? l10n.settingsEnter6DigitCode : null,
                 ),
                 const SizedBox(height: 20),
-                SizedBox(width: double.infinity, child: _SaveButton(onPressed: () async {
+                SizedBox(width: double.infinity, child: _SaveButton(label: l10n.settingsSave, onPressed: () async {
                   if (!formKey.currentState!.validate()) return;
                   try {
                     await ref.read(profileServiceProvider).verifyEmailChange(code: codeCtrl.text.trim());
                     if (ctx.mounted) Navigator.of(ctx).pop();
-                    if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Email updated')));
+                    if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l10n.settingsEmailUpdated)));
                   } catch (e) {
-                    if (ctx.mounted) ScaffoldMessenger.of(ctx).showSnackBar(const SnackBar(content: Text('Invalid or expired code. Please try again.'), backgroundColor: AppColors.error));
+                    if (ctx.mounted) ScaffoldMessenger.of(ctx).showSnackBar(SnackBar(content: Text(l10n.settingsInvalidCode), backgroundColor: AppColors.error));
                   }
                 })),
               ],
@@ -640,8 +657,8 @@ class _StudentSettingsScreenState extends ConsumerState<StudentSettingsScreen> {
     // GoRouter's redirect guard handles navigation to login once auth state is cleared
   }
 
-  static String _localeLabel(Locale? locale) {
-    if (locale == null) return 'Auto';
+  static String _localeLabel(AppLocalizations l10n, Locale? locale) {
+    if (locale == null) return l10n.settingsLanguageAuto;
     for (final lang in AppConstants.languages) {
       if (lang.code == locale.languageCode) return '${lang.flag} ${lang.name}';
     }
@@ -714,7 +731,7 @@ class _SettingsTile extends StatelessWidget {
 class _SaveButton extends StatelessWidget {
   final VoidCallback? onPressed;
   final String label;
-  const _SaveButton({required this.onPressed, this.label = 'Save'});
+  const _SaveButton({required this.onPressed, required this.label});
 
   @override
   Widget build(BuildContext context) => ElevatedButton(

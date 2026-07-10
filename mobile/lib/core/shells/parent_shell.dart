@@ -1,17 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../theme/app_colors.dart';
+import '../../l10n/app_localizations.dart';
 
 class ParentShell extends StatelessWidget {
   final Widget child;
   const ParentShell({super.key, required this.child});
 
   static const _tabs = [
-    _TabItem(label: 'Home', icon: Icons.home_outlined, activeIcon: Icons.home, path: '/parent/home'),
-    _TabItem(label: 'Children', icon: Icons.people_outline, activeIcon: Icons.people, path: '/parent/children'),
-    _TabItem(label: 'Rewards', icon: Icons.card_giftcard_outlined, activeIcon: Icons.card_giftcard, path: '/parent/rewards'),
-    _TabItem(label: 'Insights', icon: Icons.bar_chart_outlined, activeIcon: Icons.bar_chart, path: '/parent/insights'),
-    _TabItem(label: 'Settings', icon: Icons.settings_outlined, activeIcon: Icons.settings, path: '/parent/settings'),
+    _TabItem(icon: Icons.home_outlined, activeIcon: Icons.home, path: '/parent/home'),
+    _TabItem(icon: Icons.people_outline, activeIcon: Icons.people, path: '/parent/children'),
+    _TabItem(icon: Icons.card_giftcard_outlined, activeIcon: Icons.card_giftcard, path: '/parent/rewards'),
+    _TabItem(icon: Icons.bar_chart_outlined, activeIcon: Icons.bar_chart, path: '/parent/insights'),
+    _TabItem(icon: Icons.settings_outlined, activeIcon: Icons.settings, path: '/parent/settings'),
   ];
 
   int _currentIndex(BuildContext context) {
@@ -22,10 +23,20 @@ class ParentShell extends StatelessWidget {
     return 0;
   }
 
+  List<String> _labels(AppLocalizations l10n) => [
+    l10n.navHome,
+    l10n.childrenTitle,
+    l10n.rewardsTitle,
+    l10n.insightsTitle,
+    l10n.settingsTitle,
+  ];
+
   @override
   Widget build(BuildContext context) {
     final currentIndex = _currentIndex(context);
     final isWideScreen = MediaQuery.of(context).size.width >= 600;
+    final l10n = AppLocalizations.of(context)!;
+    final labels = _labels(l10n);
 
     if (isWideScreen) {
       return Scaffold(
@@ -38,11 +49,11 @@ class ParentShell extends StatelessWidget {
               backgroundColor: Theme.of(context).colorScheme.surface,
               selectedIconTheme: const IconThemeData(color: AppColors.primary),
               selectedLabelTextStyle: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.w600, fontSize: 12),
-              destinations: _tabs.map((t) => NavigationRailDestination(
-                icon: Icon(t.icon),
-                selectedIcon: Icon(t.activeIcon),
-                label: Text(t.label),
-              )).toList(),
+              destinations: List.generate(_tabs.length, (i) => NavigationRailDestination(
+                icon: Icon(_tabs[i].icon),
+                selectedIcon: Icon(_tabs[i].activeIcon),
+                label: Text(labels[i]),
+              )),
             ),
             const VerticalDivider(width: 1),
             Expanded(child: child),
@@ -56,20 +67,19 @@ class ParentShell extends StatelessWidget {
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: currentIndex,
         onTap: (i) => context.go(_tabs[i].path),
-        items: _tabs.map((t) => BottomNavigationBarItem(
-          icon: Icon(t.icon),
-          activeIcon: Icon(t.activeIcon),
-          label: t.label,
-        )).toList(),
+        items: List.generate(_tabs.length, (i) => BottomNavigationBarItem(
+          icon: Icon(_tabs[i].icon),
+          activeIcon: Icon(_tabs[i].activeIcon),
+          label: labels[i],
+        )),
       ),
     );
   }
 }
 
 class _TabItem {
-  final String label;
   final IconData icon;
   final IconData activeIcon;
   final String path;
-  const _TabItem({required this.label, required this.icon, required this.activeIcon, required this.path});
+  const _TabItem({required this.icon, required this.activeIcon, required this.path});
 }

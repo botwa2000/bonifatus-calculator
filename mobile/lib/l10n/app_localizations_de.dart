@@ -973,4 +973,27 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get parentInsightsChildren => 'Kinder';
+
+  @override
+  String get navHome => 'Start';
+
+  @override
+  String get navCalculator => 'Rechner';
+
+  @override
+  String parentDashboardChildSubtitle(int count, int pts) =>
+      '$count Noten · $pts Pkt. ausstehend';
+
+  @override
+  String get termDetailDeleteTitle => 'Ergebnis löschen';
+
+  @override
+  String get termDetailDeleteConfirm =>
+      'Bist du sicher, dass du dieses Ergebnis löschen möchtest? Diese Aktion kann nicht rückgängig gemacht werden.';
+
+  @override
+  String get termDetailDelete => 'Löschen';
+
+  @override
+  String get termDetailEditLabel => 'Bezeichnung bearbeiten';
 }

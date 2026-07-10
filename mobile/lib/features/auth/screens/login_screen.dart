@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:bonifatus_mobile/l10n/app_localizations.dart';
 import 'package:go_router/go_router.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../core/constants/app_constants.dart';
 import '../../../api/services/biometric_service.dart';
 import '../providers/auth_provider.dart';
 
@@ -31,6 +33,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     final svc = ref.read(biometricServiceProvider);
     final enabled = await svc.isEnabled();
     if (!enabled) return;
+    // Only show biometric button if a saved JWT exists
+    final token = await const FlutterSecureStorage().read(key: AppConstants.keyAccessToken);
+    if (token == null || token.isEmpty) return;
     final canAuth = await svc.canAuthenticate();
     if (!mounted) return;
     setState(() => _biometricAvailable = canAuth);
@@ -79,7 +84,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     });
 
     return Scaffold(
-      backgroundColor: AppColors.white,
+      backgroundColor: theme.colorScheme.surface,
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(24),
@@ -123,7 +128,12 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                         textInputAction: TextInputAction.next,
                         autocorrect: false,
                         autofillHints: const [AutofillHints.email, AutofillHints.username],
-                        decoration: InputDecoration(labelText: l10n.loginEmailLabel, prefixIcon: const Icon(Icons.email_outlined)),
+                        decoration: InputDecoration(
+                          labelText: l10n.loginEmailLabel,
+                          prefixIcon: const Icon(Icons.email_outlined),
+                          filled: true,
+                          fillColor: theme.colorScheme.surfaceContainerHighest,
+                        ),
                         validator: (v) => (v == null || !v.contains('@')) ? l10n.loginEmailValidator : null,
                       ),
                       const SizedBox(height: 16),
@@ -136,6 +146,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                         decoration: InputDecoration(
                           labelText: l10n.loginPasswordLabel,
                           prefixIcon: const Icon(Icons.lock_outline),
+                          filled: true,
+                          fillColor: theme.colorScheme.surfaceContainerHighest,
                           suffixIcon: IconButton(
                             icon: Icon(_obscure ? Icons.visibility_outlined : Icons.visibility_off_outlined),
                             onPressed: () => setState(() => _obscure = !_obscure),

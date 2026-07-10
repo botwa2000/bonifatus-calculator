@@ -9,6 +9,77 @@ class TermDetailScreen extends ConsumerWidget {
   final String termId;
   const TermDetailScreen({super.key, required this.termId});
 
+  Future<void> _confirmDelete(BuildContext context, WidgetRef ref, AppLocalizations l10n) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(l10n.termDetailDeleteTitle),
+        content: Text(l10n.termDetailDeleteConfirm),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(false),
+            child: Text(l10n.settingsCancel),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(true),
+            style: TextButton.styleFrom(foregroundColor: AppColors.error),
+            child: Text(l10n.termDetailDelete),
+          ),
+        ],
+      ),
+    );
+    if (confirmed == true && context.mounted) {
+      await ref.read(termResultsProvider.notifier).deleteTerm(termId);
+      if (context.mounted) context.pop();
+    }
+  }
+
+  void _showEditLabelSheet(BuildContext context, WidgetRef ref, AppLocalizations l10n, String currentLabel) {
+    final ctrl = TextEditingController(text: currentLabel);
+    showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+      builder: (ctx) => Padding(
+        padding: EdgeInsets.only(
+          bottom: MediaQuery.of(ctx).viewInsets.bottom,
+          left: 24, right: 24, top: 24,
+        ),
+        child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Text(l10n.termDetailEditLabel, style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w700)),
+          const SizedBox(height: 20),
+          TextField(
+            controller: ctrl,
+            decoration: InputDecoration(
+              labelText: l10n.termDetailEditLabel,
+              border: const OutlineInputBorder(),
+            ),
+            autofocus: true,
+            textCapitalization: TextCapitalization.sentences,
+          ),
+          const SizedBox(height: 20),
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton(
+              onPressed: () async {
+                Navigator.of(ctx).pop();
+                await ref.read(termResultsProvider.notifier).updateTermName(termId, ctrl.text.trim());
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primary,
+                foregroundColor: AppColors.white,
+                padding: const EdgeInsets.symmetric(vertical: 14),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              ),
+              child: Text(l10n.settingsSave, style: const TextStyle(fontWeight: FontWeight.w700)),
+            ),
+          ),
+          const SizedBox(height: 24),
+        ]),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context)!;
@@ -46,6 +117,7 @@ class TermDetailScreen extends ConsumerWidget {
           );
         }
 
+        final isUnsettled = term.status != 'settled';
         final theme = Theme.of(context);
         final tier = term.tier;
         final tierColor = AppColors.tierColor(tier);
@@ -58,6 +130,20 @@ class TermDetailScreen extends ConsumerWidget {
               icon: const Icon(Icons.arrow_back_ios_new_rounded),
               onPressed: () => context.pop(),
             ),
+            actions: isUnsettled
+                ? [
+                    IconButton(
+                      icon: const Icon(Icons.edit_outlined),
+                      tooltip: l10n.termDetailEditLabel,
+                      onPressed: () => _showEditLabelSheet(context, ref, l10n, term.termName ?? ''),
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.delete_outline, color: AppColors.error),
+                      tooltip: l10n.termDetailDeleteTitle,
+                      onPressed: () => _confirmDelete(context, ref, l10n),
+                    ),
+                  ]
+                : null,
           ),
           body: SingleChildScrollView(
             padding: const EdgeInsets.all(16),

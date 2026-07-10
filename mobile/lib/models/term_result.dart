@@ -16,7 +16,7 @@ class SubjectResult {
   factory SubjectResult.fromJson(Map<String, dynamic> json) {
     // API returns snake_case; support both
     final subjectId = (json['subjectId'] ?? json['subject_id']) as String;
-    final gradeValue = (json['gradeValue'] ?? json['grade_value']) as String;
+    final gradeValue = (json['gradeValue'] ?? json['grade_value'] ?? json['grade']) as String? ?? '';
     final bonusPoints = ((json['bonusPoints'] ?? json['bonus_points']) as num?)?.toDouble() ?? 0.0;
     final tier = (json['gradeQualityTier'] ?? json['grade_quality_tier']) as String?;
     // subjectName may be nested under subjects.name (JSONB)
@@ -48,6 +48,7 @@ class TermResult {
   final double totalBonusPoints;
   final String status;
   final String? termName;
+  final String? gradingSystemId;
   final DateTime createdAt;
   final List<SubjectResult> subjects;
 
@@ -59,6 +60,7 @@ class TermResult {
     required this.totalBonusPoints,
     required this.status,
     this.termName,
+    this.gradingSystemId,
     required this.createdAt,
     required this.subjects,
   });
@@ -77,6 +79,7 @@ class TermResult {
           ((json['totalBonusPoints'] ?? json['total_bonus_points']) as num?)?.toDouble() ?? 0.0,
       status: json['status'] as String? ?? 'active',
       termName: (json['termName'] ?? json['term_name']) as String?,
+      gradingSystemId: (json['gradingSystemId'] ?? json['grading_system_id']) as String?,
       createdAt: createdRaw != null ? DateTime.parse(createdRaw) : DateTime.now(),
       subjects: subjectsRaw
           .map((s) => SubjectResult.fromJson(s as Map<String, dynamic>))
@@ -86,7 +89,9 @@ class TermResult {
 
   String get displayLabel {
     if (termName != null && termName!.isNotEmpty) return termName!;
-    return '$schoolYear $termType';
+    final type = termType.replaceAll('_', ' ');
+    final capitalizedType = type.isEmpty ? type : type[0].toUpperCase() + type.substring(1);
+    return '$schoolYear · $capitalizedType';
   }
 
   double? get averageGrade {

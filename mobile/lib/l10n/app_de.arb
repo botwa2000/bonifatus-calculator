@@ -322,5 +322,21 @@
   "parentInsightsAllChildrenSummary": "Alle Kinder — Zusammenfassung",
   "parentInsightsTotalEarned": "Gesamt verdient",
   "parentInsightsPending": "Ausstehend",
-  "parentInsightsChildren": "Kinder"
+  "parentInsightsChildren": "Kinder",
+
+  "navHome": "Start",
+  "navCalculator": "Rechner",
+
+  "parentDashboardChildSubtitle": "{count} Noten · {pts} Pkt. ausstehend",
+  "@parentDashboardChildSubtitle": {
+    "placeholders": {
+      "count": { "type": "int" },
+      "pts": { "type": "int" }
+    }
+  },
+
+  "termDetailDeleteTitle": "Ergebnis löschen",
+  "termDetailDeleteConfirm": "Bist du sicher, dass du dieses Ergebnis löschen möchtest? Diese Aktion kann nicht rückgängig gemacht werden.",
+  "termDetailDelete": "Löschen",
+  "termDetailEditLabel": "Bezeichnung bearbeiten"
 }

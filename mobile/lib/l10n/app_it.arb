@@ -322,5 +322,21 @@
   "parentInsightsAllChildrenSummary": "Tutti i figli — Riepilogo",
   "parentInsightsTotalEarned": "Totale guadagnato",
   "parentInsightsPending": "In sospeso",
-  "parentInsightsChildren": "Figli"
+  "parentInsightsChildren": "Figli",
+
+  "navHome": "Home",
+  "navCalculator": "Calcolatrice",
+
+  "parentDashboardChildSubtitle": "{count} voti · {pts} pts in sospeso",
+  "@parentDashboardChildSubtitle": {
+    "placeholders": {
+      "count": { "type": "int" },
+      "pts": { "type": "int" }
+    }
+  },
+
+  "termDetailDeleteTitle": "Elimina risultato",
+  "termDetailDeleteConfirm": "Sei sicuro di voler eliminare questo risultato? Questa azione non può essere annullata.",
+  "termDetailDelete": "Elimina",
+  "termDetailEditLabel": "Modifica etichetta"
 }

@@ -16,6 +16,21 @@ class TermResultsNotifier extends AsyncNotifier<List<TermResult>> {
     state = await AsyncValue.guard(_fetch);
   }
 
+  Future<void> deleteTerm(String id) async {
+    final service = ref.read(gradeServiceProvider);
+    await service.deleteTerm(id);
+    await reload();
+  }
+
+  Future<void> updateTermName(String id, String newName) async {
+    final service = ref.read(gradeServiceProvider);
+    final terms = state.valueOrNull ?? [];
+    final term = terms.where((t) => t.id == id).firstOrNull;
+    if (term == null) return;
+    await service.updateTermName(term: term, newName: newName);
+    await reload();
+  }
+
   Future<String> saveTerm({
     required String gradingSystemId,
     required int classLevel,

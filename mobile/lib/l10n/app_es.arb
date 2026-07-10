@@ -322,5 +322,21 @@
   "parentInsightsAllChildrenSummary": "Todos los hijos — Resumen",
   "parentInsightsTotalEarned": "Total ganado",
   "parentInsightsPending": "Pendiente",
-  "parentInsightsChildren": "Hijos"
+  "parentInsightsChildren": "Hijos",
+
+  "navHome": "Inicio",
+  "navCalculator": "Calculadora",
+
+  "parentDashboardChildSubtitle": "{count} notas · {pts} pts pendientes",
+  "@parentDashboardChildSubtitle": {
+    "placeholders": {
+      "count": { "type": "int" },
+      "pts": { "type": "int" }
+    }
+  },
+
+  "termDetailDeleteTitle": "Eliminar resultado",
+  "termDetailDeleteConfirm": "¿Estás seguro de que deseas eliminar este resultado? Esta acción no se puede deshacer.",
+  "termDetailDelete": "Eliminar",
+  "termDetailEditLabel": "Editar etiqueta"
 }

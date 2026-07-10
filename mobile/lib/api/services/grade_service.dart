@@ -69,6 +69,33 @@ class GradeService {
     return resp.data['settlementId'] as String;
   }
 
+  Future<void> deleteTerm(String id) async {
+    await _client.delete('/api/grades/delete', data: {'id': id});
+  }
+
+  Future<void> updateTermName({
+    required TermResult term,
+    required String newName,
+  }) async {
+    if (term.gradingSystemId == null || term.subjects.isEmpty) return;
+    await _client.post('/api/grades/update', data: {
+      'termId': term.id,
+      'gradingSystemId': term.gradingSystemId,
+      'classLevel': term.classLevel,
+      'termType': term.termType,
+      'schoolYear': term.schoolYear,
+      'termName': newName.trim().isEmpty ? null : newName.trim(),
+      'subjects': term.subjects
+          .map((s) => {
+                'subjectId': s.subjectId,
+                if (s.subjectName != null) 'subjectName': s.subjectName,
+                'grade': s.gradeValue,
+                'weight': 1,
+              })
+          .toList(),
+    });
+  }
+
   Future<String> saveTerm({
     required String gradingSystemId,
     required int classLevel,

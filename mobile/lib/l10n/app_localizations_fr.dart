@@ -975,4 +975,27 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get parentInsightsChildren => 'Enfants';
+
+  @override
+  String get navHome => 'Accueil';
+
+  @override
+  String get navCalculator => 'Calculatrice';
+
+  @override
+  String parentDashboardChildSubtitle(int count, int pts) =>
+      '$count notes · $pts pts en attente';
+
+  @override
+  String get termDetailDeleteTitle => 'Supprimer le résultat';
+
+  @override
+  String get termDetailDeleteConfirm =>
+      'Es-tu sûr(e) de vouloir supprimer ce résultat ? Cette action est irréversible.';
+
+  @override
+  String get termDetailDelete => 'Supprimer';
+
+  @override
+  String get termDetailEditLabel => 'Modifier le libellé';
 }

@@ -132,7 +132,46 @@ class ResultsScreen extends ConsumerWidget {
                   delegate: SliverChildBuilderDelegate(
                     (context, i) {
                       final term = terms[i];
-                      return _TermCard(term: term);
+                      if (term.status == 'settled') {
+                        return _TermCard(term: term);
+                      }
+                      return Dismissible(
+                        key: ValueKey(term.id),
+                        direction: DismissDirection.endToStart,
+                        background: Container(
+                          alignment: Alignment.centerRight,
+                          padding: const EdgeInsets.only(right: 24),
+                          decoration: BoxDecoration(
+                            color: AppColors.error,
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          child: const Icon(Icons.delete_outline, color: Colors.white, size: 26),
+                        ),
+                        confirmDismiss: (_) async {
+                          return await showDialog<bool>(
+                            context: context,
+                            builder: (ctx) => AlertDialog(
+                              title: Text(l10n.termDetailDeleteTitle),
+                              content: Text(l10n.termDetailDeleteConfirm),
+                              actions: [
+                                TextButton(
+                                  onPressed: () => Navigator.of(ctx).pop(false),
+                                  child: Text(l10n.settingsCancel),
+                                ),
+                                TextButton(
+                                  onPressed: () => Navigator.of(ctx).pop(true),
+                                  style: TextButton.styleFrom(foregroundColor: AppColors.error),
+                                  child: Text(l10n.termDetailDelete),
+                                ),
+                              ],
+                            ),
+                          ) ?? false;
+                        },
+                        onDismissed: (_) {
+                          ref.read(termResultsProvider.notifier).deleteTerm(term.id);
+                        },
+                        child: _TermCard(term: term),
+                      );
                     },
                     childCount: terms.length,
                   ),

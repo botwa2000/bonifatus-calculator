@@ -322,5 +322,21 @@
   "parentInsightsAllChildrenSummary": "Все дети — Сводка",
   "parentInsightsTotalEarned": "Всего заработано",
   "parentInsightsPending": "Ожидает",
-  "parentInsightsChildren": "Дети"
+  "parentInsightsChildren": "Дети",
+
+  "navHome": "Главная",
+  "navCalculator": "Калькулятор",
+
+  "parentDashboardChildSubtitle": "{count} оценок · {pts} Б ожидает",
+  "@parentDashboardChildSubtitle": {
+    "placeholders": {
+      "count": { "type": "int" },
+      "pts": { "type": "int" }
+    }
+  },
+
+  "termDetailDeleteTitle": "Удалить результат",
+  "termDetailDeleteConfirm": "Вы уверены, что хотите удалить этот результат? Это действие нельзя отменить.",
+  "termDetailDelete": "Удалить",
+  "termDetailEditLabel": "Изменить метку"
 }

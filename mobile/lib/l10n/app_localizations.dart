@@ -1917,6 +1917,48 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Children'**
   String get parentInsightsChildren;
+
+  /// No description provided for @navHome.
+  ///
+  /// In en, this message translates to:
+  /// **'Home'**
+  String get navHome;
+
+  /// No description provided for @navCalculator.
+  ///
+  /// In en, this message translates to:
+  /// **'Calculator'**
+  String get navCalculator;
+
+  /// No description provided for @parentDashboardChildSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} grades · {pts} pts pending'**
+  String parentDashboardChildSubtitle(int count, int pts);
+
+  /// No description provided for @termDetailDeleteTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete Result'**
+  String get termDetailDeleteTitle;
+
+  /// No description provided for @termDetailDeleteConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to delete this result? This action cannot be undone.'**
+  String get termDetailDeleteConfirm;
+
+  /// No description provided for @termDetailDelete.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete'**
+  String get termDetailDelete;
+
+  /// No description provided for @termDetailEditLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit Label'**
+  String get termDetailEditLabel;
 }
 
 class _AppLocalizationsDelegate

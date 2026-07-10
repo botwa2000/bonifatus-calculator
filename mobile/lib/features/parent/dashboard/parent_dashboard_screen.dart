@@ -272,7 +272,7 @@ class ParentDashboardScreen extends ConsumerWidget {
                                 ),
                               ),
                               Text(
-                                '${child.grades.length} grades · ${child.totalPendingPoints} pts pending',
+                                l10n.parentDashboardChildSubtitle(child.grades.length, child.totalPendingPoints),
                                 style: const TextStyle(
                                   fontSize: 12,
                                   color: AppColors.neutral600,

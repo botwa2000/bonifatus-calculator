@@ -322,5 +322,21 @@
   "parentInsightsAllChildrenSummary": "Tous les enfants — Résumé",
   "parentInsightsTotalEarned": "Total gagné",
   "parentInsightsPending": "En attente",
-  "parentInsightsChildren": "Enfants"
+  "parentInsightsChildren": "Enfants",
+
+  "navHome": "Accueil",
+  "navCalculator": "Calculatrice",
+
+  "parentDashboardChildSubtitle": "{count} notes · {pts} pts en attente",
+  "@parentDashboardChildSubtitle": {
+    "placeholders": {
+      "count": { "type": "int" },
+      "pts": { "type": "int" }
+    }
+  },
+
+  "termDetailDeleteTitle": "Supprimer le résultat",
+  "termDetailDeleteConfirm": "Êtes-vous sûr de vouloir supprimer ce résultat ? Cette action est irréversible.",
+  "termDetailDelete": "Supprimer",
+  "termDetailEditLabel": "Modifier l'intitulé"
 }

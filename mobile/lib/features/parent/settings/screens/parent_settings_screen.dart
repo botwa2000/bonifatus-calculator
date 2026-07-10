@@ -10,16 +10,15 @@ import '../../../../api/services/connection_service.dart';
 import '../../../../api/services/biometric_service.dart';
 import '../../../../api/services/profile_service.dart';
 import '../../../../core/constants/app_constants.dart';
+import '../../../../l10n/app_localizations.dart';
 
 class _TierFactor {
   final String tier;
-  final String label;
   final double multiplier;
   final Color color;
 
   const _TierFactor({
     required this.tier,
-    required this.label,
     required this.multiplier,
     required this.color,
   });
@@ -49,9 +48,9 @@ class ParentSettingsScreen extends ConsumerStatefulWidget {
 
 class _ParentSettingsScreenState extends ConsumerState<ParentSettingsScreen> {
   List<_TierFactor> _tierFactors = const [
-    _TierFactor(tier: 'best', label: 'Best (Grade 1–2)', multiplier: 2.0, color: AppColors.tierBest),
-    _TierFactor(tier: 'second', label: 'Second (Grade 3)', multiplier: 1.5, color: AppColors.tierSecond),
-    _TierFactor(tier: 'third', label: 'Third (Grade 4)', multiplier: 1.0, color: AppColors.tierThird),
+    _TierFactor(tier: 'best', multiplier: 2.0, color: AppColors.tierBest),
+    _TierFactor(tier: 'second', multiplier: 1.5, color: AppColors.tierSecond),
+    _TierFactor(tier: 'third', multiplier: 1.0, color: AppColors.tierThird),
   ];
   final Map<String, _ChildCycleConfig> _cycleOverrides = {};
   bool _biometricAvailable = false;
@@ -73,7 +72,7 @@ class _ParentSettingsScreenState extends ConsumerState<ParentSettingsScreen> {
         _tierFactors = _tierFactors.map((f) {
           final loaded = factors[f.tier];
           return loaded != null
-              ? _TierFactor(tier: f.tier, label: f.label, multiplier: loaded, color: f.color)
+              ? _TierFactor(tier: f.tier, multiplier: loaded, color: f.color)
               : f;
         }).toList();
       });
@@ -101,10 +100,20 @@ class _ParentSettingsScreenState extends ConsumerState<ParentSettingsScreen> {
     if (mounted) setState(() => _biometricEnabled = value);
   }
 
+  String _tierLabel(AppLocalizations l10n, String tier) {
+    switch (tier) {
+      case 'best': return l10n.settingsTierBestLabel;
+      case 'second': return l10n.settingsTierSecondLabel;
+      case 'third': return l10n.settingsTierThirdLabel;
+      default: return tier;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final cs = theme.colorScheme;
+    final l10n = AppLocalizations.of(context)!;
     final currentThemeMode = ref.watch(themeModeProvider).valueOrNull ?? ThemeMode.system;
     final currentLocale = ref.watch(localeProvider).valueOrNull;
 
@@ -113,16 +122,16 @@ class _ParentSettingsScreenState extends ConsumerState<ParentSettingsScreen> {
       appBar: AppBar(
         backgroundColor: cs.surface,
         elevation: 0,
-        title: Text('Settings', style: TextStyle(color: cs.onSurface, fontWeight: FontWeight.w700, fontSize: 20)),
+        title: Text(l10n.settingsTitle, style: TextStyle(color: cs.onSurface, fontWeight: FontWeight.w700, fontSize: 20)),
       ),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
-          _SectionHeader(title: 'Preferences'),
+          _SectionHeader(title: l10n.settingsSectionPreferences),
           const SizedBox(height: 8),
           _buildPreferencesCard(context, currentThemeMode, currentLocale),
           const SizedBox(height: 20),
-          _SectionHeader(title: 'Account'),
+          _SectionHeader(title: l10n.settingsSectionAccount),
           const SizedBox(height: 8),
           _buildAccountCard(context),
           const SizedBox(height: 32),
@@ -132,21 +141,21 @@ class _ParentSettingsScreenState extends ConsumerState<ParentSettingsScreen> {
   }
 
   Widget _buildPreferencesCard(BuildContext context, ThemeMode currentThemeMode, Locale? currentLocale) {
-    final theme = Theme.of(context);
-    final cs = theme.colorScheme;
-    final localeLabel = _localeLabel(currentLocale);
+    final cs = Theme.of(context).colorScheme;
+    final l10n = AppLocalizations.of(context)!;
+    final localeLabel = _localeLabel(l10n, currentLocale);
 
     return _Card(children: [
       Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Text('Appearance', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: cs.onSurfaceVariant)),
+          Text(l10n.settingsAppearanceLabel, style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: cs.onSurfaceVariant)),
           const SizedBox(height: 10),
           SegmentedButton<ThemeMode>(
-            segments: const [
-              ButtonSegment(value: ThemeMode.system, label: Text('System'), icon: Icon(Icons.brightness_auto_rounded, size: 16)),
-              ButtonSegment(value: ThemeMode.light, label: Text('Light'), icon: Icon(Icons.light_mode_rounded, size: 16)),
-              ButtonSegment(value: ThemeMode.dark, label: Text('Dark'), icon: Icon(Icons.dark_mode_rounded, size: 16)),
+            segments: [
+              ButtonSegment(value: ThemeMode.system, label: Text(l10n.settingsThemeSystem), icon: const Icon(Icons.brightness_auto_rounded, size: 16)),
+              ButtonSegment(value: ThemeMode.light, label: Text(l10n.settingsThemeLight), icon: const Icon(Icons.light_mode_rounded, size: 16)),
+              ButtonSegment(value: ThemeMode.dark, label: Text(l10n.settingsThemeDark), icon: const Icon(Icons.dark_mode_rounded, size: 16)),
             ],
             selected: {currentThemeMode},
             onSelectionChanged: (s) =>
@@ -161,7 +170,7 @@ class _ParentSettingsScreenState extends ConsumerState<ParentSettingsScreen> {
       Divider(height: 1, indent: 16, endIndent: 16, color: cs.outlineVariant),
       ListTile(
         leading: Icon(Icons.language_rounded, color: cs.onSurfaceVariant, size: 22),
-        title: Text('Language', style: TextStyle(fontSize: 15, color: cs.onSurface, fontWeight: FontWeight.w500)),
+        title: Text(l10n.settingsLanguageLabel, style: TextStyle(fontSize: 15, color: cs.onSurface, fontWeight: FontWeight.w500)),
         trailing: Row(mainAxisSize: MainAxisSize.min, children: [
           Text(localeLabel, style: TextStyle(fontSize: 14, color: cs.onSurfaceVariant)),
           const SizedBox(width: 4),
@@ -172,8 +181,8 @@ class _ParentSettingsScreenState extends ConsumerState<ParentSettingsScreen> {
       Divider(height: 1, indent: 16, endIndent: 16, color: cs.outlineVariant),
       ListTile(
         leading: Icon(Icons.tune_rounded, color: cs.onSurfaceVariant, size: 22),
-        title: Text('Grading Config', style: TextStyle(fontSize: 15, color: cs.onSurface, fontWeight: FontWeight.w500)),
-        subtitle: Text('Tier multipliers · notes cycle · bonus ratio',
+        title: Text(l10n.settingsGradingConfig, style: TextStyle(fontSize: 15, color: cs.onSurface, fontWeight: FontWeight.w500)),
+        subtitle: Text(l10n.settingsGradingConfigSubtitle,
             style: TextStyle(fontSize: 12, color: cs.onSurfaceVariant)),
         trailing: Icon(Icons.chevron_right_rounded, color: cs.outlineVariant),
         onTap: () => _showGradingConfigSheet(context),
@@ -183,17 +192,18 @@ class _ParentSettingsScreenState extends ConsumerState<ParentSettingsScreen> {
 
   Widget _buildAccountCard(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
+    final l10n = AppLocalizations.of(context)!;
     return _Card(children: [
-      _SettingsTile(icon: Icons.person_outline_rounded, label: 'Edit Profile', onTap: () => _showEditProfileSheet(context)),
+      _SettingsTile(icon: Icons.person_outline_rounded, label: l10n.settingsEditProfile, onTap: () => _showEditProfileSheet(context)),
       Divider(height: 1, indent: 56, color: cs.outlineVariant),
-      _SettingsTile(icon: Icons.lock_outline_rounded, label: 'Change Password', onTap: () => _showChangePasswordSheet(context)),
+      _SettingsTile(icon: Icons.lock_outline_rounded, label: l10n.settingsChangePassword, onTap: () => _showChangePasswordSheet(context)),
       Divider(height: 1, indent: 56, color: cs.outlineVariant),
-      _SettingsTile(icon: Icons.email_outlined, label: 'Change Email', onTap: () => _showChangeEmailSheet(context)),
+      _SettingsTile(icon: Icons.email_outlined, label: l10n.settingsChangeEmail, onTap: () => _showChangeEmailSheet(context)),
       if (_biometricAvailable) ...[
         Divider(height: 1, indent: 56, color: cs.outlineVariant),
         ListTile(
           leading: const Icon(Icons.fingerprint_rounded, color: AppColors.neutral600, size: 22),
-          title: const Text('Biometric Login', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w500)),
+          title: Text(l10n.settingsBiometricLogin, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w500)),
           trailing: Switch(
             value: _biometricEnabled,
             onChanged: _toggleBiometric,
@@ -205,13 +215,13 @@ class _ParentSettingsScreenState extends ConsumerState<ParentSettingsScreen> {
       ],
       Divider(height: 1, indent: 56, color: cs.outlineVariant),
       _SettingsTile(
-        icon: Icons.logout_rounded, label: 'Log Out',
+        icon: Icons.logout_rounded, label: l10n.settingsLogOut,
         iconColor: AppColors.error, labelColor: AppColors.error,
         onTap: () => _logout(context),
       ),
       Divider(height: 1, indent: 56, color: cs.outlineVariant),
       _SettingsTile(
-        icon: Icons.delete_outline_rounded, label: 'Delete Account',
+        icon: Icons.delete_outline_rounded, label: l10n.settingsDeleteAccount,
         iconColor: AppColors.error, labelColor: AppColors.error,
         onTap: () => _confirmDeleteAccount(context),
       ),
@@ -221,6 +231,7 @@ class _ParentSettingsScreenState extends ConsumerState<ParentSettingsScreen> {
   // ── Sheets & Dialogs ─────────────────────────────────────────────────────
 
   void _showGradingConfigSheet(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
@@ -238,7 +249,7 @@ class _ParentSettingsScreenState extends ConsumerState<ParentSettingsScreen> {
               Container(width: 40, height: 4, margin: const EdgeInsets.only(top: 12, bottom: 4),
                   decoration: BoxDecoration(color: cs.outlineVariant, borderRadius: BorderRadius.circular(2))),
               Padding(padding: const EdgeInsets.fromLTRB(20, 8, 20, 8),
-                  child: Text('Grading Config', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w700, color: cs.onSurface))),
+                  child: Text(l10n.settingsGradingConfig, style: TextStyle(fontSize: 17, fontWeight: FontWeight.w700, color: cs.onSurface))),
               Expanded(
                 child: ListView(
                   controller: scrollCtrl,
@@ -246,19 +257,20 @@ class _ParentSettingsScreenState extends ConsumerState<ParentSettingsScreen> {
                   children: [
                     // ── Grade Tier Multipliers ──────────────────────────
                     Padding(padding: const EdgeInsets.only(left: 4, bottom: 6, top: 4),
-                        child: Text('Grade Tier Multipliers', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: cs.onSurfaceVariant, letterSpacing: 0.3))),
+                        child: Text(l10n.settingsGradeTierMultipliers, style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: cs.onSurfaceVariant, letterSpacing: 0.3))),
                     _Card(children: List.generate(_tierFactors.length, (i) {
                       final factor = _tierFactors[i];
+                      final label = _tierLabel(l10n, factor.tier);
                       return Column(children: [
                         ListTile(
                           leading: Container(width: 10, height: 10,
                               decoration: BoxDecoration(color: factor.color, shape: BoxShape.circle)),
-                          title: Text(factor.label, style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: cs.onSurface)),
+                          title: Text(label, style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: cs.onSurface)),
                           trailing: Row(mainAxisSize: MainAxisSize.min, children: [
                             Text('${factor.multiplier}x', style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: AppColors.primary)),
                             const SizedBox(width: 8),
                             InkWell(
-                              onTap: () => _showMultiplierSheet(i, factor, onSaved: () => setSheetState(() {})),
+                              onTap: () => _showMultiplierSheet(i, factor, l10n, onSaved: () => setSheetState(() {})),
                               borderRadius: BorderRadius.circular(8),
                               child: const Padding(padding: EdgeInsets.all(4),
                                   child: Icon(Icons.edit_outlined, size: 18, color: AppColors.neutral400)),
@@ -272,7 +284,7 @@ class _ParentSettingsScreenState extends ConsumerState<ParentSettingsScreen> {
                     const SizedBox(height: 20),
                     // ── Ongoing Notes Cycle Config ──────────────────────
                     Padding(padding: const EdgeInsets.only(left: 4, bottom: 6),
-                        child: Text('Ongoing Notes Cycle', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: cs.onSurfaceVariant, letterSpacing: 0.3))),
+                        child: Text(l10n.settingsOngoingNotesCycle, style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: cs.onSurfaceVariant, letterSpacing: 0.3))),
                     childrenAsync.when(
                       loading: () => _Card(children: [
                         const Padding(padding: EdgeInsets.all(24),
@@ -280,13 +292,13 @@ class _ParentSettingsScreenState extends ConsumerState<ParentSettingsScreen> {
                       ]),
                       error: (_, __) => _Card(children: [
                         Padding(padding: const EdgeInsets.all(16),
-                            child: Text('Failed to load children', style: TextStyle(color: cs.onSurfaceVariant))),
+                            child: Text(l10n.settingsFailedToLoadChildren, style: TextStyle(color: cs.onSurfaceVariant))),
                       ]),
                       data: (children) {
                         if (children.isEmpty) {
                           return _Card(children: [
                             Padding(padding: const EdgeInsets.all(16),
-                                child: Text('No children connected', style: TextStyle(color: cs.onSurfaceVariant))),
+                                child: Text(l10n.settingsNoChildrenConnected, style: TextStyle(color: cs.onSurfaceVariant))),
                           ]);
                         }
                         return _Card(children: List.generate(children.length, (i) {
@@ -306,7 +318,7 @@ class _ParentSettingsScreenState extends ConsumerState<ParentSettingsScreen> {
                               subtitle: Text('${config.cycleType} · ${(config.ratio * 100).round()}% ratio',
                                   style: TextStyle(fontSize: 12, color: cs.onSurfaceVariant)),
                               trailing: InkWell(
-                                onTap: () => _showCycleConfigSheet(config, onSaved: () => setSheetState(() {})),
+                                onTap: () => _showCycleConfigSheet(config, l10n, onSaved: () => setSheetState(() {})),
                                 borderRadius: BorderRadius.circular(8),
                                 child: const Padding(padding: EdgeInsets.all(4),
                                     child: Icon(Icons.tune_rounded, size: 20, color: AppColors.neutral400)),
@@ -329,6 +341,7 @@ class _ParentSettingsScreenState extends ConsumerState<ParentSettingsScreen> {
   }
 
   void _showLanguagePicker(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final current = ref.read(localeProvider).valueOrNull;
     showModalBottomSheet<void>(
       context: context,
@@ -345,10 +358,10 @@ class _ParentSettingsScreenState extends ConsumerState<ParentSettingsScreen> {
                 Container(width: 40, height: 4, margin: const EdgeInsets.only(bottom: 16),
                     decoration: BoxDecoration(color: cs.outlineVariant, borderRadius: BorderRadius.circular(2))),
                 Padding(padding: const EdgeInsets.fromLTRB(20, 0, 20, 12),
-                    child: Text('Language', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w700, color: cs.onSurface))),
+                    child: Text(l10n.settingsLanguageLabel, style: TextStyle(fontSize: 17, fontWeight: FontWeight.w700, color: cs.onSurface))),
                 ListTile(
                   leading: const Text('🌐', style: TextStyle(fontSize: 22)),
-                  title: Text('Auto (System)', style: TextStyle(color: cs.onSurface)),
+                  title: Text(l10n.settingsLanguageAutoSystem, style: TextStyle(color: cs.onSurface)),
                   trailing: current == null ? Icon(Icons.check_rounded, color: AppColors.primary) : null,
                   onTap: () {
                     ref.read(localeProvider.notifier).setLocale(null);
@@ -377,15 +390,14 @@ class _ParentSettingsScreenState extends ConsumerState<ParentSettingsScreen> {
   }
 
   void _confirmDeleteAccount(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     showDialog<void>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Delete Account'),
-        content: const Text(
-          'This will permanently delete your account and all data. This action cannot be undone.',
-        ),
+        title: Text(l10n.settingsDeleteAccountDialogTitle),
+        content: Text(l10n.settingsDeleteAccountDialogContent),
         actions: [
-          TextButton(onPressed: () => Navigator.of(ctx).pop(), child: const Text('Cancel')),
+          TextButton(onPressed: () => Navigator.of(ctx).pop(), child: Text(l10n.settingsCancel)),
           TextButton(
             onPressed: () async {
               Navigator.of(ctx).pop();
@@ -395,21 +407,22 @@ class _ParentSettingsScreenState extends ConsumerState<ParentSettingsScreen> {
               } catch (e) {
                 if (context.mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('Failed to delete account: $e'), backgroundColor: AppColors.error),
+                    SnackBar(content: Text(l10n.settingsDeleteAccountFailed(e.toString())), backgroundColor: AppColors.error),
                   );
                 }
               }
             },
             style: TextButton.styleFrom(foregroundColor: AppColors.error),
-            child: const Text('Delete Account'),
+            child: Text(l10n.settingsDeleteAccountConfirm),
           ),
         ],
       ),
     );
   }
 
-  void _showMultiplierSheet(int index, _TierFactor factor, {VoidCallback? onSaved}) {
+  void _showMultiplierSheet(int index, _TierFactor factor, AppLocalizations l10n, {VoidCallback? onSaved}) {
     double currentValue = factor.multiplier.clamp(0.5, 3.0);
+    final label = _tierLabel(l10n, factor.tier);
     showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
@@ -418,7 +431,7 @@ class _ParentSettingsScreenState extends ConsumerState<ParentSettingsScreen> {
         builder: (ctx, setSheetState) => Padding(
           padding: const EdgeInsets.all(24),
           child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Text('Edit Multiplier: ${factor.label}',
+            Text(l10n.settingsEditMultiplier(label),
                 style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w700, color: AppColors.neutral900)),
             const SizedBox(height: 20),
             Center(child: Text('${currentValue.toStringAsFixed(1)}x',
@@ -436,7 +449,7 @@ class _ParentSettingsScreenState extends ConsumerState<ParentSettingsScreen> {
                 onPressed: () async {
                   final newMultiplier = double.parse(currentValue.toStringAsFixed(1));
                   final updated = List<_TierFactor>.from(_tierFactors);
-                  updated[index] = _TierFactor(tier: factor.tier, label: factor.label, multiplier: newMultiplier, color: factor.color);
+                  updated[index] = _TierFactor(tier: factor.tier, multiplier: newMultiplier, color: factor.color);
                   setState(() => _tierFactors = updated);
                   Navigator.of(ctx).pop();
                   try {
@@ -450,7 +463,7 @@ class _ParentSettingsScreenState extends ConsumerState<ParentSettingsScreen> {
                   padding: const EdgeInsets.symmetric(vertical: 14),
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                 ),
-                child: const Text('Save', style: TextStyle(fontWeight: FontWeight.w700)),
+                child: Text(l10n.settingsSave, style: const TextStyle(fontWeight: FontWeight.w700)),
               ),
             ),
             const SizedBox(height: 16),
@@ -460,7 +473,7 @@ class _ParentSettingsScreenState extends ConsumerState<ParentSettingsScreen> {
     );
   }
 
-  void _showCycleConfigSheet(_ChildCycleConfig config, {VoidCallback? onSaved}) {
+  void _showCycleConfigSheet(_ChildCycleConfig config, AppLocalizations l10n, {VoidCallback? onSaved}) {
     String currentCycleType = config.cycleType;
     double currentRatio = config.ratio;
     const cycleTypes = ['Daily', 'Weekly', 'Monthly'];
@@ -473,10 +486,10 @@ class _ParentSettingsScreenState extends ConsumerState<ParentSettingsScreen> {
         builder: (ctx, setSheetState) => Padding(
           padding: EdgeInsets.only(bottom: MediaQuery.of(ctx).viewInsets.bottom, left: 24, right: 24, top: 24),
           child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Text('Config for ${config.childName}',
+            Text(l10n.settingsConfigFor(config.childName),
                 style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w700, color: AppColors.neutral900)),
             const SizedBox(height: 20),
-            const Text('Cycle Type', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.neutral600)),
+            Text(l10n.settingsCycleType, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.neutral600)),
             const SizedBox(height: 10),
             Row(children: cycleTypes.map((type) {
               final selected = type == currentCycleType;
@@ -499,7 +512,7 @@ class _ParentSettingsScreenState extends ConsumerState<ParentSettingsScreen> {
             }).toList()),
             const SizedBox(height: 20),
             Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-              const Text('Bonus Ratio', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.neutral600)),
+              Text(l10n.settingsBonusRatio, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.neutral600)),
               Text('${(currentRatio * 100).round()}%',
                   style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: AppColors.primary)),
             ]),
@@ -528,7 +541,7 @@ class _ParentSettingsScreenState extends ConsumerState<ParentSettingsScreen> {
                   padding: const EdgeInsets.symmetric(vertical: 14),
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                 ),
-                child: const Text('Save', style: TextStyle(fontWeight: FontWeight.w700)),
+                child: Text(l10n.settingsSave, style: const TextStyle(fontWeight: FontWeight.w700)),
               ),
             ),
             const SizedBox(height: 24),
@@ -539,6 +552,7 @@ class _ParentSettingsScreenState extends ConsumerState<ParentSettingsScreen> {
   }
 
   void _showEditProfileSheet(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final authState = ref.read(authStateNotifierProvider).valueOrNull;
     final nameCtrl = TextEditingController(text: authState?.name ?? '');
     final formKey = GlobalKey<FormState>();
@@ -555,25 +569,25 @@ class _ParentSettingsScreenState extends ConsumerState<ParentSettingsScreen> {
         child: Form(
           key: formKey,
           child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
-            const Text('Edit Profile', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w700)),
+            Text(l10n.settingsEditProfileTitle, style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w700)),
             const SizedBox(height: 20),
             TextFormField(
               controller: nameCtrl,
-              decoration: const InputDecoration(labelText: 'Full Name', border: OutlineInputBorder()),
+              decoration: InputDecoration(labelText: l10n.settingsFullName, border: const OutlineInputBorder()),
               textCapitalization: TextCapitalization.words,
-              validator: (v) => (v == null || v.trim().isEmpty) ? 'Name cannot be empty' : null,
+              validator: (v) => (v == null || v.trim().isEmpty) ? l10n.settingsNameCannotBeEmpty : null,
             ),
             const SizedBox(height: 20),
             SizedBox(
               width: double.infinity,
-              child: _SaveButton(onPressed: () async {
+              child: _SaveButton(label: l10n.settingsSave, onPressed: () async {
                 if (!formKey.currentState!.validate()) return;
                 Navigator.of(ctx).pop();
                 try {
                   await ref.read(profileServiceProvider).updateProfile(fullName: nameCtrl.text.trim());
                   if (context.mounted) {
                     ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Profile updated')),
+                      SnackBar(content: Text(l10n.settingsProfileUpdated)),
                     );
                   }
                 } catch (e) {
@@ -593,6 +607,7 @@ class _ParentSettingsScreenState extends ConsumerState<ParentSettingsScreen> {
   }
 
   void _showChangePasswordSheet(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final pwCtrl = TextEditingController();
     final confirmCtrl = TextEditingController();
     final formKey = GlobalKey<FormState>();
@@ -611,13 +626,13 @@ class _ParentSettingsScreenState extends ConsumerState<ParentSettingsScreen> {
           child: Form(
             key: formKey,
             child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
-              const Text('Change Password', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w700)),
+              Text(l10n.settingsChangePasswordTitle, style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w700)),
               const SizedBox(height: 20),
               TextFormField(
                 controller: pwCtrl,
                 obscureText: obscure,
                 decoration: InputDecoration(
-                  labelText: 'New Password',
+                  labelText: l10n.settingsNewPassword,
                   border: const OutlineInputBorder(),
                   suffixIcon: IconButton(
                     icon: Icon(obscure ? Icons.visibility_off_outlined : Icons.visibility_outlined),
@@ -625,8 +640,8 @@ class _ParentSettingsScreenState extends ConsumerState<ParentSettingsScreen> {
                   ),
                 ),
                 validator: (v) {
-                  if (v == null || v.isEmpty) return 'Enter a password';
-                  if (v.length < 12) return 'Minimum 12 characters';
+                  if (v == null || v.isEmpty) return l10n.settingsEnterPassword;
+                  if (v.length < 12) return l10n.settingsMin12Chars;
                   return null;
                 },
               ),
@@ -634,20 +649,20 @@ class _ParentSettingsScreenState extends ConsumerState<ParentSettingsScreen> {
               TextFormField(
                 controller: confirmCtrl,
                 obscureText: obscure,
-                decoration: const InputDecoration(labelText: 'Confirm Password', border: OutlineInputBorder()),
-                validator: (v) => v != pwCtrl.text ? 'Passwords do not match' : null,
+                decoration: InputDecoration(labelText: l10n.settingsConfirmPassword, border: const OutlineInputBorder()),
+                validator: (v) => v != pwCtrl.text ? l10n.settingsPasswordsDoNotMatch : null,
               ),
               const SizedBox(height: 20),
               SizedBox(
                 width: double.infinity,
-                child: _SaveButton(onPressed: () async {
+                child: _SaveButton(label: l10n.settingsSave, onPressed: () async {
                   if (!formKey.currentState!.validate()) return;
                   Navigator.of(ctx).pop();
                   try {
                     await ref.read(profileServiceProvider).changePassword(newPassword: pwCtrl.text);
                     if (context.mounted) {
                       ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Password changed')),
+                        SnackBar(content: Text(l10n.settingsPasswordChanged)),
                       );
                     }
                   } catch (e) {
@@ -668,6 +683,7 @@ class _ParentSettingsScreenState extends ConsumerState<ParentSettingsScreen> {
   }
 
   void _showChangeEmailSheet(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final emailCtrl = TextEditingController();
     final codeCtrl = TextEditingController();
     final formKey = GlobalKey<FormState>();
@@ -687,16 +703,16 @@ class _ParentSettingsScreenState extends ConsumerState<ParentSettingsScreen> {
           child: Form(
             key: formKey,
             child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
-              const Text('Change Email', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w700)),
+              Text(l10n.settingsChangeEmailTitle, style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w700)),
               const SizedBox(height: 20),
               if (!codeSent) ...[
                 TextFormField(
                   controller: emailCtrl,
-                  decoration: const InputDecoration(labelText: 'New Email Address', border: OutlineInputBorder()),
+                  decoration: InputDecoration(labelText: l10n.settingsNewEmailAddress, border: const OutlineInputBorder()),
                   keyboardType: TextInputType.emailAddress,
                   validator: (v) {
-                    if (v == null || v.trim().isEmpty) return 'Enter an email';
-                    if (!v.contains('@')) return 'Enter a valid email';
+                    if (v == null || v.trim().isEmpty) return l10n.settingsEnterEmail;
+                    if (!v.contains('@')) return l10n.settingsEnterValidEmail;
                     return null;
                   },
                 ),
@@ -704,7 +720,7 @@ class _ParentSettingsScreenState extends ConsumerState<ParentSettingsScreen> {
                 SizedBox(
                   width: double.infinity,
                   child: _SaveButton(
-                    label: loading ? 'Sending…' : 'Send Verification Code',
+                    label: loading ? l10n.settingsSending : l10n.settingsSendVerificationCode,
                     onPressed: loading ? null : () async {
                       if (!formKey.currentState!.validate()) return;
                       setSheetState(() => loading = true);
@@ -723,33 +739,33 @@ class _ParentSettingsScreenState extends ConsumerState<ParentSettingsScreen> {
                   ),
                 ),
               ] else ...[
-                Text('We sent a 6-digit code to ${emailCtrl.text}.',
+                Text(l10n.settingsCodeSentTo(emailCtrl.text),
                     style: const TextStyle(fontSize: 13, color: AppColors.neutral600)),
                 const SizedBox(height: 16),
                 TextFormField(
                   controller: codeCtrl,
-                  decoration: const InputDecoration(labelText: 'Verification Code', border: OutlineInputBorder()),
+                  decoration: InputDecoration(labelText: l10n.settingsVerificationCode, border: const OutlineInputBorder()),
                   keyboardType: TextInputType.number,
                   maxLength: 6,
-                  validator: (v) => (v == null || v.length != 6) ? 'Enter the 6-digit code' : null,
+                  validator: (v) => (v == null || v.length != 6) ? l10n.settingsEnter6DigitCode : null,
                 ),
                 const SizedBox(height: 20),
                 SizedBox(
                   width: double.infinity,
-                  child: _SaveButton(onPressed: () async {
+                  child: _SaveButton(label: l10n.settingsSave, onPressed: () async {
                     if (!formKey.currentState!.validate()) return;
                     try {
                       await ref.read(profileServiceProvider).verifyEmailChange(code: codeCtrl.text.trim());
                       if (ctx.mounted) Navigator.of(ctx).pop();
                       if (context.mounted) {
                         ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Email updated')),
+                          SnackBar(content: Text(l10n.settingsEmailUpdated)),
                         );
                       }
                     } catch (e) {
                       if (ctx.mounted) {
                         ScaffoldMessenger.of(ctx).showSnackBar(
-                          const SnackBar(content: Text('Invalid or expired code. Please try again.'), backgroundColor: AppColors.error),
+                          SnackBar(content: Text(l10n.settingsInvalidCode), backgroundColor: AppColors.error),
                         );
                       }
                     }
@@ -769,8 +785,8 @@ class _ParentSettingsScreenState extends ConsumerState<ParentSettingsScreen> {
     // GoRouter's redirect guard handles navigation to login once auth state is cleared
   }
 
-  static String _localeLabel(Locale? locale) {
-    if (locale == null) return 'Auto';
+  static String _localeLabel(AppLocalizations l10n, Locale? locale) {
+    if (locale == null) return l10n.settingsLanguageAuto;
     for (final lang in AppConstants.languages) {
       if (lang.code == locale.languageCode) return '${lang.flag} ${lang.name}';
     }
@@ -842,7 +858,7 @@ class _SettingsTile extends StatelessWidget {
 class _SaveButton extends StatelessWidget {
   final VoidCallback? onPressed;
   final String label;
-  const _SaveButton({required this.onPressed, this.label = 'Save'});
+  const _SaveButton({required this.onPressed, required this.label});
 
   @override
   Widget build(BuildContext context) => ElevatedButton(

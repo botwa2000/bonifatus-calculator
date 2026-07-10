@@ -963,4 +963,27 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get parentInsightsChildren => 'Дети';
+
+  @override
+  String get navHome => 'Главная';
+
+  @override
+  String get navCalculator => 'Калькулятор';
+
+  @override
+  String parentDashboardChildSubtitle(int count, int pts) =>
+      '$count оценок · $pts Б ожидает';
+
+  @override
+  String get termDetailDeleteTitle => 'Удалить результат';
+
+  @override
+  String get termDetailDeleteConfirm =>
+      'Вы уверены, что хотите удалить этот результат? Это действие нельзя отменить.';
+
+  @override
+  String get termDetailDelete => 'Удалить';
+
+  @override
+  String get termDetailEditLabel => 'Изменить метку';
 }

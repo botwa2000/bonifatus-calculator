@@ -28,10 +28,14 @@ class BiometricService {
   }
 
   Future<void> setEnabled(bool enabled) async {
-    await _storage.write(
-      key: AppConstants.keyBiometricEnabled,
-      value: enabled ? 'true' : 'false',
-    );
+    if (enabled) {
+      await _storage.write(
+        key: AppConstants.keyBiometricEnabled,
+        value: 'true',
+      );
+    } else {
+      await _storage.delete(key: AppConstants.keyBiometricEnabled);
+    }
   }
 
   Future<bool> authenticate({String reason = 'Sign in to Bonifatus'}) async {

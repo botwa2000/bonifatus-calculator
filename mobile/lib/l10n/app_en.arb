@@ -372,5 +372,21 @@
   "parentInsightsAllChildrenSummary": "All Children — Summary",
   "parentInsightsTotalEarned": "Total Earned",
   "parentInsightsPending": "Pending",
-  "parentInsightsChildren": "Children"
+  "parentInsightsChildren": "Children",
+
+  "navHome": "Home",
+  "navCalculator": "Calculator",
+
+  "parentDashboardChildSubtitle": "{count} grades · {pts} pts pending",
+  "@parentDashboardChildSubtitle": {
+    "placeholders": {
+      "count": { "type": "int" },
+      "pts": { "type": "int" }
+    }
+  },
+
+  "termDetailDeleteTitle": "Delete Result",
+  "termDetailDeleteConfirm": "Are you sure you want to delete this result? This action cannot be undone.",
+  "termDetailDelete": "Delete",
+  "termDetailEditLabel": "Edit Label"
 }

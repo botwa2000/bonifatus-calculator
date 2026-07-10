@@ -959,4 +959,27 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get parentInsightsChildren => 'Children';
+
+  @override
+  String get navHome => 'Home';
+
+  @override
+  String get navCalculator => 'Calculator';
+
+  @override
+  String parentDashboardChildSubtitle(int count, int pts) =>
+      '$count grades · $pts pts pending';
+
+  @override
+  String get termDetailDeleteTitle => 'Delete Result';
+
+  @override
+  String get termDetailDeleteConfirm =>
+      'Are you sure you want to delete this result? This action cannot be undone.';
+
+  @override
+  String get termDetailDelete => 'Delete';
+
+  @override
+  String get termDetailEditLabel => 'Edit Label';
 }
