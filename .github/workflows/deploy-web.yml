@@ -59,10 +59,13 @@ jobs:
 
       - name: Deploy via SSH
         uses: appleboy/ssh-action@v1.2.0
+        env:
+          MOBILE_APP_SECRET: ${{ secrets.MOBILE_APP_SECRET }}
         with:
           host: 159.69.180.183
           username: root
           key: ${{ secrets.HETZNER_SSH_PRIVATE_KEY }}
+          envs: MOBILE_APP_SECRET
           script_stop: true
           script: |
             set -euo pipefail
@@ -75,6 +78,15 @@ jobs:
             PORT="${{ steps.env.outputs.port }}"
             DOMAIN="${{ steps.env.outputs.domain }}"
             TURNSTILE_KEY="${{ steps.env.outputs.turnstile_key }}"
+            SECRET_NAME="${ENV}_MOBILE_APP_SECRET"
+
+            echo "=== [0/5] Provision Swarm secrets ==="
+            if ! docker secret ls --format '{{.Name}}' | grep -qx "$SECRET_NAME"; then
+              printf '%s' "$MOBILE_APP_SECRET" | docker secret create "$SECRET_NAME" -
+              echo "Created Docker secret $SECRET_NAME"
+            else
+              echo "Docker secret $SECRET_NAME already exists — skipping"
+            fi
 
             echo "=== [1/5] Pull latest ==="
             cd "$REPO_DIR"

@@ -1,0 +1,10 @@
+[
+  {
+    "eventType": "ELEMENT_NOT_TAPPED",
+    "elementDescriptors": [
+      {
+        "text": "Forgot password?"
+      }
+    ]
+  }
+]
