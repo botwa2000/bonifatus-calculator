@@ -8,6 +8,7 @@ import { verificationCodes } from '@/drizzle/schema/security'
 import { eq } from 'drizzle-orm'
 import { validatePassword } from '@/lib/auth/password-validation'
 import { verifyTurnstileToken, getClientIp } from '@/lib/auth/turnstile'
+import { validateMobileToken } from '@/lib/auth/validate-mobile-token'
 import { logSecurityEvent } from '@/lib/db/queries/security'
 import { sendEmail } from '@/lib/email/service'
 import { getVerificationCodeEmail } from '@/lib/email/templates'
@@ -62,8 +63,8 @@ export async function POST(request: NextRequest) {
     const email = rawEmail.toLowerCase()
 
     const clientIp = getClientIp(request.headers)
-    // Skip Turnstile for mobile clients (identified by X-Mobile-Client-Token header)
-    const isMobile = !!request.headers.get('X-Mobile-Client-Token')
+    const mobileToken = request.headers.get('X-Mobile-Client-Token')
+    const isMobile = validateMobileToken(mobileToken, '/api/auth/register')
     if (!isMobile) {
       if (!turnstileToken) {
         return NextResponse.json(

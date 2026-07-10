@@ -4,7 +4,7 @@ import { db } from '@/lib/db/client'
 import { users } from '@/drizzle/schema/auth'
 import { userProfiles } from '@/drizzle/schema/users'
 import { verificationCodes } from '@/drizzle/schema/security'
-import { eq, and, gt, isNull } from 'drizzle-orm'
+import { eq, and, gt, isNull, count } from 'drizzle-orm'
 import { verifyTurnstileToken, getClientIp } from '@/lib/auth/turnstile'
 import { validateMobileToken } from '@/lib/auth/validate-mobile-token'
 import { sendEmail } from '@/lib/email/service'
@@ -59,6 +59,20 @@ export async function POST(request: NextRequest) {
       success: true,
       message: 'If an account with that email exists, a password reset code has been sent.',
     })
+
+    // IP rate limit: max 5 reset emails per IP per hour (guards against enumeration/spam)
+    const ipRateLimitSince = new Date(Date.now() - 60 * 60_000)
+    const [ipCount] = await db
+      .select({ n: count() })
+      .from(verificationCodes)
+      .where(
+        and(
+          eq(verificationCodes.ipAddress, clientIp || '0.0.0.0'),
+          eq(verificationCodes.purpose, 'password_reset'),
+          gt(verificationCodes.createdAt, ipRateLimitSince)
+        )
+      )
+    if ((ipCount?.n ?? 0) >= 5) return successResponse
 
     const [user] = await db.select().from(users).where(eq(users.email, email)).limit(1)
     if (!user) return successResponse
