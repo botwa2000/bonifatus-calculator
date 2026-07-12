@@ -166,7 +166,7 @@ class _InsightsBody extends StatelessWidget {
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
               Text(l10n.insightsGradeDistribution, style: theme.textTheme.titleMedium),
               const SizedBox(height: 4),
-              Text('${grades.length} total grades', style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.onSurfaceVariant)),
+              Text('${grades.length} ${l10n.totalGradesLabel}', style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.onSurfaceVariant)),
               const SizedBox(height: 16),
               Row(children: [
                 SizedBox(

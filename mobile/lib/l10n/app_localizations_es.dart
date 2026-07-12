@@ -1094,4 +1094,41 @@ class AppLocalizationsEs extends AppLocalizations {
   String childrenInviteCode(String code) {
     return 'Código: $code';
   }
+
+  @override
+  String get ptsAbbr => 'pts';
+
+  @override
+  String get bonusPtsLabel => 'pts bonus';
+
+  @override
+  String get totalGradesLabel => 'notas en total';
+
+  @override
+  String get classLabel => 'Clase';
+
+  @override
+  String get ratioLabel => 'proporción';
+
+  @override
+  String get genericRequestFailed => 'Solicitud fallida';
+
+  @override
+  String get parentFallback => 'Padre';
+
+  @override
+  String get calculatorSchoolYearHint => '2024/25';
+
+  @override
+  String get registerDateOfBirthLabel => 'Fecha de nacimiento';
+
+  @override
+  String get registerDateOfBirthHint => 'Seleccionar fecha de nacimiento';
+
+  @override
+  String get registerDateOfBirthRequired =>
+      'Por favor selecciona tu fecha de nacimiento';
+
+  @override
+  String get captureClassLevelLabel => 'Nivel de clase';
 }

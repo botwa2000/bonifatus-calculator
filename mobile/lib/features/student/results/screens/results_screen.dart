@@ -193,6 +193,7 @@ class _TermCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context)!;
     final tier = term.tier;
     final color = AppColors.tierColor(tier);
     final lightColor = AppColors.tierColorLight(tier);
@@ -233,7 +234,7 @@ class _TermCard extends StatelessWidget {
                         style: theme.textTheme.titleMedium),
                     const SizedBox(height: 2),
                     Text(
-                      '${term.totalBonusPoints % 1 == 0 ? term.totalBonusPoints.toInt() : term.totalBonusPoints.toStringAsFixed(1)} pts · ${term.subjects.length} subjects',
+                      '${term.totalBonusPoints % 1 == 0 ? term.totalBonusPoints.toInt() : term.totalBonusPoints.toStringAsFixed(1)} ${l10n.ptsAbbr} · ${l10n.calculatorSubjectsLabel(term.subjects.length)}',
                       style: theme.textTheme.bodyMedium?.copyWith(
                         color: term.totalBonusPoints >= 0
                             ? AppColors.success

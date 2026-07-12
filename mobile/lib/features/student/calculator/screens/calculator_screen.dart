@@ -728,7 +728,7 @@ class _CalculatorScreenState extends ConsumerState<CalculatorScreen> {
                         enabledBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(10),
                             borderSide: BorderSide(color: cs.outlineVariant)),
-                        hintText: '2024/25',
+                        hintText: l10n.calculatorSchoolYearHint,
                       ),
                       style: const TextStyle(fontSize: 14),
                       onChanged: (v) => _schoolYear = v,

@@ -27,11 +27,11 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
     super.dispose();
   }
 
-  String _extractError(dynamic e) {
+  String _extractError(dynamic e, AppLocalizations l10n) {
     if (e is DioException) {
       final data = e.response?.data;
       if (data is Map) {
-        return (data['error'] ?? data['message'] ?? 'Request failed').toString();
+        return (data['error'] ?? data['message'] ?? l10n.genericRequestFailed).toString();
       }
     }
     return e.toString().replaceFirst('Exception: ', '');
@@ -54,13 +54,14 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
       _lastSentAt = DateTime.now();
       setState(() => _step = 1);
     } catch (e) {
-      setState(() => _error = _extractError(e));
+      setState(() => _error = _extractError(e, l10n));
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
   }
 
   Future<void> _resetPassword() async {
+    final l10n = AppLocalizations.of(context)!;
     setState(() { _isLoading = true; _error = null; });
     try {
       final client = ref.read(apiClientProvider);
@@ -75,7 +76,7 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
         context.go('/auth/login');
       }
     } catch (e) {
-      setState(() => _error = _extractError(e));
+      setState(() => _error = _extractError(e, l10n));
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }

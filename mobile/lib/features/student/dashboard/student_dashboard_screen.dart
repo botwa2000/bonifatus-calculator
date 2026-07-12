@@ -181,7 +181,7 @@ class StudentDashboardScreen extends ConsumerWidget {
           ),
           const SizedBox(height: 12),
           Text(
-            '${weekPts % 1 == 0 ? weekPts.toInt() : weekPts.toStringAsFixed(1)} pts',
+            '${weekPts % 1 == 0 ? weekPts.toInt() : weekPts.toStringAsFixed(1)} ${l10n.ptsAbbr}',
             style: Theme.of(context).textTheme.displayLarge?.copyWith(
                   color: AppColors.white,
                   fontWeight: FontWeight.w700,
@@ -296,7 +296,7 @@ class StudentDashboardScreen extends ConsumerWidget {
                           ),
                         ),
                         Text(
-                          '+${grade.bonusPoints % 1 == 0 ? grade.bonusPoints.toInt() : grade.bonusPoints.toStringAsFixed(1)} pts',
+                          '+${grade.bonusPoints % 1 == 0 ? grade.bonusPoints.toInt() : grade.bonusPoints.toStringAsFixed(1)} ${l10n.ptsAbbr}',
                           style: Theme.of(context)
                               .textTheme
                               .labelSmall
@@ -411,7 +411,7 @@ class StudentDashboardScreen extends ConsumerWidget {
                         borderRadius: BorderRadius.circular(20),
                       ),
                       child: Text(
-                        '${term.totalBonusPoints % 1 == 0 ? term.totalBonusPoints.toInt() : term.totalBonusPoints.toStringAsFixed(1)} pts',
+                        '${term.totalBonusPoints % 1 == 0 ? term.totalBonusPoints.toInt() : term.totalBonusPoints.toStringAsFixed(1)} ${l10n.ptsAbbr}',
                         style:
                             Theme.of(context).textTheme.labelSmall?.copyWith(
                                   color: color,

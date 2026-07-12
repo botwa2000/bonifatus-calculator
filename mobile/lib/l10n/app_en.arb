@@ -448,5 +448,17 @@
   "childrenInviteCode": "Code: {code}",
   "@childrenInviteCode": {
     "placeholders": { "code": { "type": "String" } }
-  }
+  },
+  "ptsAbbr": "pts",
+  "bonusPtsLabel": "bonus pts",
+  "totalGradesLabel": "total grades",
+  "classLabel": "Class",
+  "ratioLabel": "ratio",
+  "genericRequestFailed": "Request failed",
+  "parentFallback": "Parent",
+  "calculatorSchoolYearHint": "2024/25",
+  "registerDateOfBirthLabel": "Date of Birth",
+  "registerDateOfBirthHint": "Select date of birth",
+  "registerDateOfBirthRequired": "Please select your date of birth",
+  "captureClassLevelLabel": "Class Level"
 }

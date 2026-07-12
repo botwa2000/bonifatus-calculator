@@ -2079,6 +2079,78 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Code: {code}'**
   String childrenInviteCode(String code);
+
+  /// No description provided for @ptsAbbr.
+  ///
+  /// In en, this message translates to:
+  /// **'pts'**
+  String get ptsAbbr;
+
+  /// No description provided for @bonusPtsLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'bonus pts'**
+  String get bonusPtsLabel;
+
+  /// No description provided for @totalGradesLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'total grades'**
+  String get totalGradesLabel;
+
+  /// No description provided for @classLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Class'**
+  String get classLabel;
+
+  /// No description provided for @ratioLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'ratio'**
+  String get ratioLabel;
+
+  /// No description provided for @genericRequestFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Request failed'**
+  String get genericRequestFailed;
+
+  /// No description provided for @parentFallback.
+  ///
+  /// In en, this message translates to:
+  /// **'Parent'**
+  String get parentFallback;
+
+  /// No description provided for @calculatorSchoolYearHint.
+  ///
+  /// In en, this message translates to:
+  /// **'2024/25'**
+  String get calculatorSchoolYearHint;
+
+  /// No description provided for @registerDateOfBirthLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Date of Birth'**
+  String get registerDateOfBirthLabel;
+
+  /// No description provided for @registerDateOfBirthHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Select date of birth'**
+  String get registerDateOfBirthHint;
+
+  /// No description provided for @registerDateOfBirthRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Please select your date of birth'**
+  String get registerDateOfBirthRequired;
+
+  /// No description provided for @captureClassLevelLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Class Level'**
+  String get captureClassLevelLabel;
 }
 
 class _AppLocalizationsDelegate

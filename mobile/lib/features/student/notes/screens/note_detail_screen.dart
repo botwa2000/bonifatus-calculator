@@ -159,7 +159,7 @@ class NoteDetailScreen extends ConsumerWidget {
                                         BorderRadius.circular(20),
                                   ),
                                   child: Text(
-                                    '+${grade.bonusPoints % 1 == 0 ? grade.bonusPoints.toInt() : grade.bonusPoints.toStringAsFixed(1)} bonus pts',
+                                    '+${grade.bonusPoints % 1 == 0 ? grade.bonusPoints.toInt() : grade.bonusPoints.toStringAsFixed(1)} ${l10n.bonusPtsLabel}',
                                     style: const TextStyle(
                                       fontSize: 12,
                                       fontWeight: FontWeight.w600,

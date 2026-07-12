@@ -359,5 +359,17 @@
   "cycleTypeWeekly": "Еженедельно",
   "cycleTypeMonthly": "Ежемесячно",
   "notesNetPointsLabel": "Нетто: {pts} балл.",
-  "childrenInviteCode": "Код: {code}"
+  "childrenInviteCode": "Код: {code}",
+  "ptsAbbr": "балл",
+  "bonusPtsLabel": "бонусных балл.",
+  "totalGradesLabel": "оценок всего",
+  "classLabel": "Класс",
+  "ratioLabel": "доля",
+  "genericRequestFailed": "Запрос не выполнен",
+  "parentFallback": "Родитель",
+  "calculatorSchoolYearHint": "2024/25",
+  "registerDateOfBirthLabel": "Дата рождения",
+  "registerDateOfBirthHint": "Выбрать дату рождения",
+  "registerDateOfBirthRequired": "Пожалуйста, выберите дату рождения",
+  "captureClassLevelLabel": "Класс"
 }

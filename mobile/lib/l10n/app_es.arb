@@ -359,5 +359,17 @@
   "cycleTypeWeekly": "Semanal",
   "cycleTypeMonthly": "Mensual",
   "notesNetPointsLabel": "Neto: {pts} pts",
-  "childrenInviteCode": "Código: {code}"
+  "childrenInviteCode": "Código: {code}",
+  "ptsAbbr": "pts",
+  "bonusPtsLabel": "pts bonus",
+  "totalGradesLabel": "notas en total",
+  "classLabel": "Clase",
+  "ratioLabel": "proporción",
+  "genericRequestFailed": "Solicitud fallida",
+  "parentFallback": "Padre",
+  "calculatorSchoolYearHint": "2024/25",
+  "registerDateOfBirthLabel": "Fecha de nacimiento",
+  "registerDateOfBirthHint": "Seleccionar fecha de nacimiento",
+  "registerDateOfBirthRequired": "Por favor selecciona tu fecha de nacimiento",
+  "captureClassLevelLabel": "Nivel de clase"
 }

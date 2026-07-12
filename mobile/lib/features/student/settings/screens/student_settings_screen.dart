@@ -216,7 +216,7 @@ class _StudentSettingsScreenState extends ConsumerState<StudentSettingsScreen> {
         ..._parentConnections.asMap().entries.map((entry) {
           final cs = Theme.of(context).colorScheme;
           final conn = entry.value;
-          final parentName = conn['parentName'] as String? ?? conn['parentEmail'] as String? ?? 'Parent';
+          final parentName = conn['parentName'] as String? ?? conn['parentEmail'] as String? ?? l10n.parentFallback;
           return Column(children: [
             _SettingsTile(
               icon: Icons.person_outline_rounded,
@@ -332,7 +332,7 @@ class _StudentSettingsScreenState extends ConsumerState<StudentSettingsScreen> {
 
   void _showParentConnectionSheet(BuildContext context, Map<String, dynamic> conn) {
     final l10n = AppLocalizations.of(context)!;
-    final parentName = conn['parentName'] as String? ?? conn['parentEmail'] as String? ?? 'Parent';
+    final parentName = conn['parentName'] as String? ?? conn['parentEmail'] as String? ?? l10n.parentFallback;
     final parentEmail = conn['parentEmail'] as String? ?? '';
     final connectedSince = conn['connectedAt'] as String?;
     showModalBottomSheet<void>(

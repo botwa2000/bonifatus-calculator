@@ -1093,4 +1093,41 @@ class AppLocalizationsRu extends AppLocalizations {
   String childrenInviteCode(String code) {
     return 'Код: $code';
   }
+
+  @override
+  String get ptsAbbr => 'балл';
+
+  @override
+  String get bonusPtsLabel => 'бонусных балл.';
+
+  @override
+  String get totalGradesLabel => 'оценок всего';
+
+  @override
+  String get classLabel => 'Класс';
+
+  @override
+  String get ratioLabel => 'доля';
+
+  @override
+  String get genericRequestFailed => 'Запрос не выполнен';
+
+  @override
+  String get parentFallback => 'Родитель';
+
+  @override
+  String get calculatorSchoolYearHint => '2024/25';
+
+  @override
+  String get registerDateOfBirthLabel => 'Дата рождения';
+
+  @override
+  String get registerDateOfBirthHint => 'Выбрать дату рождения';
+
+  @override
+  String get registerDateOfBirthRequired =>
+      'Пожалуйста, выберите дату рождения';
+
+  @override
+  String get captureClassLevelLabel => 'Класс';
 }

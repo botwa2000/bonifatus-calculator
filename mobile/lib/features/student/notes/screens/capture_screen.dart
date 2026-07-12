@@ -1,4 +1,3 @@
-import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -23,23 +22,13 @@ class _CaptureScreenState extends ConsumerState<CaptureScreen> {
   final ImagePicker _picker = ImagePicker();
 
   void _simulateCapture() {
-    setState(() => _state = _CaptureState.processing);
-    Timer(const Duration(milliseconds: 800), () {
-      if (mounted) {
-        setState(() => _state = _CaptureState.confirming);
-      }
-    });
+    setState(() => _state = _CaptureState.confirming);
   }
 
   Future<void> _pickFromGallery() async {
     final XFile? file = await _picker.pickImage(source: ImageSource.gallery);
     if (file != null && mounted) {
-      setState(() => _state = _CaptureState.processing);
-      Timer(const Duration(milliseconds: 800), () {
-        if (mounted) {
-          setState(() => _state = _CaptureState.confirming);
-        }
-      });
+      setState(() => _state = _CaptureState.confirming);
     }
   }
 
@@ -225,6 +214,7 @@ class _GradeEntryFormState extends ConsumerState<_GradeEntryForm> {
   late GradingSystem _selectedSystem;
   SubjectItem? _selectedSubject;
   String? _selectedGrade;
+  int _classLevel = 5;
   bool _saving = false;
   String? _error;
 
@@ -252,7 +242,7 @@ class _GradeEntryFormState extends ConsumerState<_GradeEntryForm> {
       await ref.read(quickGradesProvider.notifier).addGrade(
             subjectId: _selectedSubject!.id,
             gradingSystemId: _selectedSystem.id,
-            classLevel: 1,
+            classLevel: _classLevel,
             gradeValue: _selectedGrade!,
           );
       if (mounted) widget.onSaved();
@@ -418,6 +408,63 @@ class _GradeEntryFormState extends ConsumerState<_GradeEntryForm> {
                         ),
                       );
                     }).toList(),
+                  ),
+                ],
+              ),
+            ),
+
+            const SizedBox(height: 16),
+
+            // Class level picker
+            Container(
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: const Color(0xFF1A1A2E),
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(
+                    color: AppColors.primary.withValues(alpha: 0.3)),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    l10n.captureClassLevelLabel,
+                    style: const TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.white60,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  Wrap(
+                    spacing: 6,
+                    runSpacing: 6,
+                    children: List.generate(13, (i) {
+                      final level = i + 1;
+                      final selected = level == _classLevel;
+                      return GestureDetector(
+                        onTap: () => setState(() => _classLevel = level),
+                        child: Container(
+                          width: 40,
+                          height: 40,
+                          decoration: BoxDecoration(
+                            color: selected
+                                ? AppColors.primary
+                                : Colors.white.withValues(alpha: 0.08),
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          alignment: Alignment.center,
+                          child: Text(
+                            '$level',
+                            style: TextStyle(
+                              color: selected ? Colors.white : Colors.white70,
+                              fontWeight: FontWeight.w700,
+                              fontSize: 14,
+                            ),
+                          ),
+                        ),
+                      );
+                    }),
                   ),
                 ],
               ),

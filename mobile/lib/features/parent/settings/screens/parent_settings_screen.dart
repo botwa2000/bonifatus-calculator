@@ -91,9 +91,10 @@ class _ParentSettingsScreenState extends ConsumerState<ParentSettingsScreen> {
   }
 
   Future<void> _toggleBiometric(bool value) async {
+    final l10n = AppLocalizations.of(context)!;
     final svc = ref.read(biometricServiceProvider);
     if (value) {
-      final authed = await svc.authenticate(reason: 'Verify to enable biometric login');
+      final authed = await svc.authenticate(reason: l10n.settingsBiometricLogin);
       if (!authed) return;
     }
     await svc.setEnabled(value);
@@ -304,7 +305,7 @@ class _ParentSettingsScreenState extends ConsumerState<ParentSettingsScreen> {
                         return _Card(children: List.generate(children.length, (i) {
                           final child = children[i];
                           final override = _cycleOverrides[child.childId];
-                          final cycleType = override?.cycleType ?? 'Weekly';
+                          final cycleType = override?.cycleType ?? l10n.cycleTypeWeekly;
                           final ratio = override?.ratio ?? 0.25;
                           final config = _ChildCycleConfig(childId: child.childId, childName: child.childName, cycleType: cycleType, ratio: ratio);
                           return Column(children: [
@@ -315,7 +316,7 @@ class _ParentSettingsScreenState extends ConsumerState<ParentSettingsScreen> {
                                   child: Text(config.childName.substring(0, 1).toUpperCase(),
                                       style: const TextStyle(fontWeight: FontWeight.w700, color: AppColors.primary, fontSize: 14))),
                               title: Text(config.childName, style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: cs.onSurface)),
-                              subtitle: Text('${config.cycleType} · ${(config.ratio * 100).round()}% ratio',
+                              subtitle: Text('${config.cycleType} · ${(config.ratio * 100).round()}% ${l10n.ratioLabel}',
                                   style: TextStyle(fontSize: 12, color: cs.onSurfaceVariant)),
                               trailing: InkWell(
                                 onTap: () => _showCycleConfigSheet(config, l10n, onSaved: () => setSheetState(() {})),

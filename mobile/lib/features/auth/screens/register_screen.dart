@@ -18,6 +18,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
 
   // Step 1
   final _nameCtrl = TextEditingController();
+  DateTime? _selectedBirthDate;
   // Step 2
   String _role = 'child';
   // Step 3
@@ -46,6 +47,10 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
 
   Future<void> _submit() async {
     final l10n = AppLocalizations.of(context)!;
+    if (_selectedBirthDate == null) {
+      setState(() => _error = l10n.registerDateOfBirthRequired);
+      return;
+    }
     if (_passCtrl.text != _confirmCtrl.text) {
       setState(() => _error = l10n.registerPasswordsDoNotMatch);
       return;
@@ -62,7 +67,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
         'email': _emailCtrl.text.trim(),
         'password': _passCtrl.text,
         'role': _role,
-        'dateOfBirth': '2000-01-01',
+        'dateOfBirth': '${_selectedBirthDate!.year.toString().padLeft(4, '0')}-${_selectedBirthDate!.month.toString().padLeft(2, '0')}-${_selectedBirthDate!.day.toString().padLeft(2, '0')}',
       });
       final userId = (resp.data as Map?)?['userId'] as String? ?? '';
       if (mounted) {
@@ -121,7 +126,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                 physics: const NeverScrollableScrollPhysics(),
                 onPageChanged: (i) => setState(() => _step = i),
                 children: [
-                  _Step1(ctrl: _nameCtrl, onNext: _nextStep),
+                  _Step1(ctrl: _nameCtrl, selectedDate: _selectedBirthDate, onDateChanged: (d) => setState(() => _selectedBirthDate = d), onNext: _nextStep),
                   _Step2(role: _role, onChanged: (r) => setState(() => _role = r), onNext: _nextStep),
                   _Step3(
                     emailCtrl: _emailCtrl, passCtrl: _passCtrl, confirmCtrl: _confirmCtrl,
@@ -147,8 +152,10 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
 
 class _Step1 extends StatefulWidget {
   final TextEditingController ctrl;
+  final DateTime? selectedDate;
+  final ValueChanged<DateTime> onDateChanged;
   final VoidCallback onNext;
-  const _Step1({required this.ctrl, required this.onNext});
+  const _Step1({required this.ctrl, this.selectedDate, required this.onDateChanged, required this.onNext});
   @override
   State<_Step1> createState() => _Step1State();
 }
@@ -188,9 +195,41 @@ class _Step1State extends State<_Step1> {
           decoration: InputDecoration(labelText: l10n.registerFullNameLabel, prefixIcon: const Icon(Icons.person_outline)),
           onFieldSubmitted: (_) => widget.onNext(),
         ),
+        const SizedBox(height: 16),
+        InkWell(
+          onTap: () async {
+            final now = DateTime.now();
+            final initial = widget.selectedDate ?? DateTime(now.year - 10, now.month, now.day);
+            final picked = await showDatePicker(
+              context: context,
+              initialDate: initial,
+              firstDate: DateTime(1940),
+              lastDate: DateTime(now.year - 4, now.month, now.day),
+            );
+            if (picked != null) widget.onDateChanged(picked);
+          },
+          borderRadius: BorderRadius.circular(12),
+          child: InputDecorator(
+            decoration: InputDecoration(
+              labelText: l10n.registerDateOfBirthLabel,
+              prefixIcon: const Icon(Icons.cake_outlined),
+            ),
+            child: Text(
+              widget.selectedDate != null
+                  ? '${widget.selectedDate!.day.toString().padLeft(2, '0')}.${widget.selectedDate!.month.toString().padLeft(2, '0')}.${widget.selectedDate!.year}'
+                  : l10n.registerDateOfBirthHint,
+              style: TextStyle(
+                color: widget.selectedDate != null
+                    ? Theme.of(context).colorScheme.onSurface
+                    : Theme.of(context).colorScheme.onSurfaceVariant,
+                fontSize: 15,
+              ),
+            ),
+          ),
+        ),
         const Spacer(),
         ElevatedButton(
-          onPressed: widget.ctrl.text.trim().isEmpty ? null : widget.onNext,
+          onPressed: widget.ctrl.text.trim().isEmpty || widget.selectedDate == null ? null : widget.onNext,
           child: Text(l10n.registerContinueButton),
         ),
       ]),

@@ -412,11 +412,11 @@ class _TermResultCard extends StatelessWidget {
         ),
       ),
       subtitle: Text(
-        '${term.termTypeDisplay} · Class ${term.classLevel} · ${term.subjects.length} subjects',
+        '${term.termTypeDisplay} · ${AppLocalizations.of(context)!.classLabel} ${term.classLevel} · ${AppLocalizations.of(context)!.calculatorSubjectsLabel(term.subjects.length)}',
         style: TextStyle(fontSize: 11, color: Theme.of(context).colorScheme.onSurfaceVariant),
       ),
       trailing: Text(
-        '+${term.totalBonusPoints} pts',
+        '+${term.totalBonusPoints} ${AppLocalizations.of(context)!.ptsAbbr}',
         style: const TextStyle(
           fontSize: 14,
           fontWeight: FontWeight.w700,
