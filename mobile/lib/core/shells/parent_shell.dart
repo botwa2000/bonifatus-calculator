@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../theme/app_colors.dart';
+import '../widgets/inactivity_guard.dart';
 import '../../l10n/app_localizations.dart';
 
 class ParentShell extends StatelessWidget {
@@ -39,39 +40,43 @@ class ParentShell extends StatelessWidget {
     final labels = _labels(l10n);
 
     if (isWideScreen) {
-      return Scaffold(
-        body: Row(
-          children: [
-            NavigationRail(
-              selectedIndex: currentIndex,
-              onDestinationSelected: (i) => context.go(_tabs[i].path),
-              labelType: NavigationRailLabelType.all,
-              backgroundColor: Theme.of(context).colorScheme.surface,
-              selectedIconTheme: const IconThemeData(color: AppColors.primary),
-              selectedLabelTextStyle: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.w600, fontSize: 12),
-              destinations: List.generate(_tabs.length, (i) => NavigationRailDestination(
-                icon: Icon(_tabs[i].icon),
-                selectedIcon: Icon(_tabs[i].activeIcon),
-                label: Text(labels[i]),
-              )),
-            ),
-            const VerticalDivider(width: 1),
-            Expanded(child: child),
-          ],
+      return InactivityGuard(
+        child: Scaffold(
+          body: Row(
+            children: [
+              NavigationRail(
+                selectedIndex: currentIndex,
+                onDestinationSelected: (i) => context.go(_tabs[i].path),
+                labelType: NavigationRailLabelType.all,
+                backgroundColor: Theme.of(context).colorScheme.surface,
+                selectedIconTheme: const IconThemeData(color: AppColors.primary),
+                selectedLabelTextStyle: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.w600, fontSize: 12),
+                destinations: List.generate(_tabs.length, (i) => NavigationRailDestination(
+                  icon: Icon(_tabs[i].icon),
+                  selectedIcon: Icon(_tabs[i].activeIcon),
+                  label: Text(labels[i]),
+                )),
+              ),
+              const VerticalDivider(width: 1),
+              Expanded(child: child),
+            ],
+          ),
         ),
       );
     }
 
-    return Scaffold(
-      body: child,
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: currentIndex,
-        onTap: (i) => context.go(_tabs[i].path),
-        items: List.generate(_tabs.length, (i) => BottomNavigationBarItem(
-          icon: Icon(_tabs[i].icon),
-          activeIcon: Icon(_tabs[i].activeIcon),
-          label: labels[i],
-        )),
+    return InactivityGuard(
+      child: Scaffold(
+        body: child,
+        bottomNavigationBar: BottomNavigationBar(
+          currentIndex: currentIndex,
+          onTap: (i) => context.go(_tabs[i].path),
+          items: List.generate(_tabs.length, (i) => BottomNavigationBarItem(
+            icon: Icon(_tabs[i].icon),
+            activeIcon: Icon(_tabs[i].activeIcon),
+            label: labels[i],
+          )),
+        ),
       ),
     );
   }

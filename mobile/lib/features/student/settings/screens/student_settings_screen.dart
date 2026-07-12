@@ -54,7 +54,14 @@ class _StudentSettingsScreenState extends ConsumerState<StudentSettingsScreen> {
     final svc = ref.read(biometricServiceProvider);
     if (value) {
       final authed = await svc.authenticate(reason: 'Verify to enable biometric login');
-      if (!authed) return;
+      if (!authed) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Biometric verification failed. Please try again.')),
+          );
+        }
+        return;
+      }
     }
     await svc.setEnabled(value);
     if (mounted) setState(() => _biometricEnabled = value);

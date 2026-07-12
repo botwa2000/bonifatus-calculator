@@ -126,9 +126,9 @@ class AuthService {
   }
 
   Future<void> logout() async {
-    // Notify the server fire-and-forget — don't block the UI.
-    // We intentionally keep the access token in storage so biometric login
-    // can restore the session on the next app open (30-day token expiry).
+    // Clear the token so restoreSession() returns unauthenticated on next open.
+    // Biometric-enabled flag is preserved; user must re-enable after next manual login.
+    await _clearExpiredToken();
     // ignore: unawaited_futures
     _signOutServerAsync();
   }
