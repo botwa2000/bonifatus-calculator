@@ -66,14 +66,12 @@ class NotesScreen extends ConsumerWidget {
     final gradesAsync = ref.watch(quickGradesProvider);
 
     return Scaffold(
-      backgroundColor: AppColors.neutral50,
       appBar: AppBar(
-        backgroundColor: AppColors.white,
         elevation: 0,
         title: Text(
           l10n.notesTitle,
-          style: const TextStyle(
-            color: AppColors.neutral900,
+          style: TextStyle(
+            color: Theme.of(context).colorScheme.onSurface,
             fontWeight: FontWeight.w700,
             fontSize: 20,
           ),
@@ -106,17 +104,17 @@ class NotesScreen extends ConsumerWidget {
                 const SizedBox(height: 16),
                 Text(
                   l10n.notesFailedToLoad,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
-                    color: AppColors.neutral900,
+                    color: Theme.of(context).colorScheme.onSurface,
                   ),
                 ),
                 const SizedBox(height: 8),
                 Text(
                   err.toString(),
-                  style: const TextStyle(
-                      fontSize: 13, color: AppColors.neutral600),
+                  style: TextStyle(
+                      fontSize: 13, color: Theme.of(context).colorScheme.onSurfaceVariant),
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 20),
@@ -166,16 +164,16 @@ class NotesScreen extends ConsumerWidget {
             const SizedBox(height: 24),
             Text(
               l10n.notesNoNotesYet,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.w700,
-                color: AppColors.neutral900,
+                color: Theme.of(context).colorScheme.onSurface,
               ),
             ),
             const SizedBox(height: 8),
             Text(
               l10n.notesTapToCaptureFirst,
-              style: const TextStyle(fontSize: 15, color: AppColors.neutral600),
+              style: TextStyle(fontSize: 15, color: Theme.of(context).colorScheme.onSurfaceVariant),
               textAlign: TextAlign.center,
             ),
           ],
@@ -299,14 +297,16 @@ class _SummaryChipRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final cs = Theme.of(context).colorScheme;
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppColors.white,
+        color: cs.surface,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: AppColors.neutral900.withValues(alpha: 0.06),
+            color: cs.shadow.withValues(alpha: 0.06),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -317,7 +317,7 @@ class _SummaryChipRow extends StatelessWidget {
           Row(
             children: [
               _Chip(
-                label: '$totalNotes notes',
+                label: l10n.studentNotesCount(totalNotes),
                 icon: Icons.note_alt_outlined,
                 color: AppColors.primary,
               ),
@@ -329,7 +329,7 @@ class _SummaryChipRow extends StatelessWidget {
               ),
               const SizedBox(width: 8),
               _Chip(
-                label: 'Net: ${netPts % 1 == 0 ? netPts.toInt() : netPts.toStringAsFixed(1)} pts',
+                label: l10n.notesNetPointsLabel(netPts % 1 == 0 ? netPts.toInt().toString() : netPts.toStringAsFixed(1)),
                 icon: Icons.account_balance_wallet_outlined,
                 color: netPts >= 0 ? AppColors.tierBest : AppColors.tierBelow,
               ),
@@ -404,20 +404,22 @@ class _NoteCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
     final tierColor = AppColors.tierColor(grade.gradeQualityTier);
     final tierColorLight = AppColors.tierColorLight(grade.gradeQualityTier);
+    final l10n = AppLocalizations.of(context)!;
     final dateStr = DateFormat('MMM d').format(grade.gradedAt);
-    final subjectLabel = grade.subjectName ?? 'Subject';
+    final subjectLabel = grade.subjectName ?? l10n.subjectFallback;
 
     return GestureDetector(
       onTap: onTap,
       child: Container(
         decoration: BoxDecoration(
-          color: AppColors.white,
+          color: cs.surface,
           borderRadius: BorderRadius.circular(14),
           boxShadow: [
             BoxShadow(
-              color: AppColors.neutral900.withValues(alpha: 0.05),
+              color: cs.shadow.withValues(alpha: 0.05),
               blurRadius: 6,
               offset: const Offset(0, 2),
             ),
@@ -448,18 +450,18 @@ class _NoteCard extends StatelessWidget {
                         children: [
                           Text(
                             subjectLabel,
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontWeight: FontWeight.w600,
                               fontSize: 15,
-                              color: AppColors.neutral900,
+                              color: cs.onSurface,
                             ),
                           ),
                           const SizedBox(height: 4),
                           Text(
                             dateStr,
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 12,
-                              color: AppColors.neutral400,
+                              color: cs.onSurfaceVariant,
                             ),
                           ),
                         ],
@@ -478,7 +480,7 @@ class _NoteCard extends StatelessWidget {
                             borderRadius: BorderRadius.circular(20),
                           ),
                           child: Text(
-                            'Grade ${grade.gradeValue}',
+                            '${l10n.calculatorGradeLabel} ${grade.gradeValue}',
                             style: TextStyle(
                               color: tierColor,
                               fontWeight: FontWeight.w700,
@@ -526,16 +528,17 @@ class _SectionHeaderDelegate extends SliverPersistentHeaderDelegate {
     double shrinkOffset,
     bool overlapsContent,
   ) {
+    final cs = Theme.of(context).colorScheme;
     return Container(
-      color: AppColors.neutral50,
+      color: cs.surface,
       alignment: Alignment.centerLeft,
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Text(
         title,
-        style: const TextStyle(
+        style: TextStyle(
           fontSize: 13,
           fontWeight: FontWeight.w600,
-          color: AppColors.neutral600,
+          color: cs.onSurfaceVariant,
           letterSpacing: 0.2,
         ),
       ),

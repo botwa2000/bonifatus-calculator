@@ -338,5 +338,25 @@
   "termDetailDeleteTitle": "Elimina risultato",
   "termDetailDeleteConfirm": "Sei sicuro di voler eliminare questo risultato? Questa azione non può essere annullata.",
   "termDetailDelete": "Elimina",
-  "termDetailEditLabel": "Modifica etichetta"
+  "termDetailEditLabel": "Modifica etichetta",
+
+  "calculatorLabelHint": "es. Esame finale",
+  "studentNotesCount": "{count, plural, =1{{count} nota} other{{count} note}}",
+  "calculatorNoSubjectsMatch": "Nessuna materia corrisponde a \"{query}\"",
+  "calculatorRemoveSubject": "Rimuovi",
+  "calculatorFailedToSave": "Salvataggio fallito: {error}",
+  "calculatorSubjectsLabel": "{count, plural, =1{{count} materia} other{{count} materie}}",
+  "calculatorGradeHint": "es. {example}",
+  "childrenGradesCount": "{count, plural, =1{{count} voto} other{{count} voti}}",
+  "childrenView": "Visualizza",
+  "childrenPtsPending": "{pts} pts in sospeso",
+  "rewardsSummarySubtitle": "{count} voti · {pts} pts totali",
+  "subjectFallback": "Materia",
+  "genericFailedError": "Errore: {error}",
+  "forgotPasswordCooldownMessage": "Attendere {seconds} secondi prima di richiedere un altro codice.",
+  "cycleTypeDaily": "Giornaliero",
+  "cycleTypeWeekly": "Settimanale",
+  "cycleTypeMonthly": "Mensile",
+  "notesNetPointsLabel": "Netto: {pts} pts",
+  "childrenInviteCode": "Codice: {code}"
 }

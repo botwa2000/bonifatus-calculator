@@ -25,7 +25,7 @@ class StudentInsightsScreen extends ConsumerWidget {
             children: [
               const Icon(Icons.error_outline, size: 48, color: AppColors.error),
               const SizedBox(height: 12),
-              Text(l10n.insightsFailedToLoad, style: const TextStyle(color: AppColors.neutral600)),
+              Text(l10n.insightsFailedToLoad, style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant)),
               const SizedBox(height: 16),
               ElevatedButton(
                 onPressed: () => ref.read(quickGradesProvider.notifier).reload(),
@@ -54,12 +54,12 @@ class _InsightsBody extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(Icons.bar_chart_rounded, size: 56, color: AppColors.neutral200),
+            Icon(Icons.bar_chart_rounded, size: 56, color: Theme.of(context).colorScheme.outlineVariant),
             const SizedBox(height: 12),
-            Text(l10n.insightsNoGradesYet, style: const TextStyle(color: AppColors.neutral600, fontSize: 15)),
+            Text(l10n.insightsNoGradesYet, style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant, fontSize: 15)),
             const SizedBox(height: 4),
             Text(l10n.insightsAddGradesHint,
-                style: const TextStyle(color: AppColors.neutral400, fontSize: 13)),
+                style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant, fontSize: 13)),
           ],
         ),
       );
@@ -139,7 +139,7 @@ class _InsightsBody extends StatelessWidget {
                       getTitlesWidget: (v, _) {
                         final i = v.toInt();
                         return i < monthLabels.length
-                            ? Text(monthLabels[i], style: const TextStyle(fontSize: 11, color: AppColors.neutral400))
+                            ? Text(monthLabels[i], style: TextStyle(fontSize: 11, color: Theme.of(context).colorScheme.onSurfaceVariant))
                             : const SizedBox();
                       },
                     )),
@@ -152,7 +152,7 @@ class _InsightsBody extends StatelessWidget {
                 Padding(
                   padding: const EdgeInsets.only(top: 8),
                   child: Center(child: Text(l10n.insightsNoBonusPoints,
-                      style: const TextStyle(color: AppColors.neutral400, fontSize: 12))),
+                      style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant, fontSize: 12))),
                 ),
             ]),
           ),
@@ -166,7 +166,7 @@ class _InsightsBody extends StatelessWidget {
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
               Text(l10n.insightsGradeDistribution, style: theme.textTheme.titleMedium),
               const SizedBox(height: 4),
-              Text('${grades.length} total grades', style: const TextStyle(fontSize: 12, color: AppColors.neutral400)),
+              Text('${grades.length} total grades', style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.onSurfaceVariant)),
               const SizedBox(height: 16),
               Row(children: [
                 SizedBox(
@@ -262,6 +262,6 @@ class _BigStat extends StatelessWidget {
   Widget build(BuildContext context) => Column(children: [
     Text(value, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w700, color: AppColors.primary)),
     const SizedBox(height: 2),
-    Text(label, style: const TextStyle(fontSize: 12, color: AppColors.neutral600)),
+    Text(label, style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.onSurfaceVariant)),
   ]);
 }

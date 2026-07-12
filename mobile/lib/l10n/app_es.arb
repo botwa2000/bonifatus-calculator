@@ -338,5 +338,25 @@
   "termDetailDeleteTitle": "Eliminar resultado",
   "termDetailDeleteConfirm": "¿Estás seguro de que deseas eliminar este resultado? Esta acción no se puede deshacer.",
   "termDetailDelete": "Eliminar",
-  "termDetailEditLabel": "Editar etiqueta"
+  "termDetailEditLabel": "Editar etiqueta",
+
+  "calculatorLabelHint": "ej. Examen final",
+  "studentNotesCount": "{count, plural, =1{{count} nota} other{{count} notas}}",
+  "calculatorNoSubjectsMatch": "No hay asignaturas que coincidan con \"{query}\"",
+  "calculatorRemoveSubject": "Eliminar",
+  "calculatorFailedToSave": "Error al guardar: {error}",
+  "calculatorSubjectsLabel": "{count, plural, =1{{count} asignatura} other{{count} asignaturas}}",
+  "calculatorGradeHint": "ej. {example}",
+  "childrenGradesCount": "{count, plural, =1{{count} nota} other{{count} notas}}",
+  "childrenView": "Ver",
+  "childrenPtsPending": "{pts} pts pendientes",
+  "rewardsSummarySubtitle": "{count} notas · {pts} pts total",
+  "subjectFallback": "Asignatura",
+  "genericFailedError": "Error: {error}",
+  "forgotPasswordCooldownMessage": "Por favor espera {seconds} segundos antes de solicitar otro código.",
+  "cycleTypeDaily": "Diario",
+  "cycleTypeWeekly": "Semanal",
+  "cycleTypeMonthly": "Mensual",
+  "notesNetPointsLabel": "Neto: {pts} pts",
+  "childrenInviteCode": "Código: {code}"
 }

@@ -10,8 +10,8 @@ class ConfigService {
   final ApiClient _client;
   ConfigService(this._client);
 
-  Future<CalculatorConfig> fetchConfig() async {
+  Future<CalculatorConfig> fetchConfig({String locale = 'en'}) async {
     final resp = await _client.get('/api/config/calculator');
-    return CalculatorConfig.fromJson(resp.data as Map<String, dynamic>);
+    return CalculatorConfig.fromJson(resp.data as Map<String, dynamic>, locale: locale);
   }
 }

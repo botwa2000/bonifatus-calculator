@@ -20,11 +20,9 @@ class NoteDetailScreen extends ConsumerWidget {
       loading: () => Scaffold(
         appBar: AppBar(
           title: Text(l10n.noteDetailTitle),
-          backgroundColor: AppColors.white,
           elevation: 0,
           leading: IconButton(
-            icon: const Icon(Icons.arrow_back_ios_new_rounded,
-                color: AppColors.neutral900),
+            icon: const Icon(Icons.arrow_back_ios_new_rounded),
             onPressed: () => context.pop(),
           ),
         ),
@@ -34,17 +32,15 @@ class NoteDetailScreen extends ConsumerWidget {
       error: (_, __) => Scaffold(
         appBar: AppBar(
           title: Text(l10n.noteDetailTitle),
-          backgroundColor: AppColors.white,
           elevation: 0,
           leading: IconButton(
-            icon: const Icon(Icons.arrow_back_ios_new_rounded,
-                color: AppColors.neutral900),
+            icon: const Icon(Icons.arrow_back_ios_new_rounded),
             onPressed: () => context.pop(),
           ),
         ),
         body: Center(
             child: Text(l10n.noteDetailCouldNotLoad,
-                style: const TextStyle(color: AppColors.neutral600))),
+                style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant))),
       ),
       data: (grades) {
         final grade = grades.where((g) => g.id == noteId).firstOrNull;
@@ -52,17 +48,15 @@ class NoteDetailScreen extends ConsumerWidget {
           return Scaffold(
             appBar: AppBar(
               title: Text(l10n.noteDetailTitle),
-              backgroundColor: AppColors.white,
               elevation: 0,
               leading: IconButton(
-                icon: const Icon(Icons.arrow_back_ios_new_rounded,
-                    color: AppColors.neutral900),
+                icon: const Icon(Icons.arrow_back_ios_new_rounded),
                 onPressed: () => context.pop(),
               ),
             ),
             body: Center(
               child: Text(l10n.noteDetailNotFound,
-                  style: const TextStyle(color: AppColors.neutral600)),
+                  style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant)),
             ),
           );
         }
@@ -72,32 +66,31 @@ class NoteDetailScreen extends ConsumerWidget {
             AppColors.tierColorLight(grade.gradeQualityTier);
         final dateStr =
             DateFormat('MMM d, yyyy').format(grade.gradedAt);
-        final subjectLabel = grade.subjectName ?? 'Subject';
+        final subjectLabel = grade.subjectName ?? AppLocalizations.of(context)!.subjectFallback;
 
+        final cs = Theme.of(context).colorScheme;
         return Scaffold(
-          backgroundColor: AppColors.neutral50,
           appBar: AppBar(
-            backgroundColor: AppColors.white,
             elevation: 0,
             leading: IconButton(
-              icon: const Icon(Icons.arrow_back_ios_new_rounded,
-                  color: AppColors.neutral900),
+              icon: const Icon(Icons.arrow_back_ios_new_rounded),
               onPressed: () => context.pop(),
             ),
             title: Text(
               l10n.noteDetailTitle,
-              style: const TextStyle(
-                color: AppColors.neutral900,
+              style: TextStyle(
+                color: cs.onSurface,
                 fontWeight: FontWeight.w700,
                 fontSize: 18,
               ),
             ),
             actions: [
-              IconButton(
-                icon: const Icon(Icons.delete_outline_rounded,
-                    color: AppColors.error),
-                onPressed: () => _showDeleteDialog(context, ref, l10n),
-              ),
+              if (grade.settlementStatus != 'settled')
+                IconButton(
+                  icon: const Icon(Icons.delete_outline_rounded,
+                      color: AppColors.error),
+                  onPressed: () => _showDeleteDialog(context, ref, l10n),
+                ),
             ],
           ),
           body: SingleChildScrollView(
@@ -109,12 +102,11 @@ class NoteDetailScreen extends ConsumerWidget {
                   width: double.infinity,
                   padding: const EdgeInsets.all(20),
                   decoration: BoxDecoration(
-                    color: AppColors.white,
+                    color: cs.surface,
                     borderRadius: BorderRadius.circular(20),
                     boxShadow: [
                       BoxShadow(
-                        color:
-                            AppColors.neutral900.withValues(alpha: 0.06),
+                        color: cs.shadow.withValues(alpha: 0.06),
                         blurRadius: 12,
                         offset: const Offset(0, 4),
                       ),
@@ -148,10 +140,10 @@ class NoteDetailScreen extends ConsumerWidget {
                               children: [
                                 Text(
                                   subjectLabel,
-                                  style: const TextStyle(
+                                  style: TextStyle(
                                     fontSize: 20,
                                     fontWeight: FontWeight.w700,
-                                    color: AppColors.neutral900,
+                                    color: cs.onSurface,
                                   ),
                                 ),
                                 const SizedBox(height: 4),
@@ -181,7 +173,7 @@ class NoteDetailScreen extends ConsumerWidget {
                         ],
                       ),
                       const SizedBox(height: 20),
-                      const Divider(color: AppColors.neutral100),
+                      Divider(color: cs.outlineVariant),
                       const SizedBox(height: 16),
                       _DetailRow(
                         icon: Icons.schedule_rounded,
@@ -277,24 +269,25 @@ class _DetailRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
     return Row(
       children: [
-        Icon(icon, size: 18, color: AppColors.neutral400),
+        Icon(icon, size: 18, color: cs.onSurfaceVariant),
         const SizedBox(width: 10),
         Text(
           label,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 13,
-            color: AppColors.neutral600,
+            color: cs.onSurfaceVariant,
           ),
         ),
         const Spacer(),
         Text(
           value,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 13,
             fontWeight: FontWeight.w600,
-            color: AppColors.neutral900,
+            color: cs.onSurface,
           ),
         ),
       ],

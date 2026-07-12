@@ -1,3 +1,12 @@
+String _pickName(dynamic nameRaw, String locale) {
+  if (nameRaw is String) return nameRaw;
+  if (nameRaw is Map) {
+    final v = nameRaw[locale] ?? nameRaw['en'] ?? nameRaw.values.firstOrNull;
+    return v?.toString() ?? 'Unknown';
+  }
+  return 'Unknown';
+}
+
 class GradeDefinition {
   final String grade;
   final double? normalized100;
@@ -35,14 +44,7 @@ class GradingSystem {
     this.gradeDefinitions = const [],
   });
 
-  factory GradingSystem.fromJson(Map<String, dynamic> json) {
-    final nameRaw = json['name'];
-    final name = nameRaw is String
-        ? nameRaw
-        : nameRaw is Map
-            ? (nameRaw['en'] ?? nameRaw.values.firstOrNull ?? 'Unknown').toString()
-            : 'Unknown';
-
+  factory GradingSystem.fromJson(Map<String, dynamic> json, {String locale = 'en'}) {
     final defsRaw = json['gradeDefinitions'] ?? json['grade_definitions'];
     final defs = defsRaw is List
         ? defsRaw
@@ -52,7 +54,7 @@ class GradingSystem {
 
     return GradingSystem(
       id: json['id'] as String,
-      name: name,
+      name: _pickName(json['name'], locale),
       minGrade: ((json['minGrade'] ?? json['minValue']) as num?)?.toDouble() ?? 1.0,
       maxGrade: ((json['maxGrade'] ?? json['maxValue']) as num?)?.toDouble() ?? 6.0,
       isLowerBetter: json['isLowerBetter'] as bool? ??
@@ -135,17 +137,11 @@ class TermTypeItem {
     required this.name,
   });
 
-  factory TermTypeItem.fromJson(Map<String, dynamic> json) {
-    final nameRaw = json['name'];
-    final name = nameRaw is String
-        ? nameRaw
-        : nameRaw is Map
-            ? (nameRaw['en'] ?? nameRaw.values.firstOrNull ?? 'Unknown').toString()
-            : 'Unknown';
+  factory TermTypeItem.fromJson(Map<String, dynamic> json, {String locale = 'en'}) {
     return TermTypeItem(
       code: json['code'] as String,
       group: (json['group'] as String?) ?? '',
-      name: name,
+      name: _pickName(json['name'], locale),
     );
   }
 }
@@ -161,18 +157,11 @@ class CategoryItem {
     required this.name,
   });
 
-  factory CategoryItem.fromJson(Map<String, dynamic> json) {
-    final nameRaw = json['name'];
-    final name = nameRaw is String
-        ? nameRaw
-        : nameRaw is Map
-            ? (nameRaw['en'] ?? nameRaw['de'] ?? nameRaw.values.firstOrNull ?? 'Unknown')
-                .toString()
-            : 'Unknown';
+  factory CategoryItem.fromJson(Map<String, dynamic> json, {String locale = 'en'}) {
     return CategoryItem(
       id: json['id'] as String,
       code: (json['code'] as String?) ?? '',
-      name: name,
+      name: _pickName(json['name'], locale),
     );
   }
 }
@@ -190,17 +179,10 @@ class SubjectItem {
     this.categoryId,
   });
 
-  factory SubjectItem.fromJson(Map<String, dynamic> json) {
-    final nameRaw = json['name'];
-    final name = nameRaw is String
-        ? nameRaw
-        : nameRaw is Map
-            ? (nameRaw['en'] ?? nameRaw['de'] ?? nameRaw.values.firstOrNull ?? 'Unknown')
-                .toString()
-            : 'Unknown';
+  factory SubjectItem.fromJson(Map<String, dynamic> json, {String locale = 'en'}) {
     return SubjectItem(
       id: json['id'] as String,
-      name: name,
+      name: _pickName(json['name'], locale),
       isCoreSubject: json['isCoreSubject'] as bool? ??
           json['is_core_subject'] as bool? ??
           false,
@@ -224,27 +206,27 @@ class CalculatorConfig {
     this.termTypes = const [],
   });
 
-  factory CalculatorConfig.fromJson(Map<String, dynamic> json) {
+  factory CalculatorConfig.fromJson(Map<String, dynamic> json, {String locale = 'en'}) {
     final termTypesRaw = json['termTypes'];
     List<TermTypeItem> termTypes = [];
     if (termTypesRaw is Map) {
       final typesList = termTypesRaw['types'] as List<dynamic>?;
       if (typesList != null) {
         termTypes = typesList
-            .map((t) => TermTypeItem.fromJson(t as Map<String, dynamic>))
+            .map((t) => TermTypeItem.fromJson(t as Map<String, dynamic>, locale: locale))
             .toList();
       }
     }
 
     return CalculatorConfig(
       gradingSystems: (json['gradingSystems'] as List<dynamic>? ?? [])
-          .map((g) => GradingSystem.fromJson(g as Map<String, dynamic>))
+          .map((g) => GradingSystem.fromJson(g as Map<String, dynamic>, locale: locale))
           .toList(),
       subjects: (json['subjects'] as List<dynamic>? ?? [])
-          .map((s) => SubjectItem.fromJson(s as Map<String, dynamic>))
+          .map((s) => SubjectItem.fromJson(s as Map<String, dynamic>, locale: locale))
           .toList(),
       categories: (json['categories'] as List<dynamic>? ?? [])
-          .map((c) => CategoryItem.fromJson(c as Map<String, dynamic>))
+          .map((c) => CategoryItem.fromJson(c as Map<String, dynamic>, locale: locale))
           .toList(),
       bonusFactors: (json['bonusFactorDefaults'] as List<dynamic>? ?? [])
           .map((f) => BonusFactor.fromJson(f as Map<String, dynamic>))

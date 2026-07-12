@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../l10n/app_localizations.dart';
 import '../../../../models/calculator_config.dart';
 import '../../providers/calculator_config_provider.dart';
 import '../../providers/term_results_provider.dart';
@@ -31,16 +32,16 @@ class _CalculatorScreenState extends ConsumerState<CalculatorScreen> {
     return '$year/${(year + 1).toString().substring(2)}';
   }
 
-  String _tierDisplayLabel(String tier) {
+  String _tierDisplayLabel(String tier, AppLocalizations l10n) {
     switch (tier) {
       case 'best':
-        return 'Excellent';
+        return l10n.calculatorTierExcellent;
       case 'second':
-        return 'Good';
+        return l10n.calculatorTierGood;
       case 'third':
-        return 'Satisfactory';
+        return l10n.calculatorTierSatisfactory;
       default:
-        return 'Below threshold';
+        return l10n.calculatorTierBelow;
     }
   }
 
@@ -83,6 +84,7 @@ class _CalculatorScreenState extends ConsumerState<CalculatorScreen> {
   }
 
   void _showAddSubjectSheet(CalculatorConfig config) {
+    final l10n = AppLocalizations.of(context)!;
     final system = _resolveSystem(config);
     final searchCtrl = TextEditingController();
     final formKey = GlobalKey<FormState>();
@@ -103,7 +105,6 @@ class _CalculatorScreenState extends ConsumerState<CalculatorScreen> {
     showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
-      backgroundColor: AppColors.white,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
@@ -127,15 +128,15 @@ class _CalculatorScreenState extends ConsumerState<CalculatorScreen> {
             for (final s in filtered) {
               final catName = s.categoryId != null && catMap.containsKey(s.categoryId)
                   ? catMap[s.categoryId]!.name
-                  : 'Other';
+                  : l10n.calculatorOther;
               (groupedSubjects[catName] ??= []).add(s);
             }
           } else {
             final core = filtered.where((s) => s.isCoreSubject).toList();
             final other = filtered.where((s) => !s.isCoreSubject).toList();
             groupedSubjects = {
-              if (core.isNotEmpty) 'Core Subjects': core,
-              if (other.isNotEmpty) 'Other': other,
+              if (core.isNotEmpty) l10n.calculatorCoreSubjects: core,
+              if (other.isNotEmpty) l10n.calculatorOther: other,
             };
           }
 
@@ -161,30 +162,29 @@ class _CalculatorScreenState extends ConsumerState<CalculatorScreen> {
                         width: 40,
                         height: 4,
                         decoration: BoxDecoration(
-                          color: AppColors.neutral200,
+                          color: Theme.of(ctx).colorScheme.outlineVariant,
                           borderRadius: BorderRadius.circular(2),
                         ),
                       ),
                     ),
                     const SizedBox(height: 20),
-                    const Text(
-                      'Add Subject',
+                    Text(
+                      l10n.calculatorAddSubject,
                       style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.w700,
-                        color: AppColors.neutral900,
+                        color: Theme.of(ctx).colorScheme.onSurface,
                       ),
                     ),
                     const SizedBox(height: 16),
 
-                    // Subject search
                     TextField(
                       controller: searchCtrl,
                       autofocus: false,
                       decoration: InputDecoration(
-                        hintText: 'Search subjects…',
-                        prefixIcon: const Icon(Icons.search_rounded,
-                            color: AppColors.neutral400),
+                        hintText: l10n.calculatorSearchSubjects,
+                        prefixIcon: Icon(Icons.search_rounded,
+                            color: Theme.of(ctx).colorScheme.onSurfaceVariant),
                         suffixIcon: searchQuery.isNotEmpty
                             ? IconButton(
                                 icon:
@@ -199,7 +199,7 @@ class _CalculatorScreenState extends ConsumerState<CalculatorScreen> {
                               )
                             : null,
                         filled: true,
-                        fillColor: AppColors.neutral50,
+                        fillColor: Theme.of(ctx).colorScheme.surfaceContainerHighest,
                         contentPadding: const EdgeInsets.symmetric(
                             horizontal: 12, vertical: 10),
                         border: OutlineInputBorder(
@@ -227,10 +227,10 @@ class _CalculatorScreenState extends ConsumerState<CalculatorScreen> {
                                       top: groupedSubjects.keys.first == entry.key ? 0 : 12,
                                       bottom: 6),
                                   child: Text(entry.key,
-                                      style: const TextStyle(
+                                      style: TextStyle(
                                           fontSize: 11,
                                           fontWeight: FontWeight.w700,
-                                          color: AppColors.neutral400,
+                                          color: Theme.of(ctx).colorScheme.onSurfaceVariant,
                                           letterSpacing: 0.5)),
                                 ),
                               Wrap(
@@ -251,9 +251,9 @@ class _CalculatorScreenState extends ConsumerState<CalculatorScreen> {
                                 padding:
                                     const EdgeInsets.symmetric(vertical: 12),
                                 child: Text(
-                                  'No subjects match "$searchQuery"',
-                                  style: const TextStyle(
-                                      color: AppColors.neutral400,
+                                  l10n.calculatorNoSubjectsMatch(searchQuery),
+                                  style: TextStyle(
+                                      color: Theme.of(ctx).colorScheme.onSurfaceVariant,
                                       fontSize: 13),
                                 ),
                               ),
@@ -286,10 +286,9 @@ class _CalculatorScreenState extends ConsumerState<CalculatorScreen> {
                       ),
                     ],
 
-                    // Subject validator
                     FormField<SubjectItem>(
                       validator: (_) => pickedSubject == null
-                          ? 'Please select a subject'
+                          ? l10n.calculatorSelectSubjectValidator
                           : null,
                       builder: (state) => state.hasError
                           ? Padding(
@@ -303,13 +302,12 @@ class _CalculatorScreenState extends ConsumerState<CalculatorScreen> {
 
                     const SizedBox(height: 16),
 
-                    // Grade picker
-                    const Text(
-                      'Grade',
+                    Text(
+                      l10n.calculatorGradeLabel,
                       style: TextStyle(
                         fontSize: 13,
                         fontWeight: FontWeight.w600,
-                        color: AppColors.neutral700,
+                        color: Theme.of(ctx).colorScheme.onSurface,
                       ),
                     ),
                     const SizedBox(height: 8),
@@ -322,10 +320,10 @@ class _CalculatorScreenState extends ConsumerState<CalculatorScreen> {
                           final tier = system.deriveTier(g);
                           final tierColor = selected
                               ? AppColors.tierColor(tier)
-                              : AppColors.neutral400;
+                              : Theme.of(ctx).colorScheme.onSurfaceVariant;
                           final tierBg = selected
                               ? AppColors.tierColorLight(tier)
-                              : AppColors.neutral100;
+                              : Theme.of(ctx).colorScheme.surfaceContainerHighest;
                           return GestureDetector(
                             onTap: () => setSheet(() => pickedGrade = g),
                             child: AnimatedContainer(
@@ -338,7 +336,7 @@ class _CalculatorScreenState extends ConsumerState<CalculatorScreen> {
                                 border: Border.all(
                                   color: selected
                                       ? tierColor
-                                      : AppColors.neutral200,
+                                      : Theme.of(ctx).colorScheme.outlineVariant,
                                   width: selected ? 2 : 1,
                                 ),
                               ),
@@ -358,7 +356,7 @@ class _CalculatorScreenState extends ConsumerState<CalculatorScreen> {
                     else
                       TextFormField(
                         decoration: InputDecoration(
-                          hintText: 'e.g. ${system.minGrade.toInt()}',
+                          hintText: l10n.calculatorGradeHint(system.minGrade.toInt().toString()),
                           contentPadding: const EdgeInsets.symmetric(
                               horizontal: 12, vertical: 10),
                           border: OutlineInputBorder(
@@ -372,10 +370,9 @@ class _CalculatorScreenState extends ConsumerState<CalculatorScreen> {
                         onChanged: (v) => setSheet(() => pickedGrade = v),
                       ),
 
-                    // Grade validator
                     FormField<String>(
                       validator: (_) => pickedGrade.trim().isEmpty
-                          ? 'Please select a grade'
+                          ? l10n.calculatorSelectGradeValidator
                           : null,
                       builder: (state) => state.hasError
                           ? Padding(
@@ -389,24 +386,22 @@ class _CalculatorScreenState extends ConsumerState<CalculatorScreen> {
 
                     const SizedBox(height: 16),
 
-                    // Weight (only show if subject was picked)
                     if (pickedSubject != null) ...[
                       Row(
                         children: [
-                          const Text(
-                            'Weight',
+                          Text(
+                            l10n.calculatorWeightLabel,
                             style: TextStyle(
                               fontSize: 13,
                               fontWeight: FontWeight.w600,
-                              color: AppColors.neutral700,
+                              color: Theme.of(ctx).colorScheme.onSurface,
                             ),
                           ),
                           const SizedBox(width: 8),
-                          const Tooltip(
-                            message:
-                                'Higher weight = more bonus. Use 2× for harder exams.',
+                          Tooltip(
+                            message: l10n.calculatorWeightTooltip,
                             child: Icon(Icons.info_outline_rounded,
-                                size: 16, color: AppColors.neutral400),
+                                size: 16, color: Theme.of(ctx).colorScheme.onSurfaceVariant),
                           ),
                           const Spacer(),
                           _WeightStepper(
@@ -443,8 +438,8 @@ class _CalculatorScreenState extends ConsumerState<CalculatorScreen> {
                           shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(12)),
                         ),
-                        child: const Text('Add Subject',
-                            style: TextStyle(fontWeight: FontWeight.w700)),
+                        child: Text(l10n.calculatorAddSubject,
+                            style: const TextStyle(fontWeight: FontWeight.w700)),
                       ),
                     ),
                   ],
@@ -481,9 +476,10 @@ class _CalculatorScreenState extends ConsumerState<CalculatorScreen> {
           );
 
       if (mounted) {
+        final l10n = AppLocalizations.of(context)!;
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Result saved!'),
+          SnackBar(
+            content: Text(l10n.calculatorResultSaved),
             backgroundColor: AppColors.tierBest,
           ),
         );
@@ -491,9 +487,10 @@ class _CalculatorScreenState extends ConsumerState<CalculatorScreen> {
       }
     } catch (e) {
       if (mounted) {
+        final l10n = AppLocalizations.of(context)!;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Failed to save: $e'),
+            content: Text(l10n.calculatorFailedToSave(e.toString())),
             backgroundColor: AppColors.error,
           ),
         );
@@ -505,18 +502,17 @@ class _CalculatorScreenState extends ConsumerState<CalculatorScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final configAsync = ref.watch(calculatorConfigProvider);
 
     return configAsync.when(
       loading: () => Scaffold(
-        backgroundColor: AppColors.neutral50,
-        appBar: AppBar(title: const Text('Grade Calculator')),
+        appBar: AppBar(title: Text(l10n.calculatorTitle)),
         body: const Center(
             child: CircularProgressIndicator(color: AppColors.primary)),
       ),
-      error: (_, __) => _buildBody(CalculatorConfig.fallback),
+      error: (_, __) => _buildBody(CalculatorConfig.fallback, l10n),
       data: (config) {
-        // Auto-select first grading system on first load
         if (_selectedSystemId == null && config.gradingSystems.isNotEmpty) {
           WidgetsBinding.instance.addPostFrameCallback((_) {
             if (mounted) {
@@ -525,24 +521,23 @@ class _CalculatorScreenState extends ConsumerState<CalculatorScreen> {
             }
           });
         }
-        return _buildBody(config);
+        return _buildBody(config, l10n);
       },
     );
   }
 
-  Widget _buildBody(CalculatorConfig config) {
+  Widget _buildBody(CalculatorConfig config, AppLocalizations l10n) {
     final calcResult = _calculate(config);
     final hasSubjects = _subjects.isNotEmpty;
 
+    final cs = Theme.of(context).colorScheme;
     return Scaffold(
-      backgroundColor: AppColors.neutral50,
       appBar: AppBar(
-        backgroundColor: AppColors.white,
         elevation: 0,
-        title: const Text(
-          'Grade Calculator',
+        title: Text(
+          l10n.calculatorTitle,
           style: TextStyle(
-            color: AppColors.neutral900,
+            color: cs.onSurface,
             fontWeight: FontWeight.w700,
             fontSize: 18,
           ),
@@ -553,10 +548,10 @@ class _CalculatorScreenState extends ConsumerState<CalculatorScreen> {
             icon: AnimatedRotation(
               turns: _settingsExpanded ? 0.5 : 0.0,
               duration: const Duration(milliseconds: 200),
-              child: const Icon(Icons.tune_rounded,
-                  color: AppColors.neutral700),
+              child: Icon(Icons.tune_rounded,
+                  color: cs.onSurfaceVariant),
             ),
-            tooltip: 'Settings',
+            tooltip: l10n.calculatorSettingsTooltip,
             onPressed: () =>
                 setState(() => _settingsExpanded = !_settingsExpanded),
           ),
@@ -564,29 +559,26 @@ class _CalculatorScreenState extends ConsumerState<CalculatorScreen> {
       ),
       body: Column(
         children: [
-          // Settings panel
           AnimatedSize(
             duration: const Duration(milliseconds: 250),
             curve: Curves.easeInOut,
             child: _settingsExpanded
-                ? _buildSettingsPanel(config)
+                ? _buildSettingsPanel(config, l10n)
                 : const SizedBox.shrink(),
           ),
 
-          // Subject list / empty state
           Expanded(
             child: hasSubjects
-                ? _buildSubjectList(config, calcResult)
-                : _buildEmptyState(),
+                ? _buildSubjectList(config, calcResult, l10n)
+                : _buildEmptyState(l10n),
           ),
 
-          // Add subject button
           Padding(
             padding: const EdgeInsets.fromLTRB(20, 0, 20, 8),
             child: OutlinedButton.icon(
               onPressed: () => _showAddSubjectSheet(config),
               icon: const Icon(Icons.add_rounded),
-              label: const Text('Add Subject'),
+              label: Text(l10n.calculatorAddSubject),
               style: OutlinedButton.styleFrom(
                 foregroundColor: AppColors.primary,
                 side: const BorderSide(color: AppColors.primary),
@@ -597,32 +589,31 @@ class _CalculatorScreenState extends ConsumerState<CalculatorScreen> {
             ),
           ),
 
-          // Results card (only when subjects present)
-          if (hasSubjects) _buildResultCard(calcResult, config),
+          if (hasSubjects) _buildResultCard(calcResult, config, l10n),
           const SizedBox(height: 8),
         ],
       ),
     );
   }
 
-  Widget _buildSettingsPanel(CalculatorConfig config) {
+  Widget _buildSettingsPanel(CalculatorConfig config, AppLocalizations l10n) {
+    final cs = Theme.of(context).colorScheme;
     return Container(
-      color: AppColors.white,
+      color: cs.surface,
       padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Divider(height: 1, color: AppColors.neutral100),
+          Divider(height: 1, color: cs.outlineVariant),
           const SizedBox(height: 14),
 
-          // Grading system (only if multiple)
           if (config.gradingSystems.length > 1) ...[
-            const Text(
-              'Grading System',
+            Text(
+              l10n.calculatorGradingSystem,
               style: TextStyle(
                   fontSize: 12,
                   fontWeight: FontWeight.w600,
-                  color: AppColors.neutral600),
+                  color: cs.onSurfaceVariant),
             ),
             const SizedBox(height: 6),
             DropdownButtonFormField<String>(
@@ -633,10 +624,10 @@ class _CalculatorScreenState extends ConsumerState<CalculatorScreen> {
                     const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                 border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(10),
-                    borderSide: const BorderSide(color: AppColors.neutral200)),
+                    borderSide: BorderSide(color: cs.outlineVariant)),
                 enabledBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(10),
-                    borderSide: const BorderSide(color: AppColors.neutral200)),
+                    borderSide: BorderSide(color: cs.outlineVariant)),
               ),
               items: config.gradingSystems
                   .map((s) => DropdownMenuItem(
@@ -658,11 +649,11 @@ class _CalculatorScreenState extends ConsumerState<CalculatorScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text('Class',
+                    Text(l10n.calculatorClass,
                         style: TextStyle(
                             fontSize: 12,
                             fontWeight: FontWeight.w600,
-                            color: AppColors.neutral600)),
+                            color: cs.onSurfaceVariant)),
                     const SizedBox(height: 6),
                     _ClassLevelStepper(
                       value: _classLevel,
@@ -677,11 +668,11 @@ class _CalculatorScreenState extends ConsumerState<CalculatorScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text('Term',
+                    Text(l10n.calculatorTerm,
                         style: TextStyle(
                             fontSize: 12,
                             fontWeight: FontWeight.w600,
-                            color: AppColors.neutral600)),
+                            color: cs.onSurfaceVariant)),
                     const SizedBox(height: 6),
                     DropdownButtonFormField<String>(
                       initialValue: _termType,
@@ -691,12 +682,10 @@ class _CalculatorScreenState extends ConsumerState<CalculatorScreen> {
                             horizontal: 12, vertical: 10),
                         border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(10),
-                            borderSide:
-                                const BorderSide(color: AppColors.neutral200)),
+                            borderSide: BorderSide(color: cs.outlineVariant)),
                         enabledBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(10),
-                            borderSide:
-                                const BorderSide(color: AppColors.neutral200)),
+                            borderSide: BorderSide(color: cs.outlineVariant)),
                       ),
                       items: config.effectiveTermTypes
                           .map((t) => DropdownMenuItem(
@@ -722,11 +711,11 @@ class _CalculatorScreenState extends ConsumerState<CalculatorScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text('School Year',
+                    Text(l10n.calculatorSchoolYear,
                         style: TextStyle(
                             fontSize: 12,
                             fontWeight: FontWeight.w600,
-                            color: AppColors.neutral600)),
+                            color: cs.onSurfaceVariant)),
                     const SizedBox(height: 6),
                     TextFormField(
                       initialValue: _schoolYear,
@@ -738,8 +727,7 @@ class _CalculatorScreenState extends ConsumerState<CalculatorScreen> {
                             borderRadius: BorderRadius.circular(10)),
                         enabledBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(10),
-                            borderSide:
-                                const BorderSide(color: AppColors.neutral200)),
+                            borderSide: BorderSide(color: cs.outlineVariant)),
                         hintText: '2024/25',
                       ),
                       style: const TextStyle(fontSize: 14),
@@ -753,11 +741,11 @@ class _CalculatorScreenState extends ConsumerState<CalculatorScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text('Label (optional)',
+                    Text(l10n.calculatorLabelOptional,
                         style: TextStyle(
                             fontSize: 12,
                             fontWeight: FontWeight.w600,
-                            color: AppColors.neutral600)),
+                            color: cs.onSurfaceVariant)),
                     const SizedBox(height: 6),
                     TextFormField(
                       initialValue: _termName,
@@ -769,9 +757,8 @@ class _CalculatorScreenState extends ConsumerState<CalculatorScreen> {
                             borderRadius: BorderRadius.circular(10)),
                         enabledBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(10),
-                            borderSide:
-                                const BorderSide(color: AppColors.neutral200)),
-                        hintText: 'e.g. Final exam',
+                            borderSide: BorderSide(color: cs.outlineVariant)),
+                        hintText: l10n.calculatorLabelHint,
                       ),
                       style: const TextStyle(fontSize: 14),
                       onChanged: (v) => _termName = v,
@@ -786,7 +773,7 @@ class _CalculatorScreenState extends ConsumerState<CalculatorScreen> {
     );
   }
 
-  Widget _buildEmptyState() {
+  Widget _buildEmptyState(AppLocalizations l10n) {
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(40),
@@ -804,18 +791,18 @@ class _CalculatorScreenState extends ConsumerState<CalculatorScreen> {
                   color: AppColors.primary, size: 40),
             ),
             const SizedBox(height: 20),
-            const Text(
-              'Grade Planner',
+            Text(
+              l10n.calculatorGradePlanner,
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.w700,
-                color: AppColors.neutral900,
+                color: Theme.of(context).colorScheme.onSurface,
               ),
             ),
             const SizedBox(height: 8),
-            const Text(
-              'Set your class and term above, then tap "Add Subject" to enter grades and see your bonus.',
-              style: TextStyle(fontSize: 14, color: AppColors.neutral600),
+            Text(
+              l10n.calculatorGradePlannerHint,
+              style: TextStyle(fontSize: 14, color: Theme.of(context).colorScheme.onSurfaceVariant),
               textAlign: TextAlign.center,
             ),
           ],
@@ -824,7 +811,7 @@ class _CalculatorScreenState extends ConsumerState<CalculatorScreen> {
     );
   }
 
-  Widget _buildSubjectList(CalculatorConfig config, _CalcResult result) {
+  Widget _buildSubjectList(CalculatorConfig config, _CalcResult result, AppLocalizations l10n) {
     return ListView.separated(
       padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
       itemCount: _subjects.length,
@@ -843,9 +830,9 @@ class _CalculatorScreenState extends ConsumerState<CalculatorScreen> {
           child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
           decoration: BoxDecoration(
-            color: AppColors.white,
+            color: Theme.of(context).colorScheme.surface,
             borderRadius: BorderRadius.circular(14),
-            border: Border.all(color: AppColors.neutral100),
+            border: Border.all(color: Theme.of(context).colorScheme.outlineVariant),
           ),
           child: Row(
             children: [
@@ -876,10 +863,10 @@ class _CalculatorScreenState extends ConsumerState<CalculatorScreen> {
                   children: [
                     Text(
                       entry.subject,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontWeight: FontWeight.w600,
                         fontSize: 14,
-                        color: AppColors.neutral900,
+                        color: Theme.of(context).colorScheme.onSurface,
                       ),
                     ),
                     const SizedBox(height: 2),
@@ -893,7 +880,7 @@ class _CalculatorScreenState extends ConsumerState<CalculatorScreen> {
                             borderRadius: BorderRadius.circular(4),
                           ),
                           child: Text(
-                            _tierDisplayLabel(tier),
+                            _tierDisplayLabel(tier, l10n),
                             style: TextStyle(
                               fontSize: 10,
                               fontWeight: FontWeight.w600,
@@ -905,9 +892,9 @@ class _CalculatorScreenState extends ConsumerState<CalculatorScreen> {
                           const SizedBox(width: 6),
                           Text(
                             '×${entry.weight % 1 == 0 ? entry.weight.toInt() : entry.weight}',
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 11,
-                              color: AppColors.neutral400,
+                              color: Theme.of(context).colorScheme.onSurfaceVariant,
                             ),
                           ),
                         ],
@@ -933,8 +920,8 @@ class _CalculatorScreenState extends ConsumerState<CalculatorScreen> {
                 onTap: () => setState(() => _subjects.removeAt(index)),
                 child: Container(
                   padding: const EdgeInsets.all(6),
-                  child: const Icon(Icons.close_rounded,
-                      size: 16, color: AppColors.neutral400),
+                  child: Icon(Icons.close_rounded,
+                      size: 16, color: Theme.of(context).colorScheme.onSurfaceVariant),
                 ),
               ),
             ],
@@ -946,6 +933,7 @@ class _CalculatorScreenState extends ConsumerState<CalculatorScreen> {
   }
 
   void _showEditSubjectSheet(CalculatorConfig config, int index) {
+    final l10n = AppLocalizations.of(context)!;
     final existing = _subjects[index];
     final system = _resolveSystem(config);
     String pickedGrade = existing.grade;
@@ -957,7 +945,6 @@ class _CalculatorScreenState extends ConsumerState<CalculatorScreen> {
     showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
-      backgroundColor: AppColors.white,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
@@ -969,33 +956,33 @@ class _CalculatorScreenState extends ConsumerState<CalculatorScreen> {
           ),
           child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
             Center(child: Container(width: 40, height: 4,
-                decoration: BoxDecoration(color: AppColors.neutral200, borderRadius: BorderRadius.circular(2)))),
+                decoration: BoxDecoration(color: Theme.of(ctx).colorScheme.outlineVariant, borderRadius: BorderRadius.circular(2)))),
             const SizedBox(height: 20),
             Row(children: [
               Expanded(child: Text(existing.subject,
-                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: AppColors.neutral900))),
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: Theme.of(ctx).colorScheme.onSurface))),
               IconButton(
                 icon: const Icon(Icons.delete_outline_rounded, color: AppColors.error),
                 onPressed: () { setState(() => _subjects.removeAt(index)); Navigator.of(sheetCtx).pop(); },
-                tooltip: 'Remove',
+                tooltip: l10n.calculatorRemoveSubject,
               ),
             ]),
             const SizedBox(height: 16),
-            const Text('Grade', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.neutral700)),
+            Text(l10n.calculatorGradeLabel, style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: Theme.of(ctx).colorScheme.onSurface)),
             const SizedBox(height: 8),
             if (useGradeChips)
               Wrap(spacing: 8, runSpacing: 8, children: gradeValues.map((g) {
                 final selected = pickedGrade == g;
                 final tier = system.deriveTier(g);
-                final tc = selected ? AppColors.tierColor(tier) : AppColors.neutral400;
-                final tb = selected ? AppColors.tierColorLight(tier) : AppColors.neutral100;
+                final tc = selected ? AppColors.tierColor(tier) : Theme.of(ctx).colorScheme.onSurfaceVariant;
+                final tb = selected ? AppColors.tierColorLight(tier) : Theme.of(ctx).colorScheme.surfaceContainerHighest;
                 return GestureDetector(
                   onTap: () => setSheet(() => pickedGrade = g),
                   child: AnimatedContainer(
                     duration: const Duration(milliseconds: 120),
                     width: 48, height: 48,
                     decoration: BoxDecoration(color: tb, borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: selected ? tc : AppColors.neutral200, width: selected ? 2 : 1)),
+                      border: Border.all(color: selected ? tc : Theme.of(ctx).colorScheme.outlineVariant, width: selected ? 2 : 1)),
                     alignment: Alignment.center,
                     child: Text(g, style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: tc)),
                   ),
@@ -1012,7 +999,7 @@ class _CalculatorScreenState extends ConsumerState<CalculatorScreen> {
               ),
             const SizedBox(height: 16),
             Row(children: [
-              const Text('Weight', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.neutral700)),
+              Text(l10n.calculatorWeightLabel, style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: Theme.of(ctx).colorScheme.onSurface)),
               const Spacer(),
               _WeightStepper(value: pickedWeight, onChanged: (v) => setSheet(() => pickedWeight = v)),
             ]),
@@ -1033,7 +1020,7 @@ class _CalculatorScreenState extends ConsumerState<CalculatorScreen> {
                   backgroundColor: AppColors.primary, foregroundColor: AppColors.white,
                   padding: const EdgeInsets.symmetric(vertical: 14),
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
-                child: const Text('Save Changes', style: TextStyle(fontWeight: FontWeight.w700)),
+                child: Text(l10n.calculatorSaveChanges, style: const TextStyle(fontWeight: FontWeight.w700)),
               ),
             ),
           ]),
@@ -1042,7 +1029,7 @@ class _CalculatorScreenState extends ConsumerState<CalculatorScreen> {
     );
   }
 
-  Widget _buildResultCard(_CalcResult result, CalculatorConfig config) {
+  Widget _buildResultCard(_CalcResult result, CalculatorConfig config, AppLocalizations l10n) {
     final total = result.total;
     final hasData = result.breakdown.isNotEmpty;
 
@@ -1060,15 +1047,16 @@ class _CalculatorScreenState extends ConsumerState<CalculatorScreen> {
     final cardColor = AppColors.tierColor(dominantTier);
     final cardBg = AppColors.tierColorLight(dominantTier);
 
+    final cs = Theme.of(context).colorScheme;
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16),
       decoration: BoxDecoration(
-        color: AppColors.white,
+        color: cs.surface,
         borderRadius: BorderRadius.circular(20),
         border: Border.all(color: cardColor.withValues(alpha: 0.4), width: 1.5),
         boxShadow: [
           BoxShadow(
-            color: AppColors.neutral900.withValues(alpha: 0.06),
+            color: cs.shadow.withValues(alpha: 0.06),
             blurRadius: 12,
             offset: const Offset(0, 4),
           ),
@@ -1084,11 +1072,11 @@ class _CalculatorScreenState extends ConsumerState<CalculatorScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text(
-                        'Total Bonus',
+                      Text(
+                        l10n.calculatorTotalBonus,
                         style: TextStyle(
                           fontSize: 12,
-                          color: AppColors.neutral600,
+                          color: cs.onSurfaceVariant,
                           fontWeight: FontWeight.w500,
                         ),
                       ),
@@ -1112,7 +1100,7 @@ class _CalculatorScreenState extends ConsumerState<CalculatorScreen> {
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: Text(
-                    '${_subjects.length} subject${_subjects.length == 1 ? '' : 's'}',
+                    l10n.calculatorSubjectsLabel(_subjects.length),
                     style: TextStyle(
                       fontSize: 13,
                       fontWeight: FontWeight.w600,
@@ -1141,8 +1129,8 @@ class _CalculatorScreenState extends ConsumerState<CalculatorScreen> {
                         child: CircularProgressIndicator(
                             color: Colors.white, strokeWidth: 2),
                       )
-                    : const Text('Save Result',
-                        style: TextStyle(
+                    : Text(l10n.calculatorSaveResult,
+                        style: const TextStyle(
                             fontWeight: FontWeight.w700, fontSize: 15)),
               ),
             ),
@@ -1211,10 +1199,10 @@ class _SubjectChip extends StatelessWidget {
         padding:
             const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
         decoration: BoxDecoration(
-          color: selected ? AppColors.primary : AppColors.neutral100,
+          color: selected ? AppColors.primary : Theme.of(context).colorScheme.surfaceContainerHighest,
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
-            color: selected ? AppColors.primary : AppColors.neutral200,
+            color: selected ? AppColors.primary : Theme.of(context).colorScheme.outlineVariant,
             width: 1.5,
           ),
         ),
@@ -1223,7 +1211,7 @@ class _SubjectChip extends StatelessWidget {
           style: TextStyle(
             fontSize: 13,
             fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
-            color: selected ? AppColors.white : AppColors.neutral700,
+            color: selected ? AppColors.white : Theme.of(context).colorScheme.onSurface,
           ),
         ),
       ),
@@ -1240,9 +1228,10 @@ class _ClassLevelStepper extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
     return Container(
       decoration: BoxDecoration(
-        border: Border.all(color: AppColors.neutral200),
+        border: Border.all(color: cs.outlineVariant),
         borderRadius: BorderRadius.circular(10),
       ),
       child: Row(
@@ -1257,10 +1246,10 @@ class _ClassLevelStepper extends StatelessWidget {
             alignment: Alignment.center,
             child: Text(
               value.toString(),
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.w700,
-                color: AppColors.neutral900,
+                color: cs.onSurface,
               ),
             ),
           ),
@@ -1291,8 +1280,8 @@ class _StepButton extends StatelessWidget {
           icon,
           size: 18,
           color: onPressed == null
-              ? AppColors.neutral400
-              : AppColors.neutral700,
+              ? Theme.of(context).colorScheme.onSurfaceVariant.withValues(alpha: 0.4)
+              : Theme.of(context).colorScheme.onSurfaceVariant,
         ),
       ),
     );
@@ -1311,9 +1300,10 @@ class _WeightStepper extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final idx = _steps.indexOf(value);
+    final cs = Theme.of(context).colorScheme;
     return Container(
       decoration: BoxDecoration(
-        border: Border.all(color: AppColors.neutral200),
+        border: Border.all(color: cs.outlineVariant),
         borderRadius: BorderRadius.circular(10),
       ),
       child: Row(
@@ -1328,10 +1318,10 @@ class _WeightStepper extends StatelessWidget {
             alignment: Alignment.center,
             child: Text(
               '×${value % 1 == 0 ? value.toInt() : value}',
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 14,
                 fontWeight: FontWeight.w700,
-                color: AppColors.neutral900,
+                color: cs.onSurface,
               ),
             ),
           ),

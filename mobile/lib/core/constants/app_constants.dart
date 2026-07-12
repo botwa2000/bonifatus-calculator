@@ -1,7 +1,7 @@
 class AppConstants {
   AppConstants._();
 
-  static const String apiBaseUrl = 'https://bonifatus.com';
+  static const String apiBaseUrl = String.fromEnvironment('API_BASE_URL', defaultValue: 'https://bonifatus.com');
   static const String bundleId = 'com.bonifatus.app';
   static const String appName = 'Bonifatus';
 

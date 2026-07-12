@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:bonifatus_mobile/l10n/app_localizations.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../providers/children_provider.dart';
 import '../../../../models/child_data.dart';
@@ -11,31 +12,30 @@ class RewardsScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context)!;
     final childrenAsync = ref.watch(childrenQuickGradesProvider);
 
     return DefaultTabController(
       length: 2,
       child: Scaffold(
-        backgroundColor: AppColors.neutral50,
+        backgroundColor: Theme.of(context).colorScheme.surface,
         appBar: AppBar(
-          backgroundColor: AppColors.white,
           elevation: 0,
-          title: const Text(
-            'Rewards',
-            style: TextStyle(
-              color: AppColors.neutral900,
+          title: Text(
+            l10n.rewardsTitle,
+            style: const TextStyle(
               fontWeight: FontWeight.w700,
               fontSize: 20,
             ),
           ),
-          bottom: const TabBar(
+          bottom: TabBar(
             labelColor: AppColors.primary,
-            unselectedLabelColor: AppColors.neutral400,
+            unselectedLabelColor: Theme.of(context).colorScheme.onSurfaceVariant,
             indicatorColor: AppColors.primary,
-            labelStyle: TextStyle(fontWeight: FontWeight.w600),
+            labelStyle: const TextStyle(fontWeight: FontWeight.w600),
             tabs: [
-              Tab(text: 'Quick Grades'),
-              Tab(text: 'Summary'),
+              Tab(text: l10n.rewardsTabQuickGrades),
+              Tab(text: l10n.rewardsTabSummary),
             ],
           ),
         ),
@@ -51,12 +51,11 @@ class RewardsScreen extends ConsumerWidget {
                   const Icon(Icons.error_outline,
                       size: 48, color: AppColors.error),
                   const SizedBox(height: 16),
-                  const Text(
-                    'Failed to load rewards data',
-                    style: TextStyle(
+                  Text(
+                    l10n.rewardsFailedToLoadData,
+                    style: const TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
-                      color: AppColors.neutral900,
                     ),
                   ),
                   const SizedBox(height: 20),
@@ -66,7 +65,7 @@ class RewardsScreen extends ConsumerWidget {
                     style: ElevatedButton.styleFrom(
                         backgroundColor: AppColors.primary,
                         foregroundColor: AppColors.white),
-                    child: const Text('Retry'),
+                    child: Text(l10n.rewardsRetry),
                   ),
                 ],
               ),
@@ -91,10 +90,11 @@ class _QuickGradesTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     if (children.isEmpty) {
-      return const Center(
-        child: Text('No children connected',
-            style: TextStyle(color: AppColors.neutral600)),
+      return Center(
+        child: Text(l10n.rewardsNoChildrenConnected,
+            style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant)),
       );
     }
 
@@ -126,13 +126,14 @@ class _ChildGradesCard extends ConsumerWidget {
     final totalPts =
         pendingGrades.fold<int>(0, (sum, g) => sum + g.bonusPoints);
 
+    final cs = Theme.of(context).colorScheme;
     return Container(
       decoration: BoxDecoration(
-        color: AppColors.white,
+        color: cs.surface,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: AppColors.neutral900.withValues(alpha: 0.05),
+            color: cs.shadow.withValues(alpha: 0.05),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -164,15 +165,15 @@ class _ChildGradesCard extends ConsumerWidget {
                 const SizedBox(width: 10),
                 Text(
                   child.childName,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w700,
-                    color: AppColors.neutral900,
+                    color: cs.onSurface,
                   ),
                 ),
                 const Spacer(),
                 Text(
-                  '$totalPts pts pending',
+                  '$totalPts pts',
                   style: const TextStyle(
                     fontSize: 13,
                     fontWeight: FontWeight.w600,
@@ -183,19 +184,19 @@ class _ChildGradesCard extends ConsumerWidget {
             ),
           ),
           const SizedBox(height: 10),
-          const Divider(height: 1, color: AppColors.neutral100),
+          Divider(height: 1, color: Theme.of(context).colorScheme.outlineVariant),
           if (pendingGrades.isEmpty)
-            const Padding(
-              padding: EdgeInsets.all(16),
-              child: Text('No pending grades',
-                  style: TextStyle(color: AppColors.neutral600)),
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: Text(AppLocalizations.of(context)!.rewardsNoPendingGrades,
+                  style: TextStyle(color: cs.onSurfaceVariant)),
             )
           else
             ...pendingGrades.take(5).map((g) => _GradeRow(
               grade: g,
               onTap: () => context.push('/parent/children/${child.childId}'),
             )),
-          const Divider(height: 1, color: AppColors.neutral100),
+          Divider(height: 1, color: Theme.of(context).colorScheme.outlineVariant),
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 10, 16, 14),
             child: SizedBox(
@@ -204,16 +205,16 @@ class _ChildGradesCard extends ConsumerWidget {
                 onPressed: pendingGrades.isEmpty ? null : () => _showSettleSheet(context, ref, pendingGrades, child),
                 style: OutlinedButton.styleFrom(
                   foregroundColor: AppColors.primary,
-                  disabledForegroundColor: AppColors.neutral400,
+                  disabledForegroundColor: Theme.of(context).colorScheme.onSurfaceVariant,
                   side: BorderSide(
-                    color: pendingGrades.isEmpty ? AppColors.neutral200 : AppColors.primary,
+                    color: pendingGrades.isEmpty ? Theme.of(context).colorScheme.outlineVariant : AppColors.primary,
                   ),
                   shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(10)),
                 ),
-                child: const Text(
-                  'Settle',
-                  style: TextStyle(fontWeight: FontWeight.w600),
+                child: Text(
+                  AppLocalizations.of(context)!.rewardsSettle,
+                  style: const TextStyle(fontWeight: FontWeight.w600),
                 ),
               ),
             ),
@@ -225,6 +226,7 @@ class _ChildGradesCard extends ConsumerWidget {
 
   void _showSettleSheet(BuildContext context, WidgetRef ref, List<ChildQuickGrade> pendingGrades, ChildWithGrades child) {
     final total = pendingGrades.fold<int>(0, (s, g) => s + g.bonusPoints);
+    final l10n = AppLocalizations.of(context)!;
     showModalBottomSheet<void>(
       context: context,
       shape: const RoundedRectangleBorder(
@@ -238,11 +240,11 @@ class _ChildGradesCard extends ConsumerWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'Settle Bonus for ${child.childName}',
-                style: const TextStyle(
+                l10n.rewardsSettleBonusFor(child.childName),
+                style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.w700,
-                  color: AppColors.neutral900,
+                  color: Theme.of(ctx).colorScheme.onSurface,
                 ),
               ),
               const SizedBox(height: 16),
@@ -255,10 +257,10 @@ class _ChildGradesCard extends ConsumerWidget {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    const Text(
-                      'Amount to transfer',
+                    Text(
+                      l10n.rewardsAmountToTransfer,
                       style: TextStyle(
-                          color: AppColors.neutral700,
+                          color: Theme.of(ctx).colorScheme.onSurface,
                           fontWeight: FontWeight.w500),
                     ),
                     Text(
@@ -279,13 +281,13 @@ class _ChildGradesCard extends ConsumerWidget {
                     child: OutlinedButton(
                       onPressed: settling ? null : () => Navigator.of(ctx).pop(),
                       style: OutlinedButton.styleFrom(
-                        side: const BorderSide(color: AppColors.neutral200),
+                        side: BorderSide(color: Theme.of(ctx).colorScheme.outlineVariant),
                         padding: const EdgeInsets.symmetric(vertical: 14),
                         shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12)),
                       ),
-                      child: const Text('Cancel',
-                          style: TextStyle(color: AppColors.neutral700)),
+                      child: Text(l10n.rewardsCancel,
+                          style: TextStyle(color: Theme.of(ctx).colorScheme.onSurface)),
                     ),
                   ),
                   const SizedBox(width: 12),
@@ -303,14 +305,14 @@ class _ChildGradesCard extends ConsumerWidget {
                           ref.read(childrenQuickGradesProvider.notifier).reload();
                           if (context.mounted) {
                             ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text('Settled!'), backgroundColor: AppColors.tierBest),
+                              SnackBar(content: Text(l10n.rewardsSettled), backgroundColor: AppColors.tierBest),
                             );
                           }
                         } catch (e) {
                           setSheet(() => settling = false);
                           if (ctx.mounted) {
                             ScaffoldMessenger.of(ctx).showSnackBar(
-                              SnackBar(content: Text('Failed: $e'), backgroundColor: AppColors.error),
+                              SnackBar(content: Text(AppLocalizations.of(ctx)!.genericFailedError(e.toString())), backgroundColor: AppColors.error),
                             );
                           }
                         }
@@ -324,8 +326,8 @@ class _ChildGradesCard extends ConsumerWidget {
                       ),
                       child: settling
                           ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
-                          : const Text('Confirm Settle',
-                              style: TextStyle(fontWeight: FontWeight.w700)),
+                          : Text(l10n.rewardsConfirmSettle,
+                              style: const TextStyle(fontWeight: FontWeight.w700)),
                     ),
                   ),
                 ],
@@ -366,10 +368,10 @@ class _GradeRow extends StatelessWidget {
           const SizedBox(width: 10),
           Expanded(
             child: Text(
-              grade.subjectName ?? 'Subject',
-              style: const TextStyle(
+              grade.subjectName ?? AppLocalizations.of(context)!.subjectFallback,
+              style: TextStyle(
                 fontSize: 14,
-                color: AppColors.neutral700,
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
               ),
             ),
           ),
@@ -380,7 +382,7 @@ class _GradeRow extends StatelessWidget {
               borderRadius: BorderRadius.circular(6),
             ),
             child: Text(
-              'Grade ${grade.gradeValue}',
+              '${AppLocalizations.of(context)!.calculatorGradeLabel} ${grade.gradeValue}',
               style: TextStyle(
                 fontSize: 12,
                 fontWeight: FontWeight.w600,
@@ -412,9 +414,9 @@ class _SummaryTab extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (children.isEmpty) {
-      return const Center(
-        child: Text('No children connected',
-            style: TextStyle(color: AppColors.neutral600)),
+      return Center(
+        child: Text(AppLocalizations.of(context)!.rewardsNoChildrenConnected,
+            style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant)),
       );
     }
 
@@ -459,17 +461,17 @@ class _SummaryTab extends StatelessWidget {
                     children: [
                       Text(
                         child.childName,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontWeight: FontWeight.w700,
                           fontSize: 16,
-                          color: AppColors.neutral900,
+                          color: Theme.of(ctx).colorScheme.onSurface,
                         ),
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        '${child.grades.length} grades · $totalPts pts total',
-                        style: const TextStyle(
-                            fontSize: 13, color: AppColors.neutral600),
+                        AppLocalizations.of(context)!.rewardsSummarySubtitle(child.grades.length, totalPts),
+                        style: TextStyle(
+                            fontSize: 13, color: Theme.of(ctx).colorScheme.onSurfaceVariant),
                       ),
                     ],
                   ),

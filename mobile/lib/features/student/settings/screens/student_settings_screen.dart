@@ -166,7 +166,7 @@ class _StudentSettingsScreenState extends ConsumerState<StudentSettingsScreen> {
       if (_biometricAvailable) ...[
         Divider(height: 1, indent: 56, color: cs.outlineVariant),
         ListTile(
-          leading: const Icon(Icons.fingerprint_rounded, color: AppColors.neutral600, size: 22),
+          leading: Icon(Icons.fingerprint_rounded, color: Theme.of(context).colorScheme.onSurfaceVariant, size: 22),
           title: Text(l10n.settingsBiometricLogin, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w500)),
           trailing: Switch(
             value: _biometricEnabled,
@@ -335,7 +335,7 @@ class _StudentSettingsScreenState extends ConsumerState<StudentSettingsScreen> {
         padding: const EdgeInsets.all(24),
         child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
           Container(width: 40, height: 4, margin: const EdgeInsets.only(bottom: 20),
-              decoration: BoxDecoration(color: AppColors.neutral200, borderRadius: BorderRadius.circular(2))),
+              decoration: BoxDecoration(color: Theme.of(ctx).colorScheme.outlineVariant, borderRadius: BorderRadius.circular(2))),
           Row(children: [
             Container(width: 48, height: 48, decoration: const BoxDecoration(color: AppColors.primaryLight, shape: BoxShape.circle),
               alignment: Alignment.center,
@@ -343,12 +343,12 @@ class _StudentSettingsScreenState extends ConsumerState<StudentSettingsScreen> {
                 style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w700, color: AppColors.primary))),
             const SizedBox(width: 14),
             Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Text(parentName, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: AppColors.neutral900)),
+              Text(parentName, style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: Theme.of(ctx).colorScheme.onSurface)),
               if (parentEmail.isNotEmpty)
-                Text(parentEmail, style: const TextStyle(fontSize: 13, color: AppColors.neutral600)),
+                Text(parentEmail, style: TextStyle(fontSize: 13, color: Theme.of(ctx).colorScheme.onSurfaceVariant)),
               if (connectedSince != null)
                 Text(l10n.settingsConnectedSince(connectedSince.substring(0, 10)),
-                    style: const TextStyle(fontSize: 12, color: AppColors.neutral400)),
+                    style: TextStyle(fontSize: 12, color: Theme.of(ctx).colorScheme.onSurfaceVariant)),
             ]),
           ]),
           const SizedBox(height: 24),
@@ -417,7 +417,7 @@ class _StudentSettingsScreenState extends ConsumerState<StudentSettingsScreen> {
           Padding(
             padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
             child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-              Text(l10n.settingsScanParentQrTitle, style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w700, color: AppColors.neutral900)),
+              Text(l10n.settingsScanParentQrTitle, style: TextStyle(fontSize: 17, fontWeight: FontWeight.w700, color: Theme.of(ctx).colorScheme.onSurface)),
               IconButton(
                 icon: const Icon(Icons.close_rounded),
                 onPressed: () { controller.dispose(); Navigator.of(ctx).pop(); },
@@ -428,7 +428,7 @@ class _StudentSettingsScreenState extends ConsumerState<StudentSettingsScreen> {
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 20),
             child: Text(l10n.settingsScanQrInstructions,
-                style: const TextStyle(fontSize: 13, color: AppColors.neutral600), textAlign: TextAlign.center),
+                style: TextStyle(fontSize: 13, color: Theme.of(ctx).colorScheme.onSurfaceVariant), textAlign: TextAlign.center),
           ),
           const SizedBox(height: 16),
           Expanded(
@@ -459,7 +459,7 @@ class _StudentSettingsScreenState extends ConsumerState<StudentSettingsScreen> {
                     redeemed = false;
                     if (context.mounted) {
                       ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text('Failed: $e'), backgroundColor: AppColors.error),
+                        SnackBar(content: Text(AppLocalizations.of(context)!.genericFailedError(e.toString())), backgroundColor: AppColors.error),
                       );
                     }
                   }
@@ -503,7 +503,7 @@ class _StudentSettingsScreenState extends ConsumerState<StudentSettingsScreen> {
                 await ref.read(profileServiceProvider).updateProfile(fullName: nameCtrl.text.trim());
                 if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l10n.settingsProfileUpdated)));
               } catch (e) {
-                if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed: $e'), backgroundColor: AppColors.error));
+                if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(AppLocalizations.of(context)!.genericFailedError(e.toString())), backgroundColor: AppColors.error));
               }
             })),
             const SizedBox(height: 24),
@@ -564,7 +564,7 @@ class _StudentSettingsScreenState extends ConsumerState<StudentSettingsScreen> {
                   await ref.read(profileServiceProvider).changePassword(newPassword: pwCtrl.text);
                   if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l10n.settingsPasswordChanged)));
                 } catch (e) {
-                  if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed: $e'), backgroundColor: AppColors.error));
+                  if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(AppLocalizations.of(context)!.genericFailedError(e.toString())), backgroundColor: AppColors.error));
                 }
               })),
               const SizedBox(height: 24),
@@ -617,13 +617,13 @@ class _StudentSettingsScreenState extends ConsumerState<StudentSettingsScreen> {
                       setSheetState(() { codeSent = true; loading = false; });
                     } catch (e) {
                       setSheetState(() => loading = false);
-                      if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed: $e'), backgroundColor: AppColors.error));
+                      if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(AppLocalizations.of(context)!.genericFailedError(e.toString())), backgroundColor: AppColors.error));
                     }
                   },
                 )),
               ] else ...[
                 Text(l10n.settingsCodeSentTo(emailCtrl.text),
-                    style: const TextStyle(fontSize: 13, color: AppColors.neutral600)),
+                    style: TextStyle(fontSize: 13, color: Theme.of(ctx).colorScheme.onSurfaceVariant)),
                 const SizedBox(height: 16),
                 TextFormField(
                   controller: codeCtrl,

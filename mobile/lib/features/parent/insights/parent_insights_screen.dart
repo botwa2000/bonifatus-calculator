@@ -32,7 +32,7 @@ class ParentInsightsScreen extends ConsumerWidget {
                     style: theme.textTheme.titleMedium),
                 const SizedBox(height: 8),
                 Text(err.toString(),
-                    style: const TextStyle(color: AppColors.neutral600),
+                    style: TextStyle(color: theme.colorScheme.onSurfaceVariant),
                     textAlign: TextAlign.center),
                 const SizedBox(height: 20),
                 ElevatedButton(
@@ -51,17 +51,17 @@ class ParentInsightsScreen extends ConsumerWidget {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const Icon(Icons.insights_outlined,
-                        size: 64, color: AppColors.neutral400),
+                    Icon(Icons.insights_outlined,
+                        size: 64, color: theme.colorScheme.outlineVariant),
                     const SizedBox(height: 16),
                     Text(l10n.parentInsightsNoInsights,
-                        style: const TextStyle(
+                        style: TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.w600,
-                            color: AppColors.neutral900)),
+                            color: theme.colorScheme.onSurface)),
                     const SizedBox(height: 8),
                     Text(l10n.parentInsightsNoInsightsHint,
-                        style: const TextStyle(color: AppColors.neutral600),
+                        style: TextStyle(color: theme.colorScheme.onSurfaceVariant),
                         textAlign: TextAlign.center),
                   ],
                 ),
@@ -142,7 +142,7 @@ class _Stat extends StatelessWidget {
                 color: AppColors.primary)),
         const SizedBox(height: 2),
         Text(label,
-            style: const TextStyle(fontSize: 12, color: AppColors.neutral600)),
+            style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.onSurfaceVariant)),
       ]);
 }
 
@@ -184,7 +184,7 @@ class _ChildInsightCard extends StatelessWidget {
               decoration: BoxDecoration(
                   color: lightColor,
                   borderRadius: BorderRadius.circular(20)),
-              child: Text('Grade $avgGradeLabel',
+              child: Text('${AppLocalizations.of(context)!.calculatorGradeLabel} $avgGradeLabel',
                   style: TextStyle(
                       color: color,
                       fontWeight: FontWeight.w600,
@@ -194,15 +194,15 @@ class _ChildInsightCard extends StatelessWidget {
           const SizedBox(height: 12),
           LinearProgressIndicator(
             value: progressValue,
-            backgroundColor: AppColors.neutral100,
+            backgroundColor: theme.colorScheme.outlineVariant,
             valueColor: AlwaysStoppedAnimation<Color>(color),
             borderRadius: BorderRadius.circular(4),
             minHeight: 8,
           ),
           const SizedBox(height: 6),
-          Text('$pts pts pending',
+          Text(AppLocalizations.of(context)!.childrenPtsPending(pts),
               style: theme.textTheme.bodyMedium
-                  ?.copyWith(color: AppColors.neutral600)),
+                  ?.copyWith(color: theme.colorScheme.onSurfaceVariant)),
         ]),
       ),
     ),

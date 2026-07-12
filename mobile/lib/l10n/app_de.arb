@@ -338,5 +338,25 @@
   "termDetailDeleteTitle": "Ergebnis löschen",
   "termDetailDeleteConfirm": "Bist du sicher, dass du dieses Ergebnis löschen möchtest? Diese Aktion kann nicht rückgängig gemacht werden.",
   "termDetailDelete": "Löschen",
-  "termDetailEditLabel": "Bezeichnung bearbeiten"
+  "termDetailEditLabel": "Bezeichnung bearbeiten",
+
+  "calculatorLabelHint": "z.B. Abschlussprüfung",
+  "studentNotesCount": "{count, plural, =1{{count} Notiz} other{{count} Notizen}}",
+  "calculatorNoSubjectsMatch": "Keine Fächer für \"{query}\" gefunden",
+  "calculatorRemoveSubject": "Entfernen",
+  "calculatorFailedToSave": "Speichern fehlgeschlagen: {error}",
+  "calculatorSubjectsLabel": "{count, plural, =1{{count} Fach} other{{count} Fächer}}",
+  "calculatorGradeHint": "z.B. {example}",
+  "childrenGradesCount": "{count, plural, =1{{count} Note} other{{count} Noten}}",
+  "childrenView": "Ansehen",
+  "childrenPtsPending": "{pts} Pkt. ausstehend",
+  "rewardsSummarySubtitle": "{count} Noten · {pts} Pkt. gesamt",
+  "subjectFallback": "Fach",
+  "genericFailedError": "Fehler: {error}",
+  "forgotPasswordCooldownMessage": "Bitte warte {seconds} Sekunden, bevor du einen neuen Code anforderst.",
+  "cycleTypeDaily": "Täglich",
+  "cycleTypeWeekly": "Wöchentlich",
+  "cycleTypeMonthly": "Monatlich",
+  "notesNetPointsLabel": "Netto: {pts} Pkt.",
+  "childrenInviteCode": "Code: {code}"
 }

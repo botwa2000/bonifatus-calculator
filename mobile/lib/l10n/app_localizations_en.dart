@@ -967,8 +967,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get navCalculator => 'Calculator';
 
   @override
-  String parentDashboardChildSubtitle(int count, int pts) =>
-      '$count grades · $pts pts pending';
+  String parentDashboardChildSubtitle(int count, int pts) {
+    return '$count grades · $pts pts pending';
+  }
 
   @override
   String get termDetailDeleteTitle => 'Delete Result';
@@ -982,4 +983,103 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get termDetailEditLabel => 'Edit Label';
+
+  @override
+  String get calculatorLabelHint => 'e.g. Final exam';
+
+  @override
+  String studentNotesCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count notes',
+      one: '$count note',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String calculatorNoSubjectsMatch(String query) {
+    return 'No subjects match \"$query\"';
+  }
+
+  @override
+  String get calculatorRemoveSubject => 'Remove';
+
+  @override
+  String calculatorFailedToSave(String error) {
+    return 'Failed to save: $error';
+  }
+
+  @override
+  String calculatorSubjectsLabel(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count subjects',
+      one: '$count subject',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String calculatorGradeHint(String example) {
+    return 'e.g. $example';
+  }
+
+  @override
+  String childrenGradesCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count grades',
+      one: '$count grade',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get childrenView => 'View';
+
+  @override
+  String childrenPtsPending(int pts) {
+    return '$pts pts pending';
+  }
+
+  @override
+  String rewardsSummarySubtitle(int count, int pts) {
+    return '$count grades · $pts pts total';
+  }
+
+  @override
+  String get subjectFallback => 'Subject';
+
+  @override
+  String genericFailedError(String error) {
+    return 'Error: $error';
+  }
+
+  @override
+  String forgotPasswordCooldownMessage(int seconds) {
+    return 'Please wait $seconds seconds before requesting another code.';
+  }
+
+  @override
+  String get cycleTypeDaily => 'Daily';
+
+  @override
+  String get cycleTypeWeekly => 'Weekly';
+
+  @override
+  String get cycleTypeMonthly => 'Monthly';
+
+  @override
+  String notesNetPointsLabel(String pts) {
+    return 'Net: $pts pts';
+  }
+
+  @override
+  String childrenInviteCode(String code) {
+    return 'Code: $code';
+  }
 }

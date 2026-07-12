@@ -18,7 +18,7 @@ class ChildrenScreen extends ConsumerWidget {
     final childrenAsync = ref.watch(childrenQuickGradesProvider);
 
     return Scaffold(
-      backgroundColor: AppColors.neutral50,
+      backgroundColor: Theme.of(context).colorScheme.surface,
       floatingActionButton: FloatingActionButton(
         backgroundColor: AppColors.primary,
         foregroundColor: AppColors.white,
@@ -35,10 +35,10 @@ class ChildrenScreen extends ConsumerWidget {
                 children: [
                   Text(
                     l10n.childrenTitle,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.w700,
-                      color: AppColors.neutral900,
+                      color: Theme.of(context).colorScheme.onSurface,
                     ),
                   ),
                   const Spacer(),
@@ -67,16 +67,16 @@ class ChildrenScreen extends ConsumerWidget {
                         const SizedBox(height: 16),
                         Text(
                           l10n.childrenFailedToLoad,
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.w600,
-                            color: AppColors.neutral900,
+                            color: Theme.of(context).colorScheme.onSurface,
                           ),
                         ),
                         const SizedBox(height: 8),
                         Text(err.toString(),
-                            style: const TextStyle(
-                                fontSize: 13, color: AppColors.neutral600),
+                            style: TextStyle(
+                                fontSize: 13, color: Theme.of(context).colorScheme.onSurfaceVariant),
                             textAlign: TextAlign.center),
                         const SizedBox(height: 20),
                         ElevatedButton(
@@ -128,16 +128,16 @@ class ChildrenScreen extends ConsumerWidget {
             const SizedBox(height: 24),
             Text(
               l10n.childrenNoChildrenConnected,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.w700,
-                color: AppColors.neutral900,
+                color: Theme.of(context).colorScheme.onSurface,
               ),
             ),
             const SizedBox(height: 8),
             Text(
               l10n.childrenShareQrHint,
-              style: const TextStyle(fontSize: 15, color: AppColors.neutral600),
+              style: TextStyle(fontSize: 15, color: Theme.of(context).colorScheme.onSurfaceVariant),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 24),
@@ -242,16 +242,16 @@ class _InviteDialogState extends State<_InviteDialog> {
           children: [
             Text(
               l10n.childrenInviteStudent,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.w700,
-                color: AppColors.neutral900,
+                color: Theme.of(context).colorScheme.onSurface,
               ),
             ),
             const SizedBox(height: 8),
             Text(
               l10n.childrenScanCodeHint,
-              style: const TextStyle(fontSize: 13, color: AppColors.neutral600),
+              style: TextStyle(fontSize: 13, color: Theme.of(context).colorScheme.onSurfaceVariant),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 20),
@@ -300,13 +300,13 @@ class _InviteDialogState extends State<_InviteDialog> {
                 padding:
                     const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
                 decoration: BoxDecoration(
-                  color: AppColors.neutral100,
+                  color: Theme.of(context).colorScheme.surfaceContainerHighest,
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: Column(
                   children: [
                     Text(
-                      'Code: ${_invite!.code}',
+                      AppLocalizations.of(context)!.childrenInviteCode(_invite!.code),
                       style: const TextStyle(
                         fontSize: 22,
                         fontWeight: FontWeight.w800,
@@ -317,8 +317,8 @@ class _InviteDialogState extends State<_InviteDialog> {
                     const SizedBox(height: 4),
                     Text(
                       inviteUrl,
-                      style: const TextStyle(
-                          fontSize: 10, color: AppColors.neutral600),
+                      style: TextStyle(
+                          fontSize: 10, color: Theme.of(context).colorScheme.onSurfaceVariant),
                       textAlign: TextAlign.center,
                     ),
                   ],
@@ -360,11 +360,12 @@ class _ChildCard extends StatelessWidget {
     final tierColorLight = AppColors.tierColorLight(tier);
     final pendingPts = child.totalPendingPoints;
 
+    final cs = Theme.of(context).colorScheme;
     return Material(
-      color: AppColors.white,
+      color: cs.surface,
       borderRadius: BorderRadius.circular(16),
       elevation: 2,
-      shadowColor: AppColors.neutral900.withValues(alpha: 0.08),
+      shadowColor: cs.shadow.withValues(alpha: 0.08),
       child: InkWell(
         onTap: onView,
         borderRadius: BorderRadius.circular(16),
@@ -396,10 +397,10 @@ class _ChildCard extends StatelessWidget {
                   children: [
                     Text(
                       child.childName,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w700,
-                        color: AppColors.neutral900,
+                        color: cs.onSurface,
                       ),
                     ),
                     const SizedBox(height: 6),
@@ -413,7 +414,7 @@ class _ChildCard extends StatelessWidget {
                             borderRadius: BorderRadius.circular(8),
                           ),
                           child: Text(
-                            '${child.grades.length} grades',
+                            l10n.childrenGradesCount(child.grades.length),
                             style: TextStyle(
                               fontSize: 11,
                               fontWeight: FontWeight.w600,
@@ -423,10 +424,10 @@ class _ChildCard extends StatelessWidget {
                         ),
                         const SizedBox(width: 8),
                         Text(
-                          '$pendingPts pts pending',
-                          style: const TextStyle(
+                          l10n.childrenPtsPending(pendingPts),
+                          style: TextStyle(
                             fontSize: 12,
-                            color: AppColors.neutral600,
+                            color: cs.onSurfaceVariant,
                           ),
                         ),
                       ],
@@ -443,9 +444,9 @@ class _ChildCard extends StatelessWidget {
                     color: AppColors.primaryLight,
                     borderRadius: BorderRadius.circular(10),
                   ),
-                  child: const Text(
-                    'View',
-                    style: TextStyle(
+                  child: Text(
+                    l10n.childrenView,
+                    style: const TextStyle(
                       fontSize: 13,
                       fontWeight: FontWeight.w600,
                       color: AppColors.primary,

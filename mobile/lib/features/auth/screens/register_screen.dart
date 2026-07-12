@@ -45,12 +45,13 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   }
 
   Future<void> _submit() async {
+    final l10n = AppLocalizations.of(context)!;
     if (_passCtrl.text != _confirmCtrl.text) {
-      setState(() => _error = 'Passwords do not match');
+      setState(() => _error = l10n.registerPasswordsDoNotMatch);
       return;
     }
     if (_passCtrl.text.length < 12) {
-      setState(() => _error = 'Password must be at least 12 characters');
+      setState(() => _error = l10n.registerPasswordTooShort);
       return;
     }
     setState(() { _isLoading = true; _error = null; });
@@ -68,7 +69,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
         context.go('/auth/verify-email?email=${Uri.encodeComponent(_emailCtrl.text.trim())}&userId=${Uri.encodeComponent(userId)}&purpose=email_verification');
       }
     } catch (e) {
-      String msg = 'Registration failed. Please try again.';
+      String msg = l10n.registerFailed;
       if (e is DioException) {
         final data = e.response?.data;
         if (data is Map && data['error'] != null) {
@@ -88,7 +89,6 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
     final theme = Theme.of(context);
     final l10n = AppLocalizations.of(context)!;
     return Scaffold(
-      backgroundColor: AppColors.white,
       body: SafeArea(
         child: Column(
           children: [
@@ -106,7 +106,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                 Expanded(
                   child: LinearProgressIndicator(
                     value: (_step + 1) / 3,
-                    backgroundColor: AppColors.neutral200,
+                    backgroundColor: Theme.of(context).colorScheme.outlineVariant,
                     valueColor: const AlwaysStoppedAnimation(AppColors.primary),
                     borderRadius: BorderRadius.circular(4),
                     minHeight: 6,
@@ -178,7 +178,7 @@ class _Step1State extends State<_Step1> {
         const SizedBox(height: 24),
         Text(l10n.registerStep1Title, style: theme.textTheme.headlineMedium),
         const SizedBox(height: 8),
-        Text(l10n.registerStep1Subtitle, style: theme.textTheme.bodyLarge?.copyWith(color: AppColors.neutral600)),
+        Text(l10n.registerStep1Subtitle, style: theme.textTheme.bodyLarge?.copyWith(color: theme.colorScheme.onSurfaceVariant)),
         const SizedBox(height: 32),
         TextFormField(
           controller: widget.ctrl,
@@ -213,7 +213,7 @@ class _Step2 extends StatelessWidget {
         const SizedBox(height: 24),
         Text(l10n.registerStep2Title, style: theme.textTheme.headlineMedium),
         const SizedBox(height: 8),
-        Text(l10n.registerStep2Subtitle, style: theme.textTheme.bodyLarge?.copyWith(color: AppColors.neutral600)),
+        Text(l10n.registerStep2Subtitle, style: theme.textTheme.bodyLarge?.copyWith(color: theme.colorScheme.onSurfaceVariant)),
         const SizedBox(height: 32),
         _RoleCard(title: l10n.registerRoleStudentTitle, subtitle: l10n.registerRoleStudentSubtitle, icon: Icons.school_outlined,
           selected: role == 'child', onTap: () => onChanged('child')),
@@ -243,25 +243,25 @@ class _RoleCard extends StatelessWidget {
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
-            color: selected ? AppColors.primary : AppColors.neutral200,
+            color: selected ? AppColors.primary : Theme.of(context).colorScheme.outlineVariant,
             width: selected ? 2 : 1,
           ),
-          color: selected ? AppColors.primaryLight : AppColors.white,
+          color: selected ? AppColors.primaryLight : Theme.of(context).colorScheme.surface,
         ),
         child: Row(children: [
           Container(
             padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
-              color: selected ? AppColors.primary : AppColors.neutral100,
+              color: selected ? AppColors.primary : Theme.of(context).colorScheme.surfaceContainerHighest,
               borderRadius: BorderRadius.circular(12),
             ),
-            child: Icon(icon, color: selected ? AppColors.white : AppColors.neutral600, size: 24),
+            child: Icon(icon, color: selected ? Colors.white : Theme.of(context).colorScheme.onSurfaceVariant, size: 24),
           ),
           const SizedBox(width: 16),
           Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Text(title, style: TextStyle(fontWeight: FontWeight.w600, color: selected ? AppColors.primary : AppColors.neutral900)),
+            Text(title, style: TextStyle(fontWeight: FontWeight.w600, color: selected ? AppColors.primary : Theme.of(context).colorScheme.onSurface)),
             const SizedBox(height: 2),
-            Text(subtitle, style: TextStyle(fontSize: 13, color: AppColors.neutral600)),
+            Text(subtitle, style: TextStyle(fontSize: 13, color: Theme.of(context).colorScheme.onSurfaceVariant)),
           ])),
           if (selected) const Icon(Icons.check_circle, color: AppColors.primary),
         ]),
@@ -287,7 +287,7 @@ class _Step3 extends StatelessWidget {
         const SizedBox(height: 24),
         Text(l10n.registerStep3Title, style: theme.textTheme.headlineMedium),
         const SizedBox(height: 8),
-        Text(l10n.registerStep3Subtitle, style: theme.textTheme.bodyLarge?.copyWith(color: AppColors.neutral600)),
+        Text(l10n.registerStep3Subtitle, style: theme.textTheme.bodyLarge?.copyWith(color: theme.colorScheme.onSurfaceVariant)),
         const SizedBox(height: 32),
         if (error != null) ...[
           Container(

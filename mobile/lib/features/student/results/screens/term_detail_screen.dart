@@ -95,7 +95,7 @@ class TermDetailScreen extends ConsumerWidget {
         appBar: AppBar(title: Text(l10n.termDetailTitle)),
         body: Center(
           child: Text(l10n.termDetailCouldNotLoad,
-              style: const TextStyle(color: AppColors.neutral600)),
+              style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant)),
         ),
       ),
       data: (terms) {
@@ -112,7 +112,7 @@ class TermDetailScreen extends ConsumerWidget {
             ),
             body: Center(
               child: Text(l10n.termDetailNotFound,
-                  style: const TextStyle(color: AppColors.neutral600)),
+                  style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant)),
             ),
           );
         }
@@ -177,7 +177,7 @@ class TermDetailScreen extends ConsumerWidget {
                             _Stat(
                               label: l10n.termDetailSubjects,
                               value: term.subjects.length.toString(),
-                              color: AppColors.neutral600,
+                              color: Theme.of(context).colorScheme.onSurfaceVariant,
                             ),
                           ],
                         ),
@@ -188,7 +188,7 @@ class TermDetailScreen extends ConsumerWidget {
                           Text(
                             l10n.termDetailSubjectBreakdown,
                             style: theme.textTheme.labelLarge
-                                ?.copyWith(color: AppColors.neutral600),
+                                ?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
                           ),
                           const SizedBox(height: 12),
                           ...term.subjects.map((subject) {
@@ -266,7 +266,7 @@ class _Stat extends StatelessWidget {
         children: [
           Text(label,
               style:
-                  const TextStyle(fontSize: 12, color: AppColors.neutral600)),
+                  TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.onSurfaceVariant)),
           const SizedBox(height: 4),
           Text(value,
               style: TextStyle(

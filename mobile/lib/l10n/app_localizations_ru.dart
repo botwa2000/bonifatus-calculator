@@ -971,8 +971,9 @@ class AppLocalizationsRu extends AppLocalizations {
   String get navCalculator => 'Калькулятор';
 
   @override
-  String parentDashboardChildSubtitle(int count, int pts) =>
-      '$count оценок · $pts Б ожидает';
+  String parentDashboardChildSubtitle(int count, int pts) {
+    return '$count оценок · $pts Б ожидает';
+  }
 
   @override
   String get termDetailDeleteTitle => 'Удалить результат';
@@ -986,4 +987,106 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get termDetailEditLabel => 'Изменить метку';
+
+  @override
+  String get calculatorLabelHint => 'напр. Итоговый экзамен';
+
+  @override
+  String studentNotesCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count записей',
+      few: '$count записи',
+      one: '$count запись',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String calculatorNoSubjectsMatch(String query) {
+    return 'Нет предметов, соответствующих \"$query\"';
+  }
+
+  @override
+  String get calculatorRemoveSubject => 'Удалить';
+
+  @override
+  String calculatorFailedToSave(String error) {
+    return 'Не удалось сохранить: $error';
+  }
+
+  @override
+  String calculatorSubjectsLabel(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count предметов',
+      few: '$count предмета',
+      one: '$count предмет',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String calculatorGradeHint(String example) {
+    return 'напр. $example';
+  }
+
+  @override
+  String childrenGradesCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count оценок',
+      few: '$count оценки',
+      one: '$count оценка',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get childrenView => 'Просмотр';
+
+  @override
+  String childrenPtsPending(int pts) {
+    return '$pts балл. ожидается';
+  }
+
+  @override
+  String rewardsSummarySubtitle(int count, int pts) {
+    return '$count оценок · $pts балл. всего';
+  }
+
+  @override
+  String get subjectFallback => 'Предмет';
+
+  @override
+  String genericFailedError(String error) {
+    return 'Ошибка: $error';
+  }
+
+  @override
+  String forgotPasswordCooldownMessage(int seconds) {
+    return 'Пожалуйста, подождите $seconds секунд перед повторным запросом кода.';
+  }
+
+  @override
+  String get cycleTypeDaily => 'Ежедневно';
+
+  @override
+  String get cycleTypeWeekly => 'Еженедельно';
+
+  @override
+  String get cycleTypeMonthly => 'Ежемесячно';
+
+  @override
+  String notesNetPointsLabel(String pts) {
+    return 'Нетто: $pts балл.';
+  }
+
+  @override
+  String childrenInviteCode(String code) {
+    return 'Код: $code';
+  }
 }

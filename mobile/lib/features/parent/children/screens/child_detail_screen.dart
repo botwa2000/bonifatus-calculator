@@ -78,7 +78,7 @@ class ChildDetailScreen extends ConsumerWidget {
         ),
         body: Center(
           child: Text(l10n.childDetailCouldNotLoad,
-              style: const TextStyle(color: AppColors.neutral600)),
+              style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant)),
         ),
       ),
       data: (children) {
@@ -96,7 +96,7 @@ class ChildDetailScreen extends ConsumerWidget {
             ),
             body: Center(
               child: Text(l10n.childDetailNotFound,
-                  style: const TextStyle(color: AppColors.neutral600)),
+                  style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant)),
             ),
           );
         }
@@ -118,20 +118,18 @@ class ChildDetailScreen extends ConsumerWidget {
         child.grades.fold<int>(0, (s, g) => s + g.bonusPoints) + termPts;
     final pendingPts = child.totalPendingPoints;
 
+    final cs = Theme.of(context).colorScheme;
     return Scaffold(
-      backgroundColor: AppColors.neutral50,
       appBar: AppBar(
-        backgroundColor: AppColors.white,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded,
-              color: AppColors.neutral900),
+          icon: const Icon(Icons.arrow_back_ios_new_rounded),
           onPressed: () => context.pop(),
         ),
         title: Text(
           child.childName,
-          style: const TextStyle(
-            color: AppColors.neutral900,
+          style: TextStyle(
+            color: cs.onSurface,
             fontWeight: FontWeight.w700,
             fontSize: 18,
           ),
@@ -154,10 +152,10 @@ class ChildDetailScreen extends ConsumerWidget {
                 children: [
                   Text(
                     l10n.childDetailTermResults,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w700,
-                      color: AppColors.neutral900,
+                      color: cs.onSurface,
                     ),
                   ),
                   const SizedBox(width: 8),
@@ -205,7 +203,7 @@ class ChildDetailScreen extends ConsumerWidget {
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 20),
                 child: Text(l10n.childDetailCouldNotLoadTermResults,
-                    style: const TextStyle(color: AppColors.neutral600, fontSize: 13)),
+                    style: TextStyle(color: cs.onSurfaceVariant, fontSize: 13)),
               ),
             ),
             data: (terms) => terms.isEmpty
@@ -214,8 +212,7 @@ class ChildDetailScreen extends ConsumerWidget {
                       padding: const EdgeInsets.fromLTRB(20, 0, 20, 12),
                       child: Text(
                         l10n.childDetailNoTermResults,
-                        style: const TextStyle(
-                            color: AppColors.neutral400, fontSize: 13),
+                        style: TextStyle(color: cs.onSurfaceVariant, fontSize: 13),
                       ),
                     ),
                   )
@@ -239,10 +236,10 @@ class ChildDetailScreen extends ConsumerWidget {
               padding: const EdgeInsets.fromLTRB(20, 8, 20, 10),
               child: Text(
                 l10n.childDetailQuickGrades,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w700,
-                  color: AppColors.neutral900,
+                  color: cs.onSurface,
                 ),
               ),
             ),
@@ -253,7 +250,7 @@ class ChildDetailScreen extends ConsumerWidget {
               child: Padding(
                 padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
                 child: Text(l10n.childDetailNoQuickGrades,
-                    style: const TextStyle(color: AppColors.neutral400, fontSize: 13)),
+                    style: TextStyle(color: cs.onSurfaceVariant, fontSize: 13)),
               ),
             )
           else
@@ -383,12 +380,12 @@ class _TermResultCard extends StatelessWidget {
       childrenPadding: const EdgeInsets.fromLTRB(14, 0, 14, 12),
       collapsedShape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(14),
-          side: const BorderSide(color: AppColors.neutral100)),
+          side: BorderSide(color: Theme.of(context).colorScheme.outlineVariant)),
       shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(14),
           side: const BorderSide(color: AppColors.primary, width: 1.5)),
-      backgroundColor: AppColors.white,
-      collapsedBackgroundColor: AppColors.white,
+      backgroundColor: Theme.of(context).colorScheme.surface,
+      collapsedBackgroundColor: Theme.of(context).colorScheme.surface,
       leading: Container(
         width: 44,
         height: 44,
@@ -408,15 +405,15 @@ class _TermResultCard extends StatelessWidget {
       ),
       title: Text(
         term.displayLabel,
-        style: const TextStyle(
+        style: TextStyle(
           fontWeight: FontWeight.w700,
           fontSize: 14,
-          color: AppColors.neutral900,
+          color: Theme.of(context).colorScheme.onSurface,
         ),
       ),
       subtitle: Text(
         '${term.termTypeDisplay} · Class ${term.classLevel} · ${term.subjects.length} subjects',
-        style: const TextStyle(fontSize: 11, color: AppColors.neutral400),
+        style: TextStyle(fontSize: 11, color: Theme.of(context).colorScheme.onSurfaceVariant),
       ),
       trailing: Text(
         '+${term.totalBonusPoints} pts',
@@ -454,10 +451,10 @@ class _TermResultCard extends StatelessWidget {
               const SizedBox(width: 10),
               Expanded(
                 child: Text(
-                  s.subjectName ?? 'Subject',
-                  style: const TextStyle(
+                  s.subjectName ?? AppLocalizations.of(context)!.subjectFallback,
+                  style: TextStyle(
                     fontSize: 13,
-                    color: AppColors.neutral700,
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
                   ),
                 ),
               ),
@@ -495,7 +492,7 @@ class _GradeCard extends StatelessWidget {
         padding: const EdgeInsets.all(24),
         child: Column(mainAxisSize: MainAxisSize.min, children: [
           Container(width: 40, height: 4,
-              decoration: BoxDecoration(color: AppColors.neutral200, borderRadius: BorderRadius.circular(2))),
+              decoration: BoxDecoration(color: Theme.of(context).colorScheme.outlineVariant, borderRadius: BorderRadius.circular(2))),
           const SizedBox(height: 16),
           Row(children: [
             Container(width: 56, height: 56,
@@ -505,10 +502,10 @@ class _GradeCard extends StatelessWidget {
                 style: TextStyle(fontSize: 24, fontWeight: FontWeight.w800, color: color))),
             const SizedBox(width: 16),
             Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Text(grade.subjectName ?? 'Subject',
-                style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w700, color: AppColors.neutral900)),
+              Text(grade.subjectName ?? AppLocalizations.of(context)!.subjectFallback,
+                style: TextStyle(fontSize: 17, fontWeight: FontWeight.w700, color: Theme.of(context).colorScheme.onSurface)),
               Text(DateFormat('MMMM d, yyyy').format(grade.gradedAt),
-                style: const TextStyle(fontSize: 13, color: AppColors.neutral400)),
+                style: TextStyle(fontSize: 13, color: Theme.of(context).colorScheme.onSurfaceVariant)),
             ])),
           ]),
           const SizedBox(height: 20),
@@ -540,11 +537,11 @@ class _GradeCard extends StatelessWidget {
       child: Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: AppColors.white,
+        color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(14),
         boxShadow: [
           BoxShadow(
-            color: AppColors.neutral900.withValues(alpha: 0.04),
+            color: Theme.of(context).colorScheme.shadow.withValues(alpha: 0.04),
             blurRadius: 6,
             offset: const Offset(0, 2),
           ),
@@ -575,18 +572,18 @@ class _GradeCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  grade.subjectName ?? 'Subject',
-                  style: const TextStyle(
+                  grade.subjectName ?? AppLocalizations.of(context)!.subjectFallback,
+                  style: TextStyle(
                     fontWeight: FontWeight.w600,
                     fontSize: 14,
-                    color: AppColors.neutral900,
+                    color: Theme.of(context).colorScheme.onSurface,
                   ),
                 ),
                 Text(
                   dateStr,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 12,
-                    color: AppColors.neutral400,
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
                   ),
                 ),
               ],
@@ -644,7 +641,7 @@ class _DetailChip extends StatelessWidget {
     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
     decoration: BoxDecoration(color: bg, borderRadius: BorderRadius.circular(10)),
     child: Column(children: [
-      Text(label, style: const TextStyle(fontSize: 11, color: AppColors.neutral400)),
+      Text(label, style: TextStyle(fontSize: 11, color: Theme.of(context).colorScheme.onSurfaceVariant)),
       const SizedBox(height: 2),
       Text(value, style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: color)),
     ]),

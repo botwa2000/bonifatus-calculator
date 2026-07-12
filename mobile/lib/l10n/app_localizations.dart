@@ -1959,6 +1959,120 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Edit Label'**
   String get termDetailEditLabel;
+
+  /// No description provided for @calculatorLabelHint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. Final exam'**
+  String get calculatorLabelHint;
+
+  /// No description provided for @studentNotesCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{{count} note} other{{count} notes}}'**
+  String studentNotesCount(int count);
+
+  /// No description provided for @calculatorNoSubjectsMatch.
+  ///
+  /// In en, this message translates to:
+  /// **'No subjects match \"{query}\"'**
+  String calculatorNoSubjectsMatch(String query);
+
+  /// No description provided for @calculatorRemoveSubject.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove'**
+  String get calculatorRemoveSubject;
+
+  /// No description provided for @calculatorFailedToSave.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to save: {error}'**
+  String calculatorFailedToSave(String error);
+
+  /// No description provided for @calculatorSubjectsLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{{count} subject} other{{count} subjects}}'**
+  String calculatorSubjectsLabel(int count);
+
+  /// No description provided for @calculatorGradeHint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. {example}'**
+  String calculatorGradeHint(String example);
+
+  /// No description provided for @childrenGradesCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{{count} grade} other{{count} grades}}'**
+  String childrenGradesCount(int count);
+
+  /// No description provided for @childrenView.
+  ///
+  /// In en, this message translates to:
+  /// **'View'**
+  String get childrenView;
+
+  /// No description provided for @childrenPtsPending.
+  ///
+  /// In en, this message translates to:
+  /// **'{pts} pts pending'**
+  String childrenPtsPending(int pts);
+
+  /// No description provided for @rewardsSummarySubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} grades · {pts} pts total'**
+  String rewardsSummarySubtitle(int count, int pts);
+
+  /// No description provided for @subjectFallback.
+  ///
+  /// In en, this message translates to:
+  /// **'Subject'**
+  String get subjectFallback;
+
+  /// No description provided for @genericFailedError.
+  ///
+  /// In en, this message translates to:
+  /// **'Error: {error}'**
+  String genericFailedError(String error);
+
+  /// No description provided for @forgotPasswordCooldownMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Please wait {seconds} seconds before requesting another code.'**
+  String forgotPasswordCooldownMessage(int seconds);
+
+  /// No description provided for @cycleTypeDaily.
+  ///
+  /// In en, this message translates to:
+  /// **'Daily'**
+  String get cycleTypeDaily;
+
+  /// No description provided for @cycleTypeWeekly.
+  ///
+  /// In en, this message translates to:
+  /// **'Weekly'**
+  String get cycleTypeWeekly;
+
+  /// No description provided for @cycleTypeMonthly.
+  ///
+  /// In en, this message translates to:
+  /// **'Monthly'**
+  String get cycleTypeMonthly;
+
+  /// No description provided for @notesNetPointsLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Net: {pts} pts'**
+  String notesNetPointsLabel(String pts);
+
+  /// No description provided for @childrenInviteCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Code: {code}'**
+  String childrenInviteCode(String code);
 }
 
 class _AppLocalizationsDelegate

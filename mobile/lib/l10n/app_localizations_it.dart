@@ -968,19 +968,119 @@ class AppLocalizationsIt extends AppLocalizations {
   String get navCalculator => 'Calcolatrice';
 
   @override
-  String parentDashboardChildSubtitle(int count, int pts) =>
-      '$count voti · $pts pt in attesa';
+  String parentDashboardChildSubtitle(int count, int pts) {
+    return '$count voti · $pts pts in sospeso';
+  }
 
   @override
   String get termDetailDeleteTitle => 'Elimina risultato';
 
   @override
   String get termDetailDeleteConfirm =>
-      'Sei sicuro/a di voler eliminare questo risultato? Questa azione non può essere annullata.';
+      'Sei sicuro di voler eliminare questo risultato? Questa azione non può essere annullata.';
 
   @override
   String get termDetailDelete => 'Elimina';
 
   @override
   String get termDetailEditLabel => 'Modifica etichetta';
+
+  @override
+  String get calculatorLabelHint => 'es. Esame finale';
+
+  @override
+  String studentNotesCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count note',
+      one: '$count nota',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String calculatorNoSubjectsMatch(String query) {
+    return 'Nessuna materia corrisponde a \"$query\"';
+  }
+
+  @override
+  String get calculatorRemoveSubject => 'Rimuovi';
+
+  @override
+  String calculatorFailedToSave(String error) {
+    return 'Salvataggio fallito: $error';
+  }
+
+  @override
+  String calculatorSubjectsLabel(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count materie',
+      one: '$count materia',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String calculatorGradeHint(String example) {
+    return 'es. $example';
+  }
+
+  @override
+  String childrenGradesCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count voti',
+      one: '$count voto',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get childrenView => 'Visualizza';
+
+  @override
+  String childrenPtsPending(int pts) {
+    return '$pts pts in sospeso';
+  }
+
+  @override
+  String rewardsSummarySubtitle(int count, int pts) {
+    return '$count voti · $pts pts totali';
+  }
+
+  @override
+  String get subjectFallback => 'Materia';
+
+  @override
+  String genericFailedError(String error) {
+    return 'Errore: $error';
+  }
+
+  @override
+  String forgotPasswordCooldownMessage(int seconds) {
+    return 'Attendere $seconds secondi prima di richiedere un altro codice.';
+  }
+
+  @override
+  String get cycleTypeDaily => 'Giornaliero';
+
+  @override
+  String get cycleTypeWeekly => 'Settimanale';
+
+  @override
+  String get cycleTypeMonthly => 'Mensile';
+
+  @override
+  String notesNetPointsLabel(String pts) {
+    return 'Netto: $pts pts';
+  }
+
+  @override
+  String childrenInviteCode(String code) {
+    return 'Codice: $code';
+  }
 }

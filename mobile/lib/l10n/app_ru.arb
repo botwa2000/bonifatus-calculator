@@ -338,5 +338,25 @@
   "termDetailDeleteTitle": "Удалить результат",
   "termDetailDeleteConfirm": "Вы уверены, что хотите удалить этот результат? Это действие нельзя отменить.",
   "termDetailDelete": "Удалить",
-  "termDetailEditLabel": "Изменить метку"
+  "termDetailEditLabel": "Изменить метку",
+
+  "calculatorLabelHint": "напр. Итоговый экзамен",
+  "studentNotesCount": "{count, plural, =1{{count} запись} few{{count} записи} other{{count} записей}}",
+  "calculatorNoSubjectsMatch": "Нет предметов, соответствующих \"{query}\"",
+  "calculatorRemoveSubject": "Удалить",
+  "calculatorFailedToSave": "Не удалось сохранить: {error}",
+  "calculatorSubjectsLabel": "{count, plural, =1{{count} предмет} few{{count} предмета} other{{count} предметов}}",
+  "calculatorGradeHint": "напр. {example}",
+  "childrenGradesCount": "{count, plural, =1{{count} оценка} few{{count} оценки} other{{count} оценок}}",
+  "childrenView": "Просмотр",
+  "childrenPtsPending": "{pts} балл. ожидается",
+  "rewardsSummarySubtitle": "{count} оценок · {pts} балл. всего",
+  "subjectFallback": "Предмет",
+  "genericFailedError": "Ошибка: {error}",
+  "forgotPasswordCooldownMessage": "Пожалуйста, подождите {seconds} секунд перед повторным запросом кода.",
+  "cycleTypeDaily": "Ежедневно",
+  "cycleTypeWeekly": "Еженедельно",
+  "cycleTypeMonthly": "Ежемесячно",
+  "notesNetPointsLabel": "Нетто: {pts} балл.",
+  "childrenInviteCode": "Код: {code}"
 }

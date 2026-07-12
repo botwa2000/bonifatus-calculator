@@ -18,7 +18,7 @@ class ParentDashboardScreen extends ConsumerWidget {
     final childrenAsync = ref.watch(childrenQuickGradesProvider);
 
     return Scaffold(
-      backgroundColor: AppColors.neutral50,
+      backgroundColor: Theme.of(context).colorScheme.surface,
       body: SafeArea(
         child: RefreshIndicator(
           onRefresh: () =>
@@ -66,17 +66,17 @@ class ParentDashboardScreen extends ConsumerWidget {
           children: [
             Text(
               l10n.parentDashboardHiName(userName),
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 26,
                 fontWeight: FontWeight.w800,
-                color: AppColors.neutral900,
+                color: Theme.of(context).colorScheme.onSurface,
               ),
             ),
             Text(
               l10n.parentDashboardOverview,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 14,
-                color: AppColors.neutral600,
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
               ),
             ),
           ],
@@ -175,10 +175,10 @@ class ParentDashboardScreen extends ConsumerWidget {
   Widget _buildSectionTitle(BuildContext context, String title) {
     return Text(
       title,
-      style: const TextStyle(
+      style: TextStyle(
         fontSize: 17,
         fontWeight: FontWeight.w700,
-        color: AppColors.neutral900,
+        color: Theme.of(context).colorScheme.onSurface,
       ),
     );
   }
@@ -190,21 +190,22 @@ class ParentDashboardScreen extends ConsumerWidget {
           child: CircularProgressIndicator(color: AppColors.primary)),
       error: (_, __) => Center(
         child: Text(l10n.parentDashboardCouldNotLoadChildren,
-            style: const TextStyle(color: AppColors.neutral600)),
+            style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant)),
       ),
       data: (children) {
+        final cs = Theme.of(context).colorScheme;
         if (children.isEmpty) {
           return Container(
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
-              color: AppColors.white,
+              color: cs.surface,
               borderRadius: BorderRadius.circular(16),
             ),
             child: Center(
               child: Text(
                 l10n.parentDashboardNoChildrenConnected,
                 textAlign: TextAlign.center,
-                style: const TextStyle(color: AppColors.neutral600, fontSize: 14),
+                style: TextStyle(color: cs.onSurfaceVariant, fontSize: 14),
               ),
             ),
           );
@@ -226,11 +227,11 @@ class ParentDashboardScreen extends ConsumerWidget {
                 child: Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: AppColors.white,
+                  color: cs.surface,
                   borderRadius: BorderRadius.circular(16),
                   boxShadow: [
                     BoxShadow(
-                      color: AppColors.neutral900.withValues(alpha: 0.05),
+                      color: cs.shadow.withValues(alpha: 0.05),
                       blurRadius: 8,
                       offset: const Offset(0, 2),
                     ),
@@ -265,17 +266,17 @@ class ParentDashboardScreen extends ConsumerWidget {
                             children: [
                               Text(
                                 child.childName,
-                                style: const TextStyle(
+                                style: TextStyle(
                                   fontSize: 15,
                                   fontWeight: FontWeight.w700,
-                                  color: AppColors.neutral900,
+                                  color: cs.onSurface,
                                 ),
                               ),
                               Text(
                                 l10n.parentDashboardChildSubtitle(child.grades.length, child.totalPendingPoints),
-                                style: const TextStyle(
+                                style: TextStyle(
                                   fontSize: 12,
-                                  color: AppColors.neutral600,
+                                  color: cs.onSurfaceVariant,
                                 ),
                               ),
                             ],
@@ -285,14 +286,14 @@ class ParentDashboardScreen extends ConsumerWidget {
                     ),
                     if (recentGrades.isNotEmpty) ...[
                       const SizedBox(height: 12),
-                      const Divider(height: 1, color: AppColors.neutral100),
+                      Divider(height: 1, color: Theme.of(context).colorScheme.outlineVariant),
                       const SizedBox(height: 10),
                       Text(
                         l10n.parentDashboardRecentGrade,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 11,
                           fontWeight: FontWeight.w600,
-                          color: AppColors.neutral400,
+                          color: cs.onSurfaceVariant,
                         ),
                       ),
                       const SizedBox(height: 6),
@@ -316,10 +317,10 @@ class ParentDashboardScreen extends ConsumerWidget {
                           ),
                           const SizedBox(width: 10),
                           Text(
-                            recentGrades.first.subjectName ?? 'Subject',
-                            style: const TextStyle(
+                            recentGrades.first.subjectName ?? AppLocalizations.of(context)!.subjectFallback,
+                            style: TextStyle(
                               fontSize: 13,
-                              color: AppColors.neutral700,
+                              color: cs.onSurfaceVariant,
                             ),
                           ),
                           const Spacer(),

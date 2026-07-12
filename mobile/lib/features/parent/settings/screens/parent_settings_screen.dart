@@ -202,7 +202,7 @@ class _ParentSettingsScreenState extends ConsumerState<ParentSettingsScreen> {
       if (_biometricAvailable) ...[
         Divider(height: 1, indent: 56, color: cs.outlineVariant),
         ListTile(
-          leading: const Icon(Icons.fingerprint_rounded, color: AppColors.neutral600, size: 22),
+          leading: Icon(Icons.fingerprint_rounded, color: Theme.of(context).colorScheme.onSurfaceVariant, size: 22),
           title: Text(l10n.settingsBiometricLogin, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w500)),
           trailing: Switch(
             value: _biometricEnabled,
@@ -272,8 +272,8 @@ class _ParentSettingsScreenState extends ConsumerState<ParentSettingsScreen> {
                             InkWell(
                               onTap: () => _showMultiplierSheet(i, factor, l10n, onSaved: () => setSheetState(() {})),
                               borderRadius: BorderRadius.circular(8),
-                              child: const Padding(padding: EdgeInsets.all(4),
-                                  child: Icon(Icons.edit_outlined, size: 18, color: AppColors.neutral400)),
+                              child: Padding(padding: const EdgeInsets.all(4),
+                                  child: Icon(Icons.edit_outlined, size: 18, color: cs.onSurfaceVariant)),
                             ),
                           ]),
                         ),
@@ -320,8 +320,8 @@ class _ParentSettingsScreenState extends ConsumerState<ParentSettingsScreen> {
                               trailing: InkWell(
                                 onTap: () => _showCycleConfigSheet(config, l10n, onSaved: () => setSheetState(() {})),
                                 borderRadius: BorderRadius.circular(8),
-                                child: const Padding(padding: EdgeInsets.all(4),
-                                    child: Icon(Icons.tune_rounded, size: 20, color: AppColors.neutral400)),
+                                child: Padding(padding: const EdgeInsets.all(4),
+                                    child: Icon(Icons.tune_rounded, size: 20, color: cs.onSurfaceVariant)),
                               ),
                             ),
                             if (i < children.length - 1)
@@ -432,15 +432,15 @@ class _ParentSettingsScreenState extends ConsumerState<ParentSettingsScreen> {
           padding: const EdgeInsets.all(24),
           child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
             Text(l10n.settingsEditMultiplier(label),
-                style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w700, color: AppColors.neutral900)),
+                style: TextStyle(fontSize: 17, fontWeight: FontWeight.w700, color: Theme.of(ctx).colorScheme.onSurface)),
             const SizedBox(height: 20),
             Center(child: Text('${currentValue.toStringAsFixed(1)}x',
                 style: const TextStyle(fontSize: 36, fontWeight: FontWeight.w800, color: AppColors.primary))),
             Slider(value: currentValue, min: 0.5, max: 3.0, divisions: 25, activeColor: AppColors.primary,
                 onChanged: (v) => setSheetState(() => currentValue = v)),
-            const Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-              Text('0.5x', style: TextStyle(fontSize: 12, color: AppColors.neutral400)),
-              Text('3.0x', style: TextStyle(fontSize: 12, color: AppColors.neutral400)),
+            Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+              Text('0.5x', style: TextStyle(fontSize: 12, color: Theme.of(ctx).colorScheme.onSurfaceVariant)),
+              Text('3.0x', style: TextStyle(fontSize: 12, color: Theme.of(ctx).colorScheme.onSurfaceVariant)),
             ]),
             const SizedBox(height: 20),
             SizedBox(
@@ -477,6 +477,11 @@ class _ParentSettingsScreenState extends ConsumerState<ParentSettingsScreen> {
     String currentCycleType = config.cycleType;
     double currentRatio = config.ratio;
     const cycleTypes = ['Daily', 'Weekly', 'Monthly'];
+    final cycleTypeLabels = {
+      'Daily': l10n.cycleTypeDaily,
+      'Weekly': l10n.cycleTypeWeekly,
+      'Monthly': l10n.cycleTypeMonthly,
+    };
 
     showModalBottomSheet<void>(
       context: context,
@@ -487,9 +492,9 @@ class _ParentSettingsScreenState extends ConsumerState<ParentSettingsScreen> {
           padding: EdgeInsets.only(bottom: MediaQuery.of(ctx).viewInsets.bottom, left: 24, right: 24, top: 24),
           child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
             Text(l10n.settingsConfigFor(config.childName),
-                style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w700, color: AppColors.neutral900)),
+                style: TextStyle(fontSize: 17, fontWeight: FontWeight.w700, color: Theme.of(ctx).colorScheme.onSurface)),
             const SizedBox(height: 20),
-            Text(l10n.settingsCycleType, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.neutral600)),
+            Text(l10n.settingsCycleType, style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: Theme.of(ctx).colorScheme.onSurfaceVariant)),
             const SizedBox(height: 10),
             Row(children: cycleTypes.map((type) {
               final selected = type == currentCycleType;
@@ -499,12 +504,12 @@ class _ParentSettingsScreenState extends ConsumerState<ParentSettingsScreen> {
                   margin: const EdgeInsets.symmetric(horizontal: 4),
                   padding: const EdgeInsets.symmetric(vertical: 12),
                   decoration: BoxDecoration(
-                    color: selected ? AppColors.primary : AppColors.neutral100,
+                    color: selected ? AppColors.primary : Theme.of(ctx).colorScheme.surfaceContainerHighest,
                     borderRadius: BorderRadius.circular(10),
                   ),
                   alignment: Alignment.center,
-                  child: Text(type, style: TextStyle(
-                    color: selected ? AppColors.white : AppColors.neutral700,
+                  child: Text(cycleTypeLabels[type] ?? type, style: TextStyle(
+                    color: selected ? Colors.white : Theme.of(ctx).colorScheme.onSurface,
                     fontWeight: FontWeight.w600, fontSize: 13,
                   )),
                 ),
@@ -512,15 +517,15 @@ class _ParentSettingsScreenState extends ConsumerState<ParentSettingsScreen> {
             }).toList()),
             const SizedBox(height: 20),
             Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-              Text(l10n.settingsBonusRatio, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.neutral600)),
+              Text(l10n.settingsBonusRatio, style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: Theme.of(ctx).colorScheme.onSurfaceVariant)),
               Text('${(currentRatio * 100).round()}%',
                   style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: AppColors.primary)),
             ]),
             Slider(value: currentRatio, min: 0.05, max: 1.0, divisions: 19, activeColor: AppColors.primary,
                 onChanged: (v) => setSheetState(() => currentRatio = v)),
-            const Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-              Text('5%', style: TextStyle(fontSize: 12, color: AppColors.neutral400)),
-              Text('100%', style: TextStyle(fontSize: 12, color: AppColors.neutral400)),
+            Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+              Text('5%', style: TextStyle(fontSize: 12, color: Theme.of(ctx).colorScheme.onSurfaceVariant)),
+              Text('100%', style: TextStyle(fontSize: 12, color: Theme.of(ctx).colorScheme.onSurfaceVariant)),
             ]),
             const SizedBox(height: 20),
             SizedBox(
@@ -593,7 +598,7 @@ class _ParentSettingsScreenState extends ConsumerState<ParentSettingsScreen> {
                 } catch (e) {
                   if (context.mounted) {
                     ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('Failed: $e'), backgroundColor: AppColors.error),
+                      SnackBar(content: Text(AppLocalizations.of(context)!.genericFailedError(e.toString())), backgroundColor: AppColors.error),
                     );
                   }
                 }
@@ -668,7 +673,7 @@ class _ParentSettingsScreenState extends ConsumerState<ParentSettingsScreen> {
                   } catch (e) {
                     if (context.mounted) {
                       ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text('Failed: $e'), backgroundColor: AppColors.error),
+                        SnackBar(content: Text(AppLocalizations.of(context)!.genericFailedError(e.toString())), backgroundColor: AppColors.error),
                       );
                     }
                   }
@@ -731,7 +736,7 @@ class _ParentSettingsScreenState extends ConsumerState<ParentSettingsScreen> {
                         setSheetState(() => loading = false);
                         if (context.mounted) {
                           ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text('Failed: $e'), backgroundColor: AppColors.error),
+                            SnackBar(content: Text(AppLocalizations.of(context)!.genericFailedError(e.toString())), backgroundColor: AppColors.error),
                           );
                         }
                       }
@@ -740,7 +745,7 @@ class _ParentSettingsScreenState extends ConsumerState<ParentSettingsScreen> {
                 ),
               ] else ...[
                 Text(l10n.settingsCodeSentTo(emailCtrl.text),
-                    style: const TextStyle(fontSize: 13, color: AppColors.neutral600)),
+                    style: TextStyle(fontSize: 13, color: Theme.of(ctx).colorScheme.onSurfaceVariant)),
                 const SizedBox(height: 16),
                 TextFormField(
                   controller: codeCtrl,

@@ -27,19 +27,16 @@ class CycleSummaryScreen extends ConsumerWidget {
     final weekStart = _parseWeekStart();
 
     return Scaffold(
-      backgroundColor: AppColors.neutral50,
       appBar: AppBar(
-        backgroundColor: AppColors.white,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded,
-              color: AppColors.neutral900),
+          icon: const Icon(Icons.arrow_back_ios_new_rounded),
           onPressed: () => context.pop(),
         ),
         title: Text(
           l10n.cycleSummaryTitle,
-          style: const TextStyle(
-            color: AppColors.neutral900,
+          style: TextStyle(
+            color: Theme.of(context).colorScheme.onSurface,
             fontWeight: FontWeight.w700,
             fontSize: 18,
           ),
@@ -50,7 +47,7 @@ class CycleSummaryScreen extends ConsumerWidget {
             child: CircularProgressIndicator(color: AppColors.primary)),
         error: (_, __) => Center(
           child: Text(l10n.cycleSummaryCouldNotLoad,
-              style: const TextStyle(color: AppColors.neutral600)),
+              style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant)),
         ),
         data: (allGrades) {
           List<QuickGrade> weekGrades;
@@ -105,10 +102,10 @@ class CycleSummaryScreen extends ConsumerWidget {
                 const SizedBox(height: 24),
                 Text(
                   l10n.cycleSummaryNotesInCycle,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w700,
-                    color: AppColors.neutral900,
+                    color: Theme.of(context).colorScheme.onSurface,
                   ),
                 ),
                 const SizedBox(height: 12),
@@ -118,7 +115,7 @@ class CycleSummaryScreen extends ConsumerWidget {
                       padding: const EdgeInsets.symmetric(vertical: 24),
                       child: Text(
                         l10n.cycleSummaryNoGrades,
-                        style: const TextStyle(color: AppColors.neutral600),
+                        style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant),
                       ),
                     ),
                   )
@@ -287,11 +284,11 @@ class _CycleNoteCard extends StatelessWidget {
       child: Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: AppColors.white,
+        color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(14),
         boxShadow: [
           BoxShadow(
-            color: AppColors.neutral900.withValues(alpha: 0.04),
+            color: Theme.of(context).colorScheme.shadow.withValues(alpha: 0.04),
             blurRadius: 6,
             offset: const Offset(0, 2),
           ),
@@ -322,18 +319,18 @@ class _CycleNoteCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  grade.subjectName ?? 'Subject',
-                  style: const TextStyle(
+                  grade.subjectName ?? AppLocalizations.of(context)!.subjectFallback,
+                  style: TextStyle(
                     fontWeight: FontWeight.w600,
                     fontSize: 14,
-                    color: AppColors.neutral900,
+                    color: Theme.of(context).colorScheme.onSurface,
                   ),
                 ),
                 Text(
                   dateStr,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 12,
-                    color: AppColors.neutral400,
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
                   ),
                 ),
               ],

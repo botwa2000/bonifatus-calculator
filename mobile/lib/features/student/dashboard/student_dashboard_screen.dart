@@ -17,12 +17,11 @@ class StudentDashboardScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context)!;
     final authAsync = ref.watch(authStateNotifierProvider);
-    final userName = authAsync.valueOrNull?.name ?? 'Student';
+    final userName = authAsync.valueOrNull?.name ?? l10n.registerRoleStudentTitle;
     final gradesAsync = ref.watch(quickGradesProvider);
     final termsAsync = ref.watch(termResultsProvider);
 
     return Scaffold(
-      backgroundColor: AppColors.neutral50,
       floatingActionButton: FloatingActionButton(
         backgroundColor: AppColors.primary,
         foregroundColor: AppColors.white,
@@ -101,14 +100,14 @@ class StudentDashboardScreen extends ConsumerWidget {
               Text(
                 l10n.dashboardHiName(name),
                 style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                      color: AppColors.neutral900,
+                      color: Theme.of(context).colorScheme.onSurface,
                     ),
               ),
               const SizedBox(height: 4),
               Text(
                 l10n.dashboardSubtitle,
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: AppColors.neutral600,
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
                     ),
               ),
             ],
@@ -172,7 +171,7 @@ class StudentDashboardScreen extends ConsumerWidget {
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: Text(
-                  '${thisWeekGrades.length} notes',
+                  l10n.studentNotesCount(thisWeekGrades.length),
                   style: Theme.of(context).textTheme.labelSmall?.copyWith(
                         color: AppColors.white,
                       ),
@@ -204,7 +203,7 @@ class StudentDashboardScreen extends ConsumerWidget {
     return Text(
       title,
       style: Theme.of(context).textTheme.titleMedium?.copyWith(
-            color: AppColors.neutral900,
+            color: Theme.of(context).colorScheme.onSurface,
           ),
     );
   }
@@ -221,7 +220,7 @@ class StudentDashboardScreen extends ConsumerWidget {
         height: 60,
         child: Center(
           child: Text(l10n.dashboardCouldNotLoadNotes,
-              style: const TextStyle(color: AppColors.neutral600)),
+              style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant)),
         ),
       ),
       data: (grades) {
@@ -230,7 +229,7 @@ class StudentDashboardScreen extends ConsumerWidget {
             height: 60,
             child: Center(
               child: Text(l10n.dashboardNoNotesYet,
-                  style: const TextStyle(color: AppColors.neutral600)),
+                  style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant)),
             ),
           );
         }
@@ -257,19 +256,19 @@ class StudentDashboardScreen extends ConsumerWidget {
                 width: 148,
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: AppColors.white,
+                  color: Theme.of(context).colorScheme.surface,
                   borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: AppColors.neutral200),
+                  border: Border.all(color: Theme.of(context).colorScheme.outlineVariant),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      grade.subjectName ?? 'Subject',
+                      grade.subjectName ?? l10n.subjectFallback,
                       style:
                           Theme.of(context).textTheme.labelLarge?.copyWith(
-                                color: AppColors.neutral700,
+                                color: Theme.of(context).colorScheme.onSurface,
                               ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
@@ -330,14 +329,14 @@ class StudentDashboardScreen extends ConsumerWidget {
       error: (_, __) => Padding(
         padding: const EdgeInsets.symmetric(horizontal: 4),
         child: Text(l10n.dashboardCouldNotLoadResults,
-            style: const TextStyle(color: AppColors.neutral600)),
+            style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant)),
       ),
       data: (terms) {
         if (terms.isEmpty) {
           return Padding(
             padding: const EdgeInsets.symmetric(horizontal: 4),
             child: Text(l10n.dashboardNoSavedResultsYet,
-                style: const TextStyle(color: AppColors.neutral600)),
+                style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant)),
           );
         }
 
@@ -357,9 +356,9 @@ class StudentDashboardScreen extends ConsumerWidget {
                 child: Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: AppColors.white,
+                  color: Theme.of(context).colorScheme.surface,
                   borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: AppColors.neutral200),
+                  border: Border.all(color: Theme.of(context).colorScheme.outlineVariant),
                 ),
                 child: Row(
                   children: [
@@ -390,15 +389,15 @@ class StudentDashboardScreen extends ConsumerWidget {
                             term.displayLabel,
                             style:
                                 Theme.of(context).textTheme.titleMedium?.copyWith(
-                                      color: AppColors.neutral900,
+                                      color: Theme.of(context).colorScheme.onSurface,
                                     ),
                           ),
                           const SizedBox(height: 2),
                           Text(
-                            '${term.subjects.length} subjects',
+                            l10n.calculatorSubjectsLabel(term.subjects.length),
                             style:
                                 Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                      color: AppColors.neutral600,
+                                      color: Theme.of(context).colorScheme.onSurfaceVariant,
                                     ),
                           ),
                         ],

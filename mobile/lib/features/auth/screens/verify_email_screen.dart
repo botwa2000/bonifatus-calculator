@@ -37,6 +37,7 @@ class _VerifyEmailScreenState extends ConsumerState<VerifyEmailScreen> {
   }
 
   Future<void> _verify() async {
+    final l10n = AppLocalizations.of(context)!;
     setState(() { _isLoading = true; _error = null; });
     try {
       final client = ref.read(apiClientProvider);
@@ -47,7 +48,7 @@ class _VerifyEmailScreenState extends ConsumerState<VerifyEmailScreen> {
       });
       if (mounted) context.go('/auth/login');
     } catch (e) {
-      String msg = 'Verification failed. Please try again.';
+      String msg = l10n.verifyEmailFailed;
       if (e is DioException) {
         final data = e.response?.data;
         if (data is Map && data['error'] != null) {
@@ -74,7 +75,7 @@ class _VerifyEmailScreenState extends ConsumerState<VerifyEmailScreen> {
             Text(l10n.verifyEmailTitle, style: theme.textTheme.headlineMedium),
             const SizedBox(height: 8),
             Text(l10n.verifyEmailSubtitle(widget.email),
-              style: theme.textTheme.bodyLarge?.copyWith(color: AppColors.neutral600)),
+              style: theme.textTheme.bodyLarge?.copyWith(color: theme.colorScheme.onSurfaceVariant)),
             const SizedBox(height: 40),
             if (_error != null) ...[
               Container(
@@ -103,7 +104,7 @@ class _VerifyEmailScreenState extends ConsumerState<VerifyEmailScreen> {
                     contentPadding: EdgeInsets.zero,
                     enabledBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
-                      borderSide: const BorderSide(color: AppColors.neutral200, width: 1.5)),
+                      borderSide: BorderSide(color: Theme.of(context).colorScheme.outlineVariant, width: 1.5)),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
                       borderSide: const BorderSide(color: AppColors.primary, width: 2)),

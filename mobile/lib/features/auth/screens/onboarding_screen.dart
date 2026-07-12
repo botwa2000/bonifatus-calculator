@@ -45,7 +45,6 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     final l10n = AppLocalizations.of(context)!;
     final pages = _getPages(l10n);
     return Scaffold(
-      backgroundColor: AppColors.white,
       body: SafeArea(
         child: Column(
           children: [
@@ -56,11 +55,11 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                   Image.asset('assets/images/logo.png', width: 36, height: 36),
                   const SizedBox(width: 8),
                   Text('Bonifatus', style: theme.textTheme.titleLarge?.copyWith(
-                    color: AppColors.neutral900, fontWeight: FontWeight.w700)),
+                    color: theme.colorScheme.onSurface, fontWeight: FontWeight.w700)),
                   const Spacer(),
                   TextButton(
                     onPressed: _goToLogin,
-                    child: Text(l10n.onboardingSkip, style: theme.textTheme.labelLarge?.copyWith(color: AppColors.neutral400)),
+                    child: Text(l10n.onboardingSkip, style: theme.textTheme.labelLarge?.copyWith(color: theme.colorScheme.onSurfaceVariant)),
                   ),
                 ],
               ),
@@ -121,11 +120,11 @@ class _PageView extends StatelessWidget {
           Text(page.emoji, style: const TextStyle(fontSize: 80)),
           const SizedBox(height: 40),
           Text(page.title,
-            style: theme.textTheme.displayLarge?.copyWith(color: AppColors.neutral900, height: 1.15),
+            style: theme.textTheme.displayLarge?.copyWith(color: theme.colorScheme.onSurface, height: 1.15),
             textAlign: TextAlign.center),
           const SizedBox(height: 16),
           Text(page.body,
-            style: theme.textTheme.bodyLarge?.copyWith(color: AppColors.neutral600, height: 1.5),
+            style: theme.textTheme.bodyLarge?.copyWith(color: theme.colorScheme.onSurfaceVariant, height: 1.5),
             textAlign: TextAlign.center),
         ],
       ),
@@ -142,7 +141,7 @@ class _Dot extends StatelessWidget {
     margin: const EdgeInsets.symmetric(horizontal: 4),
     width: active ? 20 : 8, height: 8,
     decoration: BoxDecoration(
-      color: active ? AppColors.primary : AppColors.neutral200,
+      color: active ? AppColors.primary : Theme.of(context).colorScheme.outlineVariant,
       borderRadius: BorderRadius.circular(4)),
   );
 }

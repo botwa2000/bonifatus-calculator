@@ -98,9 +98,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   child: Image.asset('assets/images/logo.png', width: 72, height: 72),
                 ),
                 const SizedBox(height: 24),
-                Text(l10n.loginWelcomeBack, style: theme.textTheme.displayLarge?.copyWith(color: AppColors.neutral900)),
+                Text(l10n.loginWelcomeBack, style: theme.textTheme.displayLarge?.copyWith(color: theme.colorScheme.onSurface)),
                 const SizedBox(height: 8),
-                Text(l10n.loginSignInSubtitle, style: theme.textTheme.bodyLarge?.copyWith(color: AppColors.neutral600)),
+                Text(l10n.loginSignInSubtitle, style: theme.textTheme.bodyLarge?.copyWith(color: theme.colorScheme.onSurfaceVariant)),
                 const SizedBox(height: 40),
 
                 if (_error != null) ...[

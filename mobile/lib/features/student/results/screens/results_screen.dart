@@ -45,17 +45,17 @@ class ResultsScreen extends ConsumerWidget {
                       const SizedBox(height: 16),
                       Text(
                         l10n.resultsFailedToLoad,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.w600,
-                          color: AppColors.neutral900,
+                          color: Theme.of(context).colorScheme.onSurface,
                         ),
                       ),
                       const SizedBox(height: 8),
                       Text(
                         err.toString(),
-                        style: const TextStyle(
-                            fontSize: 13, color: AppColors.neutral600),
+                        style: TextStyle(
+                            fontSize: 13, color: Theme.of(context).colorScheme.onSurfaceVariant),
                         textAlign: TextAlign.center,
                       ),
                       const SizedBox(height: 20),
@@ -97,7 +97,7 @@ class ResultsScreen extends ConsumerWidget {
                             l10n.resultsNoResults,
                             style:
                                 theme.textTheme.titleMedium?.copyWith(
-                              color: AppColors.neutral900,
+                              color: theme.colorScheme.onSurface,
                             ),
                           ),
                           const SizedBox(height: 8),
@@ -105,7 +105,7 @@ class ResultsScreen extends ConsumerWidget {
                             l10n.resultsUseCalculator,
                             style:
                                 theme.textTheme.bodyMedium?.copyWith(
-                              color: AppColors.neutral600,
+                              color: theme.colorScheme.onSurfaceVariant,
                             ),
                             textAlign: TextAlign.center,
                           ),
@@ -243,7 +243,7 @@ class _TermCard extends StatelessWidget {
                   ],
                 ),
               ),
-              const Icon(Icons.chevron_right, color: AppColors.neutral400),
+              Icon(Icons.chevron_right, color: Theme.of(context).colorScheme.onSurfaceVariant),
             ],
           ),
         ),

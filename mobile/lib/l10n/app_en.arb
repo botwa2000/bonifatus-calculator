@@ -388,5 +388,64 @@
   "termDetailDeleteTitle": "Delete Result",
   "termDetailDeleteConfirm": "Are you sure you want to delete this result? This action cannot be undone.",
   "termDetailDelete": "Delete",
-  "termDetailEditLabel": "Edit Label"
+  "termDetailEditLabel": "Edit Label",
+
+  "calculatorLabelHint": "e.g. Final exam",
+  "studentNotesCount": "{count, plural, =1{{count} note} other{{count} notes}}",
+  "@studentNotesCount": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "calculatorNoSubjectsMatch": "No subjects match \"{query}\"",
+  "@calculatorNoSubjectsMatch": {
+    "placeholders": { "query": { "type": "String" } }
+  },
+  "calculatorRemoveSubject": "Remove",
+  "calculatorFailedToSave": "Failed to save: {error}",
+  "@calculatorFailedToSave": {
+    "placeholders": { "error": { "type": "String" } }
+  },
+  "calculatorSubjectsLabel": "{count, plural, =1{{count} subject} other{{count} subjects}}",
+  "@calculatorSubjectsLabel": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "calculatorGradeHint": "e.g. {example}",
+  "@calculatorGradeHint": {
+    "placeholders": { "example": { "type": "String" } }
+  },
+  "childrenGradesCount": "{count, plural, =1{{count} grade} other{{count} grades}}",
+  "@childrenGradesCount": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "childrenView": "View",
+  "childrenPtsPending": "{pts} pts pending",
+  "@childrenPtsPending": {
+    "placeholders": { "pts": { "type": "int" } }
+  },
+  "rewardsSummarySubtitle": "{count} grades · {pts} pts total",
+  "@rewardsSummarySubtitle": {
+    "placeholders": {
+      "count": { "type": "int" },
+      "pts": { "type": "int" }
+    }
+  },
+  "subjectFallback": "Subject",
+  "genericFailedError": "Error: {error}",
+  "@genericFailedError": {
+    "placeholders": { "error": { "type": "String" } }
+  },
+  "forgotPasswordCooldownMessage": "Please wait {seconds} seconds before requesting another code.",
+  "@forgotPasswordCooldownMessage": {
+    "placeholders": { "seconds": { "type": "int" } }
+  },
+  "cycleTypeDaily": "Daily",
+  "cycleTypeWeekly": "Weekly",
+  "cycleTypeMonthly": "Monthly",
+  "notesNetPointsLabel": "Net: {pts} pts",
+  "@notesNetPointsLabel": {
+    "placeholders": { "pts": { "type": "String" } }
+  },
+  "childrenInviteCode": "Code: {code}",
+  "@childrenInviteCode": {
+    "placeholders": { "code": { "type": "String" } }
+  }
 }

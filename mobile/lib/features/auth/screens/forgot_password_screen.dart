@@ -39,11 +39,12 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
 
   Future<void> _sendCode() async {
     if (_isLoading) return;
+    final l10n = AppLocalizations.of(context)!;
     // Prevent rapid-fire: enforce 30-second cooldown between sends
     final now = DateTime.now();
     if (_lastSentAt != null && now.difference(_lastSentAt!).inSeconds < 30) {
       final remaining = 30 - now.difference(_lastSentAt!).inSeconds;
-      setState(() => _error = 'Please wait $remaining seconds before requesting another code.');
+      setState(() => _error = l10n.forgotPasswordCooldownMessage(remaining));
       return;
     }
     setState(() { _isLoading = true; _error = null; });
@@ -103,7 +104,7 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
       const SizedBox(height: 24),
       Text(l10n.forgotPasswordStep1Title, style: theme.textTheme.headlineMedium),
       const SizedBox(height: 8),
-      Text(l10n.forgotPasswordStep1Subtitle, style: theme.textTheme.bodyLarge?.copyWith(color: AppColors.neutral600)),
+      Text(l10n.forgotPasswordStep1Subtitle, style: theme.textTheme.bodyLarge?.copyWith(color: theme.colorScheme.onSurfaceVariant)),
       const SizedBox(height: 32),
       if (_error != null) ...[
         _ErrorBox(message: _error!),
@@ -130,7 +131,7 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
       const SizedBox(height: 24),
       Text(l10n.forgotPasswordStep2Title, style: theme.textTheme.headlineMedium),
       const SizedBox(height: 8),
-      Text(l10n.forgotPasswordStep2Subtitle(_emailCtrl.text), style: theme.textTheme.bodyLarge?.copyWith(color: AppColors.neutral600)),
+      Text(l10n.forgotPasswordStep2Subtitle(_emailCtrl.text), style: theme.textTheme.bodyLarge?.copyWith(color: theme.colorScheme.onSurfaceVariant)),
       const SizedBox(height: 32),
       if (_error != null) ...[
         _ErrorBox(message: _error!),
