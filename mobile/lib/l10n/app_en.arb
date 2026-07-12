@@ -93,6 +93,7 @@
   "settingsChangePassword": "Change Password",
   "settingsChangeEmail": "Change Email",
   "settingsBiometricLogin": "Biometric Login",
+  "settingsBiometricVerifyFailed": "Biometric verification failed. Please try again.",
   "settingsDeleteAccount": "Delete Account",
   "settingsDeleteAccountDialogTitle": "Delete Account",
   "settingsDeleteAccountDialogContent": "This will permanently delete your account and all data. This action cannot be undone.",

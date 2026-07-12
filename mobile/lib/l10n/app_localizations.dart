@@ -562,6 +562,12 @@ abstract class AppLocalizations {
   /// **'Biometric Login'**
   String get settingsBiometricLogin;
 
+  /// No description provided for @settingsBiometricVerifyFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Biometric verification failed. Please try again.'**
+  String get settingsBiometricVerifyFailed;
+
   /// No description provided for @settingsDeleteAccount.
   ///
   /// In en, this message translates to:

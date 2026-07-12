@@ -83,6 +83,7 @@
   "settingsChangePassword": "Изменить пароль",
   "settingsChangeEmail": "Изменить почту",
   "settingsBiometricLogin": "Биометрический вход",
+  "settingsBiometricVerifyFailed": "Биометрическая верификация не удалась. Попробуйте ещё раз.",
   "settingsDeleteAccount": "Удалить аккаунт",
   "settingsDeleteAccountDialogTitle": "Удалить аккаунт",
   "settingsDeleteAccountDialogContent": "Это навсегда удалит ваш аккаунт и все данные. Это действие нельзя отменить.",

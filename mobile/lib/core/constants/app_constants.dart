@@ -15,6 +15,7 @@ class AppConstants {
   static const String keyUserRole = 'user_role';
   static const String keyDeviceId = 'device_id';
   static const String keyBiometricEnabled = 'biometric_enabled';
+  static const String keyBiometricJwt = 'biometric_jwt';
   static const String keyThemeMode = 'theme_mode';
   static const String keyLocale = 'locale';
 

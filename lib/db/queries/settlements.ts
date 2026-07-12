@@ -129,6 +129,48 @@ export async function getChildQuickGrades(childId: string) {
     .limit(200)
 }
 
+/**
+ * Return all subject grades from saved term results for a child,
+ * shaped identically to getChildQuickGrades() so the parent dashboard
+ * can combine both sources in a single list.
+ */
+export async function getChildTermSubjectGradesForDashboard(childId: string) {
+  const rows = await db
+    .select({
+      id: subjectGrades.id,
+      subjectId: subjectGrades.subjectId,
+      gradeValue: subjectGrades.gradeValue,
+      gradeNormalized100: subjectGrades.gradeNormalized100,
+      gradeQualityTier: subjectGrades.gradeQualityTier,
+      bonusPoints: subjectGrades.bonusPoints,
+      settlementStatus: subjectGrades.settlementStatus,
+      createdAt: subjectGrades.createdAt,
+      subjectName: subjects.name,
+    })
+    .from(subjectGrades)
+    .innerJoin(termGrades, eq(subjectGrades.termGradeId, termGrades.id))
+    .leftJoin(subjects, eq(subjectGrades.subjectId, subjects.id))
+    .where(eq(termGrades.childId, childId))
+    .orderBy(desc(subjectGrades.createdAt))
+    .limit(200)
+
+  return rows.map((r) => ({
+    id: r.id,
+    subjectId: r.subjectId ?? '',
+    gradeValue: r.gradeValue ?? '',
+    gradeNormalized100: r.gradeNormalized100,
+    gradeQualityTier: r.gradeQualityTier ?? 'below',
+    bonusPoints: r.bonusPoints ?? 0,
+    note: null as string | null,
+    // use createdAt as gradedAt (term grades have no separate graded date)
+    gradedAt: r.createdAt,
+    createdAt: r.createdAt,
+    settlementStatus: r.settlementStatus ?? 'unsettled',
+    settlementId: null as string | null,
+    subjectName: r.subjectName ?? null,
+  }))
+}
+
 /** Get unsettled subject grades from saved terms for a child */
 export async function getUnsettledSubjectGrades(childId: string) {
   return db

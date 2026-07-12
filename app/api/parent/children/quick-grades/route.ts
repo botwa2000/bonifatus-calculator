@@ -1,7 +1,10 @@
 import { NextResponse } from 'next/server'
 import { requireAuthApi, getUserProfile } from '@/lib/auth/session'
 import { getAcceptedChildren } from '@/lib/db/queries/relationships'
-import { getChildQuickGrades } from '@/lib/db/queries/settlements'
+import {
+  getChildQuickGrades,
+  getChildTermSubjectGradesForDashboard,
+} from '@/lib/db/queries/settlements'
 
 export async function GET() {
   try {
@@ -23,7 +26,15 @@ export async function GET() {
 
     const childrenGrades = await Promise.all(
       relationships.map(async (rel) => {
-        const grades = await getChildQuickGrades(rel.childId)
+        const [quickGrades, termGrades] = await Promise.all([
+          getChildQuickGrades(rel.childId),
+          getChildTermSubjectGradesForDashboard(rel.childId),
+        ])
+        // Combine both grade sources; term grades fill the gap for children who
+        // have calculator results but no ongoing quick grades yet
+        const grades = [...quickGrades, ...termGrades].sort(
+          (a, b) => new Date(b.gradedAt).getTime() - new Date(a.gradedAt).getTime()
+        )
         const child = profileMap[rel.childId]
         return {
           childId: rel.childId,

@@ -249,6 +249,10 @@ class AppLocalizationsEs extends AppLocalizations {
   String get settingsBiometricLogin => 'Inicio de sesión biométrico';
 
   @override
+  String get settingsBiometricVerifyFailed =>
+      'Verificación biométrica fallida. Inténtalo de nuevo.';
+
+  @override
   String get settingsDeleteAccount => 'Eliminar cuenta';
 
   @override

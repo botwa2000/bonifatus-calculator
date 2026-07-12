@@ -39,7 +39,7 @@ class AuthStateNotifier extends AsyncNotifier<AuthState> {
     state = const AsyncValue.loading();
     state = await AsyncValue.guard(() async {
       final service = ref.read(authServiceProvider);
-      final session = await service.restoreSession();
+      final session = await service.restoreFromBiometricToken();
       if (!session.isAuthenticated) throw Exception('Session expired. Please sign in with your password.');
       return session;
     });

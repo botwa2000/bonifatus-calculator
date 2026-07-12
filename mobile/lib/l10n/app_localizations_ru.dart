@@ -250,6 +250,10 @@ class AppLocalizationsRu extends AppLocalizations {
   String get settingsBiometricLogin => 'Биометрический вход';
 
   @override
+  String get settingsBiometricVerifyFailed =>
+      'Биометрическая верификация не удалась. Попробуйте ещё раз.';
+
+  @override
   String get settingsDeleteAccount => 'Удалить аккаунт';
 
   @override

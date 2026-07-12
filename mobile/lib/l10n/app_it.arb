@@ -83,6 +83,7 @@
   "settingsChangePassword": "Cambia password",
   "settingsChangeEmail": "Cambia email",
   "settingsBiometricLogin": "Accesso biometrico",
+  "settingsBiometricVerifyFailed": "Verifica biometrica non riuscita. Riprova.",
   "settingsDeleteAccount": "Elimina account",
   "settingsDeleteAccountDialogTitle": "Elimina account",
   "settingsDeleteAccountDialogContent": "Questo eliminerà definitivamente il tuo account e tutti i dati. Questa azione non può essere annullata.",

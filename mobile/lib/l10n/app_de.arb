@@ -83,6 +83,7 @@
   "settingsChangePassword": "Passwort ändern",
   "settingsChangeEmail": "E-Mail ändern",
   "settingsBiometricLogin": "Biometrische Anmeldung",
+  "settingsBiometricVerifyFailed": "Biometrie-Verifizierung fehlgeschlagen. Bitte erneut versuchen.",
   "settingsDeleteAccount": "Konto löschen",
   "settingsDeleteAccountDialogTitle": "Konto löschen",
   "settingsDeleteAccountDialogContent": "Damit wird dein Konto und alle Daten dauerhaft gelöscht. Diese Aktion kann nicht rückgängig gemacht werden.",

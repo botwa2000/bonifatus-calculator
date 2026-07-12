@@ -53,11 +53,11 @@ class _StudentSettingsScreenState extends ConsumerState<StudentSettingsScreen> {
   Future<void> _toggleBiometric(bool value) async {
     final svc = ref.read(biometricServiceProvider);
     if (value) {
-      final authed = await svc.authenticate(reason: 'Verify to enable biometric login');
+      final authed = await svc.authenticate(reason: AppLocalizations.of(context)!.settingsBiometricLogin);
       if (!authed) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Biometric verification failed. Please try again.')),
+            SnackBar(content: Text(AppLocalizations.of(context)!.settingsBiometricVerifyFailed)),
           );
         }
         return;

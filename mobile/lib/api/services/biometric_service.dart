@@ -29,12 +29,16 @@ class BiometricService {
 
   Future<void> setEnabled(bool enabled) async {
     if (enabled) {
-      await _storage.write(
-        key: AppConstants.keyBiometricEnabled,
-        value: 'true',
-      );
+      await _storage.write(key: AppConstants.keyBiometricEnabled, value: 'true');
+      // Snapshot the current JWT so biometric login works after an explicit logout
+      // (logout clears keyAccessToken but leaves keyBiometricJwt intact)
+      final token = await _storage.read(key: AppConstants.keyAccessToken);
+      if (token != null && token.isNotEmpty) {
+        await _storage.write(key: AppConstants.keyBiometricJwt, value: token);
+      }
     } else {
       await _storage.delete(key: AppConstants.keyBiometricEnabled);
+      await _storage.delete(key: AppConstants.keyBiometricJwt);
     }
   }
 

@@ -125,6 +125,30 @@ class AuthService {
     await _client.post('/api/auth/forgot-password', data: {'email': email});
   }
 
+  /// Authenticate using the stored biometric JWT (survives explicit logout).
+  /// Writes the token back as keyAccessToken so subsequent API calls work.
+  /// Clears keyBiometricJwt if the token is expired or invalid.
+  Future<AuthSessionState> restoreFromBiometricToken() async {
+    final token = await _storage.read(key: AppConstants.keyBiometricJwt);
+    if (token == null || token.isEmpty) return AuthSessionState.unauthenticated();
+
+    await _storage.write(key: AppConstants.keyAccessToken, value: token);
+    try {
+      final resp = await _client.get('/api/mobile/auth/me');
+      return AuthSessionState(
+        isAuthenticated: true,
+        userId: resp.data['id'] as String?,
+        role: resp.data['role'] as String?,
+        name: resp.data['name'] as String?,
+        email: resp.data['email'] as String?,
+      );
+    } catch (_) {
+      await _clearExpiredToken();
+      await _storage.delete(key: AppConstants.keyBiometricJwt);
+      return AuthSessionState.unauthenticated();
+    }
+  }
+
   Future<void> logout() async {
     // Clear the token so restoreSession() returns unauthenticated on next open.
     // Biometric-enabled flag is preserved; user must re-enable after next manual login.

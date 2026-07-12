@@ -19,6 +19,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   final _emailCtrl = TextEditingController();
   final _passCtrl = TextEditingController();
   bool _obscure = true;
+  bool _isSubmitting = false;
   bool _biometricAvailable = false;
   bool _biometricAutoTriggered = false;
   String? _error;
@@ -33,8 +34,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     final svc = ref.read(biometricServiceProvider);
     final enabled = await svc.isEnabled();
     if (!enabled) return;
-    // Only show biometric button if a saved JWT exists
-    final token = await const FlutterSecureStorage().read(key: AppConstants.keyAccessToken);
+    // Only show biometric button if a biometric JWT snapshot exists (survives logout)
+    final token = await const FlutterSecureStorage().read(key: AppConstants.keyBiometricJwt);
     if (token == null || token.isEmpty) return;
     final canAuth = await svc.canAuthenticate();
     if (!mounted) return;
@@ -54,26 +55,30 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
-    setState(() => _error = null);
+    setState(() { _error = null; _isSubmitting = true; });
     await ref.read(authStateNotifierProvider.notifier).login(
       email: _emailCtrl.text.trim(),
       password: _passCtrl.text,
     );
+    if (mounted) setState(() => _isSubmitting = false);
   }
 
   Future<void> _loginWithBiometrics() async {
-    setState(() => _error = null);
+    setState(() { _error = null; _isSubmitting = true; });
     final svc = ref.read(biometricServiceProvider);
     final authed = await svc.authenticate();
-    if (!authed || !mounted) return;
+    if (!authed || !mounted) {
+      setState(() => _isSubmitting = false);
+      return;
+    }
     await ref.read(authStateNotifierProvider.notifier).loginWithBiometrics();
+    if (mounted) setState(() => _isSubmitting = false);
   }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final l10n = AppLocalizations.of(context)!;
-    final isLoading = ref.watch(authStateNotifierProvider).isLoading;
 
     ref.listen(authStateNotifierProvider, (_, next) {
       next.whenOrNull(
@@ -168,8 +173,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 ),
                 const SizedBox(height: 24),
                 ElevatedButton(
-                  onPressed: isLoading ? null : _submit,
-                  child: isLoading
+                  onPressed: _isSubmitting ? null : _submit,
+                  child: _isSubmitting
                       ? const SizedBox(height: 20, width: 20,
                           child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
                       : Text(l10n.loginSignInButton),
@@ -178,7 +183,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 if (_biometricAvailable) ...[
                   const SizedBox(height: 12),
                   OutlinedButton.icon(
-                    onPressed: isLoading ? null : _loginWithBiometrics,
+                    onPressed: _isSubmitting ? null : _loginWithBiometrics,
                     icon: const Icon(Icons.fingerprint_rounded),
                     label: Text(l10n.loginBiometricButton),
                     style: OutlinedButton.styleFrom(
