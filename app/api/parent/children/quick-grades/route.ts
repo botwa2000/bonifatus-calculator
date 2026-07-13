@@ -33,7 +33,7 @@ export async function GET() {
         // Combine both grade sources; term grades fill the gap for children who
         // have calculator results but no ongoing quick grades yet
         const grades = [...quickGrades, ...termGrades].sort(
-          (a, b) => new Date(b.gradedAt).getTime() - new Date(a.gradedAt).getTime()
+          (a, b) => new Date(b.gradedAt ?? 0).getTime() - new Date(a.gradedAt ?? 0).getTime()
         )
         const child = profileMap[rel.childId]
         return {
