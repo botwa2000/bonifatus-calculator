@@ -1,3 +1,4 @@
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:local_auth/local_auth.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -23,19 +24,23 @@ class BiometricService {
   }
 
   Future<bool> isEnabled() async {
-    final value = await _storage.read(key: AppConstants.keyBiometricEnabled);
-    return value == 'true';
+    try {
+      final value = await _storage.read(key: AppConstants.keyBiometricEnabled);
+      return value == 'true';
+    } on PlatformException catch (_) {
+      return false;
+    }
   }
 
   Future<void> setEnabled(bool enabled) async {
     if (enabled) {
       await _storage.write(key: AppConstants.keyBiometricEnabled, value: 'true');
-      // Snapshot the current JWT so biometric login works after an explicit logout
-      // (logout clears keyAccessToken but leaves keyBiometricJwt intact)
-      final token = await _storage.read(key: AppConstants.keyAccessToken);
-      if (token != null && token.isNotEmpty) {
-        await _storage.write(key: AppConstants.keyBiometricJwt, value: token);
-      }
+      try {
+        final token = await _storage.read(key: AppConstants.keyAccessToken);
+        if (token != null && token.isNotEmpty) {
+          await _storage.write(key: AppConstants.keyBiometricJwt, value: token);
+        }
+      } on PlatformException catch (_) {}
     } else {
       await _storage.delete(key: AppConstants.keyBiometricEnabled);
       await _storage.delete(key: AppConstants.keyBiometricJwt);

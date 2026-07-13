@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../../core/constants/app_constants.dart';
@@ -40,20 +41,26 @@ class AuthService {
   AuthService(this._client, this._storage);
 
   Future<AuthSessionState> restoreSession() async {
-    final token = await _storage.read(key: AppConstants.keyAccessToken);
-    if (token == null) return AuthSessionState.unauthenticated();
-
     try {
-      final resp = await _client.get('/api/mobile/auth/me');
-      return AuthSessionState(
-        isAuthenticated: true,
-        userId: resp.data['id'] as String?,
-        role: resp.data['role'] as String?,
-        name: resp.data['name'] as String?,
-        email: resp.data['email'] as String?,
-      );
-    } catch (_) {
-      await _clearExpiredToken();
+      final token = await _storage.read(key: AppConstants.keyAccessToken);
+      if (token == null) return AuthSessionState.unauthenticated();
+
+      try {
+        final resp = await _client.get('/api/mobile/auth/me');
+        return AuthSessionState(
+          isAuthenticated: true,
+          userId: resp.data['id'] as String?,
+          role: resp.data['role'] as String?,
+          name: resp.data['name'] as String?,
+          email: resp.data['email'] as String?,
+        );
+      } catch (_) {
+        await _clearExpiredToken();
+        return AuthSessionState.unauthenticated();
+      }
+    } on PlatformException catch (_) {
+      // Android Keystore key invalidated — wipe all corrupted entries.
+      try { await _storage.deleteAll(); } catch (_) {}
       return AuthSessionState.unauthenticated();
     }
   }
@@ -129,7 +136,13 @@ class AuthService {
   /// Writes the token back as keyAccessToken so subsequent API calls work.
   /// Clears keyBiometricJwt if the token is expired or invalid.
   Future<AuthSessionState> restoreFromBiometricToken() async {
-    final token = await _storage.read(key: AppConstants.keyBiometricJwt);
+    final String? token;
+    try {
+      token = await _storage.read(key: AppConstants.keyBiometricJwt);
+    } on PlatformException catch (_) {
+      try { await _storage.deleteAll(); } catch (_) {}
+      return AuthSessionState.unauthenticated();
+    }
     if (token == null || token.isEmpty) return AuthSessionState.unauthenticated();
 
     await _storage.write(key: AppConstants.keyAccessToken, value: token);

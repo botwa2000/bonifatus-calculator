@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:crypto/crypto.dart';
 import 'package:dio/dio.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../core/constants/app_constants.dart';
@@ -53,9 +54,15 @@ class _AuthInterceptor extends Interceptor {
 
   @override
   void onRequest(RequestOptions options, RequestInterceptorHandler handler) async {
-    final token = await _storage.read(key: AppConstants.keyAccessToken);
-    if (token != null) {
-      options.headers['Authorization'] = 'Bearer $token';
+    try {
+      final token = await _storage.read(key: AppConstants.keyAccessToken);
+      if (token != null) {
+        options.headers['Authorization'] = 'Bearer $token';
+      }
+    } on PlatformException catch (_) {
+      // Android Keystore key was invalidated (app reinstall / backup restore).
+      // Wipe all corrupted entries — the user will land on the login screen.
+      try { await _storage.deleteAll(); } catch (_) {}
     }
     handler.next(options);
   }
@@ -101,12 +108,16 @@ class _MobileTokenInterceptor extends Interceptor {
   }
 
   Future<String> _getOrCreateDeviceId(FlutterSecureStorage storage) async {
-    var id = await storage.read(key: AppConstants.keyDeviceId);
-    if (id == null) {
-      id = _generateDeviceId();
-      await storage.write(key: AppConstants.keyDeviceId, value: id);
+    try {
+      var id = await storage.read(key: AppConstants.keyDeviceId);
+      if (id == null) {
+        id = _generateDeviceId();
+        await storage.write(key: AppConstants.keyDeviceId, value: id);
+      }
+      return id;
+    } on PlatformException catch (_) {
+      return _generateDeviceId();
     }
-    return id;
   }
 
   String _generateDeviceId() {
