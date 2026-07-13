@@ -81,11 +81,13 @@ jobs:
             SECRET_NAME="${ENV}_MOBILE_APP_SECRET"
 
             echo "=== [0/5] Provision Swarm secrets ==="
-            if ! docker secret ls --format '{{.Name}}' | grep -qx "$SECRET_NAME"; then
+            echo "Docker info:" && docker info --format '{{.Swarm.LocalNodeState}}' 2>&1 || true
+            if docker secret inspect "$SECRET_NAME" > /dev/null 2>&1; then
+              echo "Docker secret $SECRET_NAME already exists — skipping"
+            else
+              echo "Creating Docker secret $SECRET_NAME"
               printf '%s' "$MOBILE_APP_SECRET" | docker secret create "$SECRET_NAME" -
               echo "Created Docker secret $SECRET_NAME"
-            else
-              echo "Docker secret $SECRET_NAME already exists — skipping"
             fi
 
             echo "=== [1/5] Pull latest ==="
