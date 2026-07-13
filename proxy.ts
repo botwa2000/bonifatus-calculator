@@ -132,8 +132,15 @@ export default async function proxy(req: NextRequest) {
         dbg('mw', `mobile API pass-through (token verified): ${pathname}`)
         return NextResponse.next()
       }
-      dbgWarn('mw', `mobile token invalid/expired: ${pathname}`)
-      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
+      dbgWarn('mw', `mobile token invalid/expired — falling through to bearer check: ${pathname}`)
+      // Don't reject here: debug builds use a placeholder MOBILE_APP_SECRET.
+      // Route handlers validate the Bearer JWT via requireAuthApi() anyway.
+    }
+    // Bearer JWT is sufficient auth for mobile clients (debug builds or release).
+    // The route handler's requireAuthApi() verifies the JWT server-side.
+    if (req.headers.get('authorization')?.startsWith('Bearer ')) {
+      dbg('mw', `mobile bearer API pass-through: ${pathname}`)
+      return NextResponse.next()
     }
     if (!hasSessionCookie(req)) {
       dbgWarn('mw', `protected API 401: ${pathname}`)
