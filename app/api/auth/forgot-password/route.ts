@@ -83,6 +83,22 @@ export async function POST(request: NextRequest) {
       .where(eq(userProfiles.id, user.id))
       .limit(1)
 
+    // Hard daily cap: max 5 reset emails per user per 24 hours, regardless of IP.
+    // This is the primary defence against persistent targeted spam — it can't be
+    // bypassed by rotating IPs or solving Turnstile from multiple addresses.
+    const dailyLimitSince = new Date(Date.now() - 24 * 60 * 60_000)
+    const [dailyCount] = await db
+      .select({ n: count() })
+      .from(verificationCodes)
+      .where(
+        and(
+          eq(verificationCodes.userId, user.id),
+          eq(verificationCodes.purpose, 'password_reset'),
+          gt(verificationCodes.createdAt, dailyLimitSince)
+        )
+      )
+    if ((dailyCount?.n ?? 0) >= 5) return successResponse
+
     // Server-side rate limit: one email per 3 minutes per user.
     // Intentionally does NOT filter by verifiedAt — when the invalidation step below
     // marks an old code as verified, that must not reset the cooldown window, otherwise
