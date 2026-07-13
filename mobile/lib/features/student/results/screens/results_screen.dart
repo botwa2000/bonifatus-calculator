@@ -5,6 +5,7 @@ import 'package:bonifatus_mobile/l10n/app_localizations.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../providers/term_results_provider.dart';
 import '../../../../models/term_result.dart';
+import '../../../../utils/term_type_utils.dart';
 
 class ResultsScreen extends ConsumerWidget {
   const ResultsScreen({super.key});
@@ -230,7 +231,7 @@ class _TermCard extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(term.displayLabel,
+                    Text(localizeTermLabel(l10n, term.termType, term.schoolYear, term.termName),
                         style: theme.textTheme.titleMedium),
                     const SizedBox(height: 2),
                     Text(

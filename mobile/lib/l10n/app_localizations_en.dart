@@ -1125,4 +1125,28 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get captureClassLevelLabel => 'Class Level';
+
+  @override
+  String get termTypeSemester1 => 'Semester 1';
+
+  @override
+  String get termTypeSemester2 => 'Semester 2';
+
+  @override
+  String get termTypeTrimester1 => 'Trimester 1';
+
+  @override
+  String get termTypeTrimester2 => 'Trimester 2';
+
+  @override
+  String get termTypeTrimester3 => 'Trimester 3';
+
+  @override
+  String get termTypeAnnual => 'Annual';
+
+  @override
+  String get nameUnknown => 'Unknown';
+
+  @override
+  String get gradingSystemGermanDefault => 'German 1–6';
 }

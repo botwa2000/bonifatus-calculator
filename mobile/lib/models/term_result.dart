@@ -87,11 +87,11 @@ class TermResult {
     );
   }
 
-  String get displayLabel {
+  // Returns termName when set; callers should use localizeTermLabel() from
+  // term_type_utils.dart for widget display so the term type is localized.
+  String get rawDisplayLabel {
     if (termName != null && termName!.isNotEmpty) return termName!;
-    final type = termType.replaceAll('_', ' ');
-    final capitalizedType = type.isEmpty ? type : type[0].toUpperCase() + type.substring(1);
-    return '$schoolYear · $capitalizedType';
+    return '$schoolYear · $termType';
   }
 
   double? get averageGrade {

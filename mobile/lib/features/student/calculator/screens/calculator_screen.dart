@@ -7,6 +7,7 @@ import '../../../../l10n/app_localizations.dart';
 import '../../../../models/calculator_config.dart';
 import '../../providers/calculator_config_provider.dart';
 import '../../providers/term_results_provider.dart';
+import '../../../../utils/term_type_utils.dart';
 
 class CalculatorScreen extends ConsumerStatefulWidget {
   const CalculatorScreen({super.key});
@@ -276,7 +277,7 @@ class _CalculatorScreenState extends ConsumerState<CalculatorScreen> {
                             const Icon(Icons.check_circle_rounded,
                                 color: AppColors.primary, size: 16),
                             const SizedBox(width: 8),
-                            Text(pickedSubject!.name,
+                            Text(pickedSubject!.name.isEmpty ? l10n.nameUnknown : pickedSubject!.name,
                                 style: const TextStyle(
                                     color: AppColors.primary,
                                     fontWeight: FontWeight.w600,
@@ -423,7 +424,7 @@ class _CalculatorScreenState extends ConsumerState<CalculatorScreen> {
                             setState(() {
                               _subjects.add(_SubjectEntry(
                                 subjectId: pickedSubject!.id,
-                                subject: pickedSubject!.name,
+                                subject: pickedSubject!.name.isEmpty ? l10n.nameUnknown : pickedSubject!.name,
                                 grade: pickedGrade.trim(),
                                 weight: pickedWeight,
                               ));
@@ -632,7 +633,8 @@ class _CalculatorScreenState extends ConsumerState<CalculatorScreen> {
               items: config.gradingSystems
                   .map((s) => DropdownMenuItem(
                         value: s.id,
-                        child: Text(s.name,
+                        child: Text(
+                            s.name.isEmpty ? l10n.gradingSystemGermanDefault : s.name,
                             style: const TextStyle(fontSize: 14)),
                       ))
                   .toList(),
@@ -690,7 +692,8 @@ class _CalculatorScreenState extends ConsumerState<CalculatorScreen> {
                       items: config.effectiveTermTypes
                           .map((t) => DropdownMenuItem(
                                 value: t.code,
-                                child: Text(t.name,
+                                child: Text(
+                                    t.name.isEmpty ? localizeTermType(l10n, t.code) : t.name,
                                     style: const TextStyle(fontSize: 14)),
                               ))
                           .toList(),
@@ -1207,7 +1210,7 @@ class _SubjectChip extends StatelessWidget {
           ),
         ),
         child: Text(
-          subject.name,
+          subject.name.isEmpty ? AppLocalizations.of(context)!.nameUnknown : subject.name,
           style: TextStyle(
             fontSize: 13,
             fontWeight: selected ? FontWeight.w700 : FontWeight.w500,

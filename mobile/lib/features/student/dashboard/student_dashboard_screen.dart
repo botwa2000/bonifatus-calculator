@@ -9,6 +9,7 @@ import '../providers/quick_grades_provider.dart';
 import '../providers/term_results_provider.dart';
 import '../../../../models/quick_grade.dart';
 import '../../../../models/term_result.dart';
+import '../../../../utils/term_type_utils.dart';
 
 class StudentDashboardScreen extends ConsumerWidget {
   const StudentDashboardScreen({super.key});
@@ -386,7 +387,7 @@ class StudentDashboardScreen extends ConsumerWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            term.displayLabel,
+                            localizeTermLabel(l10n, term.termType, term.schoolYear, term.termName),
                             style:
                                 Theme.of(context).textTheme.titleMedium?.copyWith(
                                       color: Theme.of(context).colorScheme.onSurface,

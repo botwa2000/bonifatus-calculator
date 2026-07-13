@@ -373,5 +373,14 @@
   "registerDateOfBirthLabel": "Fecha de nacimiento",
   "registerDateOfBirthHint": "Seleccionar fecha de nacimiento",
   "registerDateOfBirthRequired": "Por favor selecciona tu fecha de nacimiento",
-  "captureClassLevelLabel": "Nivel de clase"
+  "captureClassLevelLabel": "Nivel de clase",
+
+  "termTypeSemester1": "Semestre 1",
+  "termTypeSemester2": "Semestre 2",
+  "termTypeTrimester1": "Trimestre 1",
+  "termTypeTrimester2": "Trimestre 2",
+  "termTypeTrimester3": "Trimestre 3",
+  "termTypeAnnual": "Anual",
+  "nameUnknown": "Desconocido",
+  "gradingSystemGermanDefault": "Alemán 1–6"
 }

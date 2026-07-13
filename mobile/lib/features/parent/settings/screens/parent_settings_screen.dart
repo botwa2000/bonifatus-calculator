@@ -305,9 +305,14 @@ class _ParentSettingsScreenState extends ConsumerState<ParentSettingsScreen> {
                         return _Card(children: List.generate(children.length, (i) {
                           final child = children[i];
                           final override = _cycleOverrides[child.childId];
-                          final cycleType = override?.cycleType ?? l10n.cycleTypeWeekly;
+                          final cycleType = override?.cycleType ?? 'weekly';
                           final ratio = override?.ratio ?? 0.25;
                           final config = _ChildCycleConfig(childId: child.childId, childName: child.childName, cycleType: cycleType, ratio: ratio);
+                          final cycleLabel = {
+                            'daily': l10n.cycleTypeDaily,
+                            'weekly': l10n.cycleTypeWeekly,
+                            'monthly': l10n.cycleTypeMonthly,
+                          }[config.cycleType] ?? config.cycleType;
                           return Column(children: [
                             ListTile(
                               leading: Container(width: 36, height: 36,
@@ -316,7 +321,7 @@ class _ParentSettingsScreenState extends ConsumerState<ParentSettingsScreen> {
                                   child: Text(config.childName.substring(0, 1).toUpperCase(),
                                       style: const TextStyle(fontWeight: FontWeight.w700, color: AppColors.primary, fontSize: 14))),
                               title: Text(config.childName, style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: cs.onSurface)),
-                              subtitle: Text('${config.cycleType} · ${(config.ratio * 100).round()}% ${l10n.ratioLabel}',
+                              subtitle: Text('$cycleLabel · ${(config.ratio * 100).round()}% ${l10n.ratioLabel}',
                                   style: TextStyle(fontSize: 12, color: cs.onSurfaceVariant)),
                               trailing: InkWell(
                                 onTap: () => _showCycleConfigSheet(config, l10n, onSaved: () => setSheetState(() {})),
@@ -477,11 +482,11 @@ class _ParentSettingsScreenState extends ConsumerState<ParentSettingsScreen> {
   void _showCycleConfigSheet(_ChildCycleConfig config, AppLocalizations l10n, {VoidCallback? onSaved}) {
     String currentCycleType = config.cycleType;
     double currentRatio = config.ratio;
-    const cycleTypes = ['Daily', 'Weekly', 'Monthly'];
+    const cycleTypes = ['daily', 'weekly', 'monthly'];
     final cycleTypeLabels = {
-      'Daily': l10n.cycleTypeDaily,
-      'Weekly': l10n.cycleTypeWeekly,
-      'Monthly': l10n.cycleTypeMonthly,
+      'daily': l10n.cycleTypeDaily,
+      'weekly': l10n.cycleTypeWeekly,
+      'monthly': l10n.cycleTypeMonthly,
     };
 
     showModalBottomSheet<void>(

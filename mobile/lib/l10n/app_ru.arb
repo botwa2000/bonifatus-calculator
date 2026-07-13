@@ -373,5 +373,14 @@
   "registerDateOfBirthLabel": "Дата рождения",
   "registerDateOfBirthHint": "Выбрать дату рождения",
   "registerDateOfBirthRequired": "Пожалуйста, выберите дату рождения",
-  "captureClassLevelLabel": "Класс"
+  "captureClassLevelLabel": "Класс",
+
+  "termTypeSemester1": "Семестр 1",
+  "termTypeSemester2": "Семестр 2",
+  "termTypeTrimester1": "Триместр 1",
+  "termTypeTrimester2": "Триместр 2",
+  "termTypeTrimester3": "Триместр 3",
+  "termTypeAnnual": "Годовой",
+  "nameUnknown": "Неизвестно",
+  "gradingSystemGermanDefault": "Немецкая 1–6"
 }

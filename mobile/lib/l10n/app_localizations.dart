@@ -2157,6 +2157,54 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Class Level'**
   String get captureClassLevelLabel;
+
+  /// No description provided for @termTypeSemester1.
+  ///
+  /// In en, this message translates to:
+  /// **'Semester 1'**
+  String get termTypeSemester1;
+
+  /// No description provided for @termTypeSemester2.
+  ///
+  /// In en, this message translates to:
+  /// **'Semester 2'**
+  String get termTypeSemester2;
+
+  /// No description provided for @termTypeTrimester1.
+  ///
+  /// In en, this message translates to:
+  /// **'Trimester 1'**
+  String get termTypeTrimester1;
+
+  /// No description provided for @termTypeTrimester2.
+  ///
+  /// In en, this message translates to:
+  /// **'Trimester 2'**
+  String get termTypeTrimester2;
+
+  /// No description provided for @termTypeTrimester3.
+  ///
+  /// In en, this message translates to:
+  /// **'Trimester 3'**
+  String get termTypeTrimester3;
+
+  /// No description provided for @termTypeAnnual.
+  ///
+  /// In en, this message translates to:
+  /// **'Annual'**
+  String get termTypeAnnual;
+
+  /// No description provided for @nameUnknown.
+  ///
+  /// In en, this message translates to:
+  /// **'Unknown'**
+  String get nameUnknown;
+
+  /// No description provided for @gradingSystemGermanDefault.
+  ///
+  /// In en, this message translates to:
+  /// **'German 1–6'**
+  String get gradingSystemGermanDefault;
 }
 
 class _AppLocalizationsDelegate

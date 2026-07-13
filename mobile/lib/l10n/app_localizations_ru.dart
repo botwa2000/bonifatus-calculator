@@ -1133,4 +1133,28 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get captureClassLevelLabel => 'Класс';
+
+  @override
+  String get termTypeSemester1 => 'Семестр 1';
+
+  @override
+  String get termTypeSemester2 => 'Семестр 2';
+
+  @override
+  String get termTypeTrimester1 => 'Триместр 1';
+
+  @override
+  String get termTypeTrimester2 => 'Триместр 2';
+
+  @override
+  String get termTypeTrimester3 => 'Триместр 3';
+
+  @override
+  String get termTypeAnnual => 'Годовой';
+
+  @override
+  String get nameUnknown => 'Неизвестно';
+
+  @override
+  String get gradingSystemGermanDefault => 'Немецкая 1–6';
 }

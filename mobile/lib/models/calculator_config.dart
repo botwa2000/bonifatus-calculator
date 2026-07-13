@@ -2,9 +2,9 @@ String _pickName(dynamic nameRaw, String locale) {
   if (nameRaw is String) return nameRaw;
   if (nameRaw is Map) {
     final v = nameRaw[locale] ?? nameRaw['en'] ?? nameRaw.values.firstOrNull;
-    return v?.toString() ?? 'Unknown';
+    return v?.toString() ?? '';
   }
-  return 'Unknown';
+  return '';
 }
 
 class GradeDefinition {
@@ -239,7 +239,7 @@ class CalculatorConfig {
       ? gradingSystems.first
       : const GradingSystem(
           id: 'de-standard',
-          name: 'German 1-6',
+          name: '',
           minGrade: 1,
           maxGrade: 6,
           isLowerBetter: true,
@@ -249,8 +249,8 @@ class CalculatorConfig {
       termTypes.isNotEmpty
           ? termTypes
           : const [
-              TermTypeItem(code: 'semester_1', group: 'semester', name: 'Semester 1'),
-              TermTypeItem(code: 'semester_2', group: 'semester', name: 'Semester 2'),
+              TermTypeItem(code: 'semester_1', group: 'semester', name: ''),
+              TermTypeItem(code: 'semester_2', group: 'semester', name: ''),
             ];
 
   // Calculate per-subject bonus using DB factors
@@ -282,7 +282,7 @@ class CalculatorConfig {
         gradingSystems: [
           GradingSystem(
             id: 'de-standard',
-            name: 'German 1-6',
+            name: '',
             minGrade: 1,
             maxGrade: 6,
             isLowerBetter: true,

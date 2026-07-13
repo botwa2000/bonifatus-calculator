@@ -130,32 +130,11 @@ class ChildTermResult {
     );
   }
 
-  String get displayLabel {
+  // Returns termName when set; callers should use localizeTermLabel() /
+  // localizeTermType() from term_type_utils.dart for widget display.
+  String get rawDisplayLabel {
     if (termName != null && termName!.isNotEmpty) return termName!;
-    final type = termType.replaceAll('_', ' ');
-    return '$schoolYear · ${_capitalize(type)}';
-  }
-
-  static String _capitalize(String s) =>
-      s.isEmpty ? s : s[0].toUpperCase() + s.substring(1);
-
-  String get termTypeDisplay {
-    switch (termType) {
-      case 'semester_1':
-        return 'Semester 1';
-      case 'semester_2':
-        return 'Semester 2';
-      case 'trimester_1':
-        return 'Trimester 1';
-      case 'trimester_2':
-        return 'Trimester 2';
-      case 'trimester_3':
-        return 'Trimester 3';
-      case 'annual':
-        return 'Annual';
-      default:
-        return termType.replaceAll('_', ' ');
-    }
+    return '$schoolYear · $termType';
   }
 }
 

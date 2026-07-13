@@ -8,6 +8,7 @@ import '../../../../core/theme/app_colors.dart';
 import '../../providers/children_provider.dart';
 import '../../../../models/child_data.dart';
 import '../../../../api/services/connection_service.dart';
+import '../../../../utils/term_type_utils.dart';
 
 List<ChildTermResult> _demoTermResults() => [
       ChildTermResult(
@@ -404,7 +405,7 @@ class _TermResultCard extends StatelessWidget {
         ),
       ),
       title: Text(
-        term.displayLabel,
+        localizeTermLabel(AppLocalizations.of(context)!, term.termType, term.schoolYear, term.termName),
         style: TextStyle(
           fontWeight: FontWeight.w700,
           fontSize: 14,
@@ -412,7 +413,7 @@ class _TermResultCard extends StatelessWidget {
         ),
       ),
       subtitle: Text(
-        '${term.termTypeDisplay} · ${AppLocalizations.of(context)!.classLabel} ${term.classLevel} · ${AppLocalizations.of(context)!.calculatorSubjectsLabel(term.subjects.length)}',
+        '${localizeTermType(AppLocalizations.of(context)!, term.termType)} · ${AppLocalizations.of(context)!.classLabel} ${term.classLevel} · ${AppLocalizations.of(context)!.calculatorSubjectsLabel(term.subjects.length)}',
         style: TextStyle(fontSize: 11, color: Theme.of(context).colorScheme.onSurfaceVariant),
       ),
       trailing: Text(
