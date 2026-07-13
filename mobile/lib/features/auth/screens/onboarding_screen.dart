@@ -54,7 +54,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 children: [
                   Image.asset('assets/images/logo.png', width: 36, height: 36),
                   const SizedBox(width: 8),
-                  Text('Bonifatus', style: theme.textTheme.titleLarge?.copyWith(
+                  Text(l10n.appName, style: theme.textTheme.titleLarge?.copyWith(
                     color: theme.colorScheme.onSurface, fontWeight: FontWeight.w700)),
                   const Spacer(),
                   TextButton(

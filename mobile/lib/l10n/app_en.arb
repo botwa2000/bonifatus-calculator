@@ -2,6 +2,8 @@
   "@@locale": "en",
   "@@last_modified": "2026-07-09T00:00:00.000000",
 
+  "appName": "Bonifatus",
+
   "loginWelcomeBack": "Welcome back",
   "loginSignInSubtitle": "Sign in to your account",
   "loginEmailLabel": "Email",

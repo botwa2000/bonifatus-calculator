@@ -106,6 +106,12 @@ abstract class AppLocalizations {
     Locale('ru'),
   ];
 
+  /// No description provided for @appName.
+  ///
+  /// In en, this message translates to:
+  /// **'Bonifatus'**
+  String get appName;
+
   /// No description provided for @loginWelcomeBack.
   ///
   /// In en, this message translates to:

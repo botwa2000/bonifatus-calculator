@@ -906,7 +906,7 @@ class _CalculatorScreenState extends ConsumerState<CalculatorScreen> {
 
               // Bonus
               Text(
-                '+${bonus.toStringAsFixed(1)} pts',
+                '+${bonus.toStringAsFixed(1)} ${l10n.ptsAbbr}',
                 style: const TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w700,
@@ -1082,7 +1082,7 @@ class _CalculatorScreenState extends ConsumerState<CalculatorScreen> {
                       ),
                       const SizedBox(height: 2),
                       Text(
-                        '${total.toStringAsFixed(1)} pts',
+                        '${total.toStringAsFixed(1)} ${l10n.ptsAbbr}',
                         style: TextStyle(
                           fontSize: 28,
                           fontWeight: FontWeight.w800,

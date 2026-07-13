@@ -148,7 +148,7 @@ class ParentDashboardScreen extends ConsumerWidget {
               Expanded(
                 child: _SummaryStatItem(
                   label: l10n.parentDashboardPending,
-                  value: '$totalPending pts',
+                  value: '$totalPending ${l10n.ptsAbbr}',
                   icon: Icons.account_balance_wallet_outlined,
                 ),
               ),
@@ -325,7 +325,7 @@ class ParentDashboardScreen extends ConsumerWidget {
                           ),
                           const Spacer(),
                           Text(
-                            '+${recentGrades.first.bonusPoints} pts',
+                            '+${recentGrades.first.bonusPoints} ${l10n.ptsAbbr}',
                             style: const TextStyle(
                               fontSize: 13,
                               fontWeight: FontWeight.w600,

@@ -173,7 +173,7 @@ class _ChildGradesCard extends ConsumerWidget {
                 ),
                 const Spacer(),
                 Text(
-                  '$totalPts pts',
+                  '$totalPts ${AppLocalizations.of(context)!.ptsAbbr}',
                   style: const TextStyle(
                     fontSize: 13,
                     fontWeight: FontWeight.w600,
@@ -264,7 +264,7 @@ class _ChildGradesCard extends ConsumerWidget {
                           fontWeight: FontWeight.w500),
                     ),
                     Text(
-                      '$total pts',
+                      '$total ${l10n.ptsAbbr}',
                       style: const TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.w800,
@@ -392,7 +392,7 @@ class _GradeRow extends StatelessWidget {
           ),
           const SizedBox(width: 12),
           Text(
-            '+${grade.bonusPoints} pts',
+            '+${grade.bonusPoints} ${AppLocalizations.of(context)!.ptsAbbr}',
             style: const TextStyle(
               fontSize: 13,
               fontWeight: FontWeight.w700,
@@ -484,7 +484,7 @@ class _SummaryTab extends StatelessWidget {
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: Text(
-                    '$pending pts',
+                    '$pending ${AppLocalizations.of(context)!.ptsAbbr}',
                     style: const TextStyle(
                       fontSize: 13,
                       fontWeight: FontWeight.w700,

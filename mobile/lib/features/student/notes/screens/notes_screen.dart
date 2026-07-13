@@ -323,7 +323,7 @@ class _SummaryChipRow extends StatelessWidget {
               ),
               const SizedBox(width: 8),
               _Chip(
-                label: '+${totalBonusPts % 1 == 0 ? totalBonusPts.toInt() : totalBonusPts.toStringAsFixed(1)} pts',
+                label: '+${totalBonusPts % 1 == 0 ? totalBonusPts.toInt() : totalBonusPts.toStringAsFixed(1)} ${l10n.ptsAbbr}',
                 icon: Icons.star_outline_rounded,
                 color: AppColors.tierBest,
               ),
@@ -490,7 +490,7 @@ class _NoteCard extends StatelessWidget {
                         ),
                         const SizedBox(height: 6),
                         Text(
-                          '+${grade.bonusPoints % 1 == 0 ? grade.bonusPoints.toInt() : grade.bonusPoints.toStringAsFixed(1)} pts',
+                          '+${grade.bonusPoints % 1 == 0 ? grade.bonusPoints.toInt() : grade.bonusPoints.toStringAsFixed(1)} ${l10n.ptsAbbr}',
                           style: const TextStyle(
                             fontSize: 13,
                             fontWeight: FontWeight.w600,

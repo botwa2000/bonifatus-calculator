@@ -145,6 +145,7 @@ class CycleSummaryScreen extends ConsumerWidget {
     required String positiveLabel,
     required String netLabel,
   }) {
+    final l10n = AppLocalizations.of(context)!;
     final netColor = netPts >= 0 ? AppColors.tierBest : AppColors.tierBelow;
     final netBg =
         netPts >= 0 ? AppColors.tierBestLight : AppColors.tierBelowLight;
@@ -200,7 +201,7 @@ class CycleSummaryScreen extends ConsumerWidget {
               Expanded(
                 child: _StatBox(
                   label: positiveLabel,
-                  value: '+${totalPositive % 1 == 0 ? totalPositive.toInt() : totalPositive.toStringAsFixed(1)} pts',
+                  value: '+${totalPositive % 1 == 0 ? totalPositive.toInt() : totalPositive.toStringAsFixed(1)} ${l10n.ptsAbbr}',
                   valueColor: Colors.white,
                   bgColor: Colors.white.withValues(alpha: 0.15),
                 ),
@@ -209,7 +210,7 @@ class CycleSummaryScreen extends ConsumerWidget {
               Expanded(
                 child: _StatBox(
                   label: netLabel,
-                  value: '${netPts % 1 == 0 ? netPts.toInt() : netPts.toStringAsFixed(1)} pts',
+                  value: '${netPts % 1 == 0 ? netPts.toInt() : netPts.toStringAsFixed(1)} ${l10n.ptsAbbr}',
                   valueColor: netColor,
                   bgColor: netBg,
                 ),
@@ -337,7 +338,7 @@ class _CycleNoteCard extends StatelessWidget {
             ),
           ),
           Text(
-            '+${grade.bonusPoints % 1 == 0 ? grade.bonusPoints.toInt() : grade.bonusPoints.toStringAsFixed(1)} pts',
+            '+${grade.bonusPoints % 1 == 0 ? grade.bonusPoints.toInt() : grade.bonusPoints.toStringAsFixed(1)} ${AppLocalizations.of(context)!.ptsAbbr}',
             style: const TextStyle(
               fontSize: 14,
               fontWeight: FontWeight.w700,

@@ -90,8 +90,8 @@ class ParentInsightsScreen extends ConsumerWidget {
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceAround,
                             children: [
-                              _Stat(label: l10n.parentInsightsTotalEarned, value: '$totalEarned pts'),
-                              _Stat(label: l10n.parentInsightsPending, value: '$pendingPts pts'),
+                              _Stat(label: l10n.parentInsightsTotalEarned, value: '$totalEarned ${l10n.ptsAbbr}'),
+                              _Stat(label: l10n.parentInsightsPending, value: '$pendingPts ${l10n.ptsAbbr}'),
                               _Stat(
                                   label: l10n.parentInsightsChildren,
                                   value: '${children.length}'),

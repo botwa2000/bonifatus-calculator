@@ -2,6 +2,8 @@
   "@@locale": "ru",
   "@@last_modified": "2026-07-09T00:00:00.000000",
 
+  "appName": "Bonifatus",
+
   "loginWelcomeBack": "С возвращением",
   "loginSignInSubtitle": "Войдите в свой аккаунт",
   "loginEmailLabel": "Электронная почта",

@@ -208,8 +208,8 @@ class _InsightsBody extends StatelessWidget {
               const SizedBox(height: 8),
               Row(mainAxisAlignment: MainAxisAlignment.spaceAround, children: [
                 _BigStat(label: l10n.insightsGrades, value: weekGrades.length.toString()),
-                _BigStat(label: l10n.insightsEarned, value: '+${weekPts % 1 == 0 ? weekPts.toInt() : weekPts.toStringAsFixed(1)} pts'),
-                _BigStat(label: l10n.insightsUnsettled, value: '+${weekNet % 1 == 0 ? weekNet.toInt() : weekNet.toStringAsFixed(1)} pts'),
+                _BigStat(label: l10n.insightsEarned, value: '+${weekPts % 1 == 0 ? weekPts.toInt() : weekPts.toStringAsFixed(1)} ${l10n.ptsAbbr}'),
+                _BigStat(label: l10n.insightsUnsettled, value: '+${weekNet % 1 == 0 ? weekNet.toInt() : weekNet.toStringAsFixed(1)} ${l10n.ptsAbbr}'),
               ]),
             ]),
           ),
@@ -226,9 +226,9 @@ class _InsightsBody extends StatelessWidget {
               Row(mainAxisAlignment: MainAxisAlignment.spaceAround, children: [
                 _BigStat(label: l10n.insightsGrades, value: total.toString()),
                 _BigStat(label: l10n.insightsTotalPts,
-                    value: () { final v = grades.fold<double>(0.0, (s, g) => s + g.bonusPoints); return '+${v % 1 == 0 ? v.toInt() : v.toStringAsFixed(1)} pts'; }()),
+                    value: () { final v = grades.fold<double>(0.0, (s, g) => s + g.bonusPoints); return '+${v % 1 == 0 ? v.toInt() : v.toStringAsFixed(1)} ${l10n.ptsAbbr}'; }()),
                 _BigStat(label: l10n.insightsPending,
-                    value: () { final v = grades.where((g) => g.settlementStatus == 'pending').fold<double>(0.0, (s, g) => s + g.bonusPoints); return '+${v % 1 == 0 ? v.toInt() : v.toStringAsFixed(1)} pts'; }()),
+                    value: () { final v = grades.where((g) => g.settlementStatus == 'pending').fold<double>(0.0, (s, g) => s + g.bonusPoints); return '+${v % 1 == 0 ? v.toInt() : v.toStringAsFixed(1)} ${l10n.ptsAbbr}'; }()),
               ]),
             ]),
           ),

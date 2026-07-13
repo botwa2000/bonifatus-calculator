@@ -319,7 +319,7 @@ class ChildDetailScreen extends ConsumerWidget {
             child: _Stat(
               icon: Icons.pending_outlined,
               label: l10n.childDetailPending,
-              value: '$pendingPts pts',
+              value: '$pendingPts ${l10n.ptsAbbr}',
             ),
           ),
         ],
@@ -459,7 +459,7 @@ class _TermResultCard extends StatelessWidget {
                 ),
               ),
               Text(
-                '+${s.bonusPoints} pts',
+                '+${s.bonusPoints} ${AppLocalizations.of(context)!.ptsAbbr}',
                 style: const TextStyle(
                   fontSize: 13,
                   fontWeight: FontWeight.w600,
@@ -510,7 +510,7 @@ class _GradeCard extends StatelessWidget {
           ]),
           const SizedBox(height: 20),
           Row(children: [
-            Expanded(child: _DetailChip(label: l10n.childDetailBonus, value: '+${grade.bonusPoints} pts', color: AppColors.tierBest, bg: AppColors.tierBestLight)),
+            Expanded(child: _DetailChip(label: l10n.childDetailBonus, value: '+${grade.bonusPoints} ${l10n.ptsAbbr}', color: AppColors.tierBest, bg: AppColors.tierBestLight)),
             const SizedBox(width: 10),
             Expanded(child: _DetailChip(label: l10n.childDetailStatus,
               value: grade.settlementStatus == 'settled' ? l10n.childDetailSettled : l10n.childDetailPending,
@@ -593,7 +593,7 @@ class _GradeCard extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
               Text(
-                '+${grade.bonusPoints} pts',
+                '+${grade.bonusPoints} ${AppLocalizations.of(context)!.ptsAbbr}',
                 style: const TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w700,
