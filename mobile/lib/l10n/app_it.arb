@@ -376,6 +376,8 @@
   "registerDateOfBirthHint": "Seleziona data di nascita",
   "registerDateOfBirthRequired": "Seleziona la tua data di nascita",
   "captureClassLevelLabel": "Livello classe",
+  "captureAnalyzingImage": "Analisi immagine…",
+  "captureDetectedHint": "Voto rilevato — controlla e conferma",
 
   "termTypeSemester1": "Semestre 1",
   "termTypeSemester2": "Semestre 2",

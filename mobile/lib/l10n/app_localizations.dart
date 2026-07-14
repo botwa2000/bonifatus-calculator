@@ -2170,6 +2170,18 @@ abstract class AppLocalizations {
   /// **'Class Level'**
   String get captureClassLevelLabel;
 
+  /// No description provided for @captureAnalyzingImage.
+  ///
+  /// In en, this message translates to:
+  /// **'Analyzing image…'**
+  String get captureAnalyzingImage;
+
+  /// No description provided for @captureDetectedHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Grade detected — review and confirm'**
+  String get captureDetectedHint;
+
   /// No description provided for @termTypeSemester1.
   ///
   /// In en, this message translates to:

@@ -465,6 +465,8 @@
   "registerDateOfBirthHint": "Select date of birth",
   "registerDateOfBirthRequired": "Please select your date of birth",
   "captureClassLevelLabel": "Class Level",
+  "captureAnalyzingImage": "Analyzing image…",
+  "captureDetectedHint": "Grade detected — review and confirm",
 
   "termTypeSemester1": "Semester 1",
   "termTypeSemester2": "Semester 2",

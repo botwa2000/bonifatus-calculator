@@ -1134,6 +1134,12 @@ class AppLocalizationsIt extends AppLocalizations {
   String get captureClassLevelLabel => 'Livello classe';
 
   @override
+  String get captureAnalyzingImage => 'Analisi immagine…';
+
+  @override
+  String get captureDetectedHint => 'Voto rilevato — controlla e conferma';
+
+  @override
   String get termTypeSemester1 => 'Semestre 1';
 
   @override

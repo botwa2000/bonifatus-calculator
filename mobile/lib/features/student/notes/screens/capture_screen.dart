@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart';
 import 'package:bonifatus_mobile/l10n/app_localizations.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../models/calculator_config.dart';
@@ -9,6 +10,97 @@ import '../../providers/quick_grades_provider.dart';
 import '../../providers/calculator_config_provider.dart';
 
 enum _CaptureState { viewfinder, processing, confirming }
+
+class _ScanResult {
+  final String? grade;
+  final SubjectItem? subject;
+  const _ScanResult({this.grade, this.subject});
+}
+
+class _GradeExtractor {
+  static _ScanResult extract(
+      String text, GradingSystem system, List<SubjectItem> subjects) {
+    return _ScanResult(
+      grade: _extractGrade(text, system),
+      subject: _matchSubject(text, subjects),
+    );
+  }
+
+  static String? _extractGrade(String text, GradingSystem system) {
+    final values = system.gradeValues;
+    if (values.isEmpty) return null;
+
+    // Try matching against explicit grade definitions first (exact word boundaries)
+    if (system.gradeDefinitions.isNotEmpty) {
+      final lower = text.toLowerCase();
+      for (final def in system.gradeDefinitions) {
+        final escaped = RegExp.escape(def.grade.toLowerCase());
+        if (RegExp(r'\b' + escaped + r'\b').hasMatch(lower)) {
+          return def.grade;
+        }
+      }
+    }
+
+    // System-specific regex patterns, ordered from most-specific to least
+    for (final pattern in _patternsForSystem(system.id)) {
+      final match = pattern.firstMatch(text);
+      if (match != null) {
+        final raw = match.group(0)!.trim();
+        if (values.contains(raw)) return raw;
+        // Try stripping trailing +/- suffix (e.g. "2+" → "2")
+        final base = raw.replaceAll(RegExp(r'[+-]$'), '');
+        if (values.contains(base)) return base;
+      }
+    }
+    return null;
+  }
+
+  static List<RegExp> _patternsForSystem(String id) {
+    final lower = id.toLowerCase();
+    if (lower.contains('gymnasium')) {
+      // DE_GYMNASIUM: 0–15 points
+      return [RegExp(r'\b(1[0-5]|[0-9])\b')];
+    }
+    if (lower.contains('letter') || lower.contains('us_')) {
+      // US letter grades A–F with optional +/-
+      return [RegExp(r'\b[A-F][+-]?\b')];
+    }
+    if (lower.contains('fr_') || lower.contains('0_20')) {
+      // French 0–20 system, optionally shown as x/20
+      return [
+        RegExp(r'\b(1[0-9]|20|[0-9])\s*/\s*20\b'),
+        RegExp(r'\b(1[0-9]|20|[0-9])\b'),
+      ];
+    }
+    if (lower.contains('uk') || lower.contains('gcse')) {
+      // UK GCSE 1–9 or legacy A*–G
+      return [RegExp(r'\b[1-9]\b'), RegExp(r'\b[A-G]\*?\b')];
+    }
+    if (lower.contains('percent') ||
+        lower.contains('ca_') ||
+        lower.contains('in_')) {
+      // Percentage systems (CA, IN)
+      return [
+        RegExp(r'\b\d{1,3}\s*%'),
+        RegExp(r'\b(100|[1-9]?\d)\b'),
+      ];
+    }
+    // Default: DE_1_6, AT_1_5, CH_6_1 — integer 1–6 with optional +/-
+    return [RegExp(r'\b[1-6][+-]?\b')];
+  }
+
+  static SubjectItem? _matchSubject(String text, List<SubjectItem> subjects) {
+    if (subjects.isEmpty) return null;
+    final lower = text.toLowerCase();
+    // Sort by name length descending so longer (more specific) names match first
+    final sorted = [...subjects]
+      ..sort((a, b) => b.name.length.compareTo(a.name.length));
+    for (final s in sorted) {
+      if (s.name.length > 2 && lower.contains(s.name.toLowerCase())) return s;
+    }
+    return null;
+  }
+}
 
 class CaptureScreen extends ConsumerStatefulWidget {
   const CaptureScreen({super.key});
@@ -19,16 +111,54 @@ class CaptureScreen extends ConsumerStatefulWidget {
 
 class _CaptureScreenState extends ConsumerState<CaptureScreen> {
   _CaptureState _state = _CaptureState.viewfinder;
+  _ScanResult? _scanResult;
   final ImagePicker _picker = ImagePicker();
 
-  void _simulateCapture() {
-    setState(() => _state = _CaptureState.confirming);
+  Future<void> _captureFromCamera() async {
+    final XFile? file = await _picker.pickImage(
+      source: ImageSource.camera,
+      imageQuality: 90,
+    );
+    if (file != null && mounted) await _processImage(file);
   }
 
   Future<void> _pickFromGallery() async {
-    final XFile? file = await _picker.pickImage(source: ImageSource.gallery);
-    if (file != null && mounted) {
-      setState(() => _state = _CaptureState.confirming);
+    final XFile? file = await _picker.pickImage(
+      source: ImageSource.gallery,
+      imageQuality: 90,
+    );
+    if (file != null && mounted) await _processImage(file);
+  }
+
+  Future<void> _processImage(XFile file) async {
+    setState(() => _state = _CaptureState.processing);
+    try {
+      final inputImage = InputImage.fromFilePath(file.path);
+      final recognizer =
+          TextRecognizer(script: TextRecognitionScript.latin);
+      RecognizedText recognized;
+      try {
+        recognized = await recognizer.processImage(inputImage);
+      } finally {
+        await recognizer.close();
+      }
+      final config = ref.read(calculatorConfigProvider).valueOrNull;
+      _ScanResult? result;
+      if (config != null && recognized.text.isNotEmpty) {
+        result = _GradeExtractor.extract(
+          recognized.text,
+          config.defaultGradingSystem,
+          config.subjects,
+        );
+      }
+      if (mounted) {
+        setState(() {
+          _scanResult = result;
+          _state = _CaptureState.confirming;
+        });
+      }
+    } catch (_) {
+      if (mounted) setState(() => _state = _CaptureState.confirming);
     }
   }
 
@@ -47,7 +177,8 @@ class _CaptureScreenState extends ConsumerState<CaptureScreen> {
         ),
         title: Text(
           l10n.captureTitle,
-          style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
+          style: const TextStyle(
+              color: Colors.white, fontWeight: FontWeight.w600),
         ),
       ),
       body: switch (_state) {
@@ -80,10 +211,7 @@ class _CaptureScreenState extends ConsumerState<CaptureScreen> {
                 width: 280,
                 height: 280,
                 decoration: BoxDecoration(
-                  border: Border.all(
-                    color: AppColors.primary,
-                    width: 2,
-                  ),
+                  border: Border.all(color: AppColors.primary, width: 2),
                   borderRadius: BorderRadius.circular(16),
                 ),
                 child: Stack(
@@ -144,7 +272,7 @@ class _CaptureScreenState extends ConsumerState<CaptureScreen> {
                 const SizedBox(width: 12),
                 Expanded(
                   child: ElevatedButton.icon(
-                    onPressed: _simulateCapture,
+                    onPressed: _captureFromCamera,
                     icon: const Icon(Icons.camera_alt_rounded),
                     label: Text(l10n.captureTakePhoto),
                     style: ElevatedButton.styleFrom(
@@ -173,7 +301,7 @@ class _CaptureScreenState extends ConsumerState<CaptureScreen> {
           const CircularProgressIndicator(color: AppColors.primary),
           const SizedBox(height: 24),
           Text(
-            l10n.captureLoadingEntry,
+            l10n.captureAnalyzingImage,
             style: const TextStyle(color: Colors.white70, fontSize: 16),
           ),
         ],
@@ -183,17 +311,17 @@ class _CaptureScreenState extends ConsumerState<CaptureScreen> {
 
   Widget _buildConfirming() {
     final configAsync = ref.watch(calculatorConfigProvider);
-
     return configAsync.when(
-      loading: () => const Center(
-        child: CircularProgressIndicator(color: AppColors.primary),
-      ),
+      loading: () =>
+          const Center(child: CircularProgressIndicator(color: AppColors.primary)),
       error: (_, __) => _GradeEntryForm(
         config: CalculatorConfig.fallback,
+        scanResult: _scanResult,
         onSaved: () => context.pop(),
       ),
       data: (config) => _GradeEntryForm(
         config: config,
+        scanResult: _scanResult,
         onSaved: () => context.pop(),
       ),
     );
@@ -202,9 +330,11 @@ class _CaptureScreenState extends ConsumerState<CaptureScreen> {
 
 class _GradeEntryForm extends ConsumerStatefulWidget {
   final CalculatorConfig config;
+  final _ScanResult? scanResult;
   final VoidCallback onSaved;
 
-  const _GradeEntryForm({required this.config, required this.onSaved});
+  const _GradeEntryForm(
+      {required this.config, required this.onSaved, this.scanResult});
 
   @override
   ConsumerState<_GradeEntryForm> createState() => _GradeEntryFormState();
@@ -222,11 +352,17 @@ class _GradeEntryFormState extends ConsumerState<_GradeEntryForm> {
   void initState() {
     super.initState();
     _selectedSystem = widget.config.defaultGradingSystem;
-    if (widget.config.subjects.isNotEmpty) {
-      _selectedSubject = widget.config.subjects.first;
-    }
+    _selectedSubject = widget.scanResult?.subject ??
+        (widget.config.subjects.isNotEmpty
+            ? widget.config.subjects.first
+            : null);
     final grades = _selectedSystem.gradeValues;
-    if (grades.isNotEmpty) _selectedGrade = grades.first;
+    final detected = widget.scanResult?.grade;
+    if (detected != null && grades.contains(detected)) {
+      _selectedGrade = detected;
+    } else if (grades.isNotEmpty) {
+      _selectedGrade = grades.first;
+    }
   }
 
   Future<void> _save(AppLocalizations l10n) async {
@@ -260,6 +396,8 @@ class _GradeEntryFormState extends ConsumerState<_GradeEntryForm> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final grades = _selectedSystem.gradeValues;
+    final detected = widget.scanResult?.grade != null ||
+        widget.scanResult?.subject != null;
 
     return SafeArea(
       child: SingleChildScrollView(
@@ -271,15 +409,21 @@ class _GradeEntryFormState extends ConsumerState<_GradeEntryForm> {
             Text(
               l10n.captureEnterGrade,
               style: const TextStyle(
-                color: Colors.white,
-                fontSize: 22,
-                fontWeight: FontWeight.w700,
-              ),
+                  color: Colors.white,
+                  fontSize: 22,
+                  fontWeight: FontWeight.w700),
             ),
             const SizedBox(height: 6),
             Text(
-              l10n.captureSelectSubjectGrade,
-              style: const TextStyle(color: Colors.white60, fontSize: 14),
+              detected
+                  ? l10n.captureDetectedHint
+                  : l10n.captureSelectSubjectGrade,
+              style: TextStyle(
+                color: detected
+                    ? AppColors.primary.withValues(alpha: 0.9)
+                    : Colors.white60,
+                fontSize: 14,
+              ),
             ),
             const SizedBox(height: 28),
 
@@ -298,10 +442,9 @@ class _GradeEntryFormState extends ConsumerState<_GradeEntryForm> {
                   Text(
                     l10n.captureSubjectLabel,
                     style: const TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.white60,
-                    ),
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.white60),
                   ),
                   const SizedBox(height: 12),
                   if (widget.config.subjects.isEmpty)
@@ -313,6 +456,8 @@ class _GradeEntryFormState extends ConsumerState<_GradeEntryForm> {
                       runSpacing: 8,
                       children: widget.config.subjects.map((s) {
                         final selected = s.id == _selectedSubject?.id;
+                        final autoDetected =
+                            widget.scanResult?.subject?.id == s.id;
                         return GestureDetector(
                           onTap: () =>
                               setState(() => _selectedSubject = s),
@@ -324,16 +469,34 @@ class _GradeEntryFormState extends ConsumerState<_GradeEntryForm> {
                                   ? AppColors.primary
                                   : Colors.white.withValues(alpha: 0.08),
                               borderRadius: BorderRadius.circular(20),
+                              border: autoDetected && !selected
+                                  ? Border.all(
+                                      color: AppColors.primary
+                                          .withValues(alpha: 0.5))
+                                  : null,
                             ),
-                            child: Text(
-                              s.name,
-                              style: TextStyle(
-                                color: selected
-                                    ? Colors.white
-                                    : Colors.white70,
-                                fontWeight: FontWeight.w500,
-                                fontSize: 13,
-                              ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                if (autoDetected) ...[
+                                  Icon(Icons.auto_awesome,
+                                      size: 12,
+                                      color: selected
+                                          ? Colors.white
+                                          : AppColors.primary),
+                                  const SizedBox(width: 4),
+                                ],
+                                Text(
+                                  s.name,
+                                  style: TextStyle(
+                                    color: selected
+                                        ? Colors.white
+                                        : Colors.white70,
+                                    fontWeight: FontWeight.w500,
+                                    fontSize: 13,
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
                         );
@@ -363,10 +526,9 @@ class _GradeEntryFormState extends ConsumerState<_GradeEntryForm> {
                       Text(
                         l10n.captureGradeLabel,
                         style: const TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w600,
-                          color: Colors.white60,
-                        ),
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.white60),
                       ),
                       Text(
                         _selectedSystem.name,
@@ -379,30 +541,46 @@ class _GradeEntryFormState extends ConsumerState<_GradeEntryForm> {
                   Row(
                     children: grades.map((g) {
                       final selected = g == _selectedGrade;
+                      final autoDetected = widget.scanResult?.grade == g;
                       return Expanded(
                         child: GestureDetector(
                           onTap: () =>
                               setState(() => _selectedGrade = g),
                           child: Container(
-                            margin:
-                                const EdgeInsets.symmetric(horizontal: 3),
-                            padding: const EdgeInsets.symmetric(vertical: 12),
+                            margin: const EdgeInsets.symmetric(horizontal: 3),
+                            padding:
+                                const EdgeInsets.symmetric(vertical: 12),
                             decoration: BoxDecoration(
                               color: selected
                                   ? AppColors.primary
                                   : Colors.white.withValues(alpha: 0.08),
                               borderRadius: BorderRadius.circular(10),
+                              border: autoDetected && !selected
+                                  ? Border.all(
+                                      color: AppColors.primary
+                                          .withValues(alpha: 0.6))
+                                  : null,
                             ),
                             alignment: Alignment.center,
-                            child: Text(
-                              g,
-                              style: TextStyle(
-                                color: selected
-                                    ? Colors.white
-                                    : Colors.white70,
-                                fontWeight: FontWeight.w700,
-                                fontSize: 16,
-                              ),
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                if (autoDetected && !selected)
+                                  Icon(Icons.auto_awesome,
+                                      size: 8,
+                                      color: AppColors.primary
+                                          .withValues(alpha: 0.8)),
+                                Text(
+                                  g,
+                                  style: TextStyle(
+                                    color: selected
+                                        ? Colors.white
+                                        : Colors.white70,
+                                    fontWeight: FontWeight.w700,
+                                    fontSize: 16,
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
                         ),
@@ -430,10 +608,9 @@ class _GradeEntryFormState extends ConsumerState<_GradeEntryForm> {
                   Text(
                     l10n.captureClassLevelLabel,
                     style: const TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.white60,
-                    ),
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.white60),
                   ),
                   const SizedBox(height: 12),
                   Wrap(
@@ -443,7 +620,8 @@ class _GradeEntryFormState extends ConsumerState<_GradeEntryForm> {
                       final level = i + 1;
                       final selected = level == _classLevel;
                       return GestureDetector(
-                        onTap: () => setState(() => _classLevel = level),
+                        onTap: () =>
+                            setState(() => _classLevel = level),
                         child: Container(
                           width: 40,
                           height: 40,
@@ -457,7 +635,9 @@ class _GradeEntryFormState extends ConsumerState<_GradeEntryForm> {
                           child: Text(
                             '$level',
                             style: TextStyle(
-                              color: selected ? Colors.white : Colors.white70,
+                              color: selected
+                                  ? Colors.white
+                                  : Colors.white70,
                               fontWeight: FontWeight.w700,
                               fontSize: 14,
                             ),
@@ -480,8 +660,8 @@ class _GradeEntryFormState extends ConsumerState<_GradeEntryForm> {
                 ),
                 child: Text(
                   _error!,
-                  style: const TextStyle(
-                      color: AppColors.error, fontSize: 13),
+                  style:
+                      const TextStyle(color: AppColors.error, fontSize: 13),
                 ),
               ),
             ],
@@ -520,12 +700,11 @@ class _GradeEntryFormState extends ConsumerState<_GradeEntryForm> {
                             width: 20,
                             height: 20,
                             child: CircularProgressIndicator(
-                              color: Colors.white,
-                              strokeWidth: 2,
-                            ),
+                                color: Colors.white, strokeWidth: 2),
                           )
                         : Text(l10n.captureSaveGrade,
-                            style: const TextStyle(fontWeight: FontWeight.w700)),
+                            style: const TextStyle(
+                                fontWeight: FontWeight.w700)),
                   ),
                 ),
               ],
@@ -554,8 +733,8 @@ class _CornerBracket extends StatelessWidget {
       width: 24,
       height: 24,
       child: CustomPaint(
-        painter: _BracketPainter(
-            isLeft: isLeft, isTop: isTop, color: color),
+        painter:
+            _BracketPainter(isLeft: isLeft, isTop: isTop, color: color),
       ),
     );
   }

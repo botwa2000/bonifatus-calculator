@@ -376,6 +376,8 @@
   "registerDateOfBirthHint": "Выбрать дату рождения",
   "registerDateOfBirthRequired": "Пожалуйста, выберите дату рождения",
   "captureClassLevelLabel": "Класс",
+  "captureAnalyzingImage": "Анализ изображения…",
+  "captureDetectedHint": "Оценка обнаружена — проверьте и подтвердите",
 
   "termTypeSemester1": "Семестр 1",
   "termTypeSemester2": "Семестр 2",

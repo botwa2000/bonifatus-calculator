@@ -1141,6 +1141,13 @@ class AppLocalizationsRu extends AppLocalizations {
   String get captureClassLevelLabel => 'Класс';
 
   @override
+  String get captureAnalyzingImage => 'Анализ изображения…';
+
+  @override
+  String get captureDetectedHint =>
+      'Оценка обнаружена — проверьте и подтвердите';
+
+  @override
   String get termTypeSemester1 => 'Семестр 1';
 
   @override

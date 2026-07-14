@@ -376,6 +376,8 @@
   "registerDateOfBirthHint": "Geburtsdatum wählen",
   "registerDateOfBirthRequired": "Bitte Geburtsdatum auswählen",
   "captureClassLevelLabel": "Klasse",
+  "captureAnalyzingImage": "Bild wird analysiert…",
+  "captureDetectedHint": "Note erkannt – bitte prüfen und bestätigen",
 
   "termTypeSemester1": "Semester 1",
   "termTypeSemester2": "Semester 2",
