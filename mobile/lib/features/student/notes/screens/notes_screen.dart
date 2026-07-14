@@ -408,8 +408,9 @@ class _NoteCard extends StatelessWidget {
     final tierColor = AppColors.tierColor(grade.gradeQualityTier);
     final tierColorLight = AppColors.tierColorLight(grade.gradeQualityTier);
     final l10n = AppLocalizations.of(context)!;
+    final locale = Localizations.localeOf(context).languageCode;
     final dateStr = DateFormat('MMM d').format(grade.gradedAt);
-    final subjectLabel = grade.subjectName ?? l10n.subjectFallback;
+    final subjectLabel = grade.localizedName(locale, fallback: l10n.subjectFallback);
 
     return GestureDetector(
       onTap: onTap,

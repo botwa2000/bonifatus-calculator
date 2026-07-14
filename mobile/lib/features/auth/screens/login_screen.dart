@@ -6,7 +6,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/constants/app_constants.dart';
 import '../../../api/services/biometric_service.dart';
-import '../providers/auth_provider.dart';
+import '../providers/auth_provider.dart' show authStateNotifierProvider;
 
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
@@ -21,7 +21,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   bool _obscure = true;
   bool _isSubmitting = false;
   bool _biometricAvailable = false;
-  bool _biometricAutoTriggered = false;
   String? _error;
 
   @override
@@ -40,10 +39,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     final canAuth = await svc.canAuthenticate();
     if (!mounted) return;
     setState(() => _biometricAvailable = canAuth);
-    if (canAuth && !_biometricAutoTriggered) {
-      _biometricAutoTriggered = true;
-      _loginWithBiometrics();
-    }
+    // Never auto-trigger — the user must tap the button explicitly.
   }
 
   @override

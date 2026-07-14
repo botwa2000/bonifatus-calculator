@@ -992,6 +992,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get termDetailEditLabel => 'Edit Label';
 
   @override
+  String get termSettledBadge => 'Settled';
+
+  @override
+  String get termOpenBadge => 'Open';
+
+  @override
   String get calculatorLabelHint => 'e.g. Final exam';
 
   @override

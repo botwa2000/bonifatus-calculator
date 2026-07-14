@@ -19,10 +19,10 @@ List<ChildTermResult> _demoTermResults() => [
         totalBonusPoints: 14,
         createdAt: DateTime(2025, 6, 15),
         subjects: [
-          const ChildSubjectGrade(id: 'sg1', subjectName: 'Mathematics', gradeValue: '2', gradeQualityTier: 'best', bonusPoints: 4),
-          const ChildSubjectGrade(id: 'sg2', subjectName: 'German', gradeValue: '1', gradeQualityTier: 'best', bonusPoints: 4),
-          const ChildSubjectGrade(id: 'sg3', subjectName: 'English', gradeValue: '3', gradeQualityTier: 'second', bonusPoints: 2),
-          const ChildSubjectGrade(id: 'sg4', subjectName: 'Physics', gradeValue: '2', gradeQualityTier: 'best', bonusPoints: 4),
+          ChildSubjectGrade(id: 'sg1', subjectNameMap: const {'en': 'Mathematics', 'de': 'Mathematik'}, gradeValue: '2', gradeQualityTier: 'best', bonusPoints: 4),
+          ChildSubjectGrade(id: 'sg2', subjectNameMap: const {'en': 'German', 'de': 'Deutsch'}, gradeValue: '1', gradeQualityTier: 'best', bonusPoints: 4),
+          ChildSubjectGrade(id: 'sg3', subjectNameMap: const {'en': 'English', 'de': 'Englisch'}, gradeValue: '3', gradeQualityTier: 'second', bonusPoints: 2),
+          ChildSubjectGrade(id: 'sg4', subjectNameMap: const {'en': 'Physics', 'de': 'Physik'}, gradeValue: '2', gradeQualityTier: 'best', bonusPoints: 4),
         ],
       ),
       ChildTermResult(
@@ -33,9 +33,9 @@ List<ChildTermResult> _demoTermResults() => [
         totalBonusPoints: 10,
         createdAt: DateTime(2025, 1, 20),
         subjects: [
-          const ChildSubjectGrade(id: 'sg5', subjectName: 'Mathematics', gradeValue: '3', gradeQualityTier: 'second', bonusPoints: 2),
-          const ChildSubjectGrade(id: 'sg6', subjectName: 'German', gradeValue: '2', gradeQualityTier: 'best', bonusPoints: 4),
-          const ChildSubjectGrade(id: 'sg7', subjectName: 'English', gradeValue: '2', gradeQualityTier: 'best', bonusPoints: 4),
+          ChildSubjectGrade(id: 'sg5', subjectNameMap: const {'en': 'Mathematics', 'de': 'Mathematik'}, gradeValue: '3', gradeQualityTier: 'second', bonusPoints: 2),
+          ChildSubjectGrade(id: 'sg6', subjectNameMap: const {'en': 'German', 'de': 'Deutsch'}, gradeValue: '2', gradeQualityTier: 'best', bonusPoints: 4),
+          ChildSubjectGrade(id: 'sg7', subjectNameMap: const {'en': 'English', 'de': 'Englisch'}, gradeValue: '2', gradeQualityTier: 'best', bonusPoints: 4),
         ],
       ),
     ];
@@ -376,6 +376,16 @@ class _TermResultCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final locale = Localizations.localeOf(context).languageCode;
+    final tier = term.tier;
+    final tierColor = AppColors.tierColor(tier);
+    final tierBgColor = AppColors.tierColorLight(tier);
+    final primary = term.averagePrimary;
+    final secondary = term.averageSecondary;
+    final settled = term.settlementStatus == 'settled';
+    final pts = term.totalBonusPoints;
+
     return ExpansionTile(
       tilePadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
       childrenPadding: const EdgeInsets.fromLTRB(14, 0, 14, 12),
@@ -387,90 +397,92 @@ class _TermResultCard extends StatelessWidget {
           side: const BorderSide(color: AppColors.primary, width: 1.5)),
       backgroundColor: Theme.of(context).colorScheme.surface,
       collapsedBackgroundColor: Theme.of(context).colorScheme.surface,
+      // Leading: average grade box
       leading: Container(
-        width: 44,
-        height: 44,
-        decoration: BoxDecoration(
-          color: AppColors.primaryLight,
-          borderRadius: BorderRadius.circular(10),
-        ),
+        width: 48,
+        height: 48,
+        decoration: BoxDecoration(color: tierBgColor, borderRadius: BorderRadius.circular(10)),
         alignment: Alignment.center,
-        child: Text(
-          '${term.totalBonusPoints}',
-          style: const TextStyle(
-            fontSize: 14,
-            fontWeight: FontWeight.w800,
-            color: AppColors.primary,
-          ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(primary, style: TextStyle(fontSize: 15, fontWeight: FontWeight.w800, color: tierColor)),
+            if (secondary != null)
+              Text(secondary, style: TextStyle(fontSize: 9, fontWeight: FontWeight.w700, color: tierColor.withValues(alpha: 0.75))),
+          ],
         ),
       ),
-      title: Text(
-        localizeTermLabel(AppLocalizations.of(context)!, term.termType, term.schoolYear, term.termName),
-        style: TextStyle(
-          fontWeight: FontWeight.w700,
-          fontSize: 14,
-          color: Theme.of(context).colorScheme.onSurface,
-        ),
+      title: Row(
+        children: [
+          Expanded(
+            child: Text(
+              localizeTermLabel(l10n, term.termType, term.schoolYear, term.termName),
+              style: TextStyle(fontWeight: FontWeight.w700, fontSize: 14, color: Theme.of(context).colorScheme.onSurface),
+            ),
+          ),
+          if (settled) ...[
+            const SizedBox(width: 6),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+              decoration: BoxDecoration(color: AppColors.tierBestLight, borderRadius: BorderRadius.circular(6)),
+              child: Text(l10n.termSettledBadge,
+                  style: const TextStyle(fontSize: 9, fontWeight: FontWeight.w700, color: AppColors.tierBest)),
+            ),
+          ],
+        ],
       ),
       subtitle: Text(
-        '${localizeTermType(AppLocalizations.of(context)!, term.termType)} · ${AppLocalizations.of(context)!.classLabel} ${term.classLevel} · ${AppLocalizations.of(context)!.calculatorSubjectsLabel(term.subjects.length)}',
+        '${localizeTermType(l10n, term.termType)} · ${l10n.classLabel} ${term.classLevel} · ${l10n.calculatorSubjectsLabel(term.subjects.length)}',
         style: TextStyle(fontSize: 11, color: Theme.of(context).colorScheme.onSurfaceVariant),
       ),
       trailing: Text(
-        '+${term.totalBonusPoints} ${AppLocalizations.of(context)!.ptsAbbr}',
-        style: const TextStyle(
-          fontSize: 14,
-          fontWeight: FontWeight.w700,
-          color: AppColors.tierBest,
-        ),
+        '+$pts ${l10n.ptsAbbr}',
+        style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: AppColors.tierBest),
       ),
-      children: term.subjects.map((s) {
-        final tier = s.gradeQualityTier ?? 'below';
-        final tierColor = AppColors.tierColor(tier);
-        final tierBg = AppColors.tierColorLight(tier);
-        return Padding(
-          padding: const EdgeInsets.only(bottom: 6),
-          child: Row(
+      children: [
+        ...term.subjects.map((s) {
+          final sTier = s.gradeQualityTier ?? 'below';
+          final sTierColor = AppColors.tierColor(sTier);
+          final sTierBg = AppColors.tierColorLight(sTier);
+          return Padding(
+            padding: const EdgeInsets.only(bottom: 6),
+            child: Row(
+              children: [
+                Container(
+                  width: 36,
+                  height: 36,
+                  decoration: BoxDecoration(color: sTierBg, borderRadius: BorderRadius.circular(8)),
+                  alignment: Alignment.center,
+                  child: Text(s.gradeValue ?? '—',
+                      style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: sTierColor)),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    s.localizedName(locale, fallback: l10n.subjectFallback),
+                    style: TextStyle(fontSize: 13, color: Theme.of(context).colorScheme.onSurfaceVariant),
+                  ),
+                ),
+                Text('+${s.bonusPoints} ${l10n.ptsAbbr}',
+                    style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.tierBest)),
+              ],
+            ),
+          );
+        }),
+        // Summary row below subjects
+        if (term.subjects.isNotEmpty) ...[
+          const Divider(height: 16),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Container(
-                width: 36,
-                height: 36,
-                decoration: BoxDecoration(
-                  color: tierBg,
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                alignment: Alignment.center,
-                child: Text(
-                  s.gradeValue ?? '—',
-                  style: TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w700,
-                    color: tierColor,
-                  ),
-                ),
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: Text(
-                  s.subjectName ?? AppLocalizations.of(context)!.subjectFallback,
-                  style: TextStyle(
-                    fontSize: 13,
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
-                  ),
-                ),
-              ),
-              Text(
-                '+${s.bonusPoints} ${AppLocalizations.of(context)!.ptsAbbr}',
-                style: const TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.tierBest,
-                ),
-              ),
+              Text('${l10n.calculatorSubjectsLabel(term.subjects.length)}  ·  ${l10n.termDetailAverage}: $primary${secondary != null ? ' ($secondary)' : ''}',
+                  style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.onSurfaceVariant)),
+              Text('+$pts ${l10n.ptsAbbr}',
+                  style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: AppColors.tierBest)),
             ],
           ),
-        );
-      }).toList(),
+        ],
+      ],
     );
   }
 }
@@ -482,6 +494,7 @@ class _GradeCard extends StatelessWidget {
 
   void _showDetail(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final locale = Localizations.localeOf(context).languageCode;
     final tier = grade.gradeQualityTier;
     final color = AppColors.tierColor(tier);
     final lightColor = AppColors.tierColorLight(tier);
@@ -503,7 +516,7 @@ class _GradeCard extends StatelessWidget {
                 style: TextStyle(fontSize: 24, fontWeight: FontWeight.w800, color: color))),
             const SizedBox(width: 16),
             Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Text(grade.subjectName ?? AppLocalizations.of(context)!.subjectFallback,
+              Text(grade.localizedName(locale, fallback: l10n.subjectFallback),
                 style: TextStyle(fontSize: 17, fontWeight: FontWeight.w700, color: Theme.of(context).colorScheme.onSurface)),
               Text(DateFormat('MMMM d, yyyy').format(grade.gradedAt),
                 style: TextStyle(fontSize: 13, color: Theme.of(context).colorScheme.onSurfaceVariant)),
@@ -527,6 +540,7 @@ class _GradeCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final locale = Localizations.localeOf(context).languageCode;
     final tier = grade.gradeQualityTier;
     final tierColor = AppColors.tierColor(tier);
     final tierColorLight = AppColors.tierColorLight(tier);
@@ -573,7 +587,7 @@ class _GradeCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  grade.subjectName ?? AppLocalizations.of(context)!.subjectFallback,
+                  grade.localizedName(locale, fallback: l10n.subjectFallback),
                   style: TextStyle(
                     fontWeight: FontWeight.w600,
                     fontSize: 14,

@@ -120,9 +120,12 @@ class TermDetailScreen extends ConsumerWidget {
 
         final isUnsettled = term.status != 'settled';
         final theme = Theme.of(context);
+        final locale = Localizations.localeOf(context).languageCode;
         final tier = term.tier;
         final tierColor = AppColors.tierColor(tier);
-        final avg = term.averageGrade;
+        final avgPrimary = term.averagePrimary;
+        final avgSecondary = term.averageSecondary;
+        final termSettled = term.settlementStatus == 'settled';
 
         return Scaffold(
           appBar: AppBar(
@@ -156,16 +159,34 @@ class TermDetailScreen extends ConsumerWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(localizeTermLabel(l10n, term.termType, term.schoolYear, term.termName),
-                            style: theme.textTheme.titleLarge),
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Expanded(
+                              child: Text(localizeTermLabel(l10n, term.termType, term.schoolYear, term.termName),
+                                  style: theme.textTheme.titleLarge),
+                            ),
+                            if (termSettled) ...[
+                              const SizedBox(width: 8),
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                decoration: BoxDecoration(
+                                  color: AppColors.tierBestLight,
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: Text(l10n.termSettledBadge,
+                                    style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: AppColors.tierBest)),
+                              ),
+                            ],
+                          ],
+                        ),
                         const SizedBox(height: 16),
                         Row(
                           children: [
-                            _Stat(
+                            _StatAvg(
                               label: l10n.termDetailAverage,
-                              value: avg != null
-                                  ? avg.toStringAsFixed(1)
-                                  : '-',
+                              primary: avgPrimary,
+                              secondary: avgSecondary,
                               color: tierColor,
                             ),
                             const SizedBox(width: 24),
@@ -209,8 +230,7 @@ class TermDetailScreen extends ConsumerWidget {
                                 children: [
                                   Expanded(
                                     child: Text(
-                                      subject.subjectName ??
-                                          subject.subjectId,
+                                      subject.localizedName(locale, fallback: subject.subjectId ?? '?'),
                                       style: theme.textTheme.bodyMedium,
                                     ),
                                   ),
@@ -259,21 +279,32 @@ class TermDetailScreen extends ConsumerWidget {
 class _Stat extends StatelessWidget {
   final String label, value;
   final Color color;
-  const _Stat(
-      {required this.label, required this.value, required this.color});
+  const _Stat({required this.label, required this.value, required this.color});
   @override
   Widget build(BuildContext context) => Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(label,
-              style:
-                  TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.onSurfaceVariant)),
+          Text(label, style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.onSurfaceVariant)),
           const SizedBox(height: 4),
-          Text(value,
-              style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w700,
-                  color: color)),
+          Text(value, style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: color)),
+        ],
+      );
+}
+
+class _StatAvg extends StatelessWidget {
+  final String label, primary;
+  final String? secondary;
+  final Color color;
+  const _StatAvg({required this.label, required this.primary, this.secondary, required this.color});
+  @override
+  Widget build(BuildContext context) => Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(label, style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.onSurfaceVariant)),
+          const SizedBox(height: 4),
+          Text(primary, style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: color)),
+          if (secondary != null)
+            Text(secondary!, style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: color.withValues(alpha: 0.75))),
         ],
       );
 }

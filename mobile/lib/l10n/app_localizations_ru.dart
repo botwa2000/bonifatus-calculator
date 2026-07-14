@@ -996,6 +996,12 @@ class AppLocalizationsRu extends AppLocalizations {
   String get termDetailEditLabel => 'Изменить метку';
 
   @override
+  String get termSettledBadge => 'Оплачено';
+
+  @override
+  String get termOpenBadge => 'Открыто';
+
+  @override
   String get calculatorLabelHint => 'напр. Итоговый экзамен';
 
   @override

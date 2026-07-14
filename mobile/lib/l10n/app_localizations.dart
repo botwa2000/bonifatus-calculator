@@ -1972,6 +1972,18 @@ abstract class AppLocalizations {
   /// **'Edit Label'**
   String get termDetailEditLabel;
 
+  /// No description provided for @termSettledBadge.
+  ///
+  /// In en, this message translates to:
+  /// **'Settled'**
+  String get termSettledBadge;
+
+  /// No description provided for @termOpenBadge.
+  ///
+  /// In en, this message translates to:
+  /// **'Open'**
+  String get termOpenBadge;
+
   /// No description provided for @calculatorLabelHint.
   ///
   /// In en, this message translates to:

@@ -392,6 +392,8 @@
   "termDetailDeleteConfirm": "Are you sure you want to delete this result? This action cannot be undone.",
   "termDetailDelete": "Delete",
   "termDetailEditLabel": "Edit Label",
+  "termSettledBadge": "Settled",
+  "termOpenBadge": "Open",
 
   "calculatorLabelHint": "e.g. Final exam",
   "studentNotesCount": "{count, plural, =1{{count} note} other{{count} notes}}",

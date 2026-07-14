@@ -1008,6 +1008,12 @@ class AppLocalizationsFr extends AppLocalizations {
   String get termDetailEditLabel => 'Modifier l\'intitulé';
 
   @override
+  String get termSettledBadge => 'Réglé';
+
+  @override
+  String get termOpenBadge => 'Ouvert';
+
+  @override
   String get calculatorLabelHint => 'ex. Examen final';
 
   @override

@@ -993,6 +993,12 @@ class AppLocalizationsIt extends AppLocalizations {
   String get termDetailEditLabel => 'Modifica etichetta';
 
   @override
+  String get termSettledBadge => 'Saldato';
+
+  @override
+  String get termOpenBadge => 'Aperto';
+
+  @override
   String get calculatorLabelHint => 'es. Esame finale';
 
   @override

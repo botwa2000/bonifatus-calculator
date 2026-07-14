@@ -1000,6 +1000,12 @@ class AppLocalizationsEs extends AppLocalizations {
   String get termDetailEditLabel => 'Editar etiqueta';
 
   @override
+  String get termSettledBadge => 'Liquidado';
+
+  @override
+  String get termOpenBadge => 'Abierto';
+
+  @override
   String get calculatorLabelHint => 'ej. Examen final';
 
   @override

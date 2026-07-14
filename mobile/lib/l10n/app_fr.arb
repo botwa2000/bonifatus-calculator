@@ -342,6 +342,8 @@
   "termDetailDeleteConfirm": "Êtes-vous sûr de vouloir supprimer ce résultat ? Cette action est irréversible.",
   "termDetailDelete": "Supprimer",
   "termDetailEditLabel": "Modifier l'intitulé",
+  "termSettledBadge": "Réglé",
+  "termOpenBadge": "Ouvert",
 
   "calculatorLabelHint": "ex. Examen final",
   "studentNotesCount": "{count, plural, =1{{count} note} other{{count} notes}}",

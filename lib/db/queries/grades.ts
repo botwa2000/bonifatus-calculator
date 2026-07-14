@@ -35,6 +35,7 @@ function mapSubjectGrade(
     grade_quality_tier: sg.gradeQualityTier,
     subject_weight: sg.subjectWeight,
     bonus_points: sg.bonusPoints,
+    settlement_status: sg.settlementStatus,
     subjects:
       sg.subjectId && subjectMap[sg.subjectId]
         ? { id: subjectMap[sg.subjectId].id, name: subjectMap[sg.subjectId].name }
@@ -49,6 +50,8 @@ function mapTerm(
   subjectMap: Record<string, typeof subjects.$inferSelect>
 ) {
   const gs = gsMap[term.gradingSystemId]
+  const termSGs = allSubjectGrades.filter((sg) => sg.termGradeId === term.id)
+  const isSettled = termSGs.length > 0 && termSGs.every((sg) => sg.settlementStatus === 'settled')
   return {
     id: term.id,
     child_id: term.childId,
@@ -57,14 +60,14 @@ function mapTerm(
     term_name: term.termName,
     class_level: term.classLevel,
     grading_system_id: term.gradingSystemId,
+    grading_system_code: gs?.code ?? null,
     total_bonus_points: term.totalBonusPoints,
     status: term.status,
+    settlement_status: isSettled ? 'settled' : 'open',
     created_at: term.createdAt,
     updated_at: term.updatedAt,
     grading_systems: gs ? mapGradingSystem(gs) : null,
-    subject_grades: allSubjectGrades
-      .filter((sg) => sg.termGradeId === term.id)
-      .map((sg) => mapSubjectGrade(sg, subjectMap)),
+    subject_grades: termSGs.map((sg) => mapSubjectGrade(sg, subjectMap)),
   }
 }
 

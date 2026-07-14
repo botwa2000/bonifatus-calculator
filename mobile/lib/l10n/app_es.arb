@@ -342,6 +342,8 @@
   "termDetailDeleteConfirm": "¿Estás seguro de que deseas eliminar este resultado? Esta acción no se puede deshacer.",
   "termDetailDelete": "Eliminar",
   "termDetailEditLabel": "Editar etiqueta",
+  "termSettledBadge": "Liquidado",
+  "termOpenBadge": "Abierto",
 
   "calculatorLabelHint": "ej. Examen final",
   "studentNotesCount": "{count, plural, =1{{count} nota} other{{count} notas}}",

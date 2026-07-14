@@ -1006,6 +1006,12 @@ class AppLocalizationsDe extends AppLocalizations {
   String get termDetailEditLabel => 'Bezeichnung bearbeiten';
 
   @override
+  String get termSettledBadge => 'Abgerechnet';
+
+  @override
+  String get termOpenBadge => 'Offen';
+
+  @override
   String get calculatorLabelHint => 'z.B. Abschlussprüfung';
 
   @override

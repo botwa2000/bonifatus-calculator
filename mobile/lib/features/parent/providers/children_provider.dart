@@ -9,22 +9,22 @@ List<ChildWithGrades> _demoChildren() => [
         childName: 'Maxim',
         grades: [
           ChildQuickGrade(
-            id: 'g1', subjectId: 's1', subjectName: 'Mathematics',
+            id: 'g1', subjectId: 's1', subjectNameMap: const {'en': 'Mathematics', 'de': 'Mathematik'},
             gradeValue: '2', gradeQualityTier: 'best', bonusPoints: 4,
             settlementStatus: 'settled', gradedAt: DateTime(2025, 6, 10),
           ),
           ChildQuickGrade(
-            id: 'g2', subjectId: 's2', subjectName: 'German',
+            id: 'g2', subjectId: 's2', subjectNameMap: const {'en': 'German', 'de': 'Deutsch'},
             gradeValue: '1', gradeQualityTier: 'best', bonusPoints: 4,
             settlementStatus: 'settled', gradedAt: DateTime(2025, 6, 8),
           ),
           ChildQuickGrade(
-            id: 'g3', subjectId: 's3', subjectName: 'English',
+            id: 'g3', subjectId: 's3', subjectNameMap: const {'en': 'English', 'de': 'Englisch'},
             gradeValue: '3', gradeQualityTier: 'second', bonusPoints: 2,
             settlementStatus: 'unsettled', gradedAt: DateTime(2025, 6, 5),
           ),
           ChildQuickGrade(
-            id: 'g4', subjectId: 's4', subjectName: 'Physics',
+            id: 'g4', subjectId: 's4', subjectNameMap: const {'en': 'Physics', 'de': 'Physik'},
             gradeValue: '2', gradeQualityTier: 'best', bonusPoints: 4,
             settlementStatus: 'unsettled', gradedAt: DateTime(2025, 5, 28),
           ),

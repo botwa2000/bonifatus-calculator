@@ -678,6 +678,7 @@ class _CalculatorScreenState extends ConsumerState<CalculatorScreen> {
                     const SizedBox(height: 6),
                     DropdownButtonFormField<String>(
                       initialValue: _termType,
+                      isExpanded: true,
                       decoration: InputDecoration(
                         isDense: true,
                         contentPadding: const EdgeInsets.symmetric(

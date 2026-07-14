@@ -342,6 +342,8 @@
   "termDetailDeleteConfirm": "Вы уверены, что хотите удалить этот результат? Это действие нельзя отменить.",
   "termDetailDelete": "Удалить",
   "termDetailEditLabel": "Изменить метку",
+  "termSettledBadge": "Оплачено",
+  "termOpenBadge": "Открыто",
 
   "calculatorLabelHint": "напр. Итоговый экзамен",
   "studentNotesCount": "{count, plural, =1{{count} запись} few{{count} записи} other{{count} записей}}",

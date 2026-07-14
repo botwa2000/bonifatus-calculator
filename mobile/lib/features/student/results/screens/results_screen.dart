@@ -198,10 +198,11 @@ class _TermCard extends StatelessWidget {
     final tier = term.tier;
     final color = AppColors.tierColor(tier);
     final lightColor = AppColors.tierColorLight(tier);
-    final avgGrade = term.averageGrade;
-    final avgStr = avgGrade != null
-        ? avgGrade.toStringAsFixed(1)
-        : '-';
+    final primary = term.averagePrimary;
+    final secondary = term.averageSecondary;
+    final settled = term.settlementStatus == 'settled';
+    final pts = term.totalBonusPoints;
+    final ptsStr = pts % 1 == 0 ? pts.toInt().toString() : pts.toStringAsFixed(1);
 
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
@@ -212,18 +213,17 @@ class _TermCard extends StatelessWidget {
           padding: const EdgeInsets.all(16),
           child: Row(
             children: [
+              // Leading: average grade box
               Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                decoration: BoxDecoration(
-                    color: lightColor,
-                    borderRadius: BorderRadius.circular(8)),
-                child: Text(
-                  avgStr,
-                  style: TextStyle(
-                      color: color,
-                      fontWeight: FontWeight.w700,
-                      fontSize: 18),
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                decoration: BoxDecoration(color: lightColor, borderRadius: BorderRadius.circular(8)),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(primary, style: TextStyle(color: color, fontWeight: FontWeight.w700, fontSize: 18)),
+                    if (secondary != null)
+                      Text(secondary, style: TextStyle(color: color.withValues(alpha: 0.75), fontSize: 11, fontWeight: FontWeight.w600)),
+                  ],
                 ),
               ),
               const SizedBox(width: 14),
@@ -235,17 +235,29 @@ class _TermCard extends StatelessWidget {
                         style: theme.textTheme.titleMedium),
                     const SizedBox(height: 2),
                     Text(
-                      '${term.totalBonusPoints % 1 == 0 ? term.totalBonusPoints.toInt() : term.totalBonusPoints.toStringAsFixed(1)} ${l10n.ptsAbbr} · ${l10n.calculatorSubjectsLabel(term.subjects.length)}',
+                      '$ptsStr ${l10n.ptsAbbr} · ${l10n.calculatorSubjectsLabel(term.subjects.length)}',
                       style: theme.textTheme.bodyMedium?.copyWith(
-                        color: term.totalBonusPoints >= 0
-                            ? AppColors.success
-                            : AppColors.error,
+                        color: pts >= 0 ? AppColors.success : AppColors.error,
                       ),
                     ),
                   ],
                 ),
               ),
-              Icon(Icons.chevron_right, color: Theme.of(context).colorScheme.onSurfaceVariant),
+              // Settlement badge
+              if (settled) ...[
+                const SizedBox(width: 8),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+                  decoration: BoxDecoration(
+                    color: AppColors.tierBestLight,
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                  child: Text(l10n.termSettledBadge,
+                      style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: AppColors.tierBest)),
+                ),
+              ],
+              const SizedBox(width: 4),
+              Icon(Icons.chevron_right, color: theme.colorScheme.onSurfaceVariant),
             ],
           ),
         ),
