@@ -57,14 +57,16 @@ class GradeService {
   Future<String> createSettlement({
     required String childId,
     required int amount,
-    required List<String> quickGradeIds,
+    List<String> quickGradeIds = const [],
+    List<String> subjectGradeIds = const [],
   }) async {
     final resp = await _client.post('/api/settlements/create', data: {
       'childId': childId,
       'amount': amount.toDouble(),
       'currency': 'pts',
       'method': 'app',
-      'quickGradeIds': quickGradeIds,
+      if (quickGradeIds.isNotEmpty) 'quickGradeIds': quickGradeIds,
+      if (subjectGradeIds.isNotEmpty) 'subjectGradeIds': subjectGradeIds,
     });
     return resp.data['settlementId'] as String;
   }

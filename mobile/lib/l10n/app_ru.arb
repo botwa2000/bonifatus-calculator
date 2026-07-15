@@ -326,6 +326,26 @@
   "parentInsightsTotalEarned": "Всего заработано",
   "parentInsightsPending": "Ожидает",
   "parentInsightsChildren": "Дети",
+  "insightsReadyToSettle": "К выплате",
+  "insightsRecentActivity": "Последние оценки",
+  "insightsPendingPts": "Ожидает (пт)",
+  "insightsUnsettledGrades": "Не выплачено",
+  "insightsToday": "Сегодня",
+  "insightsYesterday": "Вчера",
+  "insightsDaysAgo": "{days}д назад",
+  "@insightsDaysAgo": {
+    "placeholders": {
+      "days": { "type": "int" }
+    }
+  },
+  "insightsNote": "запись",
+  "insightsNotes": "записи",
+  "rewardsSettleAmount": "Выплатить · {pts} пт",
+  "@rewardsSettleAmount": {
+    "placeholders": {
+      "pts": { "type": "int" }
+    }
+  },
 
   "navHome": "Главная",
   "navCalculator": "Калькулятор",

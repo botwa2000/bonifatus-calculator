@@ -213,7 +213,10 @@ class _ChildGradesCard extends ConsumerWidget {
                       borderRadius: BorderRadius.circular(10)),
                 ),
                 child: Text(
-                  AppLocalizations.of(context)!.rewardsSettle,
+                  pendingGrades.isEmpty
+                      ? AppLocalizations.of(context)!.rewardsSettle
+                      : AppLocalizations.of(context)!.rewardsSettleAmount(
+                          pendingGrades.fold<int>(0, (s, g) => s + g.bonusPoints)),
                   style: const TextStyle(fontWeight: FontWeight.w600),
                 ),
               ),

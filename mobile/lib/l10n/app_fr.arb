@@ -326,6 +326,26 @@
   "parentInsightsTotalEarned": "Total gagné",
   "parentInsightsPending": "En attente",
   "parentInsightsChildren": "Enfants",
+  "insightsReadyToSettle": "À régler",
+  "insightsRecentActivity": "Activité récente",
+  "insightsPendingPts": "Pts en attente",
+  "insightsUnsettledGrades": "Non réglé",
+  "insightsToday": "Aujourd'hui",
+  "insightsYesterday": "Hier",
+  "insightsDaysAgo": "il y a {days}j",
+  "@insightsDaysAgo": {
+    "placeholders": {
+      "days": { "type": "int" }
+    }
+  },
+  "insightsNote": "note",
+  "insightsNotes": "notes",
+  "rewardsSettleAmount": "Régler · {pts} pts",
+  "@rewardsSettleAmount": {
+    "placeholders": {
+      "pts": { "type": "int" }
+    }
+  },
 
   "navHome": "Accueil",
   "navCalculator": "Calculatrice",

@@ -7,6 +7,8 @@ class ChildQuickGrade {
   final int bonusPoints;
   final String settlementStatus;
   final DateTime gradedAt;
+  // 'notes' = quick-capture note; 'calculator' = saved term subject grade
+  final String gradeSource;
 
   const ChildQuickGrade({
     required this.id,
@@ -17,6 +19,7 @@ class ChildQuickGrade {
     required this.bonusPoints,
     required this.settlementStatus,
     required this.gradedAt,
+    this.gradeSource = 'notes',
   });
 
   String localizedName(String locale, {String fallback = ''}) {
@@ -40,13 +43,14 @@ class ChildQuickGrade {
     }
     return ChildQuickGrade(
       id: json['id'] as String,
-      subjectId: json['subjectId'] as String,
+      subjectId: json['subjectId'] as String? ?? '',
       subjectNameMap: nameMap,
-      gradeValue: json['gradeValue'] as String,
+      gradeValue: json['gradeValue'] as String? ?? '',
       gradeQualityTier: json['gradeQualityTier'] as String? ?? 'below',
       bonusPoints: ((json['bonusPoints']) as num?)?.toInt() ?? 0,
       settlementStatus: json['settlementStatus'] as String? ?? 'unsettled',
       gradedAt: DateTime.parse(json['gradedAt'] as String),
+      gradeSource: json['gradeSource'] as String? ?? 'notes',
     );
   }
 }

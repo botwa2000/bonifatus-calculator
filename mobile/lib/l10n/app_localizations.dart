@@ -1930,6 +1930,66 @@ abstract class AppLocalizations {
   /// **'Children'**
   String get parentInsightsChildren;
 
+  /// No description provided for @insightsReadyToSettle.
+  ///
+  /// In en, this message translates to:
+  /// **'Ready to Settle'**
+  String get insightsReadyToSettle;
+
+  /// No description provided for @insightsRecentActivity.
+  ///
+  /// In en, this message translates to:
+  /// **'Recent Activity'**
+  String get insightsRecentActivity;
+
+  /// No description provided for @insightsPendingPts.
+  ///
+  /// In en, this message translates to:
+  /// **'Pending pts'**
+  String get insightsPendingPts;
+
+  /// No description provided for @insightsUnsettledGrades.
+  ///
+  /// In en, this message translates to:
+  /// **'Unsettled'**
+  String get insightsUnsettledGrades;
+
+  /// No description provided for @insightsToday.
+  ///
+  /// In en, this message translates to:
+  /// **'Today'**
+  String get insightsToday;
+
+  /// No description provided for @insightsYesterday.
+  ///
+  /// In en, this message translates to:
+  /// **'Yesterday'**
+  String get insightsYesterday;
+
+  /// No description provided for @insightsDaysAgo.
+  ///
+  /// In en, this message translates to:
+  /// **'{days}d ago'**
+  String insightsDaysAgo(int days);
+
+  /// No description provided for @insightsNote.
+  ///
+  /// In en, this message translates to:
+  /// **'note'**
+  String get insightsNote;
+
+  /// No description provided for @insightsNotes.
+  ///
+  /// In en, this message translates to:
+  /// **'notes'**
+  String get insightsNotes;
+
+  /// No description provided for @rewardsSettleAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'Settle · {pts} pts'**
+  String rewardsSettleAmount(int pts);
+
   /// No description provided for @navHome.
   ///
   /// In en, this message translates to:

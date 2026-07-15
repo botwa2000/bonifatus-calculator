@@ -972,6 +972,40 @@ class AppLocalizationsRu extends AppLocalizations {
   String get parentInsightsChildren => 'Дети';
 
   @override
+  String get insightsReadyToSettle => 'К выплате';
+
+  @override
+  String get insightsRecentActivity => 'Последние оценки';
+
+  @override
+  String get insightsPendingPts => 'Ожидает (пт)';
+
+  @override
+  String get insightsUnsettledGrades => 'Не выплачено';
+
+  @override
+  String get insightsToday => 'Сегодня';
+
+  @override
+  String get insightsYesterday => 'Вчера';
+
+  @override
+  String insightsDaysAgo(int days) {
+    return '$daysд назад';
+  }
+
+  @override
+  String get insightsNote => 'запись';
+
+  @override
+  String get insightsNotes => 'записи';
+
+  @override
+  String rewardsSettleAmount(int pts) {
+    return 'Выплатить · $pts пт';
+  }
+
+  @override
   String get navHome => 'Главная';
 
   @override

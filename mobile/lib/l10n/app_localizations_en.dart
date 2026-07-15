@@ -968,6 +968,40 @@ class AppLocalizationsEn extends AppLocalizations {
   String get parentInsightsChildren => 'Children';
 
   @override
+  String get insightsReadyToSettle => 'Ready to Settle';
+
+  @override
+  String get insightsRecentActivity => 'Recent Activity';
+
+  @override
+  String get insightsPendingPts => 'Pending pts';
+
+  @override
+  String get insightsUnsettledGrades => 'Unsettled';
+
+  @override
+  String get insightsToday => 'Today';
+
+  @override
+  String get insightsYesterday => 'Yesterday';
+
+  @override
+  String insightsDaysAgo(int days) {
+    return '${days}d ago';
+  }
+
+  @override
+  String get insightsNote => 'note';
+
+  @override
+  String get insightsNotes => 'notes';
+
+  @override
+  String rewardsSettleAmount(int pts) {
+    return 'Settle · $pts pts';
+  }
+
+  @override
   String get navHome => 'Home';
 
   @override

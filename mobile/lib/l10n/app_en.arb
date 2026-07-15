@@ -376,6 +376,26 @@
   "parentInsightsTotalEarned": "Total Earned",
   "parentInsightsPending": "Pending",
   "parentInsightsChildren": "Children",
+  "insightsReadyToSettle": "Ready to Settle",
+  "insightsRecentActivity": "Recent Activity",
+  "insightsPendingPts": "Pending pts",
+  "insightsUnsettledGrades": "Unsettled",
+  "insightsToday": "Today",
+  "insightsYesterday": "Yesterday",
+  "insightsDaysAgo": "{days}d ago",
+  "@insightsDaysAgo": {
+    "placeholders": {
+      "days": { "type": "int" }
+    }
+  },
+  "insightsNote": "note",
+  "insightsNotes": "notes",
+  "rewardsSettleAmount": "Settle · {pts} pts",
+  "@rewardsSettleAmount": {
+    "placeholders": {
+      "pts": { "type": "int" }
+    }
+  },
 
   "navHome": "Home",
   "navCalculator": "Calculator",
