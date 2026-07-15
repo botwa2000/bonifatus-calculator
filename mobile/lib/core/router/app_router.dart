@@ -9,6 +9,7 @@ import '../../features/auth/screens/login_screen.dart';
 import '../../features/auth/screens/register_screen.dart';
 import '../../features/auth/screens/forgot_password_screen.dart';
 import '../../features/auth/screens/verify_email_screen.dart';
+import '../../features/auth/screens/google_profile_screen.dart';
 import '../../features/student/dashboard/student_dashboard_screen.dart';
 import '../../features/student/notes/screens/notes_screen.dart';
 import '../../features/student/notes/screens/capture_screen.dart';
@@ -75,6 +76,17 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(path: '/onboarding', builder: (_, __) => const OnboardingScreen()),
       GoRoute(path: '/student/notes/capture', builder: (_, __) => const CaptureScreen()),
       GoRoute(path: '/auth/login', builder: (_, __) => const LoginScreen()),
+      GoRoute(
+        path: '/auth/google-profile',
+        builder: (_, state) {
+          final data = state.extra as Map<String, String>;
+          return GoogleProfileScreen(
+            idToken: data['idToken']!,
+            name: data['name']!,
+            email: data['email']!,
+          );
+        },
+      ),
       GoRoute(path: '/auth/register', builder: (_, __) => const RegisterScreen()),
       GoRoute(path: '/auth/forgot-password', builder: (_, __) => const ForgotPasswordScreen()),
       GoRoute(

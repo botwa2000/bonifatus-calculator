@@ -3,10 +3,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:bonifatus_mobile/l10n/app_localizations.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/constants/app_constants.dart';
 import '../../../api/services/biometric_service.dart';
-import '../providers/auth_provider.dart' show authStateNotifierProvider;
+import '../providers/auth_provider.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
@@ -57,6 +58,41 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       password: _passCtrl.text,
     );
     if (mounted) setState(() => _isSubmitting = false);
+  }
+
+  Future<void> _loginWithGoogle() async {
+    if (AppConstants.googleWebClientId.isEmpty) {
+      setState(() => _error = 'Google Sign-In not configured yet.');
+      return;
+    }
+    setState(() { _error = null; _isSubmitting = true; });
+    try {
+      final googleSignIn = GoogleSignIn(serverClientId: AppConstants.googleWebClientId);
+      final account = await googleSignIn.signIn();
+      if (account == null) {
+        setState(() => _isSubmitting = false);
+        return;
+      }
+      final auth = await account.authentication;
+      final idToken = auth.idToken;
+      if (idToken == null || !mounted) {
+        setState(() { _error = 'Could not get Google token. Please try again.'; _isSubmitting = false; });
+        return;
+      }
+      final result = await ref.read(authStateNotifierProvider.notifier).loginWithGoogle(idToken: idToken);
+      if (!mounted) return;
+      if (result is GoogleSignInNeedsProfile) {
+        context.push('/auth/google-profile', extra: {
+          'idToken': idToken,
+          'name': result.name,
+          'email': result.email,
+        });
+      }
+    } catch (e) {
+      if (mounted) setState(() => _error = e.toString().replaceFirst('Exception: ', ''));
+    } finally {
+      if (mounted) setState(() => _isSubmitting = false);
+    }
   }
 
   Future<void> _loginWithBiometrics() async {
@@ -191,6 +227,28 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   ),
                 ],
 
+                const SizedBox(height: 16),
+                Row(children: [
+                  const Expanded(child: Divider()),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                    child: Text('or', style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant)),
+                  ),
+                  const Expanded(child: Divider()),
+                ]),
+                const SizedBox(height: 16),
+                OutlinedButton.icon(
+                  onPressed: _isSubmitting ? null : _loginWithGoogle,
+                  icon: Image.asset('assets/images/google_logo.png', width: 20, height: 20,
+                    errorBuilder: (_, __, ___) => const Icon(Icons.g_mobiledata, size: 22)),
+                  label: Text(l10n.loginContinueWithGoogle),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: theme.colorScheme.onSurface,
+                    side: BorderSide(color: theme.colorScheme.outline),
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  ),
+                ),
                 const SizedBox(height: 24),
                 Row(mainAxisAlignment: MainAxisAlignment.center, children: [
                   Text(l10n.loginNoAccountPrompt, style: theme.textTheme.bodyMedium),

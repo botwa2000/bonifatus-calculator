@@ -1200,4 +1200,16 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get gradingSystemGermanDefault => 'Немецкая 1–6';
+
+  @override
+  String get loginContinueWithGoogle => 'Войти через Google';
+
+  @override
+  String get googleProfileTitle => 'Заполните профиль';
+
+  @override
+  String get googleProfileSubtitle => 'Ещё несколько деталей для начала.';
+
+  @override
+  String get googleProfileRoleRequired => 'Пожалуйста, выберите роль';
 }

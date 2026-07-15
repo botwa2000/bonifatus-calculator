@@ -1191,4 +1191,17 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get gradingSystemGermanDefault => 'Tedesco 1–6';
+
+  @override
+  String get loginContinueWithGoogle => 'Continua con Google';
+
+  @override
+  String get googleProfileTitle => 'Completa il tuo profilo';
+
+  @override
+  String get googleProfileSubtitle =>
+      'Solo ancora qualche dettaglio per iniziare.';
+
+  @override
+  String get googleProfileRoleRequired => 'Per favore seleziona il tuo ruolo';
 }

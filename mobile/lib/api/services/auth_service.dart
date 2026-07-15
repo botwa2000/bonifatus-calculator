@@ -5,6 +5,20 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../../core/constants/app_constants.dart';
 import '../client.dart';
 
+sealed class GoogleSignInResult {}
+
+class GoogleSignInAuthenticated extends GoogleSignInResult {
+  final AuthSessionState session;
+  GoogleSignInAuthenticated(this.session);
+}
+
+class GoogleSignInNeedsProfile extends GoogleSignInResult {
+  final String name;
+  final String email;
+  final String idToken;
+  GoogleSignInNeedsProfile({required this.name, required this.email, required this.idToken});
+}
+
 String _serverError(DioException e, String fallback) {
   final data = e.response?.data;
   if (data is Map) return (data['error'] ?? data['message'] ?? fallback).toString();
@@ -174,6 +188,45 @@ class AuthService {
     try {
       await _client.post('/api/auth/signout', data: {});
     } catch (_) {}
+  }
+
+  Future<GoogleSignInResult> loginWithGoogle({
+    required String idToken,
+    String? role,
+    String? fullName,
+    String? dateOfBirth,
+  }) async {
+    try {
+      final data = <String, dynamic>{'idToken': idToken};
+      if (role != null) data['role'] = role;
+      if (fullName != null) data['fullName'] = fullName;
+      if (dateOfBirth != null) data['dateOfBirth'] = dateOfBirth;
+
+      final resp = await _client.post('/api/mobile/auth/google', data: data);
+
+      if (resp.data['status'] == 'needs_profile') {
+        return GoogleSignInNeedsProfile(
+          name: (resp.data['name'] as String?) ?? '',
+          email: (resp.data['email'] as String?) ?? '',
+          idToken: idToken,
+        );
+      }
+
+      final token = resp.data['accessToken'] as String?;
+      if (token == null) throw Exception('No access token in response');
+
+      await _storage.write(key: AppConstants.keyAccessToken, value: token);
+
+      return GoogleSignInAuthenticated(AuthSessionState(
+        isAuthenticated: true,
+        userId: resp.data['user']?['id'] as String?,
+        role: resp.data['user']?['role'] as String?,
+        name: resp.data['user']?['name'] as String?,
+        email: resp.data['user']?['email'] as String?,
+      ));
+    } on DioException catch (e) {
+      throw Exception(_serverError(e, 'Google sign-in failed'));
+    }
   }
 
   Future<void> deleteAccount() async {

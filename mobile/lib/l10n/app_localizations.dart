@@ -2265,6 +2265,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'German 1–6'**
   String get gradingSystemGermanDefault;
+
+  /// No description provided for @loginContinueWithGoogle.
+  ///
+  /// In en, this message translates to:
+  /// **'Continue with Google'**
+  String get loginContinueWithGoogle;
+
+  /// No description provided for @googleProfileTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Complete Your Profile'**
+  String get googleProfileTitle;
+
+  /// No description provided for @googleProfileSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Just a few more details to get started.'**
+  String get googleProfileSubtitle;
+
+  /// No description provided for @googleProfileRoleRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Please select your role'**
+  String get googleProfileRoleRequired;
 }
 
 class _AppLocalizationsDelegate

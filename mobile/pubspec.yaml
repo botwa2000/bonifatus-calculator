@@ -32,6 +32,9 @@ dependencies:
   # Biometrics
   local_auth: ^2.3.0
 
+  # Google Sign-In
+  google_sign_in: ^6.2.2
+
   # Camera & image
   camera: ^0.11.0+2
   image_picker: ^1.1.2

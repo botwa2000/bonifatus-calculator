@@ -2,6 +2,8 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../api/services/auth_service.dart';
 
+export '../../../api/services/auth_service.dart' show GoogleSignInResult, GoogleSignInAuthenticated, GoogleSignInNeedsProfile;
+
 // Re-export AuthSessionState under the shorter name used throughout the app
 typedef AuthState = AuthSessionState;
 
@@ -43,6 +45,25 @@ class AuthStateNotifier extends AsyncNotifier<AuthState> {
       if (!session.isAuthenticated) throw Exception('Session expired. Please sign in with your password.');
       return session;
     });
+  }
+
+  Future<GoogleSignInResult> loginWithGoogle({
+    required String idToken,
+    String? role,
+    String? fullName,
+    String? dateOfBirth,
+  }) async {
+    final service = ref.read(authServiceProvider);
+    final result = await service.loginWithGoogle(
+      idToken: idToken,
+      role: role,
+      fullName: fullName,
+      dateOfBirth: dateOfBirth,
+    );
+    if (result is GoogleSignInAuthenticated) {
+      state = AsyncValue.data(result.session);
+    }
+    return result;
   }
 
   Future<void> deleteAccount() async {

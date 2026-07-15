@@ -402,5 +402,10 @@
   "termTypeTrimester3": "Триместр 3",
   "termTypeAnnual": "Годовой",
   "nameUnknown": "Неизвестно",
-  "gradingSystemGermanDefault": "Немецкая 1–6"
+  "gradingSystemGermanDefault": "Немецкая 1–6",
+
+  "loginContinueWithGoogle": "Войти через Google",
+  "googleProfileTitle": "Заполните профиль",
+  "googleProfileSubtitle": "Ещё несколько деталей для начала.",
+  "googleProfileRoleRequired": "Пожалуйста, выберите роль"
 }

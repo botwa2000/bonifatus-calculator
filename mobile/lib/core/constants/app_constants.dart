@@ -2,6 +2,8 @@ class AppConstants {
   AppConstants._();
 
   static const String apiBaseUrl = String.fromEnvironment('API_BASE_URL', defaultValue: 'https://bonifatus.com');
+  // Google OAuth Web Client ID — set via --dart-define=GOOGLE_WEB_CLIENT_ID=xxx at build time
+  static const String googleWebClientId = String.fromEnvironment('GOOGLE_WEB_CLIENT_ID', defaultValue: '');
   static const String bundleId = 'com.bonifatus.app';
   static const String appName = 'Bonifatus';
 
