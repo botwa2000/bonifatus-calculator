@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../features/auth/providers/auth_provider.dart';
 import '../providers/onboarding_provider.dart';
+import '../../features/auth/screens/splash_screen.dart';
 import '../../features/auth/screens/onboarding_screen.dart';
 import '../../features/auth/screens/login_screen.dart';
 import '../../features/auth/screens/register_screen.dart';
@@ -31,14 +32,28 @@ final appRouterProvider = Provider<GoRouter>((ref) {
   final listenable = _AuthListenable(ref);
 
   return GoRouter(
-    initialLocation: '/onboarding',
+    initialLocation: '/splash',
     refreshListenable: listenable,
     redirect: (context, state) {
       final authState = ref.read(authStateNotifierProvider);
+      final loc = state.matchedLocation;
+
+      // Hold at splash while session is being restored — prevents login screen
+      // from mounting (and showing the biometric button) before auth resolves.
+      if (authState.isLoading) {
+        return loc == '/splash' ? null : '/splash';
+      }
+
       final isAuthenticated = authState.valueOrNull?.isAuthenticated ?? false;
       final hasSeen = ref.read(hasSeenOnboardingProvider);
-      final loc = state.matchedLocation;
-      final isAuthRoute = loc.startsWith('/auth') || loc == '/onboarding';
+      final isAuthRoute = loc.startsWith('/auth') || loc == '/onboarding' || loc == '/splash';
+
+      // Once auth is resolved, always leave the splash screen immediately.
+      if (loc == '/splash') {
+        if (!isAuthenticated) return hasSeen ? '/auth/login' : '/onboarding';
+        final role = authState.valueOrNull?.role ?? 'child';
+        return role == 'parent' ? '/parent/home' : '/student/home';
+      }
 
       // Returning user: skip the onboarding walkthrough and go straight to login
       if (!isAuthenticated && loc == '/onboarding' && hasSeen) return '/auth/login';
@@ -56,6 +71,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       return null;
     },
     routes: [
+      GoRoute(path: '/splash', builder: (_, __) => const SplashScreen()),
       GoRoute(path: '/onboarding', builder: (_, __) => const OnboardingScreen()),
       GoRoute(path: '/student/notes/capture', builder: (_, __) => const CaptureScreen()),
       GoRoute(path: '/auth/login', builder: (_, __) => const LoginScreen()),
