@@ -2062,6 +2062,12 @@ abstract class AppLocalizations {
   /// **'Error: {error}'**
   String genericFailedError(String error);
 
+  /// No description provided for @errorLoadingConfig.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load configuration'**
+  String get errorLoadingConfig;
+
   /// No description provided for @forgotPasswordCooldownMessage.
   ///
   /// In en, this message translates to:
@@ -2181,6 +2187,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Grade detected — review and confirm'**
   String get captureDetectedHint;
+
+  /// No description provided for @captureReviewGrades.
+  ///
+  /// In en, this message translates to:
+  /// **'Review Detected Grades'**
+  String get captureReviewGrades;
+
+  /// No description provided for @captureNGradesDetected.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{No grades detected} =1{1 grade detected} other{{count} grades detected}}'**
+  String captureNGradesDetected(int count);
+
+  /// No description provided for @captureAddEntry.
+  ///
+  /// In en, this message translates to:
+  /// **'Add entry'**
+  String get captureAddEntry;
+
+  /// No description provided for @captureSaveAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Save {count}'**
+  String captureSaveAll(int count);
+
+  /// No description provided for @captureSelectSubject.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap to select'**
+  String get captureSelectSubject;
 
   /// No description provided for @termTypeSemester1.
   ///

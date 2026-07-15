@@ -1089,6 +1089,9 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
+  String get errorLoadingConfig => 'Impossible de charger la configuration';
+
+  @override
   String forgotPasswordCooldownMessage(int seconds) {
     return 'Veuillez attendre $seconds secondes avant de demander un autre code.';
   }
@@ -1154,6 +1157,32 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get captureDetectedHint => 'Note détectée — vérifier et confirmer';
+
+  @override
+  String get captureReviewGrades => 'Vérifier les notes détectées';
+
+  @override
+  String captureNGradesDetected(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count notes détectées',
+      one: '1 note détectée',
+      zero: 'Aucune note détectée',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get captureAddEntry => 'Ajouter une entrée';
+
+  @override
+  String captureSaveAll(int count) {
+    return 'Enregistrer $count';
+  }
+
+  @override
+  String get captureSelectSubject => 'Appuyer pour sélectionner';
 
   @override
   String get termTypeSemester1 => 'Semestre 1';

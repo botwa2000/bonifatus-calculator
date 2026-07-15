@@ -57,6 +57,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
     },
     routes: [
       GoRoute(path: '/onboarding', builder: (_, __) => const OnboardingScreen()),
+      GoRoute(path: '/student/notes/capture', builder: (_, __) => const CaptureScreen()),
       GoRoute(path: '/auth/login', builder: (_, __) => const LoginScreen()),
       GoRoute(path: '/auth/register', builder: (_, __) => const RegisterScreen()),
       GoRoute(path: '/auth/forgot-password', builder: (_, __) => const ForgotPasswordScreen()),
@@ -77,7 +78,6 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             path: '/student/notes',
             builder: (_, __) => const NotesScreen(),
             routes: [
-              GoRoute(path: 'capture', builder: (_, __) => const CaptureScreen()),
               GoRoute(
                 path: 'detail/:id',
                 builder: (_, state) =>

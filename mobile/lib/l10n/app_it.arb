@@ -358,6 +358,7 @@
   "rewardsSummarySubtitle": "{count} voti · {pts} pts totali",
   "subjectFallback": "Materia",
   "genericFailedError": "Errore: {error}",
+  "errorLoadingConfig": "Impossibile caricare la configurazione",
   "forgotPasswordCooldownMessage": "Attendere {seconds} secondi prima di richiedere un altro codice.",
   "cycleTypeDaily": "Giornaliero",
   "cycleTypeWeekly": "Settimanale",
@@ -378,6 +379,21 @@
   "captureClassLevelLabel": "Livello classe",
   "captureAnalyzingImage": "Analisi immagine…",
   "captureDetectedHint": "Voto rilevato — controlla e conferma",
+  "captureReviewGrades": "Rivedi i voti rilevati",
+  "captureNGradesDetected": "{count, plural, =0{Nessun voto rilevato} =1{1 voto rilevato} other{{count} voti rilevati}}",
+  "@captureNGradesDetected": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "captureAddEntry": "Aggiungi voce",
+  "captureSaveAll": "Salva {count}",
+  "@captureSaveAll": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "captureSelectSubject": "Tocca per selezionare",
 
   "termTypeSemester1": "Semestre 1",
   "termTypeSemester2": "Semestre 2",

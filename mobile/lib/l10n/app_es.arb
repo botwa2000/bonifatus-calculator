@@ -358,6 +358,7 @@
   "rewardsSummarySubtitle": "{count} notas · {pts} pts total",
   "subjectFallback": "Asignatura",
   "genericFailedError": "Error: {error}",
+  "errorLoadingConfig": "No se pudo cargar la configuración",
   "forgotPasswordCooldownMessage": "Por favor espera {seconds} segundos antes de solicitar otro código.",
   "cycleTypeDaily": "Diario",
   "cycleTypeWeekly": "Semanal",
@@ -378,6 +379,21 @@
   "captureClassLevelLabel": "Nivel de clase",
   "captureAnalyzingImage": "Analizando imagen…",
   "captureDetectedHint": "Nota detectada — revisa y confirma",
+  "captureReviewGrades": "Revisar notas detectadas",
+  "captureNGradesDetected": "{count, plural, =0{Sin notas detectadas} =1{1 nota detectada} other{{count} notas detectadas}}",
+  "@captureNGradesDetected": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "captureAddEntry": "Agregar entrada",
+  "captureSaveAll": "Guardar {count}",
+  "@captureSaveAll": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "captureSelectSubject": "Toca para seleccionar",
 
   "termTypeSemester1": "Semestre 1",
   "termTypeSemester2": "Semestre 2",

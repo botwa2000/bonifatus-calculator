@@ -358,6 +358,7 @@
   "rewardsSummarySubtitle": "{count} оценок · {pts} балл. всего",
   "subjectFallback": "Предмет",
   "genericFailedError": "Ошибка: {error}",
+  "errorLoadingConfig": "Не удалось загрузить конфигурацию",
   "forgotPasswordCooldownMessage": "Пожалуйста, подождите {seconds} секунд перед повторным запросом кода.",
   "cycleTypeDaily": "Ежедневно",
   "cycleTypeWeekly": "Еженедельно",
@@ -378,6 +379,21 @@
   "captureClassLevelLabel": "Класс",
   "captureAnalyzingImage": "Анализ изображения…",
   "captureDetectedHint": "Оценка обнаружена — проверьте и подтвердите",
+  "captureReviewGrades": "Проверьте обнаруженные оценки",
+  "captureNGradesDetected": "{count, plural, =0{Оценки не обнаружены} =1{Обнаружена {count} оценка} few{Обнаружено {count} оценки} other{Обнаружено {count} оценок}}",
+  "@captureNGradesDetected": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "captureAddEntry": "Добавить запись",
+  "captureSaveAll": "Сохранить {count}",
+  "@captureSaveAll": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "captureSelectSubject": "Нажмите для выбора",
 
   "termTypeSemester1": "Семестр 1",
   "termTypeSemester2": "Семестр 2",

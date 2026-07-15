@@ -266,7 +266,7 @@ class StudentDashboardScreen extends ConsumerWidget {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      grade.subjectName ?? l10n.subjectFallback,
+                      grade.localizedName(Localizations.localeOf(context).languageCode, fallback: l10n.subjectFallback),
                       style:
                           Theme.of(context).textTheme.labelLarge?.copyWith(
                                 color: Theme.of(context).colorScheme.onSurface,

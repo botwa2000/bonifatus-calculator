@@ -1080,6 +1080,9 @@ class AppLocalizationsRu extends AppLocalizations {
   }
 
   @override
+  String get errorLoadingConfig => 'Не удалось загрузить конфигурацию';
+
+  @override
   String forgotPasswordCooldownMessage(int seconds) {
     return 'Пожалуйста, подождите $seconds секунд перед повторным запросом кода.';
   }
@@ -1146,6 +1149,33 @@ class AppLocalizationsRu extends AppLocalizations {
   @override
   String get captureDetectedHint =>
       'Оценка обнаружена — проверьте и подтвердите';
+
+  @override
+  String get captureReviewGrades => 'Проверьте обнаруженные оценки';
+
+  @override
+  String captureNGradesDetected(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Обнаружено $count оценок',
+      few: 'Обнаружено $count оценки',
+      one: 'Обнаружена $count оценка',
+      zero: 'Оценки не обнаружены',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get captureAddEntry => 'Добавить запись';
+
+  @override
+  String captureSaveAll(int count) {
+    return 'Сохранить $count';
+  }
+
+  @override
+  String get captureSelectSubject => 'Нажмите для выбора';
 
   @override
   String get termTypeSemester1 => 'Семестр 1';

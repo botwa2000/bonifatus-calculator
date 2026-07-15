@@ -438,6 +438,7 @@
   "@genericFailedError": {
     "placeholders": { "error": { "type": "String" } }
   },
+  "errorLoadingConfig": "Could not load configuration",
   "forgotPasswordCooldownMessage": "Please wait {seconds} seconds before requesting another code.",
   "@forgotPasswordCooldownMessage": {
     "placeholders": { "seconds": { "type": "int" } }
@@ -467,6 +468,21 @@
   "captureClassLevelLabel": "Class Level",
   "captureAnalyzingImage": "Analyzing image…",
   "captureDetectedHint": "Grade detected — review and confirm",
+  "captureReviewGrades": "Review Detected Grades",
+  "captureNGradesDetected": "{count, plural, =0{No grades detected} =1{1 grade detected} other{{count} grades detected}}",
+  "@captureNGradesDetected": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "captureAddEntry": "Add entry",
+  "captureSaveAll": "Save {count}",
+  "@captureSaveAll": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "captureSelectSubject": "Tap to select",
 
   "termTypeSemester1": "Semester 1",
   "termTypeSemester2": "Semester 2",

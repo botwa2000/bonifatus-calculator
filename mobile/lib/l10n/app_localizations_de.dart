@@ -1087,6 +1087,9 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
+  String get errorLoadingConfig => 'Konfiguration konnte nicht geladen werden';
+
+  @override
   String forgotPasswordCooldownMessage(int seconds) {
     return 'Bitte warte $seconds Sekunden, bevor du einen neuen Code anforderst.';
   }
@@ -1152,6 +1155,32 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get captureDetectedHint =>
       'Note erkannt – bitte prüfen und bestätigen';
+
+  @override
+  String get captureReviewGrades => 'Erkannte Noten prüfen';
+
+  @override
+  String captureNGradesDetected(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Noten erkannt',
+      one: '1 Note erkannt',
+      zero: 'Keine Noten erkannt',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get captureAddEntry => 'Eintrag hinzufügen';
+
+  @override
+  String captureSaveAll(int count) {
+    return '$count speichern';
+  }
+
+  @override
+  String get captureSelectSubject => 'Tippen zum Auswählen';
 
   @override
   String get termTypeSemester1 => 'Semester 1';
