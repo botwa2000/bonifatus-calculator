@@ -107,7 +107,7 @@ export async function getUnsettledQuickGrades(childId: string) {
 }
 
 export async function getChildQuickGrades(childId: string) {
-  return db
+  const rows = await db
     .select({
       id: quickGrades.id,
       subjectId: quickGrades.subjectId,
@@ -127,6 +127,7 @@ export async function getChildQuickGrades(childId: string) {
     .where(eq(quickGrades.childId, childId))
     .orderBy(desc(quickGrades.createdAt))
     .limit(200)
+  return rows.map((r) => ({ ...r, gradeSource: 'notes' as const }))
 }
 
 /**
@@ -168,6 +169,7 @@ export async function getChildTermSubjectGradesForDashboard(childId: string) {
     settlementStatus: r.settlementStatus ?? 'unsettled',
     settlementId: null as string | null,
     subjectName: r.subjectName ?? null,
+    gradeSource: 'calculator' as const,
   }))
 }
 
