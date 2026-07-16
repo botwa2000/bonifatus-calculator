@@ -83,18 +83,23 @@ jobs:
             echo "=== [0/5] Provision Swarm secrets ==="
             echo "Docker info:" && docker info --format '{{.Swarm.LocalNodeState}}' 2>&1 || true
 
-            provision_secret() {
-              local name="$1" value="$2"
-              if docker secret inspect "$name" > /dev/null 2>&1; then
-                echo "Docker secret $name already exists — skipping"
-              else
-                printf '%s' "$value" | docker secret create "$name" -
-                echo "Created Docker secret $name"
-              fi
-            }
+            SECRET_NAME="${ENV}_MOBILE_APP_SECRET"
+            if docker secret inspect "$SECRET_NAME" > /dev/null 2>&1; then
+              echo "Docker secret $SECRET_NAME already exists -- skipping"
+            else
+              echo "Creating Docker secret $SECRET_NAME"
+              printf '%s' "$MOBILE_APP_SECRET" | docker secret create "$SECRET_NAME" -
+              echo "Created Docker secret $SECRET_NAME"
+            fi
 
-            provision_secret "${ENV}_MOBILE_APP_SECRET" "$MOBILE_APP_SECRET"
-            provision_secret "${ENV}_GOOGLE_CLIENT_ID"  "$GOOGLE_CLIENT_ID"
+            SECRET_NAME="${ENV}_GOOGLE_CLIENT_ID"
+            if docker secret inspect "$SECRET_NAME" > /dev/null 2>&1; then
+              echo "Docker secret $SECRET_NAME already exists -- skipping"
+            else
+              echo "Creating Docker secret $SECRET_NAME (value length: ${#GOOGLE_CLIENT_ID})"
+              printf '%s' "$GOOGLE_CLIENT_ID" | docker secret create "$SECRET_NAME" -
+              echo "Created Docker secret $SECRET_NAME"
+            fi
 
             echo "=== [1/5] Pull latest ==="
             cd "$REPO_DIR"
