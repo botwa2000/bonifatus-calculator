@@ -80,6 +80,9 @@ jobs:
             MOBILE_APP_SECRET='${{ secrets.MOBILE_APP_SECRET }}'
             GOOGLE_CLIENT_ID='${{ secrets.GOOGLE_CLIENT_ID }}'
 
+            [ -n "$MOBILE_APP_SECRET" ] || { echo "ERROR: MOBILE_APP_SECRET secret is empty"; exit 1; }
+            [ -n "$GOOGLE_CLIENT_ID"  ] || { echo "ERROR: GOOGLE_CLIENT_ID secret is empty";  exit 1; }
+
             echo "=== [0/5] Provision Swarm secrets ==="
             echo "Docker info:" && docker info --format '{{.Swarm.LocalNodeState}}' 2>&1 || true
 
