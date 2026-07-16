@@ -94,11 +94,19 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         });
       }
     } on PlatformException catch (e) {
-      debugPrint('[GoogleSignIn] PlatformException: ${e.code} — ${e.message}');
+      debugPrint('[GoogleSignIn] PlatformException code=${e.code} message=${e.message} details=${e.details}');
       if (mounted) {
-        final msg = e.code == 'sign_in_failed'
-            ? 'Google Sign-In failed. Please try again.'
-            : e.message ?? 'Google Sign-In error (${e.code})';
+        // sign_in_failed with details containing "10" or "DEVELOPER_ERROR" means the
+        // release SHA-1 is not registered in Google Cloud Console for this package.
+        final details = e.details?.toString() ?? '';
+        final String msg;
+        if (e.code == 'sign_in_failed' && (details.contains('10') || details.contains('DEVELOPER_ERROR'))) {
+          msg = 'Google Sign-In: app signing certificate not registered. Contact support.';
+        } else if (e.code == 'sign_in_failed') {
+          msg = 'Google Sign-In failed. Please try again.';
+        } else {
+          msg = e.message ?? 'Google Sign-In error (${e.code})';
+        }
         setState(() => _error = msg);
       }
     } catch (e) {
