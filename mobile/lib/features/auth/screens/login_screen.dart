@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:bonifatus_mobile/l10n/app_localizations.dart';
 import 'package:go_router/go_router.dart';
@@ -233,6 +234,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     style: OutlinedButton.styleFrom(
                       foregroundColor: AppColors.primary,
                       side: const BorderSide(color: AppColors.primary),
+                      minimumSize: const Size(double.infinity, 56),
                       padding: const EdgeInsets.symmetric(vertical: 14),
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                     ),
@@ -251,14 +253,19 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 const SizedBox(height: 16),
                 OutlinedButton.icon(
                   onPressed: _isSubmitting ? null : _loginWithGoogle,
-                  icon: Image.asset('assets/images/google_logo.png', width: 20, height: 20,
-                    errorBuilder: (_, __, ___) => const Icon(Icons.g_mobiledata, size: 22)),
-                  label: Text(l10n.loginContinueWithGoogle),
+                  icon: SvgPicture.asset('assets/images/google_logo.svg', width: 20, height: 20),
+                  label: Text(l10n.loginContinueWithGoogle,
+                    style: theme.textTheme.labelLarge?.copyWith(
+                      color: theme.colorScheme.onSurface,
+                      fontWeight: FontWeight.w600,
+                    )),
                   style: OutlinedButton.styleFrom(
                     foregroundColor: theme.colorScheme.onSurface,
                     side: BorderSide(color: theme.colorScheme.outline),
+                    minimumSize: const Size(double.infinity, 56),
                     padding: const EdgeInsets.symmetric(vertical: 14),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    backgroundColor: theme.colorScheme.surface,
                   ),
                 ),
                 const SizedBox(height: 24),

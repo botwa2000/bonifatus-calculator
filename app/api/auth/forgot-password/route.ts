@@ -151,6 +151,15 @@ export async function POST(request: NextRequest) {
       html: template.html,
     })
 
+    // Audit log — helps trace automated/unexpected reset requests
+    console.log('[forgot-password] reset email sent', {
+      userId: user.id,
+      email: user.email,
+      source: isMobile ? 'mobile' : 'web',
+      ip: clientIp,
+      userAgent: request.headers.get('user-agent'),
+    })
+
     return successResponse
   } catch (error) {
     console.error('Forgot password error:', error)
