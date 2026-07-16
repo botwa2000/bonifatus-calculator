@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:bonifatus_mobile/l10n/app_localizations.dart';
 import 'package:go_router/go_router.dart';
@@ -69,14 +70,17 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     try {
       final googleSignIn = GoogleSignIn(serverClientId: AppConstants.googleWebClientId);
       final account = await googleSignIn.signIn();
+      debugPrint('[GoogleSignIn] signIn() result: $account');
       if (account == null) {
+        // User cancelled — stay silent so the screen doesn't show an error for a deliberate cancel.
         setState(() => _isSubmitting = false);
         return;
       }
       final auth = await account.authentication;
       final idToken = auth.idToken;
+      debugPrint('[GoogleSignIn] idToken null=${idToken == null}, accessToken null=${auth.accessToken == null}');
       if (idToken == null || !mounted) {
-        setState(() { _error = 'Could not get Google token. Please try again.'; _isSubmitting = false; });
+        setState(() { _error = 'Could not get Google token — SHA-1 certificate may not be registered in Google Cloud Console.'; _isSubmitting = false; });
         return;
       }
       final result = await ref.read(authStateNotifierProvider.notifier).loginWithGoogle(idToken: idToken);
@@ -87,6 +91,14 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
           'name': result.name,
           'email': result.email,
         });
+      }
+    } on PlatformException catch (e) {
+      debugPrint('[GoogleSignIn] PlatformException: ${e.code} — ${e.message}');
+      if (mounted) {
+        final msg = e.code == 'sign_in_failed'
+            ? 'Google Sign-In failed. Please try again.'
+            : e.message ?? 'Google Sign-In error (${e.code})';
+        setState(() => _error = msg);
       }
     } catch (e) {
       if (mounted) setState(() => _error = e.toString().replaceFirst('Exception: ', ''));
