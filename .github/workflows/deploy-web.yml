@@ -64,9 +64,8 @@ jobs:
           username: root
           key: ${{ secrets.HETZNER_SSH_PRIVATE_KEY }}
           envs: MOBILE_APP_SECRET,GOOGLE_CLIENT_ID
-          script_stop: true
           script: |
-            set -euxo pipefail
+            set -euo pipefail
             ENV="${{ steps.env.outputs.name }}"
             REPO_DIR="${{ steps.env.outputs.repo_dir }}"
             IMAGE_TAG="${{ steps.env.outputs.image }}"
