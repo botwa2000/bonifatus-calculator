@@ -366,6 +366,7 @@
   "termDetailDeleteConfirm": "Sei sicuro di voler eliminare questo risultato? Questa azione non può essere annullata.",
   "termDetailDelete": "Elimina",
   "termDetailEditLabel": "Modifica etichetta",
+  "termDetailEditGrade": "Modifica voto",
   "termSettledBadge": "Saldato",
   "termOpenBadge": "Aperto",
 

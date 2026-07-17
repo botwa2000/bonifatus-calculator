@@ -81,6 +81,21 @@ class GradeService {
       ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
   }
 
+  Future<void> updateTerm({
+    required TermResult term,
+    required List<Map<String, dynamic>> subjects,
+  }) async {
+    await _client.post('/api/grades/update', data: {
+      'termId': term.id,
+      'gradingSystemId': term.gradingSystemId,
+      'classLevel': term.classLevel,
+      'termType': term.termType,
+      'schoolYear': term.schoolYear,
+      if (term.termName != null && term.termName!.isNotEmpty) 'termName': term.termName,
+      'subjects': subjects,
+    });
+  }
+
   Future<void> deleteTerm(String id) async {
     await _client.delete('/api/grades/delete', data: {'id': id});
   }

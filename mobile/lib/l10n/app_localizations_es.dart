@@ -1046,6 +1046,9 @@ class AppLocalizationsEs extends AppLocalizations {
   String get termDetailEditLabel => 'Editar etiqueta';
 
   @override
+  String get termDetailEditGrade => 'Editar nota';
+
+  @override
   String get termSettledBadge => 'Liquidado';
 
   @override

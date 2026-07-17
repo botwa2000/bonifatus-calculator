@@ -31,6 +31,15 @@ class TermResultsNotifier extends AsyncNotifier<List<TermResult>> {
     await reload();
   }
 
+  Future<void> updateTermGrades(String termId, List<Map<String, dynamic>> subjects) async {
+    final service = ref.read(gradeServiceProvider);
+    final terms = state.valueOrNull ?? [];
+    final term = terms.where((t) => t.id == termId).firstOrNull;
+    if (term == null) return;
+    await service.updateTerm(term: term, subjects: subjects);
+    await reload();
+  }
+
   Future<String> saveTerm({
     required String gradingSystemId,
     required int classLevel,

@@ -366,6 +366,7 @@
   "termDetailDeleteConfirm": "Вы уверены, что хотите удалить этот результат? Это действие нельзя отменить.",
   "termDetailDelete": "Удалить",
   "termDetailEditLabel": "Изменить метку",
+  "termDetailEditGrade": "Изменить оценку",
   "termSettledBadge": "Оплачено",
   "termOpenBadge": "Открыто",
 

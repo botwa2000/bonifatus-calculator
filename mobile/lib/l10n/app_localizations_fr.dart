@@ -1054,6 +1054,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get termDetailEditLabel => 'Modifier l\'intitulé';
 
   @override
+  String get termDetailEditGrade => 'Modifier la note';
+
+  @override
   String get termSettledBadge => 'Réglé';
 
   @override

@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:bonifatus_mobile/l10n/app_localizations.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../models/term_result.dart';
 import '../../providers/term_results_provider.dart';
 import '../../../../utils/term_type_utils.dart';
 
@@ -33,6 +34,145 @@ class TermDetailScreen extends ConsumerWidget {
       await ref.read(termResultsProvider.notifier).deleteTerm(termId);
       if (context.mounted) context.pop();
     }
+  }
+
+  void _showEditGradeSheet(
+    BuildContext context,
+    WidgetRef ref,
+    AppLocalizations l10n,
+    String locale,
+    TermResult term,
+    SubjectResult subject,
+  ) {
+    final gradeCtrl = TextEditingController(text: subject.gradeValue);
+    String selectedGrade = subject.gradeValue;
+    final defs = term.gradingSystemDefinitions.isEmpty
+        ? <Map<String, dynamic>>[]
+        : term.gradingSystemDefinitions
+            .whereType<Map<String, dynamic>>()
+            .toList();
+
+    showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+      builder: (ctx) {
+        bool saving = false;
+        return StatefulBuilder(builder: (ctx2, setSheet) => Padding(
+          padding: EdgeInsets.only(
+            bottom: MediaQuery.of(ctx2).viewInsets.bottom,
+            left: 24, right: 24, top: 24,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                l10n.termDetailEditGrade,
+                style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w700),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                subject.localizedName(locale, fallback: subject.subjectId),
+                style: TextStyle(
+                  fontSize: 14,
+                  color: Theme.of(ctx2).colorScheme.onSurfaceVariant,
+                ),
+              ),
+              const SizedBox(height: 20),
+              if (defs.isNotEmpty)
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: defs.map((d) {
+                    final g = d['grade'] as String? ?? '';
+                    if (g.isEmpty) return const SizedBox.shrink();
+                    return ChoiceChip(
+                      label: Text(g, style: const TextStyle(fontWeight: FontWeight.w600)),
+                      selected: selectedGrade == g,
+                      selectedColor: AppColors.primaryLight,
+                      labelStyle: TextStyle(
+                        color: selectedGrade == g
+                            ? AppColors.primary
+                            : Theme.of(ctx2).colorScheme.onSurface,
+                      ),
+                      onSelected: (_) => setSheet(() => selectedGrade = g),
+                    );
+                  }).toList(),
+                )
+              else
+                TextField(
+                  controller: gradeCtrl,
+                  decoration: InputDecoration(
+                    labelText: l10n.termDetailEditGrade,
+                    border: const OutlineInputBorder(),
+                  ),
+                  autofocus: true,
+                ),
+              const SizedBox(height: 20),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: saving ? null : () async {
+                    setSheet(() => saving = true);
+                    final newGrade = defs.isNotEmpty
+                        ? selectedGrade
+                        : gradeCtrl.text.trim();
+                    if (newGrade.isEmpty) {
+                      setSheet(() => saving = false);
+                      return;
+                    }
+                    final subjects = term.subjects.map((s) => {
+                      'subjectId': s.subjectId,
+                      if (s.subjectName != null) 'subjectName': s.subjectName,
+                      'grade': s.subjectId == subject.subjectId ? newGrade : s.gradeValue,
+                      'weight': 1,
+                    }).toList();
+                    try {
+                      await ref.read(termResultsProvider.notifier).updateTermGrades(term.id, subjects);
+                      if (ctx2.mounted) Navigator.of(ctx2).pop();
+                      if (context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(l10n.calculatorResultSaved),
+                            backgroundColor: AppColors.tierBest,
+                          ),
+                        );
+                      }
+                    } catch (e) {
+                      setSheet(() => saving = false);
+                      if (ctx2.mounted) {
+                        ScaffoldMessenger.of(ctx2).showSnackBar(
+                          SnackBar(
+                            content: Text(l10n.genericFailedError(e.toString())),
+                            backgroundColor: AppColors.error,
+                          ),
+                        );
+                      }
+                    }
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.primary,
+                    foregroundColor: AppColors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12)),
+                  ),
+                  child: saving
+                      ? const SizedBox(
+                          width: 20, height: 20,
+                          child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                      : Text(l10n.settingsSave,
+                          style: const TextStyle(fontWeight: FontWeight.w700)),
+                ),
+              ),
+              const SizedBox(height: 24),
+            ],
+          ),
+        ));
+      },
+    );
   }
 
   void _showEditLabelSheet(BuildContext context, WidgetRef ref, AppLocalizations l10n, String currentLabel) {
@@ -154,6 +294,7 @@ class TermDetailScreen extends ConsumerWidget {
             child: Column(
               children: [
                 Card(
+                  semanticContainer: false,
                   child: Padding(
                     padding: const EdgeInsets.all(20),
                     child: Column(
@@ -224,43 +365,64 @@ class TermDetailScreen extends ConsumerWidget {
                                         : grade < 3.5
                                             ? 'third'
                                             : 'below');
-                            return Padding(
-                              padding: const EdgeInsets.symmetric(vertical: 4),
-                              child: Row(
-                                children: [
-                                  Expanded(
-                                    child: Text(
-                                      subject.localizedName(locale, fallback: subject.subjectId ?? '?'),
-                                      style: theme.textTheme.bodyMedium,
+                            final rowContent = Row(
+                              children: [
+                                Expanded(
+                                  child: Text(
+                                    subject.localizedName(locale, fallback: subject.subjectId),
+                                    style: theme.textTheme.bodyMedium,
+                                  ),
+                                ),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 8, vertical: 2),
+                                  decoration: BoxDecoration(
+                                    color: AppColors.tierColorLight(sTier),
+                                    borderRadius: BorderRadius.circular(6),
+                                  ),
+                                  child: Text(
+                                    subject.gradeValue,
+                                    style: TextStyle(
+                                      color: AppColors.tierColor(sTier),
+                                      fontWeight: FontWeight.w700,
                                     ),
                                   ),
-                                  Container(
-                                    padding: const EdgeInsets.symmetric(
-                                        horizontal: 8, vertical: 2),
-                                    decoration: BoxDecoration(
-                                      color: AppColors.tierColorLight(sTier),
-                                      borderRadius: BorderRadius.circular(6),
-                                    ),
-                                    child: Text(
-                                      subject.gradeValue,
-                                      style: TextStyle(
-                                        color: AppColors.tierColor(sTier),
-                                        fontWeight: FontWeight.w700,
-                                      ),
-                                    ),
+                                ),
+                                const SizedBox(width: 8),
+                                Text(
+                                  '+${subject.bonusPoints % 1 == 0 ? subject.bonusPoints.toInt() : subject.bonusPoints.toStringAsFixed(1)} ${l10n.ptsAbbr}',
+                                  style: const TextStyle(
+                                    fontSize: 12,
+                                    color: AppColors.success,
+                                    fontWeight: FontWeight.w600,
                                   ),
-                                  const SizedBox(width: 12),
-                                  Text(
-                                    '+${subject.bonusPoints % 1 == 0 ? subject.bonusPoints.toInt() : subject.bonusPoints.toStringAsFixed(1)} ${l10n.ptsAbbr}',
-                                    style: const TextStyle(
-                                      fontSize: 12,
-                                      color: AppColors.success,
-                                      fontWeight: FontWeight.w600,
-                                    ),
+                                ),
+                                if (isUnsettled) ...[
+                                  const SizedBox(width: 4),
+                                  Icon(
+                                    Icons.edit_outlined,
+                                    size: 14,
+                                    color: Theme.of(context).colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
                                   ),
                                 ],
-                              ),
+                              ],
                             );
+                            return isUnsettled
+                                ? GestureDetector(
+                                    behavior: HitTestBehavior.opaque,
+                                    onTap: () {
+                                      debugPrint('GestureDetector onTap: ${subject.subjectId}');
+                                      _showEditGradeSheet(context, ref, l10n, locale, term, subject);
+                                    },
+                                    child: Padding(
+                                      padding: const EdgeInsets.symmetric(vertical: 8),
+                                      child: rowContent,
+                                    ),
+                                  )
+                                : Padding(
+                                    padding: const EdgeInsets.symmetric(vertical: 4),
+                                    child: rowContent,
+                                  );
                           }),
                         ],
                       ],

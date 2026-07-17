@@ -366,6 +366,7 @@
   "termDetailDeleteConfirm": "¿Estás seguro de que deseas eliminar este resultado? Esta acción no se puede deshacer.",
   "termDetailDelete": "Eliminar",
   "termDetailEditLabel": "Editar etiqueta",
+  "termDetailEditGrade": "Editar nota",
   "termSettledBadge": "Liquidado",
   "termOpenBadge": "Abierto",
 

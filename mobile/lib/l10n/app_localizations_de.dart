@@ -1051,6 +1051,9 @@ class AppLocalizationsDe extends AppLocalizations {
   String get termDetailEditLabel => 'Bezeichnung bearbeiten';
 
   @override
+  String get termDetailEditGrade => 'Note bearbeiten';
+
+  @override
   String get termSettledBadge => 'Abgerechnet';
 
   @override

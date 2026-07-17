@@ -2056,6 +2056,12 @@ abstract class AppLocalizations {
   /// **'Edit Label'**
   String get termDetailEditLabel;
 
+  /// No description provided for @termDetailEditGrade.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit Grade'**
+  String get termDetailEditGrade;
+
   /// No description provided for @termSettledBadge.
   ///
   /// In en, this message translates to:

@@ -1042,6 +1042,9 @@ class AppLocalizationsRu extends AppLocalizations {
   String get termDetailEditLabel => 'Изменить метку';
 
   @override
+  String get termDetailEditGrade => 'Изменить оценку';
+
+  @override
   String get termSettledBadge => 'Оплачено';
 
   @override

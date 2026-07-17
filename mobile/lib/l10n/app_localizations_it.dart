@@ -1039,6 +1039,9 @@ class AppLocalizationsIt extends AppLocalizations {
   String get termDetailEditLabel => 'Modifica etichetta';
 
   @override
+  String get termDetailEditGrade => 'Modifica voto';
+
+  @override
   String get termSettledBadge => 'Saldato';
 
   @override

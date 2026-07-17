@@ -366,6 +366,7 @@
   "termDetailDeleteConfirm": "Êtes-vous sûr de vouloir supprimer ce résultat ? Cette action est irréversible.",
   "termDetailDelete": "Supprimer",
   "termDetailEditLabel": "Modifier l'intitulé",
+  "termDetailEditGrade": "Modifier la note",
   "termSettledBadge": "Réglé",
   "termOpenBadge": "Ouvert",
 

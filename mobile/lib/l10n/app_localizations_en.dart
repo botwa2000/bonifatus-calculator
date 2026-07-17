@@ -1038,6 +1038,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get termDetailEditLabel => 'Edit Label';
 
   @override
+  String get termDetailEditGrade => 'Edit Grade';
+
+  @override
   String get termSettledBadge => 'Settled';
 
   @override

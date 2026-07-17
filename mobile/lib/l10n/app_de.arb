@@ -366,6 +366,7 @@
   "termDetailDeleteConfirm": "Bist du sicher, dass du dieses Ergebnis löschen möchtest? Diese Aktion kann nicht rückgängig gemacht werden.",
   "termDetailDelete": "Löschen",
   "termDetailEditLabel": "Bezeichnung bearbeiten",
+  "termDetailEditGrade": "Note bearbeiten",
   "termSettledBadge": "Abgerechnet",
   "termOpenBadge": "Offen",
 
