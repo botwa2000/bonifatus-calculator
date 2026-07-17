@@ -978,7 +978,7 @@ class AppLocalizationsRu extends AppLocalizations {
   String get insightsRecentActivity => 'Последние оценки';
 
   @override
-  String get insightsPendingPts => 'Ожидает (пт)';
+  String get insightsPendingPts => 'Ожидает (балл)';
 
   @override
   String get insightsUnsettledGrades => 'Не выплачено';
@@ -1246,4 +1246,17 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get googleProfileRoleRequired => 'Пожалуйста, выберите роль';
+
+  @override
+  String get registerPasswordHelper => 'Минимум 12 символов';
+
+  @override
+  String get aboutDescription =>
+      'Bonifatus превращает школьные оценки в семейные награды. Ученики зарабатывают бонусные баллы за хорошие оценки, родители устанавливают награды.';
+
+  @override
+  String get aboutPrivacyPolicy => 'Политика конфиденциальности';
+
+  @override
+  String get aboutTermsOfService => 'Условия использования';
 }

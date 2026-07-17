@@ -24,8 +24,23 @@ class _CalculatorScreenState extends ConsumerState<CalculatorScreen> {
   String? _selectedSystemId;
   int _classLevel = 7;
   String _termType = 'semester_2';
-  String _schoolYear = _defaultSchoolYear();
-  String _termName = '';
+
+  late final TextEditingController _schoolYearCtrl;
+  late final TextEditingController _termNameCtrl;
+
+  @override
+  void initState() {
+    super.initState();
+    _schoolYearCtrl = TextEditingController(text: _defaultSchoolYear());
+    _termNameCtrl = TextEditingController();
+  }
+
+  @override
+  void dispose() {
+    _schoolYearCtrl.dispose();
+    _termNameCtrl.dispose();
+    super.dispose();
+  }
 
   static String _defaultSchoolYear() {
     final now = DateTime.now();
@@ -471,8 +486,8 @@ class _CalculatorScreenState extends ConsumerState<CalculatorScreen> {
             gradingSystemId: system.id,
             classLevel: _classLevel,
             termType: _termType,
-            schoolYear: _schoolYear,
-            termName: _termName.isNotEmpty ? _termName : null,
+            schoolYear: _schoolYearCtrl.text,
+            termName: _termNameCtrl.text.isNotEmpty ? _termNameCtrl.text : null,
             subjects: subjects,
           );
 
@@ -722,7 +737,7 @@ class _CalculatorScreenState extends ConsumerState<CalculatorScreen> {
                             color: cs.onSurfaceVariant)),
                     const SizedBox(height: 6),
                     TextFormField(
-                      initialValue: _schoolYear,
+                      controller: _schoolYearCtrl,
                       decoration: InputDecoration(
                         isDense: true,
                         contentPadding: const EdgeInsets.symmetric(
@@ -735,7 +750,6 @@ class _CalculatorScreenState extends ConsumerState<CalculatorScreen> {
                         hintText: l10n.calculatorSchoolYearHint,
                       ),
                       style: const TextStyle(fontSize: 14),
-                      onChanged: (v) => _schoolYear = v,
                     ),
                   ],
                 ),
@@ -752,7 +766,7 @@ class _CalculatorScreenState extends ConsumerState<CalculatorScreen> {
                             color: cs.onSurfaceVariant)),
                     const SizedBox(height: 6),
                     TextFormField(
-                      initialValue: _termName,
+                      controller: _termNameCtrl,
                       decoration: InputDecoration(
                         isDense: true,
                         contentPadding: const EdgeInsets.symmetric(
@@ -765,7 +779,6 @@ class _CalculatorScreenState extends ConsumerState<CalculatorScreen> {
                         hintText: l10n.calculatorLabelHint,
                       ),
                       style: const TextStyle(fontSize: 14),
-                      onChanged: (v) => _termName = v,
                     ),
                   ],
                 ),

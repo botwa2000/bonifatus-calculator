@@ -1253,4 +1253,17 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get googleProfileRoleRequired => 'Veuillez sélectionner votre rôle';
+
+  @override
+  String get registerPasswordHelper => 'Minimum 12 caractères';
+
+  @override
+  String get aboutDescription =>
+      'Bonifatus transforme les notes scolaires en récompenses familiales. Les élèves gagnent des points bonus pour de bonnes notes, les parents définissent les récompenses.';
+
+  @override
+  String get aboutPrivacyPolicy => 'Politique de confidentialité';
+
+  @override
+  String get aboutTermsOfService => 'Conditions d\'utilisation';
 }

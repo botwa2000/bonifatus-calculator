@@ -328,7 +328,7 @@
   "parentInsightsChildren": "Дети",
   "insightsReadyToSettle": "К выплате",
   "insightsRecentActivity": "Последние оценки",
-  "insightsPendingPts": "Ожидает (пт)",
+  "insightsPendingPts": "Ожидает (балл)",
   "insightsUnsettledGrades": "Не выплачено",
   "insightsToday": "Сегодня",
   "insightsYesterday": "Вчера",
@@ -427,5 +427,10 @@
   "loginContinueWithGoogle": "Войти через Google",
   "googleProfileTitle": "Заполните профиль",
   "googleProfileSubtitle": "Ещё несколько деталей для начала.",
-  "googleProfileRoleRequired": "Пожалуйста, выберите роль"
+  "googleProfileRoleRequired": "Пожалуйста, выберите роль",
+
+  "registerPasswordHelper": "Минимум 12 символов",
+  "aboutDescription": "Bonifatus превращает школьные оценки в семейные награды. Ученики зарабатывают бонусные баллы за хорошие оценки, родители устанавливают награды.",
+  "aboutPrivacyPolicy": "Политика конфиденциальности",
+  "aboutTermsOfService": "Условия использования"
 }

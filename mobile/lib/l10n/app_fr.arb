@@ -427,5 +427,10 @@
   "loginContinueWithGoogle": "Continuer avec Google",
   "googleProfileTitle": "Complétez votre profil",
   "googleProfileSubtitle": "Encore quelques détails pour commencer.",
-  "googleProfileRoleRequired": "Veuillez sélectionner votre rôle"
+  "googleProfileRoleRequired": "Veuillez sélectionner votre rôle",
+
+  "registerPasswordHelper": "Minimum 12 caractères",
+  "aboutDescription": "Bonifatus transforme les notes scolaires en récompenses familiales. Les élèves gagnent des points bonus pour de bonnes notes, les parents définissent les récompenses.",
+  "aboutPrivacyPolicy": "Politique de confidentialité",
+  "aboutTermsOfService": "Conditions d'utilisation"
 }

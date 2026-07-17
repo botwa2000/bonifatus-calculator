@@ -341,7 +341,7 @@ class StudentDashboardScreen extends ConsumerWidget {
           );
         }
 
-        final recent = terms.take(3).toList();
+        final recent = terms;
 
         return Column(
           children: recent.map((term) {

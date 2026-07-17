@@ -210,7 +210,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get settingsTitle => 'Einstellungen';
 
   @override
-  String get settingsSectionPreferences => 'Einstellungen';
+  String get settingsSectionPreferences => 'Voreinstellungen';
 
   @override
   String get settingsSectionAccount => 'Konto';
@@ -447,7 +447,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get dashboardThisWeek => 'Diese Woche';
 
   @override
-  String get dashboardRecentNotes => 'Aktuelle Notizen';
+  String get dashboardRecentNotes => 'Aktuelle Noten';
 
   @override
   String get dashboardSavedResults => 'Gespeicherte Ergebnisse';
@@ -456,11 +456,10 @@ class AppLocalizationsDe extends AppLocalizations {
   String get dashboardQuickCalculate => 'Schnellberechnung';
 
   @override
-  String get dashboardCouldNotLoadNotes =>
-      'Notizen konnten nicht geladen werden';
+  String get dashboardCouldNotLoadNotes => 'Noten konnten nicht geladen werden';
 
   @override
-  String get dashboardNoNotesYet => 'Noch keine Notizen';
+  String get dashboardNoNotesYet => 'Noch keine Noten';
 
   @override
   String get dashboardCouldNotLoadResults =>
@@ -551,10 +550,10 @@ class AppLocalizationsDe extends AppLocalizations {
   String get calculatorSettingsTooltip => 'Einstellungen';
 
   @override
-  String get notesTitle => 'Notizen';
+  String get notesTitle => 'Noten';
 
   @override
-  String get notesNoNotesYet => 'Noch keine Notizen';
+  String get notesNoNotesYet => 'Noch keine Noten';
 
   @override
   String get notesTapToCaptureFirst =>
@@ -687,7 +686,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get cycleSummaryWeekly => 'Wöchentlich';
 
   @override
-  String get cycleSummaryNotesInCycle => 'Notizen in diesem Zyklus';
+  String get cycleSummaryNotesInCycle => 'Noten in diesem Zyklus';
 
   @override
   String get cycleSummaryNoGrades => 'Keine Noten in diesem Zeitraum';
@@ -753,7 +752,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get insightsAddGradesHint =>
-      'Noten in der Notizen-Registerkarte hinzufügen.';
+      'Noten in der Noten-Registerkarte hinzufügen.';
 
   @override
   String get insightsBonusPointsLastMonths => 'Bonuspunkte — Letzte 6 Monate';
@@ -1005,10 +1004,10 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
-  String get insightsNote => 'Notiz';
+  String get insightsNote => 'Note';
 
   @override
-  String get insightsNotes => 'Notizen';
+  String get insightsNotes => 'Noten';
 
   @override
   String rewardsSettleAmount(int pts) {
@@ -1251,4 +1250,17 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get googleProfileRoleRequired => 'Bitte wähle deine Rolle';
+
+  @override
+  String get registerPasswordHelper => 'Mindestens 12 Zeichen';
+
+  @override
+  String get aboutDescription =>
+      'Bonifatus verwandelt Schulnoten in Familienbelohnungen. Schüler verdienen Bonuspunkte für gute Noten, Eltern setzen die Belohnungen.';
+
+  @override
+  String get aboutPrivacyPolicy => 'Datenschutzerklärung';
+
+  @override
+  String get aboutTermsOfService => 'Nutzungsbedingungen';
 }

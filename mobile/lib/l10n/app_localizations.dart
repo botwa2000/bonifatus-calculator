@@ -2349,6 +2349,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Please select your role'**
   String get googleProfileRoleRequired;
+
+  /// No description provided for @registerPasswordHelper.
+  ///
+  /// In en, this message translates to:
+  /// **'Minimum 12 characters'**
+  String get registerPasswordHelper;
+
+  /// No description provided for @aboutDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Bonifatus turns school grades into family rewards. Students earn bonus points for every good grade, parents set the rewards.'**
+  String get aboutDescription;
+
+  /// No description provided for @aboutPrivacyPolicy.
+  ///
+  /// In en, this message translates to:
+  /// **'Privacy Policy'**
+  String get aboutPrivacyPolicy;
+
+  /// No description provided for @aboutTermsOfService.
+  ///
+  /// In en, this message translates to:
+  /// **'Terms of Service'**
+  String get aboutTermsOfService;
 }
 
 class _AppLocalizationsDelegate

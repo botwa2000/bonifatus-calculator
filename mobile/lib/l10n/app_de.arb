@@ -70,7 +70,7 @@
   "onboardingPage3Body": "Eltern und Schüler sehen dieselben Erkenntnisse — Noten, Boni und Trends im Laufe der Zeit.",
 
   "settingsTitle": "Einstellungen",
-  "settingsSectionPreferences": "Einstellungen",
+  "settingsSectionPreferences": "Voreinstellungen",
   "settingsSectionAccount": "Konto",
   "settingsSectionConnectedParents": "Verbundene Eltern",
   "settingsSectionApp": "App",
@@ -144,11 +144,11 @@
   "dashboardHiName": "Hallo {name} 👋",
   "dashboardSubtitle": "Verfolge deine Noten, verdiene Belohnungen",
   "dashboardThisWeek": "Diese Woche",
-  "dashboardRecentNotes": "Aktuelle Notizen",
+  "dashboardRecentNotes": "Aktuelle Noten",
   "dashboardSavedResults": "Gespeicherte Ergebnisse",
   "dashboardQuickCalculate": "Schnellberechnung",
-  "dashboardCouldNotLoadNotes": "Notizen konnten nicht geladen werden",
-  "dashboardNoNotesYet": "Noch keine Notizen",
+  "dashboardCouldNotLoadNotes": "Noten konnten nicht geladen werden",
+  "dashboardNoNotesYet": "Noch keine Noten",
   "dashboardCouldNotLoadResults": "Ergebnisse konnten nicht geladen werden",
   "dashboardNoSavedResultsYet": "Noch keine gespeicherten Ergebnisse",
 
@@ -179,8 +179,8 @@
   "calculatorTierBelow": "Unter Schwelle",
   "calculatorSettingsTooltip": "Einstellungen",
 
-  "notesTitle": "Notizen",
-  "notesNoNotesYet": "Noch keine Notizen",
+  "notesTitle": "Noten",
+  "notesNoNotesYet": "Noch keine Noten",
   "notesTapToCaptureFirst": "Tippe + um deine erste Note aufzunehmen",
   "notesFailedToLoad": "Notizen konnten nicht geladen werden",
   "notesRetry": "Wiederholen",
@@ -226,7 +226,7 @@
   "cycleSummaryTitle": "Zyklusbericht",
   "cycleSummaryCouldNotLoad": "Noten konnten nicht geladen werden",
   "cycleSummaryWeekly": "Wöchentlich",
-  "cycleSummaryNotesInCycle": "Notizen in diesem Zyklus",
+  "cycleSummaryNotesInCycle": "Noten in diesem Zyklus",
   "cycleSummaryNoGrades": "Keine Noten in diesem Zeitraum",
   "cycleSummaryPositive": "Positiv",
   "cycleSummaryNet": "Netto",
@@ -250,7 +250,7 @@
   "insightsFailedToLoad": "Erkenntnisse konnten nicht geladen werden",
   "insightsRetry": "Wiederholen",
   "insightsNoGradesYet": "Noch keine Noten",
-  "insightsAddGradesHint": "Noten in der Notizen-Registerkarte hinzufügen.",
+  "insightsAddGradesHint": "Noten in der Noten-Registerkarte hinzufügen.",
   "insightsBonusPointsLastMonths": "Bonuspunkte — Letzte 6 Monate",
   "insightsNoBonusPoints": "Keine Bonuspunkte in den letzten 6 Monaten",
   "insightsGradeDistribution": "Notenverteilung",
@@ -338,8 +338,8 @@
       "days": { "type": "int" }
     }
   },
-  "insightsNote": "Notiz",
-  "insightsNotes": "Notizen",
+  "insightsNote": "Note",
+  "insightsNotes": "Noten",
   "rewardsSettleAmount": "Abrechnen · {pts} Pts",
   "@rewardsSettleAmount": {
     "placeholders": {
@@ -427,5 +427,10 @@
   "loginContinueWithGoogle": "Mit Google fortfahren",
   "googleProfileTitle": "Profil vervollständigen",
   "googleProfileSubtitle": "Noch ein paar Details zum Einstieg.",
-  "googleProfileRoleRequired": "Bitte wähle deine Rolle"
+  "googleProfileRoleRequired": "Bitte wähle deine Rolle",
+
+  "registerPasswordHelper": "Mindestens 12 Zeichen",
+  "aboutDescription": "Bonifatus verwandelt Schulnoten in Familienbelohnungen. Schüler verdienen Bonuspunkte für gute Noten, Eltern setzen die Belohnungen.",
+  "aboutPrivacyPolicy": "Datenschutzerklärung",
+  "aboutTermsOfService": "Nutzungsbedingungen"
 }

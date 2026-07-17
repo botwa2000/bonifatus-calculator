@@ -340,32 +340,40 @@ class _Step3 extends StatelessWidget {
           ),
           const SizedBox(height: 16),
         ],
-        TextFormField(
-          controller: emailCtrl,
-          keyboardType: TextInputType.emailAddress,
-          textInputAction: TextInputAction.next,
-          decoration: InputDecoration(labelText: l10n.registerEmailLabel, prefixIcon: const Icon(Icons.email_outlined)),
-        ),
-        const SizedBox(height: 16),
-        TextFormField(
-          controller: passCtrl,
-          obscureText: obscure,
-          textInputAction: TextInputAction.next,
-          decoration: InputDecoration(
-            labelText: l10n.registerPasswordLabel,
-            prefixIcon: const Icon(Icons.lock_outline),
-            suffixIcon: IconButton(
-              icon: Icon(obscure ? Icons.visibility_outlined : Icons.visibility_off_outlined),
-              onPressed: onToggle),
-          ),
-        ),
-        const SizedBox(height: 16),
-        TextFormField(
-          controller: confirmCtrl,
-          obscureText: obscure,
-          textInputAction: TextInputAction.done,
-          onFieldSubmitted: (_) => onNext(),
-          decoration: InputDecoration(labelText: l10n.registerConfirmPasswordLabel, prefixIcon: const Icon(Icons.lock_outline)),
+        AutofillGroup(
+          child: Column(children: [
+            TextFormField(
+              controller: emailCtrl,
+              keyboardType: TextInputType.emailAddress,
+              textInputAction: TextInputAction.next,
+              autofillHints: const [AutofillHints.email],
+              decoration: InputDecoration(labelText: l10n.registerEmailLabel, prefixIcon: const Icon(Icons.email_outlined)),
+            ),
+            const SizedBox(height: 16),
+            TextFormField(
+              controller: passCtrl,
+              obscureText: obscure,
+              textInputAction: TextInputAction.next,
+              autofillHints: const [AutofillHints.newPassword],
+              decoration: InputDecoration(
+                labelText: l10n.registerPasswordLabel,
+                helperText: l10n.registerPasswordHelper,
+                prefixIcon: const Icon(Icons.lock_outline),
+                suffixIcon: IconButton(
+                  icon: Icon(obscure ? Icons.visibility_outlined : Icons.visibility_off_outlined),
+                  onPressed: onToggle),
+              ),
+            ),
+            const SizedBox(height: 16),
+            TextFormField(
+              controller: confirmCtrl,
+              obscureText: obscure,
+              textInputAction: TextInputAction.done,
+              autofillHints: const [AutofillHints.newPassword],
+              onFieldSubmitted: (_) => onNext(),
+              decoration: InputDecoration(labelText: l10n.registerConfirmPasswordLabel, prefixIcon: const Icon(Icons.lock_outline)),
+            ),
+          ]),
         ),
         const SizedBox(height: 32),
         ElevatedButton(

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:package_info_plus/package_info_plus.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/providers/theme_mode_provider.dart';
 import '../../../../core/providers/locale_provider.dart';
@@ -135,6 +137,17 @@ class _ParentSettingsScreenState extends ConsumerState<ParentSettingsScreen> {
           _SectionHeader(title: l10n.settingsSectionAccount),
           const SizedBox(height: 8),
           _buildAccountCard(context),
+          const SizedBox(height: 20),
+          _SectionHeader(title: l10n.settingsSectionApp),
+          const SizedBox(height: 8),
+          _Card(children: [
+            ListTile(
+              leading: Icon(Icons.info_outline_rounded, color: Theme.of(context).colorScheme.onSurfaceVariant, size: 22),
+              title: Text(l10n.settingsAbout, style: TextStyle(fontSize: 15, color: Theme.of(context).colorScheme.onSurface, fontWeight: FontWeight.w500)),
+              trailing: Icon(Icons.chevron_right_rounded, color: Theme.of(context).colorScheme.outlineVariant),
+              onTap: () => _showAboutSheet(context),
+            ),
+          ]),
           const SizedBox(height: 32),
         ],
       ),
@@ -788,6 +801,62 @@ class _ParentSettingsScreenState extends ConsumerState<ParentSettingsScreen> {
           ),
         ),
       ),
+    );
+  }
+
+  void _showAboutSheet(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+      builder: (ctx) {
+        final cs = Theme.of(ctx).colorScheme;
+        return SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(24, 20, 24, 16),
+            child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Align(alignment: Alignment.center,
+                child: Container(width: 40, height: 4, margin: const EdgeInsets.only(bottom: 20),
+                    decoration: BoxDecoration(color: cs.outlineVariant, borderRadius: BorderRadius.circular(2)))),
+              Row(children: [
+                Container(width: 52, height: 52,
+                  decoration: const BoxDecoration(color: AppColors.primaryLight, shape: BoxShape.circle),
+                  alignment: Alignment.center,
+                  child: const Text('🎓', style: TextStyle(fontSize: 26))),
+                const SizedBox(width: 14),
+                Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                  Text(l10n.settingsAboutAppName, style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: cs.onSurface)),
+                  FutureBuilder<PackageInfo>(
+                    future: PackageInfo.fromPlatform(),
+                    builder: (_, snap) => Text(
+                      snap.hasData ? 'v${snap.data!.version}' : '',
+                      style: TextStyle(fontSize: 13, color: cs.onSurfaceVariant)),
+                  ),
+                ])),
+              ]),
+              const SizedBox(height: 16),
+              Text(l10n.aboutDescription, style: TextStyle(fontSize: 14, color: cs.onSurface, height: 1.5)),
+              const SizedBox(height: 16),
+              Divider(color: cs.outlineVariant),
+              ListTile(
+                contentPadding: EdgeInsets.zero,
+                leading: Icon(Icons.privacy_tip_outlined, color: cs.onSurfaceVariant, size: 20),
+                title: Text(l10n.aboutPrivacyPolicy, style: TextStyle(fontSize: 15, color: cs.onSurface)),
+                trailing: Icon(Icons.open_in_new_rounded, color: cs.outlineVariant, size: 18),
+                onTap: () => launchUrl(Uri.parse('https://bonifatus.com/privacy'), mode: LaunchMode.externalApplication),
+              ),
+              ListTile(
+                contentPadding: EdgeInsets.zero,
+                leading: Icon(Icons.gavel_outlined, color: cs.onSurfaceVariant, size: 20),
+                title: Text(l10n.aboutTermsOfService, style: TextStyle(fontSize: 15, color: cs.onSurface)),
+                trailing: Icon(Icons.open_in_new_rounded, color: cs.outlineVariant, size: 18),
+                onTap: () => launchUrl(Uri.parse('https://bonifatus.com/terms'), mode: LaunchMode.externalApplication),
+              ),
+            ]),
+          ),
+        );
+      },
     );
   }
 

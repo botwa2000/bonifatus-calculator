@@ -516,5 +516,10 @@
   "loginContinueWithGoogle": "Continue with Google",
   "googleProfileTitle": "Complete Your Profile",
   "googleProfileSubtitle": "Just a few more details to get started.",
-  "googleProfileRoleRequired": "Please select your role"
+  "googleProfileRoleRequired": "Please select your role",
+
+  "registerPasswordHelper": "Minimum 12 characters",
+  "aboutDescription": "Bonifatus turns school grades into family rewards. Students earn bonus points for every good grade, parents set the rewards.",
+  "aboutPrivacyPolicy": "Privacy Policy",
+  "aboutTermsOfService": "Terms of Service"
 }

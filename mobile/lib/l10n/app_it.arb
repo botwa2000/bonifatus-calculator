@@ -427,5 +427,10 @@
   "loginContinueWithGoogle": "Continua con Google",
   "googleProfileTitle": "Completa il tuo profilo",
   "googleProfileSubtitle": "Solo ancora qualche dettaglio per iniziare.",
-  "googleProfileRoleRequired": "Per favore seleziona il tuo ruolo"
+  "googleProfileRoleRequired": "Per favore seleziona il tuo ruolo",
+
+  "registerPasswordHelper": "Minimo 12 caratteri",
+  "aboutDescription": "Bonifatus trasforma i voti scolastici in premi di famiglia. Gli studenti guadagnano punti bonus per i buoni voti, i genitori stabiliscono i premi.",
+  "aboutPrivacyPolicy": "Informativa sulla Privacy",
+  "aboutTermsOfService": "Termini di Servizio"
 }

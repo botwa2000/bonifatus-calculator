@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
+import 'package:package_info_plus/package_info_plus.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/providers/theme_mode_provider.dart';
 import '../../../../core/providers/locale_provider.dart';
@@ -216,7 +218,8 @@ class _StudentSettingsScreenState extends ConsumerState<StudentSettingsScreen> {
         ..._parentConnections.asMap().entries.map((entry) {
           final cs = Theme.of(context).colorScheme;
           final conn = entry.value;
-          final parentName = conn['parentName'] as String? ?? conn['parentEmail'] as String? ?? l10n.parentFallback;
+          final parentMap = conn['parent'] as Map<String, dynamic>?;
+          final parentName = parentMap?['fullName'] as String? ?? l10n.parentFallback;
           return Column(children: [
             _SettingsTile(
               icon: Icons.person_outline_rounded,
@@ -253,12 +256,7 @@ class _StudentSettingsScreenState extends ConsumerState<StudentSettingsScreen> {
       _SettingsTile(
         icon: Icons.info_outline_rounded,
         label: l10n.settingsAbout,
-        onTap: () => showAboutDialog(
-          context: context,
-          applicationName: l10n.settingsAboutAppName,
-          applicationVersion: '2.0.0',
-          applicationLegalese: l10n.settingsAboutLegalese,
-        ),
+        onTap: () => _showAboutSheet(context),
       ),
     ]);
   }
@@ -332,9 +330,10 @@ class _StudentSettingsScreenState extends ConsumerState<StudentSettingsScreen> {
 
   void _showParentConnectionSheet(BuildContext context, Map<String, dynamic> conn) {
     final l10n = AppLocalizations.of(context)!;
-    final parentName = conn['parentName'] as String? ?? conn['parentEmail'] as String? ?? l10n.parentFallback;
-    final parentEmail = conn['parentEmail'] as String? ?? '';
-    final connectedSince = conn['connectedAt'] as String?;
+    final parentMap = conn['parent'] as Map<String, dynamic>?;
+    final parentName = parentMap?['fullName'] as String? ?? l10n.parentFallback;
+    final parentEmail = '';
+    final connectedSince = conn['createdAt'] as String?;
     showModalBottomSheet<void>(
       context: context,
       shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
@@ -656,6 +655,70 @@ class _StudentSettingsScreenState extends ConsumerState<StudentSettingsScreen> {
           ),
         ),
       ),
+    );
+  }
+
+  void _showAboutSheet(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+      builder: (ctx) {
+        final cs = Theme.of(ctx).colorScheme;
+        return SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(24, 20, 24, 16),
+            child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Align(alignment: Alignment.center,
+                child: Container(width: 40, height: 4, margin: const EdgeInsets.only(bottom: 20),
+                    decoration: BoxDecoration(color: cs.outlineVariant, borderRadius: BorderRadius.circular(2)))),
+              Row(children: [
+                Container(width: 52, height: 52,
+                  decoration: const BoxDecoration(color: AppColors.primaryLight, shape: BoxShape.circle),
+                  alignment: Alignment.center,
+                  child: const Text('🎓', style: TextStyle(fontSize: 26))),
+                const SizedBox(width: 14),
+                Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                  Text(l10n.settingsAboutAppName,
+                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: cs.onSurface)),
+                  FutureBuilder<PackageInfo>(
+                    future: PackageInfo.fromPlatform(),
+                    builder: (_, snap) => Text(
+                      snap.hasData ? 'v${snap.data!.version}' : '',
+                      style: TextStyle(fontSize: 13, color: cs.onSurfaceVariant)),
+                  ),
+                ])),
+              ]),
+              const SizedBox(height: 16),
+              Text(l10n.aboutDescription,
+                  style: TextStyle(fontSize: 14, color: cs.onSurface, height: 1.5)),
+              const SizedBox(height: 16),
+              Divider(color: cs.outlineVariant),
+              ListTile(
+                contentPadding: EdgeInsets.zero,
+                leading: Icon(Icons.privacy_tip_outlined, color: cs.onSurfaceVariant, size: 20),
+                title: Text(l10n.aboutPrivacyPolicy,
+                    style: TextStyle(fontSize: 15, color: cs.onSurface)),
+                trailing: Icon(Icons.open_in_new_rounded, color: cs.outlineVariant, size: 18),
+                onTap: () => launchUrl(
+                    Uri.parse('https://bonifatus.com/privacy'),
+                    mode: LaunchMode.externalApplication),
+              ),
+              ListTile(
+                contentPadding: EdgeInsets.zero,
+                leading: Icon(Icons.gavel_outlined, color: cs.onSurfaceVariant, size: 20),
+                title: Text(l10n.aboutTermsOfService,
+                    style: TextStyle(fontSize: 15, color: cs.onSurface)),
+                trailing: Icon(Icons.open_in_new_rounded, color: cs.outlineVariant, size: 18),
+                onTap: () => launchUrl(
+                    Uri.parse('https://bonifatus.com/terms'),
+                    mode: LaunchMode.externalApplication),
+              ),
+            ]),
+          ),
+        );
+      },
     );
   }
 
