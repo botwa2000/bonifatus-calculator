@@ -305,7 +305,11 @@
 
   "rewardsTitle": "Награды",
   "rewardsTabQuickGrades": "Быстрые оценки",
+  "rewardsTabGrades": "Оценки",
   "rewardsTabSummary": "Сводка",
+  "rewardsTabHistory": "История",
+  "rewardsHistoryEmpty": "Расчётов пока нет",
+  "rewardsBadgeTerm": "Четверть",
   "rewardsNoChildrenConnected": "Дети не подключены",
   "rewardsFailedToLoadData": "Не удалось загрузить данные о наградах",
   "rewardsRetry": "Повторить",

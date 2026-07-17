@@ -915,7 +915,19 @@ class AppLocalizationsDe extends AppLocalizations {
   String get rewardsTabQuickGrades => 'Schnellnoten';
 
   @override
+  String get rewardsTabGrades => 'Noten';
+
+  @override
   String get rewardsTabSummary => 'Zusammenfassung';
+
+  @override
+  String get rewardsTabHistory => 'Verlauf';
+
+  @override
+  String get rewardsHistoryEmpty => 'Noch keine Abrechnungen';
+
+  @override
+  String get rewardsBadgeTerm => 'Zeugnis';
 
   @override
   String get rewardsNoChildrenConnected => 'Keine Kinder verbunden';

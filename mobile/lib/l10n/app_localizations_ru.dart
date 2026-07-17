@@ -908,7 +908,19 @@ class AppLocalizationsRu extends AppLocalizations {
   String get rewardsTabQuickGrades => 'Быстрые оценки';
 
   @override
+  String get rewardsTabGrades => 'Оценки';
+
+  @override
   String get rewardsTabSummary => 'Сводка';
+
+  @override
+  String get rewardsTabHistory => 'История';
+
+  @override
+  String get rewardsHistoryEmpty => 'Расчётов пока нет';
+
+  @override
+  String get rewardsBadgeTerm => 'Четверть';
 
   @override
   String get rewardsNoChildrenConnected => 'Дети не подключены';

@@ -350,7 +350,11 @@
 
   "rewardsTitle": "Rewards",
   "rewardsTabQuickGrades": "Quick Grades",
+  "rewardsTabGrades": "Grades",
   "rewardsTabSummary": "Summary",
+  "rewardsTabHistory": "History",
+  "rewardsHistoryEmpty": "No settlements yet",
+  "rewardsBadgeTerm": "Term",
   "rewardsNoChildrenConnected": "No children connected",
   "rewardsFailedToLoadData": "Failed to load rewards data",
   "rewardsRetry": "Retry",

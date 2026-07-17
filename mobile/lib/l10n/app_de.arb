@@ -305,7 +305,11 @@
 
   "rewardsTitle": "Belohnungen",
   "rewardsTabQuickGrades": "Schnellnoten",
+  "rewardsTabGrades": "Noten",
   "rewardsTabSummary": "Zusammenfassung",
+  "rewardsTabHistory": "Verlauf",
+  "rewardsHistoryEmpty": "Noch keine Abrechnungen",
+  "rewardsBadgeTerm": "Zeugnis",
   "rewardsNoChildrenConnected": "Keine Kinder verbunden",
   "rewardsFailedToLoadData": "Belohnungsdaten konnten nicht geladen werden",
   "rewardsRetry": "Wiederholen",

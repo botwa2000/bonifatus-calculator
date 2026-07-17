@@ -305,7 +305,11 @@
 
   "rewardsTitle": "Premi",
   "rewardsTabQuickGrades": "Voti rapidi",
+  "rewardsTabGrades": "Voti",
   "rewardsTabSummary": "Riepilogo",
+  "rewardsTabHistory": "Cronologia",
+  "rewardsHistoryEmpty": "Nessun pagamento ancora",
+  "rewardsBadgeTerm": "Periodo",
   "rewardsNoChildrenConnected": "Nessun figlio connesso",
   "rewardsFailedToLoadData": "Impossibile caricare i dati premi",
   "rewardsRetry": "Riprova",

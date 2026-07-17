@@ -905,7 +905,19 @@ class AppLocalizationsEn extends AppLocalizations {
   String get rewardsTabQuickGrades => 'Quick Grades';
 
   @override
+  String get rewardsTabGrades => 'Grades';
+
+  @override
   String get rewardsTabSummary => 'Summary';
+
+  @override
+  String get rewardsTabHistory => 'History';
+
+  @override
+  String get rewardsHistoryEmpty => 'No settlements yet';
+
+  @override
+  String get rewardsBadgeTerm => 'Term';
 
   @override
   String get rewardsNoChildrenConnected => 'No children connected';

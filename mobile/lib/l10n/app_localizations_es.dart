@@ -912,7 +912,19 @@ class AppLocalizationsEs extends AppLocalizations {
   String get rewardsTabQuickGrades => 'Notas rápidas';
 
   @override
+  String get rewardsTabGrades => 'Notas';
+
+  @override
   String get rewardsTabSummary => 'Resumen';
+
+  @override
+  String get rewardsTabHistory => 'Historial';
+
+  @override
+  String get rewardsHistoryEmpty => 'Sin liquidaciones aún';
+
+  @override
+  String get rewardsBadgeTerm => 'Período';
 
   @override
   String get rewardsNoChildrenConnected => 'Sin hijos conectados';

@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../api/services/connection_service.dart';
+import '../../../api/services/grade_service.dart';
 import '../../../models/child_data.dart';
 
 List<ChildWithGrades> _demoChildren() => [
@@ -54,4 +55,26 @@ class ChildrenQuickGradesNotifier
 final childrenQuickGradesProvider =
     AsyncNotifierProvider<ChildrenQuickGradesNotifier, List<ChildWithGrades>>(
   ChildrenQuickGradesNotifier.new,
+);
+
+class SettlementsNotifier extends AsyncNotifier<List<SettlementRecord>> {
+  @override
+  Future<List<SettlementRecord>> build() {
+    if (kIsWeb && kDebugMode) return Future.value([]);
+    return _fetch();
+  }
+
+  Future<List<SettlementRecord>> _fetch() {
+    return ref.read(gradeServiceProvider).fetchSettlements();
+  }
+
+  Future<void> reload() async {
+    state = const AsyncValue.loading();
+    state = await AsyncValue.guard(_fetch);
+  }
+}
+
+final settlementsProvider =
+    AsyncNotifierProvider<SettlementsNotifier, List<SettlementRecord>>(
+  SettlementsNotifier.new,
 );

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:intl/intl.dart';
 import 'package:bonifatus_mobile/l10n/app_localizations.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../providers/children_provider.dart';
@@ -16,7 +17,7 @@ class RewardsScreen extends ConsumerWidget {
     final childrenAsync = ref.watch(childrenQuickGradesProvider);
 
     return DefaultTabController(
-      length: 2,
+      length: 3,
       child: Scaffold(
         backgroundColor: Theme.of(context).colorScheme.surface,
         appBar: AppBar(
@@ -34,8 +35,9 @@ class RewardsScreen extends ConsumerWidget {
             indicatorColor: AppColors.primary,
             labelStyle: const TextStyle(fontWeight: FontWeight.w600),
             tabs: [
-              Tab(text: l10n.rewardsTabQuickGrades),
+              Tab(text: l10n.rewardsTabGrades),
               Tab(text: l10n.rewardsTabSummary),
+              Tab(text: l10n.rewardsTabHistory),
             ],
           ),
         ),
@@ -73,8 +75,9 @@ class RewardsScreen extends ConsumerWidget {
           ),
           data: (children) => TabBarView(
             children: [
-              _QuickGradesTab(children: children),
+              _GradesTab(children: children),
               _SummaryTab(children: children),
+              const _HistoryTab(),
             ],
           ),
         ),
@@ -83,10 +86,10 @@ class RewardsScreen extends ConsumerWidget {
   }
 }
 
-class _QuickGradesTab extends StatelessWidget {
+class _GradesTab extends StatelessWidget {
   final List<ChildWithGrades> children;
 
-  const _QuickGradesTab({required this.children});
+  const _GradesTab({required this.children});
 
   @override
   Widget build(BuildContext context) {
@@ -299,13 +302,23 @@ class _ChildGradesCard extends ConsumerWidget {
                       onPressed: settling ? null : () async {
                         setSheet(() => settling = true);
                         try {
+                          final quickIds = pendingGrades
+                              .where((g) => g.gradeSource == 'notes')
+                              .map((g) => g.id)
+                              .toList();
+                          final subjectIds = pendingGrades
+                              .where((g) => g.gradeSource == 'calculator')
+                              .map((g) => g.id)
+                              .toList();
                           await ref.read(gradeServiceProvider).createSettlement(
                             childId: child.childId,
                             amount: total,
-                            quickGradeIds: pendingGrades.map((g) => g.id).toList(),
+                            quickGradeIds: quickIds,
+                            subjectGradeIds: subjectIds,
                           );
                           if (ctx.mounted) Navigator.of(ctx).pop();
                           ref.read(childrenQuickGradesProvider.notifier).reload();
+                          ref.read(settlementsProvider.notifier).reload();
                           if (context.mounted) {
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(content: Text(l10n.rewardsSettled), backgroundColor: AppColors.tierBest),
@@ -353,6 +366,7 @@ class _GradeRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final tierColor = AppColors.tierColor(grade.gradeQualityTier);
+    final isTerm = grade.gradeSource == 'calculator';
 
     return InkWell(
       onTap: onTap,
@@ -378,6 +392,24 @@ class _GradeRow extends StatelessWidget {
               ),
             ),
           ),
+          if (isTerm) ...[
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.secondaryContainer,
+                borderRadius: BorderRadius.circular(4),
+              ),
+              child: Text(
+                AppLocalizations.of(context)!.rewardsBadgeTerm,
+                style: TextStyle(
+                  fontSize: 10,
+                  fontWeight: FontWeight.w600,
+                  color: Theme.of(context).colorScheme.onSecondaryContainer,
+                ),
+              ),
+            ),
+            const SizedBox(width: 6),
+          ],
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
             decoration: BoxDecoration(
@@ -499,6 +531,126 @@ class _SummaryTab extends StatelessWidget {
             ),
             ),
           ),
+        );
+      },
+    );
+  }
+}
+
+class _HistoryTab extends ConsumerWidget {
+  const _HistoryTab();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context)!;
+    final settlementsAsync = ref.watch(settlementsProvider);
+
+    return settlementsAsync.when(
+      loading: () => const Center(
+          child: CircularProgressIndicator(color: AppColors.primary)),
+      error: (err, _) => Center(
+        child: Padding(
+          padding: const EdgeInsets.all(32),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(Icons.error_outline, size: 48, color: AppColors.error),
+              const SizedBox(height: 16),
+              Text(l10n.rewardsFailedToLoadData,
+                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+              const SizedBox(height: 20),
+              ElevatedButton(
+                onPressed: () => ref.read(settlementsProvider.notifier).reload(),
+                style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.primary,
+                    foregroundColor: AppColors.white),
+                child: Text(l10n.rewardsRetry),
+              ),
+            ],
+          ),
+        ),
+      ),
+      data: (settlements) {
+        if (settlements.isEmpty) {
+          return Center(
+            child: Text(l10n.rewardsHistoryEmpty,
+                style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant)),
+          );
+        }
+        return ListView.builder(
+          padding: const EdgeInsets.all(16),
+          itemCount: settlements.length,
+          itemBuilder: (ctx, i) {
+            final s = settlements[i];
+            final dateStr = DateFormat('MMM d, yyyy').format(s.createdAt.toLocal());
+            return Card(
+              margin: const EdgeInsets.only(bottom: 10),
+              clipBehavior: Clip.antiAlias,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                child: Row(
+                  children: [
+                    Container(
+                      width: 40,
+                      height: 40,
+                      decoration: const BoxDecoration(
+                        color: AppColors.primaryLight,
+                        shape: BoxShape.circle,
+                      ),
+                      alignment: Alignment.center,
+                      child: Text(
+                        (s.childName ?? '?').substring(0, 1).toUpperCase(),
+                        style: const TextStyle(
+                          fontWeight: FontWeight.w700,
+                          color: AppColors.primary,
+                          fontSize: 16,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            s.childName ?? l10n.nameUnknown,
+                            style: TextStyle(
+                              fontWeight: FontWeight.w600,
+                              fontSize: 15,
+                              color: Theme.of(ctx).colorScheme.onSurface,
+                            ),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            dateStr,
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: Theme.of(ctx).colorScheme.onSurfaceVariant,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                      decoration: BoxDecoration(
+                        color: AppColors.tierBestLight,
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: Text(
+                        '+${s.amount} ${l10n.ptsAbbr}',
+                        style: const TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w700,
+                          color: AppColors.tierBest,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
         );
       },
     );

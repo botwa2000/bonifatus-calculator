@@ -920,7 +920,19 @@ class AppLocalizationsFr extends AppLocalizations {
   String get rewardsTabQuickGrades => 'Notes rapides';
 
   @override
+  String get rewardsTabGrades => 'Notes';
+
+  @override
   String get rewardsTabSummary => 'Résumé';
+
+  @override
+  String get rewardsTabHistory => 'Historique';
+
+  @override
+  String get rewardsHistoryEmpty => 'Aucun règlement encore';
+
+  @override
+  String get rewardsBadgeTerm => 'Période';
 
   @override
   String get rewardsNoChildrenConnected => 'Aucun enfant connecté';

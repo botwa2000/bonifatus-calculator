@@ -269,3 +269,32 @@ class ChildWithGrades {
     return sorted.first.gradeQualityTier;
   }
 }
+
+class SettlementRecord {
+  final String id;
+  final String childId;
+  final String? childName;
+  final int amount;
+  final String currency;
+  final DateTime createdAt;
+
+  const SettlementRecord({
+    required this.id,
+    required this.childId,
+    this.childName,
+    required this.amount,
+    required this.currency,
+    required this.createdAt,
+  });
+
+  factory SettlementRecord.fromJson(Map<String, dynamic> json) {
+    return SettlementRecord(
+      id: json['id'] as String,
+      childId: json['childId'] as String,
+      childName: json['childName'] as String?,
+      amount: ((json['amount']) as num?)?.toInt() ?? 0,
+      currency: json['currency'] as String? ?? 'pts',
+      createdAt: DateTime.parse(json['createdAt'] as String),
+    );
+  }
+}

@@ -1810,11 +1810,35 @@ abstract class AppLocalizations {
   /// **'Quick Grades'**
   String get rewardsTabQuickGrades;
 
+  /// No description provided for @rewardsTabGrades.
+  ///
+  /// In en, this message translates to:
+  /// **'Grades'**
+  String get rewardsTabGrades;
+
   /// No description provided for @rewardsTabSummary.
   ///
   /// In en, this message translates to:
   /// **'Summary'**
   String get rewardsTabSummary;
+
+  /// No description provided for @rewardsTabHistory.
+  ///
+  /// In en, this message translates to:
+  /// **'History'**
+  String get rewardsTabHistory;
+
+  /// No description provided for @rewardsHistoryEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No settlements yet'**
+  String get rewardsHistoryEmpty;
+
+  /// No description provided for @rewardsBadgeTerm.
+  ///
+  /// In en, this message translates to:
+  /// **'Term'**
+  String get rewardsBadgeTerm;
 
   /// No description provided for @rewardsNoChildrenConnected.
   ///

@@ -305,7 +305,11 @@
 
   "rewardsTitle": "Recompensas",
   "rewardsTabQuickGrades": "Notas rápidas",
+  "rewardsTabGrades": "Notas",
   "rewardsTabSummary": "Resumen",
+  "rewardsTabHistory": "Historial",
+  "rewardsHistoryEmpty": "Sin liquidaciones aún",
+  "rewardsBadgeTerm": "Período",
   "rewardsNoChildrenConnected": "Sin hijos conectados",
   "rewardsFailedToLoadData": "No se pudieron cargar los datos de recompensas",
   "rewardsRetry": "Reintentar",

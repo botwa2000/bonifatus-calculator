@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../client.dart';
 import '../../models/quick_grade.dart';
 import '../../models/term_result.dart';
+import '../../models/child_data.dart';
 
 final gradeServiceProvider = Provider<GradeService>((ref) {
   return GradeService(ref.read(apiClientProvider));
@@ -69,6 +70,15 @@ class GradeService {
       if (subjectGradeIds.isNotEmpty) 'subjectGradeIds': subjectGradeIds,
     });
     return resp.data['settlementId'] as String;
+  }
+
+  Future<List<SettlementRecord>> fetchSettlements() async {
+    final resp = await _client.get('/api/settlements/list');
+    final settlements = resp.data['settlements'] as List<dynamic>? ?? [];
+    return settlements
+        .map((s) => SettlementRecord.fromJson(s as Map<String, dynamic>))
+        .toList()
+      ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
   }
 
   Future<void> deleteTerm(String id) async {
