@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -224,6 +225,20 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     child: Text(l10n.loginForgotPassword),
                   ),
                 ),
+                if (kDebugMode) ...[
+                  const SizedBox(height: 8),
+                  Row(children: [
+                    Expanded(child: OutlinedButton(
+                      onPressed: () { _emailCtrl.text = 'alexander.perel+maxim@gmail.com'; _passCtrl.text = 'TestMaxim2026'; },
+                      child: const Text('[Dev] Maxim'),
+                    )),
+                    const SizedBox(width: 8),
+                    Expanded(child: OutlinedButton(
+                      onPressed: () { _emailCtrl.text = 'alexander.perel+maxima@gmail.com'; _passCtrl.text = 'TestMaxim2026'; },
+                      child: const Text('[Dev] Maxima'),
+                    )),
+                  ]),
+                ],
                 const SizedBox(height: 24),
                 ElevatedButton(
                   onPressed: _isSubmitting ? null : _submit,
