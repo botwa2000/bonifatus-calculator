@@ -792,6 +792,15 @@ class AppLocalizationsFr extends AppLocalizations {
   String get insightsPending => 'En attente';
 
   @override
+  String get periodWeek => 'Semaine';
+
+  @override
+  String get periodMonth => 'Mois';
+
+  @override
+  String get periodAllTime => 'Total';
+
+  @override
   String get insightsTierBest => 'Excellent (1–1,4)';
 
   @override

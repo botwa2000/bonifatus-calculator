@@ -780,6 +780,15 @@ class AppLocalizationsRu extends AppLocalizations {
   String get insightsPending => 'Ожидает';
 
   @override
+  String get periodWeek => 'Неделя';
+
+  @override
+  String get periodMonth => 'Месяц';
+
+  @override
+  String get periodAllTime => 'Всего';
+
+  @override
   String get insightsTierBest => 'Отлично (1–1,4)';
 
   @override

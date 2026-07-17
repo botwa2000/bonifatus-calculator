@@ -40,12 +40,34 @@ class StudentInsightsScreen extends ConsumerWidget {
   }
 }
 
-class _InsightsBody extends StatelessWidget {
+enum _Period { week, month, allTime }
+
+class _InsightsBody extends StatefulWidget {
   final List<QuickGrade> grades;
   const _InsightsBody({required this.grades});
+  @override
+  State<_InsightsBody> createState() => _InsightsBodyState();
+}
+
+class _InsightsBodyState extends State<_InsightsBody> {
+  _Period _period = _Period.week;
+
+  List<QuickGrade> _periodGrades(DateTime now) {
+    final g = widget.grades;
+    return switch (_period) {
+      _Period.week => () {
+          final ws = now.subtract(Duration(days: now.weekday - 1));
+          final wStart = DateTime(ws.year, ws.month, ws.day);
+          return g.where((e) => !e.gradedAt.isBefore(wStart)).toList();
+        }(),
+      _Period.month => g.where((e) => e.gradedAt.year == now.year && e.gradedAt.month == now.month).toList(),
+      _Period.allTime => g,
+    };
+  }
 
   @override
   Widget build(BuildContext context) {
+    final grades = widget.grades;
     final l10n = AppLocalizations.of(context)!;
     final locale = Localizations.localeOf(context).languageCode;
 
@@ -96,12 +118,12 @@ class _InsightsBody extends StatelessWidget {
       return '${(count * 100 / total).round()}%';
     }
 
-    // This week stats
-    final weekStart = now.subtract(Duration(days: now.weekday - 1));
-    final weekGrades = grades.where((g) => !g.gradedAt.isBefore(DateTime(weekStart.year, weekStart.month, weekStart.day))).toList();
-    final weekPts = weekGrades.fold(0.0, (s, g) => s + g.bonusPoints);
-    final weekSettled = weekGrades.where((g) => g.settlementStatus == 'settled').fold(0.0, (s, g) => s + g.bonusPoints);
-    final weekNet = weekPts - weekSettled;
+    // Period-filtered stats (reactive to _period toggle)
+    final pGrades = _periodGrades(now);
+    final pPts = pGrades.fold(0.0, (s, g) => s + g.bonusPoints);
+    final pPending = pGrades.where((g) => g.settlementStatus == 'pending').fold(0.0, (s, g) => s + g.bonusPoints);
+
+    String fmtPts(double v) => '+${v % 1 == 0 ? v.toInt() : v.toStringAsFixed(1)} ${l10n.ptsAbbr}';
 
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
@@ -199,36 +221,29 @@ class _InsightsBody extends StatelessWidget {
         ),
         const SizedBox(height: 12),
 
-        // This week stats
+        // Period stats — unified toggle card
         Card(
           child: Padding(
             padding: const EdgeInsets.all(16),
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Text(l10n.insightsThisWeek, style: theme.textTheme.titleMedium),
-              const SizedBox(height: 8),
+              SegmentedButton<_Period>(
+                style: SegmentedButton.styleFrom(
+                  textStyle: const TextStyle(fontSize: 12),
+                  visualDensity: VisualDensity.compact,
+                ),
+                segments: [
+                  ButtonSegment(value: _Period.week, label: Text(l10n.periodWeek)),
+                  ButtonSegment(value: _Period.month, label: Text(l10n.periodMonth)),
+                  ButtonSegment(value: _Period.allTime, label: Text(l10n.periodAllTime)),
+                ],
+                selected: {_period},
+                onSelectionChanged: (sel) => setState(() => _period = sel.first),
+              ),
+              const SizedBox(height: 16),
               Row(mainAxisAlignment: MainAxisAlignment.spaceAround, children: [
-                _BigStat(label: l10n.insightsGrades, value: weekGrades.length.toString()),
-                _BigStat(label: l10n.insightsEarned, value: '+${weekPts % 1 == 0 ? weekPts.toInt() : weekPts.toStringAsFixed(1)} ${l10n.ptsAbbr}'),
-                _BigStat(label: l10n.insightsUnsettled, value: '+${weekNet % 1 == 0 ? weekNet.toInt() : weekNet.toStringAsFixed(1)} ${l10n.ptsAbbr}'),
-              ]),
-            ]),
-          ),
-        ),
-        const SizedBox(height: 12),
-
-        // All-time summary
-        Card(
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Text(l10n.insightsAllTime, style: theme.textTheme.titleMedium),
-              const SizedBox(height: 8),
-              Row(mainAxisAlignment: MainAxisAlignment.spaceAround, children: [
-                _BigStat(label: l10n.insightsGrades, value: total.toString()),
-                _BigStat(label: l10n.insightsTotalPts,
-                    value: () { final v = grades.fold<double>(0.0, (s, g) => s + g.bonusPoints); return '+${v % 1 == 0 ? v.toInt() : v.toStringAsFixed(1)} ${l10n.ptsAbbr}'; }()),
-                _BigStat(label: l10n.insightsPending,
-                    value: () { final v = grades.where((g) => g.settlementStatus == 'pending').fold<double>(0.0, (s, g) => s + g.bonusPoints); return '+${v % 1 == 0 ? v.toInt() : v.toStringAsFixed(1)} ${l10n.ptsAbbr}'; }()),
+                _BigStat(label: l10n.insightsGrades, value: pGrades.length.toString()),
+                _BigStat(label: l10n.insightsEarned, value: fmtPts(pPts)),
+                _BigStat(label: l10n.insightsPending, value: fmtPts(pPending)),
               ]),
             ]),
           ),

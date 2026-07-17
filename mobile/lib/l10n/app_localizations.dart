@@ -1570,6 +1570,24 @@ abstract class AppLocalizations {
   /// **'Pending'**
   String get insightsPending;
 
+  /// No description provided for @periodWeek.
+  ///
+  /// In en, this message translates to:
+  /// **'Week'**
+  String get periodWeek;
+
+  /// No description provided for @periodMonth.
+  ///
+  /// In en, this message translates to:
+  /// **'Month'**
+  String get periodMonth;
+
+  /// No description provided for @periodAllTime.
+  ///
+  /// In en, this message translates to:
+  /// **'All time'**
+  String get periodAllTime;
+
   /// No description provided for @insightsTierBest.
   ///
   /// In en, this message translates to:

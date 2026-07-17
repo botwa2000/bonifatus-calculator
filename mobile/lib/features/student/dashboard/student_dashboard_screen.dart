@@ -48,7 +48,7 @@ class StudentDashboardScreen extends ConsumerWidget {
               SliverToBoxAdapter(
                 child: Padding(
                   padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
-                  child: _buildHeroCard(context, l10n, gradesAsync),
+                  child: _HeroCard(grades: gradesAsync.valueOrNull ?? []),
                 ),
               ),
               SliverToBoxAdapter(
@@ -128,75 +128,6 @@ class StudentDashboardScreen extends ConsumerWidget {
           ),
         ),
       ],
-    );
-  }
-
-  Widget _buildHeroCard(
-      BuildContext context, AppLocalizations l10n, AsyncValue<List<QuickGrade>> gradesAsync) {
-    final grades = gradesAsync.valueOrNull ?? [];
-
-    // This week grades
-    final now = DateTime.now();
-    final weekStart = now.subtract(Duration(days: now.weekday - 1));
-    final thisWeekGrades = grades.where((g) {
-      return g.gradedAt.isAfter(
-          DateTime(weekStart.year, weekStart.month, weekStart.day)
-              .subtract(const Duration(seconds: 1)));
-    }).toList();
-    final weekPts =
-        thisWeekGrades.fold<double>(0.0, (sum, g) => sum + g.bonusPoints);
-
-    return Container(
-      decoration: BoxDecoration(
-        gradient: AppColors.primaryGradient,
-        borderRadius: BorderRadius.circular(20),
-      ),
-      padding: const EdgeInsets.all(24),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                l10n.dashboardThisWeek,
-                style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      color: AppColors.white.withValues(alpha: 0.85),
-                    ),
-              ),
-              Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                decoration: BoxDecoration(
-                  color: AppColors.white.withValues(alpha: 0.2),
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Text(
-                  l10n.studentNotesCount(thisWeekGrades.length),
-                  style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                        color: AppColors.white,
-                      ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          Text(
-            '${weekPts % 1 == 0 ? weekPts.toInt() : weekPts.toStringAsFixed(1)} ${l10n.ptsAbbr}',
-            style: Theme.of(context).textTheme.displayLarge?.copyWith(
-                  color: AppColors.white,
-                  fontWeight: FontWeight.w700,
-                ),
-          ),
-          const SizedBox(height: 6),
-          Text(
-            '${DateFormat('MMM d').format(weekStart)} – ${DateFormat('MMM d, yyyy').format(weekStart.add(const Duration(days: 6)))}',
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: AppColors.white.withValues(alpha: 0.75),
-                ),
-          ),
-        ],
-      ),
     );
   }
 
@@ -428,6 +359,118 @@ class StudentDashboardScreen extends ConsumerWidget {
           }).toList(),
         );
       },
+    );
+  }
+}
+
+enum _CardPeriod { week, month, allTime }
+
+class _HeroCard extends StatefulWidget {
+  final List<QuickGrade> grades;
+  const _HeroCard({required this.grades});
+  @override
+  State<_HeroCard> createState() => _HeroCardState();
+}
+
+class _HeroCardState extends State<_HeroCard> {
+  _CardPeriod _period = _CardPeriod.week;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final locale = Localizations.localeOf(context).languageCode;
+    final grades = widget.grades;
+    final now = DateTime.now();
+
+    List<QuickGrade> filtered;
+    String dateLabel;
+    switch (_period) {
+      case _CardPeriod.week:
+        final ws = now.subtract(Duration(days: now.weekday - 1));
+        final wStart = DateTime(ws.year, ws.month, ws.day);
+        filtered = grades.where((g) => !g.gradedAt.isBefore(wStart)).toList();
+        dateLabel = '${DateFormat('MMM d').format(wStart)} – ${DateFormat('MMM d, y').format(wStart.add(const Duration(days: 6)))}';
+      case _CardPeriod.month:
+        filtered = grades.where((g) => g.gradedAt.year == now.year && g.gradedAt.month == now.month).toList();
+        dateLabel = DateFormat('MMMM y', locale).format(now);
+      case _CardPeriod.allTime:
+        filtered = grades;
+        dateLabel = '';
+    }
+    final pts = filtered.fold<double>(0.0, (s, g) => s + g.bonusPoints);
+
+    return Container(
+      decoration: BoxDecoration(
+        gradient: AppColors.primaryGradient,
+        borderRadius: BorderRadius.circular(20),
+      ),
+      padding: const EdgeInsets.all(24),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              _tab(l10n.periodWeek, _CardPeriod.week),
+              const SizedBox(width: 8),
+              _tab(l10n.periodMonth, _CardPeriod.month),
+              const SizedBox(width: 8),
+              _tab(l10n.periodAllTime, _CardPeriod.allTime),
+              const Spacer(),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                decoration: BoxDecoration(
+                  color: AppColors.white.withValues(alpha: 0.2),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Text(
+                  l10n.studentNotesCount(filtered.length),
+                  style: Theme.of(context).textTheme.labelSmall?.copyWith(color: AppColors.white),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          Text(
+            '${pts % 1 == 0 ? pts.toInt() : pts.toStringAsFixed(1)} ${l10n.ptsAbbr}',
+            style: Theme.of(context).textTheme.displayLarge?.copyWith(
+              color: AppColors.white,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+          if (dateLabel.isNotEmpty) ...[
+            const SizedBox(height: 6),
+            Text(
+              dateLabel,
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                color: AppColors.white.withValues(alpha: 0.75),
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _tab(String label, _CardPeriod value) {
+    final sel = _period == value;
+    return GestureDetector(
+      onTap: () => setState(() => _period = value),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+        decoration: BoxDecoration(
+          color: sel ? AppColors.white.withValues(alpha: 0.25) : Colors.transparent,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: AppColors.white.withValues(alpha: 0.4)),
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            fontSize: 12,
+            fontWeight: sel ? FontWeight.w700 : FontWeight.w400,
+            color: AppColors.white,
+          ),
+        ),
+      ),
     );
   }
 }

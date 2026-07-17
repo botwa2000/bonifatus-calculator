@@ -779,6 +779,15 @@ class AppLocalizationsIt extends AppLocalizations {
   String get insightsPending => 'In sospeso';
 
   @override
+  String get periodWeek => 'Settimana';
+
+  @override
+  String get periodMonth => 'Mese';
+
+  @override
+  String get periodAllTime => 'Totale';
+
+  @override
   String get insightsTierBest => 'Eccellente (1–1,4)';
 
   @override
