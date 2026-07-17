@@ -1282,4 +1282,21 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get aboutTermsOfService => 'Términos de Servicio';
+
+  @override
+  String get settingsSectionConnectedChildren => 'Hijos vinculados';
+
+  @override
+  String get settingsChildBirthday => 'Fecha de nacimiento';
+
+  @override
+  String get settingsChildSchool => 'Escuela';
+
+  @override
+  String get settingsChildNotSpecified => 'No especificado';
+
+  @override
+  String settingsChildStats(int grades, int pts, int pending) {
+    return '$grades notas · $pts pts totales · $pending pendientes';
+  }
 }

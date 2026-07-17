@@ -65,6 +65,14 @@ class ConnectionService {
     await _client.put('/api/settings/factors', data: {'factors': factors});
   }
 
+  Future<List<ChildProfile>> fetchChildProfiles() async {
+    final resp = await _client.get('/api/parent/children/profiles');
+    final children = resp.data['children'] as List<dynamic>? ?? [];
+    return children
+        .map((c) => ChildProfile.fromJson(c as Map<String, dynamic>))
+        .toList();
+  }
+
   Future<List<ChildTermResult>> fetchChildTermResults(String childId) async {
     final resp = await _client.get('/api/parent/children/grades');
     final children = resp.data['children'] as List<dynamic>? ?? [];

@@ -440,5 +440,11 @@
   "registerPasswordHelper": "Minimum 12 caractères",
   "aboutDescription": "Bonifatus transforme les notes scolaires en récompenses familiales. Les élèves gagnent des points bonus pour de bonnes notes, les parents définissent les récompenses.",
   "aboutPrivacyPolicy": "Politique de confidentialité",
-  "aboutTermsOfService": "Conditions d'utilisation"
+  "aboutTermsOfService": "Conditions d'utilisation",
+
+  "settingsSectionConnectedChildren": "Enfants connectés",
+  "settingsChildBirthday": "Date de naissance",
+  "settingsChildSchool": "École",
+  "settingsChildNotSpecified": "Non renseigné",
+  "settingsChildStats": "{grades} notes · {pts} pts au total · {pending} en attente"
 }

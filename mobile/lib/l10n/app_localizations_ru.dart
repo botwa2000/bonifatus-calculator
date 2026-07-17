@@ -1283,4 +1283,21 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get aboutTermsOfService => 'Условия использования';
+
+  @override
+  String get settingsSectionConnectedChildren => 'Подключённые дети';
+
+  @override
+  String get settingsChildBirthday => 'Дата рождения';
+
+  @override
+  String get settingsChildSchool => 'Школа';
+
+  @override
+  String get settingsChildNotSpecified => 'Не указано';
+
+  @override
+  String settingsChildStats(int grades, int pts, int pending) {
+    return '$grades оценок · $pts баллов · $pending ожидает';
+  }
 }

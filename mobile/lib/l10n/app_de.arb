@@ -440,5 +440,11 @@
   "registerPasswordHelper": "Mindestens 12 Zeichen",
   "aboutDescription": "Bonifatus verwandelt Schulnoten in Familienbelohnungen. Schüler verdienen Bonuspunkte für gute Noten, Eltern setzen die Belohnungen.",
   "aboutPrivacyPolicy": "Datenschutzerklärung",
-  "aboutTermsOfService": "Nutzungsbedingungen"
+  "aboutTermsOfService": "Nutzungsbedingungen",
+
+  "settingsSectionConnectedChildren": "Verbundene Kinder",
+  "settingsChildBirthday": "Geburtstag",
+  "settingsChildSchool": "Schule",
+  "settingsChildNotSpecified": "Nicht angegeben",
+  "settingsChildStats": "{grades} Noten · {pts} Pkt. gesamt · {pending} ausstehend"
 }

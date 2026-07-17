@@ -270,6 +270,38 @@ class ChildWithGrades {
   }
 }
 
+class ChildProfile {
+  final String childId;
+  final String childName;
+  final String? email;
+  final String? dateOfBirth;
+  final String? avatarUrl;
+  final String? schoolName;
+  final String? connectedSince;
+
+  const ChildProfile({
+    required this.childId,
+    required this.childName,
+    this.email,
+    this.dateOfBirth,
+    this.avatarUrl,
+    this.schoolName,
+    this.connectedSince,
+  });
+
+  factory ChildProfile.fromJson(Map<String, dynamic> json) {
+    return ChildProfile(
+      childId: json['childId'] as String,
+      childName: json['childName'] as String,
+      email: json['email'] as String?,
+      dateOfBirth: json['dateOfBirth'] as String?,
+      avatarUrl: json['avatarUrl'] as String?,
+      schoolName: json['schoolName'] as String?,
+      connectedSince: json['connectedSince'] as String?,
+    );
+  }
+}
+
 class SettlementRecord {
   final String id;
   final String childId;

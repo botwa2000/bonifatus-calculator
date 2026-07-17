@@ -2421,6 +2421,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Terms of Service'**
   String get aboutTermsOfService;
+
+  /// No description provided for @settingsSectionConnectedChildren.
+  ///
+  /// In en, this message translates to:
+  /// **'Connected Children'**
+  String get settingsSectionConnectedChildren;
+
+  /// No description provided for @settingsChildBirthday.
+  ///
+  /// In en, this message translates to:
+  /// **'Birthday'**
+  String get settingsChildBirthday;
+
+  /// No description provided for @settingsChildSchool.
+  ///
+  /// In en, this message translates to:
+  /// **'School'**
+  String get settingsChildSchool;
+
+  /// No description provided for @settingsChildNotSpecified.
+  ///
+  /// In en, this message translates to:
+  /// **'Not specified'**
+  String get settingsChildNotSpecified;
+
+  /// No description provided for @settingsChildStats.
+  ///
+  /// In en, this message translates to:
+  /// **'{grades} grades · {pts} pts total · {pending} pending'**
+  String settingsChildStats(int grades, int pts, int pending);
 }
 
 class _AppLocalizationsDelegate

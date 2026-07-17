@@ -440,5 +440,11 @@
   "registerPasswordHelper": "Minimo 12 caratteri",
   "aboutDescription": "Bonifatus trasforma i voti scolastici in premi di famiglia. Gli studenti guadagnano punti bonus per i buoni voti, i genitori stabiliscono i premi.",
   "aboutPrivacyPolicy": "Informativa sulla Privacy",
-  "aboutTermsOfService": "Termini di Servizio"
+  "aboutTermsOfService": "Termini di Servizio",
+
+  "settingsSectionConnectedChildren": "Figli connessi",
+  "settingsChildBirthday": "Data di nascita",
+  "settingsChildSchool": "Scuola",
+  "settingsChildNotSpecified": "Non specificato",
+  "settingsChildStats": "{grades} voti · {pts} pts totali · {pending} in sospeso"
 }

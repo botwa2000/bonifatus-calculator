@@ -529,5 +529,18 @@
   "registerPasswordHelper": "Minimum 12 characters",
   "aboutDescription": "Bonifatus turns school grades into family rewards. Students earn bonus points for every good grade, parents set the rewards.",
   "aboutPrivacyPolicy": "Privacy Policy",
-  "aboutTermsOfService": "Terms of Service"
+  "aboutTermsOfService": "Terms of Service",
+
+  "settingsSectionConnectedChildren": "Connected Children",
+  "settingsChildBirthday": "Birthday",
+  "settingsChildSchool": "School",
+  "settingsChildNotSpecified": "Not specified",
+  "settingsChildStats": "{grades} grades · {pts} pts total · {pending} pending",
+  "@settingsChildStats": {
+    "placeholders": {
+      "grades": { "type": "int" },
+      "pts": { "type": "int" },
+      "pending": { "type": "int" }
+    }
+  }
 }

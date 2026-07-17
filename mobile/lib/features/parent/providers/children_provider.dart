@@ -78,3 +78,23 @@ final settlementsProvider =
     AsyncNotifierProvider<SettlementsNotifier, List<SettlementRecord>>(
   SettlementsNotifier.new,
 );
+
+class ChildProfilesNotifier extends AsyncNotifier<List<ChildProfile>> {
+  @override
+  Future<List<ChildProfile>> build() {
+    if (kIsWeb && kDebugMode) return Future.value([]);
+    return ref.read(connectionServiceProvider).fetchChildProfiles();
+  }
+
+  Future<void> reload() async {
+    state = const AsyncValue.loading();
+    state = await AsyncValue.guard(
+      () => ref.read(connectionServiceProvider).fetchChildProfiles(),
+    );
+  }
+}
+
+final childProfilesProvider =
+    AsyncNotifierProvider<ChildProfilesNotifier, List<ChildProfile>>(
+  ChildProfilesNotifier.new,
+);

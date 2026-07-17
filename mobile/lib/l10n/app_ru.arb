@@ -440,5 +440,11 @@
   "registerPasswordHelper": "Минимум 12 символов",
   "aboutDescription": "Bonifatus превращает школьные оценки в семейные награды. Ученики зарабатывают бонусные баллы за хорошие оценки, родители устанавливают награды.",
   "aboutPrivacyPolicy": "Политика конфиденциальности",
-  "aboutTermsOfService": "Условия использования"
+  "aboutTermsOfService": "Условия использования",
+
+  "settingsSectionConnectedChildren": "Подключённые дети",
+  "settingsChildBirthday": "Дата рождения",
+  "settingsChildSchool": "Школа",
+  "settingsChildNotSpecified": "Не указано",
+  "settingsChildStats": "{grades} оценок · {pts} баллов · {pending} ожидает"
 }

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
 import 'package:go_router/go_router.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -13,6 +14,7 @@ import '../../../../api/services/biometric_service.dart';
 import '../../../../api/services/profile_service.dart';
 import '../../../../core/constants/app_constants.dart';
 import '../../../../l10n/app_localizations.dart';
+import '../../../../models/child_data.dart';
 
 class _TierFactor {
   final String tier;
@@ -133,6 +135,10 @@ class _ParentSettingsScreenState extends ConsumerState<ParentSettingsScreen> {
           _SectionHeader(title: l10n.settingsSectionPreferences),
           const SizedBox(height: 8),
           _buildPreferencesCard(context, currentThemeMode, currentLocale),
+          const SizedBox(height: 20),
+          _SectionHeader(title: l10n.settingsSectionConnectedChildren),
+          const SizedBox(height: 8),
+          _buildConnectedChildrenCard(context),
           const SizedBox(height: 20),
           _SectionHeader(title: l10n.settingsSectionAccount),
           const SizedBox(height: 8),
@@ -863,6 +869,131 @@ class _ParentSettingsScreenState extends ConsumerState<ParentSettingsScreen> {
   Future<void> _logout(BuildContext context) async {
     await ref.read(authStateNotifierProvider.notifier).logout();
     // GoRouter's redirect guard handles navigation to login once auth state is cleared
+  }
+
+  Widget _buildConnectedChildrenCard(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    final l10n = AppLocalizations.of(context)!;
+    final profilesAsync = ref.watch(childProfilesProvider);
+    final gradesMap = {
+      for (final c in ref.watch(childrenQuickGradesProvider).valueOrNull ?? [])
+        c.childId: c
+    };
+
+    return profilesAsync.when(
+      loading: () => _Card(children: [
+        const Padding(
+          padding: EdgeInsets.all(24),
+          child: Center(child: CircularProgressIndicator(color: AppColors.primary, strokeWidth: 2)),
+        ),
+      ]),
+      error: (_, __) => _Card(children: [
+        Padding(
+          padding: const EdgeInsets.all(16),
+          child: Text(l10n.settingsFailedToLoadChildren, style: TextStyle(color: cs.onSurfaceVariant)),
+        ),
+      ]),
+      data: (profiles) {
+        if (profiles.isEmpty) {
+          return _Card(children: [
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: Text(l10n.settingsNoChildrenConnected, style: TextStyle(color: cs.onSurfaceVariant)),
+            ),
+          ]);
+        }
+        return Container(
+          decoration: BoxDecoration(
+            color: cs.surface,
+            borderRadius: BorderRadius.circular(16),
+            boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 8, offset: const Offset(0, 2))],
+          ),
+          clipBehavior: Clip.antiAlias,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              for (int i = 0; i < profiles.length; i++) ...[
+                if (i > 0) Divider(height: 1, color: cs.outlineVariant),
+                _buildChildExpansionTile(context, l10n, cs, profiles[i], gradesMap[profiles[i].childId]),
+              ],
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildChildExpansionTile(
+    BuildContext context,
+    AppLocalizations l10n,
+    ColorScheme cs,
+    ChildProfile profile,
+    ChildWithGrades? grades,
+  ) {
+    final locale = Localizations.localeOf(context).languageCode;
+    String? formattedBirthday;
+    if (profile.dateOfBirth != null) {
+      try {
+        formattedBirthday = DateFormat('d MMM y', locale).format(DateTime.parse(profile.dateOfBirth!));
+      } catch (_) {}
+    }
+    String? formattedConnectedSince;
+    if (profile.connectedSince != null) {
+      try {
+        formattedConnectedSince = DateFormat('d MMM y', locale).format(DateTime.parse(profile.connectedSince!));
+      } catch (_) {}
+    }
+
+    final totalGrades = grades?.grades.length ?? 0;
+    final totalPts = grades?.grades.fold<int>(0, (s, g) => s + g.bonusPoints) ?? 0;
+    final pendingPts = grades?.totalPendingPoints ?? 0;
+
+    return ExpansionTile(
+      tilePadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+      childrenPadding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+      expandedCrossAxisAlignment: CrossAxisAlignment.start,
+      leading: CircleAvatar(
+        radius: 20,
+        backgroundColor: AppColors.primaryLight,
+        child: Text(
+          profile.childName.isNotEmpty ? profile.childName[0].toUpperCase() : '?',
+          style: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.w700, fontSize: 16),
+        ),
+      ),
+      title: Text(profile.childName, style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: cs.onSurface)),
+      subtitle: formattedConnectedSince != null
+          ? Text(l10n.settingsConnectedSince(formattedConnectedSince), style: TextStyle(fontSize: 12, color: cs.onSurfaceVariant))
+          : null,
+      children: [
+        Divider(height: 1, color: cs.outlineVariant),
+        const SizedBox(height: 12),
+        _infoRow(cs, Icons.email_outlined, l10n.loginEmailLabel, profile.email ?? '—'),
+        const SizedBox(height: 8),
+        _infoRow(cs, Icons.cake_outlined, l10n.settingsChildBirthday, formattedBirthday ?? '—'),
+        const SizedBox(height: 8),
+        _infoRow(cs, Icons.school_outlined, l10n.settingsChildSchool,
+            profile.schoolName?.isNotEmpty == true ? profile.schoolName! : l10n.settingsChildNotSpecified),
+        const SizedBox(height: 12),
+        Divider(height: 1, color: cs.outlineVariant),
+        const SizedBox(height: 10),
+        Text(
+          l10n.settingsChildStats(totalGrades, totalPts, pendingPts),
+          style: TextStyle(fontSize: 12, color: cs.onSurfaceVariant),
+        ),
+      ],
+    );
+  }
+
+  Widget _infoRow(ColorScheme cs, IconData icon, String label, String value) {
+    return Row(children: [
+      Icon(icon, size: 16, color: cs.onSurfaceVariant),
+      const SizedBox(width: 8),
+      Text(label, style: TextStyle(fontSize: 13, color: cs.onSurfaceVariant)),
+      const SizedBox(width: 8),
+      Expanded(
+        child: Text(value, style: TextStyle(fontSize: 13, color: cs.onSurface, fontWeight: FontWeight.w500), overflow: TextOverflow.ellipsis),
+      ),
+    ]);
   }
 
   static String _localeLabel(AppLocalizations l10n, Locale? locale) {

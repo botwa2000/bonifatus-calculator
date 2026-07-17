@@ -1290,4 +1290,21 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get aboutTermsOfService => 'Conditions d\'utilisation';
+
+  @override
+  String get settingsSectionConnectedChildren => 'Enfants connectés';
+
+  @override
+  String get settingsChildBirthday => 'Date de naissance';
+
+  @override
+  String get settingsChildSchool => 'École';
+
+  @override
+  String get settingsChildNotSpecified => 'Non renseigné';
+
+  @override
+  String settingsChildStats(int grades, int pts, int pending) {
+    return '$grades notes · $pts pts au total · $pending en attente';
+  }
 }
