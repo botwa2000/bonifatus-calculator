@@ -305,6 +305,20 @@ class AppLocalizationsDe extends AppLocalizations {
   String get settingsRemoveConnection => 'Verbindung trennen';
 
   @override
+  String get settingsRemoveConnectionTitle => 'Verbindung trennen';
+
+  @override
+  String get settingsRemoveConnectionContent =>
+      'Möchten Sie diese Elternverbindung wirklich entfernen? Dies kann nicht rückgängig gemacht werden.';
+
+  @override
+  String get settingsRemoveConnectionSuccess => 'Verbindung entfernt';
+
+  @override
+  String get settingsRemoveConnectionFailed =>
+      'Verbindung konnte nicht entfernt werden';
+
+  @override
   String get settingsParentConnected => 'Elternteil verbunden!';
 
   @override
@@ -561,6 +575,9 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get notesFailedToLoad => 'Notizen konnten nicht geladen werden';
+
+  @override
+  String get genericRetry => 'Wiederholen';
 
   @override
   String get notesRetry => 'Wiederholen';
@@ -1310,6 +1327,9 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get gradingSystemGermanDefault => 'Deutsch 1–6';
+
+  @override
+  String get loginOrDivider => 'oder';
 
   @override
   String get loginContinueWithGoogle => 'Mit Google fortfahren';

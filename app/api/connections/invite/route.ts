@@ -4,6 +4,7 @@ import { requireAuthApi, getUserProfile } from '@/lib/auth/session'
 import { db } from '@/lib/db/client'
 import { parentChildInvites } from '@/drizzle/schema/relationships'
 import { eq, and } from 'drizzle-orm'
+import { generateCode } from '@/lib/auth/generate-code'
 
 const schema = z.object({
   expiresInMinutes: z
@@ -13,10 +14,6 @@ const schema = z.object({
     .max(60 * 24 * 7)
     .optional(),
 })
-
-function generateCode() {
-  return Math.floor(100000 + Math.random() * 900000).toString()
-}
 
 export async function POST(request: NextRequest) {
   const user = await requireAuthApi()

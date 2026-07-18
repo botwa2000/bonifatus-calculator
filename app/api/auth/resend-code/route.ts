@@ -8,15 +8,12 @@ import { eq, and, isNull, desc, gt } from 'drizzle-orm'
 import { getClientIp } from '@/lib/auth/turnstile'
 import { sendEmail } from '@/lib/email/service'
 import { getVerificationCodeEmail, getPasswordResetCodeEmail } from '@/lib/email/templates'
+import { generateCode } from '@/lib/auth/generate-code'
 
 const resendSchema = z.object({
   userId: z.string().uuid('Invalid user ID'),
   purpose: z.enum(['email_verification', 'password_reset']).default('email_verification'),
 })
-
-function generateCode(): string {
-  return Math.floor(100000 + Math.random() * 900000).toString()
-}
 
 export async function POST(request: NextRequest) {
   try {
@@ -31,6 +28,14 @@ export async function POST(request: NextRequest) {
     }
 
     const { userId, purpose } = parsed.data
+
+    // password_reset resend must come from the forgot-password flow, not arbitrary callers
+    if (purpose === 'password_reset') {
+      return NextResponse.json(
+        { success: false, error: 'Use the forgot-password flow to resend a reset code.' },
+        { status: 403 }
+      )
+    }
 
     // Get user info
     const [user] = await db.select().from(users).where(eq(users.id, userId)).limit(1)
@@ -65,7 +70,7 @@ export async function POST(request: NextRequest) {
 
     if (activeCode) {
       const timeSinceCreated = Date.now() - activeCode.createdAt.getTime()
-      const cooldownMs = 60 * 1000 // 1 minute cooldown between resends
+      const cooldownMs = 3 * 60 * 1000 // 3 minute cooldown between resends
       if (timeSinceCreated < cooldownMs) {
         const secondsRemaining = Math.ceil((cooldownMs - timeSinceCreated) / 1000)
         return NextResponse.json(
@@ -107,10 +112,7 @@ export async function POST(request: NextRequest) {
       userAgent: userAgent || null,
     })
 
-    const template =
-      purpose === 'password_reset'
-        ? getPasswordResetCodeEmail(code, profile.fullName, 15)
-        : getVerificationCodeEmail(code, profile.fullName, 15)
+    const template = getVerificationCodeEmail(code, profile.fullName, 15)
 
     const emailSent = await sendEmail({
       to: user.email,

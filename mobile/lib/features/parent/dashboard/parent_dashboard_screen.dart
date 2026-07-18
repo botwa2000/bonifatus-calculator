@@ -42,9 +42,20 @@ class ParentDashboardScreen extends ConsumerWidget {
                   error: (_, __) => Padding(
                     padding: const EdgeInsets.fromLTRB(20, 40, 20, 0),
                     child: Center(
-                      child: Text(
-                        l10n.parentDashboardCouldNotLoadChildren,
-                        style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            l10n.parentDashboardCouldNotLoadChildren,
+                            style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant),
+                            textAlign: TextAlign.center,
+                          ),
+                          const SizedBox(height: 16),
+                          TextButton(
+                            onPressed: () => ref.read(childrenQuickGradesProvider.notifier).reload(),
+                            child: Text(l10n.genericRetry),
+                          ),
+                        ],
                       ),
                     ),
                   ),
@@ -448,6 +459,7 @@ class _QuickSettleCard extends ConsumerWidget {
         },
         onDone: () {
           ref.read(childrenQuickGradesProvider.notifier).reload();
+          ref.read(settlementsProvider.notifier).reload();
           if (context.mounted) {
             ScaffoldMessenger.of(context).showSnackBar(SnackBar(
               content: Text(l10n.rewardsSettled),

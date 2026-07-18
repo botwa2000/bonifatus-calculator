@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:math';
 import 'package:crypto/crypto.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/services.dart';
@@ -14,7 +15,7 @@ class ApiClient {
 
   static const _appSecret = String.fromEnvironment(
     'MOBILE_APP_SECRET',
-    defaultValue: 'dev-secret-replace-in-prod',
+    defaultValue: '',
   );
 
   ApiClient() {
@@ -70,17 +71,16 @@ class _AuthInterceptor extends Interceptor {
   @override
   void onError(DioException err, ErrorInterceptorHandler handler) async {
     if (err.response?.statusCode == 401) {
-      // Only clear session when the token validation endpoint rejects us.
-      // Data routes return 401 because they don't yet check Bearer tokens —
-      // that should show a "could not load" error, not log the user out.
       final path = err.requestOptions.path;
-      if (path.contains('/api/mobile/auth/me')) {
-        // Delete only the expired token — preserve biometric preference and device ID
+      // Clear session on 401 from any mobile-authenticated endpoint.
+      // Public auth endpoints (signin, google) may legitimately return 401 for wrong credentials
+      // — don't clear those. Web API routes are excluded because they use a separate auth system.
+      final isPublicAuthEndpoint = path.contains('/api/mobile/auth/signin') ||
+          path.contains('/api/mobile/auth/google');
+      if (path.contains('/api/mobile/') && !isPublicAuthEndpoint) {
         await Future.wait([
           _storage.delete(key: AppConstants.keyAccessToken),
-          _storage.delete(key: AppConstants.keyRefreshToken),
-          _storage.delete(key: AppConstants.keyUserId),
-          _storage.delete(key: AppConstants.keyUserRole),
+          _storage.delete(key: AppConstants.keyBiometricJwt),
         ]);
       }
     }
@@ -121,8 +121,8 @@ class _MobileTokenInterceptor extends Interceptor {
   }
 
   String _generateDeviceId() {
-    final now = DateTime.now().millisecondsSinceEpoch;
-    final random = now ^ (now >> 16);
-    return random.toRadixString(16).padLeft(16, '0');
+    final rng = Random.secure();
+    final bytes = List<int>.generate(8, (_) => rng.nextInt(256));
+    return bytes.map((b) => b.toRadixString(16).padLeft(2, '0')).join();
   }
 }

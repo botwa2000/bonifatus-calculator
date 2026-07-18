@@ -278,7 +278,7 @@ class StudentDashboardScreen extends ConsumerWidget {
           children: recent.map((term) {
             final color = AppColors.tierColor(term.tier);
             final lightColor = AppColors.tierColorLight(term.tier);
-            final avg = term.averageGrade;
+            final avg = term.averagePrimary;
 
             return Padding(
               padding: const EdgeInsets.only(bottom: 12),
@@ -303,7 +303,7 @@ class StudentDashboardScreen extends ConsumerWidget {
                       ),
                       child: Center(
                         child: Text(
-                          avg != null ? avg.toStringAsFixed(1) : '-',
+                          avg,
                           style:
                               Theme.of(context).textTheme.titleMedium?.copyWith(
                                     color: color,

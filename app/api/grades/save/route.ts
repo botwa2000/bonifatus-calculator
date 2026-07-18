@@ -10,6 +10,7 @@ import {
   type CalculatorSubjectResult,
 } from '@/lib/calculator/engine'
 import { eq, and, inArray } from 'drizzle-orm'
+import { parentChildRelationships } from '@/drizzle/schema/relationships'
 
 const saveSchema = z.object({
   gradingSystemId: z.string().uuid(),
@@ -48,6 +49,24 @@ export async function POST(request: NextRequest) {
     const user = await requireAuthApi()
     if (!user) {
       return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
+    }
+
+    // When saving grades for another user (parent for child), verify accepted relationship
+    if (normalizedChildId && normalizedChildId !== user.id) {
+      const [rel] = await db
+        .select({ id: parentChildRelationships.id })
+        .from(parentChildRelationships)
+        .where(
+          and(
+            eq(parentChildRelationships.parentId, user.id),
+            eq(parentChildRelationships.childId, normalizedChildId),
+            eq(parentChildRelationships.invitationStatus, 'accepted')
+          )
+        )
+        .limit(1)
+      if (!rel) {
+        return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 403 })
+      }
     }
 
     const [gradingSystem] = await db

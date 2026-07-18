@@ -146,9 +146,11 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
     ref.listen(authStateNotifierProvider, (_, next) {
       next.whenOrNull(
-        error: (err, _) => setState(
-          () => _error = err.toString().replaceFirst('Exception: ', ''),
-        ),
+        error: (err, _) {
+          if (mounted) {
+            setState(() => _error = err.toString().replaceFirst('Exception: ', ''));
+          }
+        },
       );
     });
 
@@ -279,7 +281,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   const Expanded(child: Divider()),
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 12),
-                    child: Text('or', style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant)),
+                    child: Text(l10n.loginOrDivider, style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant)),
                   ),
                   const Expanded(child: Divider()),
                 ]),

@@ -330,10 +330,14 @@ class _StudentSettingsScreenState extends ConsumerState<StudentSettingsScreen> {
 
   void _showParentConnectionSheet(BuildContext context, Map<String, dynamic> conn) {
     final l10n = AppLocalizations.of(context)!;
-    final parentMap = conn['parent'] as Map<String, dynamic>?;
+    // MOB-018: safe cast — conn['parent'] may not always be a Map at runtime
+    final rawParent = conn['parent'];
+    final parentMap = rawParent is Map ? Map<String, dynamic>.from(rawParent) : null;
     final parentName = parentMap?['fullName'] as String? ?? l10n.parentFallback;
-    final parentEmail = '';
+    // MOB-016: read email from the parent map, not a blank literal
+    final parentEmail = parentMap?['email'] as String? ?? '';
     final connectedSince = conn['createdAt'] as String?;
+    final relationshipId = conn['id'] as String?;
     showModalBottomSheet<void>(
       context: context,
       shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
@@ -345,7 +349,7 @@ class _StudentSettingsScreenState extends ConsumerState<StudentSettingsScreen> {
           Row(children: [
             Container(width: 48, height: 48, decoration: const BoxDecoration(color: AppColors.primaryLight, shape: BoxShape.circle),
               alignment: Alignment.center,
-              child: Text(parentName.substring(0, 1).toUpperCase(),
+              child: Text(parentName.isNotEmpty ? parentName.substring(0, 1).toUpperCase() : '?',
                 style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w700, color: AppColors.primary))),
             const SizedBox(width: 14),
             Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -363,7 +367,11 @@ class _StudentSettingsScreenState extends ConsumerState<StudentSettingsScreen> {
             child: OutlinedButton.icon(
               icon: const Icon(Icons.link_off_rounded, color: AppColors.error),
               label: Text(l10n.settingsRemoveConnection, style: const TextStyle(color: AppColors.error, fontWeight: FontWeight.w600)),
-              onPressed: () => Navigator.of(ctx).pop(),
+              // MOB-003: confirm and call the API instead of just closing the sheet
+              onPressed: relationshipId == null ? null : () {
+                Navigator.of(ctx).pop();
+                _confirmRemoveConnection(context, relationshipId, parentName);
+              },
               style: OutlinedButton.styleFrom(
                 side: const BorderSide(color: AppColors.error),
                 padding: const EdgeInsets.symmetric(vertical: 12),
@@ -373,6 +381,42 @@ class _StudentSettingsScreenState extends ConsumerState<StudentSettingsScreen> {
           ),
           const SizedBox(height: 8),
         ]),
+      ),
+    );
+  }
+
+  void _confirmRemoveConnection(BuildContext context, String relationshipId, String parentName) {
+    final l10n = AppLocalizations.of(context)!;
+    showDialog<void>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(l10n.settingsRemoveConnectionTitle),
+        content: Text(l10n.settingsRemoveConnectionContent),
+        actions: [
+          TextButton(onPressed: () => Navigator.of(ctx).pop(), child: Text(l10n.settingsCancel)),
+          TextButton(
+            onPressed: () async {
+              Navigator.of(ctx).pop();
+              try {
+                await ref.read(connectionServiceProvider).removeConnection(relationshipId);
+                _loadConnections();
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text(l10n.settingsRemoveConnectionSuccess), backgroundColor: AppColors.tierBest),
+                  );
+                }
+              } catch (e) {
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text(l10n.settingsRemoveConnectionFailed), backgroundColor: AppColors.error),
+                  );
+                }
+              }
+            },
+            style: TextButton.styleFrom(foregroundColor: AppColors.error),
+            child: Text(l10n.settingsRemoveConnection),
+          ),
+        ],
       ),
     );
   }

@@ -115,6 +115,10 @@
     }
   },
   "settingsRemoveConnection": "Remove connection",
+  "settingsRemoveConnectionTitle": "Remove connection",
+  "settingsRemoveConnectionContent": "Are you sure you want to remove this parent connection? This cannot be undone.",
+  "settingsRemoveConnectionSuccess": "Connection removed",
+  "settingsRemoveConnectionFailed": "Failed to remove connection",
   "settingsParentConnected": "Parent connected!",
   "settingsEditProfileTitle": "Edit Profile",
   "settingsFullName": "Full Name",
@@ -223,6 +227,7 @@
   "notesNoNotesYet": "No notes yet",
   "notesTapToCaptureFirst": "Tap + to capture your first grade",
   "notesFailedToLoad": "Failed to load notes",
+  "genericRetry": "Retry",
   "notesRetry": "Retry",
   "notesViewCycleSummary": "View Cycle Summary",
   "notesDeleteGradeTitle": "Delete Grade",
@@ -556,6 +561,7 @@
   "nameUnknown": "Unknown",
   "gradingSystemGermanDefault": "German 1–6",
 
+  "loginOrDivider": "or",
   "loginContinueWithGoogle": "Continue with Google",
   "googleProfileTitle": "Complete Your Profile",
   "googleProfileSubtitle": "Just a few more details to get started.",

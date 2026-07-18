@@ -658,6 +658,30 @@ abstract class AppLocalizations {
   /// **'Remove connection'**
   String get settingsRemoveConnection;
 
+  /// No description provided for @settingsRemoveConnectionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove connection'**
+  String get settingsRemoveConnectionTitle;
+
+  /// No description provided for @settingsRemoveConnectionContent.
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to remove this parent connection? This cannot be undone.'**
+  String get settingsRemoveConnectionContent;
+
+  /// No description provided for @settingsRemoveConnectionSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Connection removed'**
+  String get settingsRemoveConnectionSuccess;
+
+  /// No description provided for @settingsRemoveConnectionFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to remove connection'**
+  String get settingsRemoveConnectionFailed;
+
   /// No description provided for @settingsParentConnected.
   ///
   /// In en, this message translates to:
@@ -1137,6 +1161,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Failed to load notes'**
   String get notesFailedToLoad;
+
+  /// No description provided for @genericRetry.
+  ///
+  /// In en, this message translates to:
+  /// **'Retry'**
+  String get genericRetry;
 
   /// No description provided for @notesRetry.
   ///
@@ -2451,6 +2481,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'German 1–6'**
   String get gradingSystemGermanDefault;
+
+  /// No description provided for @loginOrDivider.
+  ///
+  /// In en, this message translates to:
+  /// **'or'**
+  String get loginOrDivider;
 
   /// No description provided for @loginContinueWithGoogle.
   ///

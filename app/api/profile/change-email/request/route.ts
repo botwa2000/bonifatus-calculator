@@ -5,16 +5,22 @@ import { db } from '@/lib/db/client'
 import { users } from '@/drizzle/schema/auth'
 import { userProfiles } from '@/drizzle/schema/users'
 import { verificationCodes } from '@/drizzle/schema/security'
-import { eq, and, isNull } from 'drizzle-orm'
+import { eq, and, isNull, gt, count } from 'drizzle-orm'
 import { getClientIp } from '@/lib/auth/turnstile'
 import { sendEmail } from '@/lib/email/service'
+import { generateCode } from '@/lib/auth/generate-code'
 
 const schema = z.object({
   newEmail: z.string().email('Invalid email address'),
 })
 
-function generateCode(): string {
-  return Math.floor(100000 + Math.random() * 900000).toString()
+function htmlEscape(s: string): string {
+  return s
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;')
 }
 
 export async function POST(request: NextRequest) {
@@ -68,6 +74,48 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // Rate limiting: max 3 email changes per user per day
+    const dailyLimitSince = new Date(Date.now() - 24 * 60 * 60_000)
+    const [dailyCount] = await db
+      .select({ n: count() })
+      .from(verificationCodes)
+      .where(
+        and(
+          eq(verificationCodes.userId, user.id),
+          eq(verificationCodes.purpose, 'email_verification'),
+          gt(verificationCodes.createdAt, dailyLimitSince)
+        )
+      )
+    if ((dailyCount?.n ?? 0) >= 3) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'Too many email change requests today. Please try again tomorrow.',
+        },
+        { status: 429 }
+      )
+    }
+
+    // 3-minute cooldown between resends
+    const cooldownSince = new Date(Date.now() - 3 * 60_000)
+    const [recentCode] = await db
+      .select({ id: verificationCodes.id })
+      .from(verificationCodes)
+      .where(
+        and(
+          eq(verificationCodes.userId, user.id),
+          eq(verificationCodes.purpose, 'email_verification'),
+          gt(verificationCodes.createdAt, cooldownSince)
+        )
+      )
+      .limit(1)
+    if (recentCode) {
+      return NextResponse.json(
+        { success: false, error: 'Please wait 3 minutes before requesting another code.' },
+        { status: 429 }
+      )
+    }
+
     // Invalidate old email change codes for this user
     await db
       .update(verificationCodes)
@@ -104,6 +152,7 @@ export async function POST(request: NextRequest) {
       .limit(1)
 
     const userName = profile?.fullName || 'User'
+    const safeUserName = htmlEscape(userName)
 
     // Send verification code to the new email
     const subject = 'Verify Your New Email Address - Bonifatus'
@@ -153,7 +202,7 @@ https://bonifatus.com
               <h2 style="margin: 0 0 20px; color: #1a1a1a; font-size: 24px; font-weight: 600;">Verify Your New Email</h2>
 
               <p style="margin: 0 0 20px; color: #4a5568; font-size: 16px; line-height: 1.6;">
-                Hello ${userName},
+                Hello ${safeUserName},
               </p>
 
               <p style="margin: 0 0 30px; color: #4a5568; font-size: 16px; line-height: 1.6;">

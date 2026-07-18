@@ -73,9 +73,9 @@ export function formatSecondaryAverage(
 }
 
 export function deriveTier(normalized: number): string {
-  if (normalized >= 75) return 'best'
-  if (normalized >= 50) return 'second'
-  if (normalized >= 25) return 'third'
+  if (normalized >= 80) return 'best'
+  if (normalized >= 60) return 'second'
+  if (normalized >= 40) return 'third'
   return 'below'
 }
 

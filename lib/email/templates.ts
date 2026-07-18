@@ -3,6 +3,15 @@
  * Production-grade HTML email templates with plain text fallbacks
  */
 
+function htmlEscape(s: string): string {
+  return s
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;')
+}
+
 /**
  * Email verification code template
  */
@@ -34,6 +43,7 @@ Bonifatus - Motivating Academic Excellence
 https://bonifatus.com
   `.trim()
 
+  const safeUserName = htmlEscape(userName)
   const html = `
 <!DOCTYPE html>
 <html lang="en">
@@ -60,7 +70,7 @@ https://bonifatus.com
               <h2 style="margin: 0 0 20px; color: #1a1a1a; font-size: 24px; font-weight: 600;">Verify Your Account</h2>
 
               <p style="margin: 0 0 20px; color: #4a5568; font-size: 16px; line-height: 1.6;">
-                Hello ${userName},
+                Hello ${safeUserName},
               </p>
 
               <p style="margin: 0 0 30px; color: #4a5568; font-size: 16px; line-height: 1.6;">
@@ -170,7 +180,7 @@ https://bonifatus.com
           <!-- Content -->
           <tr>
             <td style="padding: 40px;">
-              <h2 style="margin: 0 0 20px; color: #1a1a1a; font-size: 24px; font-weight: 600;">Hello ${userName},</h2>
+              <h2 style="margin: 0 0 20px; color: #1a1a1a; font-size: 24px; font-weight: 600;">Hello ${htmlEscape(userName)},</h2>
 
               <p style="margin: 0 0 20px; color: #4a5568; font-size: 16px; line-height: 1.6;">
                 Your account has been successfully verified and is ready to use!
@@ -276,7 +286,7 @@ https://bonifatus.com
               <h2 style="margin: 0 0 20px; color: #1a1a1a; font-size: 24px; font-weight: 600;">Reset Your Password</h2>
 
               <p style="margin: 0 0 20px; color: #4a5568; font-size: 16px; line-height: 1.6;">
-                Hello ${userName},
+                Hello ${htmlEscape(userName)},
               </p>
 
               <p style="margin: 0 0 30px; color: #4a5568; font-size: 16px; line-height: 1.6;">

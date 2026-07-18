@@ -1,5 +1,8 @@
 import { SignJWT, jwtVerify } from 'jose'
 
+if (!process.env.MOBILE_JWT_SECRET && process.env.NODE_ENV === 'production') {
+  throw new Error('MOBILE_JWT_SECRET must be set in production')
+}
 const secret = new TextEncoder().encode(
   process.env.MOBILE_JWT_SECRET ?? 'dev-fallback-do-not-use-in-prod'
 )

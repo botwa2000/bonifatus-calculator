@@ -303,6 +303,19 @@ class AppLocalizationsRu extends AppLocalizations {
   String get settingsRemoveConnection => 'Удалить соединение';
 
   @override
+  String get settingsRemoveConnectionTitle => 'Удалить соединение';
+
+  @override
+  String get settingsRemoveConnectionContent =>
+      'Вы уверены, что хотите удалить это родительское соединение? Это действие нельзя отменить.';
+
+  @override
+  String get settingsRemoveConnectionSuccess => 'Соединение удалено';
+
+  @override
+  String get settingsRemoveConnectionFailed => 'Не удалось удалить соединение';
+
+  @override
   String get settingsParentConnected => 'Родитель подключён!';
 
   @override
@@ -555,6 +568,9 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get notesFailedToLoad => 'Не удалось загрузить оценки';
+
+  @override
+  String get genericRetry => 'Повторить';
 
   @override
   String get notesRetry => 'Повторить';
@@ -1305,6 +1321,9 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get gradingSystemGermanDefault => 'Немецкая 1–6';
+
+  @override
+  String get loginOrDivider => 'или';
 
   @override
   String get loginContinueWithGoogle => 'Войти через Google';

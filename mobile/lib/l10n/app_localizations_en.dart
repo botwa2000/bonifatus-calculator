@@ -302,6 +302,19 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settingsRemoveConnection => 'Remove connection';
 
   @override
+  String get settingsRemoveConnectionTitle => 'Remove connection';
+
+  @override
+  String get settingsRemoveConnectionContent =>
+      'Are you sure you want to remove this parent connection? This cannot be undone.';
+
+  @override
+  String get settingsRemoveConnectionSuccess => 'Connection removed';
+
+  @override
+  String get settingsRemoveConnectionFailed => 'Failed to remove connection';
+
+  @override
   String get settingsParentConnected => 'Parent connected!';
 
   @override
@@ -554,6 +567,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get notesFailedToLoad => 'Failed to load notes';
+
+  @override
+  String get genericRetry => 'Retry';
 
   @override
   String get notesRetry => 'Retry';
@@ -1295,6 +1311,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get gradingSystemGermanDefault => 'German 1–6';
+
+  @override
+  String get loginOrDivider => 'or';
 
   @override
   String get loginContinueWithGoogle => 'Continue with Google';

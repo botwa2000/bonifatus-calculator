@@ -303,6 +303,20 @@ class AppLocalizationsIt extends AppLocalizations {
   String get settingsRemoveConnection => 'Rimuovi connessione';
 
   @override
+  String get settingsRemoveConnectionTitle => 'Rimuovi connessione';
+
+  @override
+  String get settingsRemoveConnectionContent =>
+      'Sei sicuro di voler rimuovere questa connessione genitoriale? Questa azione non può essere annullata.';
+
+  @override
+  String get settingsRemoveConnectionSuccess => 'Connessione rimossa';
+
+  @override
+  String get settingsRemoveConnectionFailed =>
+      'Impossibile rimuovere la connessione';
+
+  @override
   String get settingsParentConnected => 'Genitore connesso!';
 
   @override
@@ -555,6 +569,9 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get notesFailedToLoad => 'Impossibile caricare le note';
+
+  @override
+  String get genericRetry => 'Riprova';
 
   @override
   String get notesRetry => 'Riprova';
@@ -1296,6 +1313,9 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get gradingSystemGermanDefault => 'Tedesco 1–6';
+
+  @override
+  String get loginOrDivider => 'o';
 
   @override
   String get loginContinueWithGoogle => 'Continua con Google';

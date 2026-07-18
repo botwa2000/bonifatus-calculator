@@ -28,20 +28,32 @@ export async function createSettlement(data: {
     splitConfig: data.splitConfig || null,
   })
 
-  // Mark quick grades as settled
+  // Mark quick grades as settled — restrict to grades that belong to data.childId
   if (data.quickGradeIds && data.quickGradeIds.length > 0) {
     await db
       .update(quickGrades)
       .set({ settlementStatus: 'settled', settlementId, updatedAt: new Date() })
-      .where(inArray(quickGrades.id, data.quickGradeIds))
+      .where(
+        and(inArray(quickGrades.id, data.quickGradeIds), eq(quickGrades.childId, data.childId))
+      )
   }
 
-  // Mark subject grades (from saved terms) as settled
+  // Mark subject grades (from saved terms) as settled — restrict to child's own term grades
   if (data.subjectGradeIds && data.subjectGradeIds.length > 0) {
-    await db
-      .update(subjectGrades)
-      .set({ settlementStatus: 'settled', settlementId, updatedAt: new Date() })
-      .where(inArray(subjectGrades.id, data.subjectGradeIds))
+    const validRows = await db
+      .select({ id: subjectGrades.id })
+      .from(subjectGrades)
+      .innerJoin(termGrades, eq(subjectGrades.termGradeId, termGrades.id))
+      .where(
+        and(inArray(subjectGrades.id, data.subjectGradeIds), eq(termGrades.childId, data.childId))
+      )
+    if (validRows.length > 0) {
+      const validIds = validRows.map((r) => r.id)
+      await db
+        .update(subjectGrades)
+        .set({ settlementStatus: 'settled', settlementId, updatedAt: new Date() })
+        .where(inArray(subjectGrades.id, validIds))
+    }
   }
 
   return settlementId

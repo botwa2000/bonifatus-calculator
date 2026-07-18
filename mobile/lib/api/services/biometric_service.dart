@@ -53,7 +53,7 @@ class BiometricService {
         localizedReason: reason,
         options: const AuthenticationOptions(
           stickyAuth: false,
-          biometricOnly: false,
+          biometricOnly: true,
         ),
       );
     } catch (_) {

@@ -9,15 +9,12 @@ import { verifyTurnstileToken, getClientIp } from '@/lib/auth/turnstile'
 import { validateMobileToken } from '@/lib/auth/validate-mobile-token'
 import { sendEmail } from '@/lib/email/service'
 import { getPasswordResetCodeEmail } from '@/lib/email/templates'
+import { generateCode } from '@/lib/auth/generate-code'
 
 const schema = z.object({
   email: z.string().email('Invalid email address'),
   turnstileToken: z.string().optional(),
 })
-
-function generateCode(): string {
-  return Math.floor(100000 + Math.random() * 900000).toString()
-}
 
 export async function POST(request: NextRequest) {
   try {

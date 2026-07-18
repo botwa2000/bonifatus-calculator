@@ -174,6 +174,6 @@ export async function getRecentRegistrations(days = 30) {
     })
     .from(userProfiles)
     .innerJoin(users, eq(users.id, userProfiles.id))
-    .where(gte(userProfiles.createdAt, sql`NOW() - INTERVAL '${sql.raw(String(days))} days'`))
+    .where(gte(userProfiles.createdAt, sql`NOW() - (${days} * INTERVAL '1 day')`))
     .orderBy(desc(userProfiles.createdAt))
 }

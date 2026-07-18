@@ -38,6 +38,10 @@ class ConnectionService {
     return resp.data['relationshipId'] as String;
   }
 
+  Future<void> removeConnection(String relationshipId) async {
+    await _client.post('/api/connections/remove', data: {'relationshipId': relationshipId});
+  }
+
   Future<List<Map<String, dynamic>>> fetchParentConnections() async {
     final resp = await _client.get('/api/connections/list');
     final asChild = resp.data['asChild'] as List<dynamic>? ?? [];

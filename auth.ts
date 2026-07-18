@@ -79,6 +79,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
             .where(eq(userProfiles.id, user.id!))
             .limit(1)
           token.role = profile?.role ?? 'child'
+          token.roleRefreshedAt = Date.now()
           dbg('auth', 'jwt callback — role resolved', { userId: user.id, role: token.role })
         } catch (err) {
           dbgError('auth', 'jwt callback — role fetch failed', {
@@ -86,6 +87,28 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
             error: String(err),
           })
           token.role = 'child'
+          token.roleRefreshedAt = Date.now()
+        }
+      } else {
+        // Refresh role from DB at most once per hour so role changes take effect within the session
+        const refreshedAt = token.roleRefreshedAt as number | undefined
+        if (!refreshedAt || Date.now() - refreshedAt > 60 * 60 * 1000) {
+          try {
+            const [profile] = await db
+              .select({ role: userProfiles.role })
+              .from(userProfiles)
+              .where(eq(userProfiles.id, token.id as string))
+              .limit(1)
+            if (profile) {
+              token.role = profile.role
+            }
+            token.roleRefreshedAt = Date.now()
+          } catch (err) {
+            dbgError('auth', 'jwt callback — periodic role refresh failed', {
+              userId: token.id,
+              error: String(err),
+            })
+          }
         }
       }
       return token

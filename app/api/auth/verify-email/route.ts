@@ -32,14 +32,14 @@ export async function POST(request: NextRequest) {
     const clientIp = getClientIp(request.headers)
     const userAgent = request.headers.get('user-agent') || undefined
 
-    // Find the active verification code
+    // Find the most recent active verification code for this user (without matching the code itself,
+    // so wrong guesses still hit the attempt counter)
     const [record] = await db
       .select()
       .from(verificationCodes)
       .where(
         and(
           eq(verificationCodes.userId, userId),
-          eq(verificationCodes.code, code),
           eq(verificationCodes.purpose, purpose),
           isNull(verificationCodes.verifiedAt)
         )
@@ -62,13 +62,14 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Increment attempt count
+    // Increment attempt count before comparing — prevents brute-force by exhausting attempts
+    // even when wrong guesses would otherwise return early without incrementing
     await db
       .update(verificationCodes)
       .set({ attemptCount: record.attemptCount + 1 })
       .where(eq(verificationCodes.id, record.id))
 
-    if (record.attemptCount >= record.maxAttempts) {
+    if (record.attemptCount + 1 > record.maxAttempts) {
       return NextResponse.json(
         { success: false, error: 'Too many attempts. Request a new code.' },
         { status: 400 }
@@ -78,6 +79,21 @@ export async function POST(request: NextRequest) {
     if (record.expiresAt < new Date()) {
       return NextResponse.json(
         { success: false, error: 'Code has expired. Request a new one.' },
+        { status: 400 }
+      )
+    }
+
+    if (record.code !== code) {
+      await logSecurityEvent({
+        eventType: 'login_failure',
+        severity: 'warning',
+        userId,
+        ipAddress: clientIp || '0.0.0.0',
+        userAgent: userAgent || null,
+        metadata: { reason: 'wrong_verification_code', purpose },
+      })
+      return NextResponse.json(
+        { success: false, error: 'Invalid or expired code. Please check the code and try again.' },
         { status: 400 }
       )
     }

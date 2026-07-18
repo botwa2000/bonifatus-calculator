@@ -41,14 +41,14 @@ export async function POST(request: NextRequest) {
     }
     const userId = user.id
 
-    // Find the active reset code
+    // Find the most recent active reset code (without matching the code itself,
+    // so wrong guesses still hit the attempt counter)
     const [record] = await db
       .select()
       .from(verificationCodes)
       .where(
         and(
           eq(verificationCodes.userId, userId),
-          eq(verificationCodes.code, code),
           eq(verificationCodes.purpose, 'password_reset'),
           isNull(verificationCodes.verifiedAt)
         )
@@ -63,7 +63,13 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    if (record.attemptCount >= record.maxAttempts) {
+    // Increment attempt count before comparing — prevents brute-force bypass
+    await db
+      .update(verificationCodes)
+      .set({ attemptCount: record.attemptCount + 1 })
+      .where(eq(verificationCodes.id, record.id))
+
+    if (record.attemptCount + 1 > record.maxAttempts) {
       return NextResponse.json(
         { success: false, error: 'Too many attempts. Request a new code.' },
         { status: 400 }
@@ -73,6 +79,13 @@ export async function POST(request: NextRequest) {
     if (record.expiresAt < new Date()) {
       return NextResponse.json(
         { success: false, error: 'Code has expired. Request a new one.' },
+        { status: 400 }
+      )
+    }
+
+    if (record.code !== code) {
+      return NextResponse.json(
+        { success: false, error: 'Invalid or expired code' },
         { status: 400 }
       )
     }

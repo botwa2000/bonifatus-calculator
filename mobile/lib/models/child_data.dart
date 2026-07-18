@@ -182,11 +182,6 @@ class ChildTermResult {
     );
   }
 
-  String get rawDisplayLabel {
-    if (termName != null && termName!.isNotEmpty) return termName!;
-    return '$schoolYear · $termType';
-  }
-
   double? get averageNormalized100 {
     final norms = subjects.map((s) => s.gradeNormalized100).whereType<double>().toList();
     if (norms.isEmpty) return null;
@@ -275,7 +270,6 @@ class ChildProfile {
   final String childName;
   final String? email;
   final String? dateOfBirth;
-  final String? avatarUrl;
   final String? schoolName;
   final String? connectedSince;
 
@@ -284,7 +278,6 @@ class ChildProfile {
     required this.childName,
     this.email,
     this.dateOfBirth,
-    this.avatarUrl,
     this.schoolName,
     this.connectedSince,
   });
@@ -295,7 +288,6 @@ class ChildProfile {
       childName: json['childName'] as String,
       email: json['email'] as String?,
       dateOfBirth: json['dateOfBirth'] as String?,
-      avatarUrl: json['avatarUrl'] as String?,
       schoolName: json['schoolName'] as String?,
       connectedSince: json['connectedSince'] as String?,
     );

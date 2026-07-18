@@ -139,11 +139,6 @@ class TermResult {
     );
   }
 
-  String get rawDisplayLabel {
-    if (termName != null && termName!.isNotEmpty) return termName!;
-    return '$schoolYear · $termType';
-  }
-
   // Average of normalized_100 values (0-100, higher=better universally).
   double? get averageNormalized100 {
     final norms = subjects.map((s) => s.gradeNormalized100).whereType<double>().toList();
@@ -223,17 +218,4 @@ class TermResult {
     })['grade'] as String? ?? '—';
   }
 
-  // Legacy getter — kept for screens not yet using averagePrimary.
-  double? get averageGrade {
-    final avg = averageNormalized100;
-    if (avg != null) {
-      final min = gradingSystemMinValue ?? 1.0;
-      final max = gradingSystemMaxValue ?? 6.0;
-      if (gradingSystemBestIsHighest) return min + (avg / 100) * (max - min);
-      return max - (avg / 100) * (max - min);
-    }
-    final grades = subjects.map((s) => double.tryParse(s.gradeValue)).whereType<double>().toList();
-    if (grades.isEmpty) return null;
-    return grades.reduce((a, b) => a + b) / grades.length;
-  }
 }

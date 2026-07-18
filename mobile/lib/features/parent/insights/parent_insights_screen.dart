@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
 import 'package:bonifatus_mobile/l10n/app_localizations.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../models/child_data.dart';
@@ -17,13 +18,10 @@ DateTime _weekStart(DateTime d) {
 
 String _weekLabel(DateTime ws) {
   final we = ws.add(const Duration(days: 6));
-  const months = [
-    '', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-    'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
-  ];
+  final fmt = DateFormat.MMM();
   return ws.month == we.month
-      ? '${months[ws.month]} ${ws.day}–${we.day}'
-      : '${months[ws.month]} ${ws.day} – ${months[we.month]} ${we.day}';
+      ? '${fmt.format(ws)} ${ws.day}–${we.day}'
+      : '${fmt.format(ws)} ${ws.day} – ${fmt.format(we)} ${we.day}';
 }
 
 String _relativeDate(DateTime dt, AppLocalizations l10n) {
@@ -399,6 +397,7 @@ class _CalcGradeRow extends ConsumerWidget {
         ),
         onDone: () {
           ref.read(childrenQuickGradesProvider.notifier).reload();
+          ref.read(settlementsProvider.notifier).reload();
           if (context.mounted) {
             ScaffoldMessenger.of(context).showSnackBar(SnackBar(
               content: Text(l10n.rewardsSettled),
@@ -450,6 +449,7 @@ class _NoteBundleRow extends ConsumerWidget {
         ),
         onDone: () {
           ref.read(childrenQuickGradesProvider.notifier).reload();
+          ref.read(settlementsProvider.notifier).reload();
           if (context.mounted) {
             ScaffoldMessenger.of(context).showSnackBar(SnackBar(
               content: Text(l10n.rewardsSettled),

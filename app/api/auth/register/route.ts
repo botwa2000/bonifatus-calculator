@@ -12,6 +12,7 @@ import { validateMobileToken } from '@/lib/auth/validate-mobile-token'
 import { logSecurityEvent } from '@/lib/db/queries/security'
 import { sendEmail } from '@/lib/email/service'
 import { getVerificationCodeEmail } from '@/lib/email/templates'
+import { generateCode } from '@/lib/auth/generate-code'
 
 const registerSchema = z.object({
   email: z.string().email('Invalid email address'),
@@ -25,10 +26,6 @@ const registerSchema = z.object({
   role: z.enum(['parent', 'child']),
   turnstileToken: z.string().optional(),
 })
-
-function generateCode(): string {
-  return Math.floor(100000 + Math.random() * 900000).toString()
-}
 
 export async function POST(request: NextRequest) {
   try {
@@ -59,7 +56,13 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       )
     }
-    const dateOfBirth = dateOfBirthField || '2000-01-01'
+    const dateOfBirth = dateOfBirthField ?? ''
+    if (!dateOfBirth) {
+      return NextResponse.json(
+        { success: false, error: 'Date of birth is required' },
+        { status: 400 }
+      )
+    }
     const email = rawEmail.toLowerCase()
 
     const clientIp = getClientIp(request.headers)
@@ -109,7 +112,7 @@ export async function POST(request: NextRequest) {
     if (existing) {
       if (existing.emailVerified) {
         return NextResponse.json(
-          { success: false, error: 'An account with this email already exists' },
+          { success: false, error: 'Registration failed. Please check your information.' },
           { status: 400 }
         )
       }

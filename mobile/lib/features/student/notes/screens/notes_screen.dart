@@ -258,9 +258,18 @@ class NotesScreen extends ConsumerWidget {
                           false;
                     },
                     onDismissed: (_) {
-                      ref
-                          .read(quickGradesProvider.notifier)
-                          .deleteGrade(grade.id);
+                      ref.read(quickGradesProvider.notifier).deleteGrade(grade.id).catchError((_) {
+                        // Re-fetch so the optimistically-dismissed item reappears if the API failed
+                        ref.read(quickGradesProvider.notifier).reload();
+                        if (context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(l10n.notesRetry),
+                              backgroundColor: AppColors.error,
+                            ),
+                          );
+                        }
+                      });
                     },
                     child: _NoteCard(
                       grade: grade,

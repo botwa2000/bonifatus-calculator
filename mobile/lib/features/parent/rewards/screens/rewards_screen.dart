@@ -96,10 +96,10 @@ DateTime _rewardsWeekStart(DateTime d) {
 
 String _rewardsWeekLabel(DateTime ws) {
   final we = ws.add(const Duration(days: 6));
-  const months = ['', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  final fmt = DateFormat.MMM();
   return ws.month == we.month
-      ? '${months[ws.month]} ${ws.day}–${we.day}'
-      : '${months[ws.month]} ${ws.day} – ${months[we.month]} ${we.day}';
+      ? '${fmt.format(ws)} ${ws.day}–${we.day}'
+      : '${fmt.format(ws)} ${ws.day} – ${fmt.format(we)} ${we.day}';
 }
 
 // ── grades tab ───────────────────────────────────────────────────────────────

@@ -177,9 +177,9 @@ class AuthService {
   }
 
   Future<void> logout() async {
-    // Clear the token so restoreSession() returns unauthenticated on next open.
-    // Biometric-enabled flag is preserved; user must re-enable after next manual login.
-    await _clearExpiredToken();
+    // Clear only the access token — biometric JWT survives so the user can re-authenticate
+    // with biometric after logging back in manually.
+    await _storage.delete(key: AppConstants.keyAccessToken);
     // ignore: unawaited_futures
     _signOutServerAsync();
   }
@@ -234,14 +234,13 @@ class AuthService {
     await _storage.deleteAll();
   }
 
-  // Called only when a token is confirmed invalid (401 on /me, or session restore fails).
-  // Preserves biometric preference and device ID.
+  // Called when a token is confirmed invalid (401 on /me, or session restore fails).
+  // Clears the access token AND the biometric JWT snapshot (which was tied to that token).
+  // Preserves biometric_enabled flag and device ID.
   Future<void> _clearExpiredToken() async {
     await Future.wait([
       _storage.delete(key: AppConstants.keyAccessToken),
-      _storage.delete(key: AppConstants.keyRefreshToken),
-      _storage.delete(key: AppConstants.keyUserId),
-      _storage.delete(key: AppConstants.keyUserRole),
+      _storage.delete(key: AppConstants.keyBiometricJwt),
     ]);
   }
 }
