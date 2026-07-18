@@ -323,6 +323,22 @@
   "rewardsCancel": "Отмена",
   "rewardsConfirmSettle": "Подтвердить выплату",
   "rewardsSettled": "Выплачено!",
+  "rewardsSectionTermGrades": "Оценки за четверть",
+  "rewardsSectionNotesWeek": "Заметки — {weekRange}",
+  "@rewardsSectionNotesWeek": {
+    "placeholders": {
+      "weekRange": { "type": "String" }
+    }
+  },
+  "rewardsGroupSettleBonusFor": "Выплатить {label} для {childName}",
+  "@rewardsGroupSettleBonusFor": {
+    "placeholders": {
+      "label": { "type": "String" },
+      "childName": { "type": "String" }
+    }
+  },
+  "childrenSearchPlaceholder": "Поиск детей...",
+  "insightsFilterAll": "Все",
 
   "parentInsightsTitle": "Аналитика",
   "parentInsightsFailedToLoad": "Не удалось загрузить аналитику",
@@ -364,6 +380,25 @@
       "pts": { "type": "int" }
     }
   },
+
+  "homeActionCenterSubtitle": "Вот что требует вашего внимания",
+  "homeUnsettledBannerTitle": "{pts} Б готовы к выплате",
+  "@homeUnsettledBannerTitle": {
+    "placeholders": {
+      "pts": { "type": "int" }
+    }
+  },
+  "homeUnsettledBannerSub": "{count} неоплаченных позиций",
+  "@homeUnsettledBannerSub": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "homeGoToInsights": "Перейти к аналитике",
+  "homeTopPendingSection": "Наибольший ожидающий",
+  "homeActiveTodaySection": "Активны сегодня",
+  "homeActiveTodayEmpty": "Нет активности за последние 24 часа",
+  "homeAllSettledUp": "Всё выплачено!",
 
   "termDetailDeleteTitle": "Удалить результат",
   "termDetailDeleteConfirm": "Вы уверены, что хотите удалить этот результат? Это действие нельзя отменить.",

@@ -323,6 +323,22 @@
   "rewardsCancel": "Annulla",
   "rewardsConfirmSettle": "Conferma liquidazione",
   "rewardsSettled": "Liquidato!",
+  "rewardsSectionTermGrades": "Voti trimestrali",
+  "rewardsSectionNotesWeek": "Note — {weekRange}",
+  "@rewardsSectionNotesWeek": {
+    "placeholders": {
+      "weekRange": { "type": "String" }
+    }
+  },
+  "rewardsGroupSettleBonusFor": "Liquida {label} per {childName}",
+  "@rewardsGroupSettleBonusFor": {
+    "placeholders": {
+      "label": { "type": "String" },
+      "childName": { "type": "String" }
+    }
+  },
+  "childrenSearchPlaceholder": "Cerca bambini...",
+  "insightsFilterAll": "Tutti",
 
   "parentInsightsTitle": "Analisi",
   "parentInsightsFailedToLoad": "Impossibile caricare le analisi",
@@ -364,6 +380,25 @@
       "pts": { "type": "int" }
     }
   },
+
+  "homeActionCenterSubtitle": "Ecco cosa richiede la tua attenzione",
+  "homeUnsettledBannerTitle": "{pts} pts pronti per il saldo",
+  "@homeUnsettledBannerTitle": {
+    "placeholders": {
+      "pts": { "type": "int" }
+    }
+  },
+  "homeUnsettledBannerSub": "{count} elementi in sospeso",
+  "@homeUnsettledBannerSub": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "homeGoToInsights": "Vai alle Analisi",
+  "homeTopPendingSection": "Elemento in sospeso più alto",
+  "homeActiveTodaySection": "Attivi oggi",
+  "homeActiveTodayEmpty": "Nessuna attività nelle ultime 24 ore",
+  "homeAllSettledUp": "Tutto saldato!",
 
   "termDetailDeleteTitle": "Elimina risultato",
   "termDetailDeleteConfirm": "Sei sicuro di voler eliminare questo risultato? Questa azione non può essere annullata.",

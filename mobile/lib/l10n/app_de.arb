@@ -323,6 +323,22 @@
   "rewardsCancel": "Abbrechen",
   "rewardsConfirmSettle": "Abrechnung bestätigen",
   "rewardsSettled": "Abgerechnet!",
+  "rewardsSectionTermGrades": "Zeugnisse",
+  "rewardsSectionNotesWeek": "Notizen — {weekRange}",
+  "@rewardsSectionNotesWeek": {
+    "placeholders": {
+      "weekRange": { "type": "String" }
+    }
+  },
+  "rewardsGroupSettleBonusFor": "{label} für {childName} abrechnen",
+  "@rewardsGroupSettleBonusFor": {
+    "placeholders": {
+      "label": { "type": "String" },
+      "childName": { "type": "String" }
+    }
+  },
+  "childrenSearchPlaceholder": "Kinder suchen ...",
+  "insightsFilterAll": "Alle",
 
   "parentInsightsTitle": "Erkenntnisse",
   "parentInsightsFailedToLoad": "Erkenntnisse konnten nicht geladen werden",
@@ -364,6 +380,25 @@
       "pts": { "type": "int" }
     }
   },
+
+  "homeActionCenterSubtitle": "Das braucht deine Aufmerksamkeit",
+  "homeUnsettledBannerTitle": "{pts} Pkt. zum Auszahlen bereit",
+  "@homeUnsettledBannerTitle": {
+    "placeholders": {
+      "pts": { "type": "int" }
+    }
+  },
+  "homeUnsettledBannerSub": "{count} offene Posten",
+  "@homeUnsettledBannerSub": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "homeGoToInsights": "Zu Analysen",
+  "homeTopPendingSection": "Höchster ausstehender Posten",
+  "homeActiveTodaySection": "Heute aktiv",
+  "homeActiveTodayEmpty": "Keine Aktivität in den letzten 24 Stunden",
+  "homeAllSettledUp": "Alles ausgezahlt!",
 
   "termDetailDeleteTitle": "Ergebnis löschen",
   "termDetailDeleteConfirm": "Bist du sicher, dass du dieses Ergebnis löschen möchtest? Diese Aktion kann nicht rückgängig gemacht werden.",

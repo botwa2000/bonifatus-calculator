@@ -961,6 +961,25 @@ class AppLocalizationsEn extends AppLocalizations {
   String get rewardsSettled => 'Settled!';
 
   @override
+  String get rewardsSectionTermGrades => 'Term Grades';
+
+  @override
+  String rewardsSectionNotesWeek(String weekRange) {
+    return 'Notes — $weekRange';
+  }
+
+  @override
+  String rewardsGroupSettleBonusFor(String label, String childName) {
+    return 'Settle $label for $childName';
+  }
+
+  @override
+  String get childrenSearchPlaceholder => 'Search children...';
+
+  @override
+  String get insightsFilterAll => 'All';
+
+  @override
   String get parentInsightsTitle => 'Insights';
 
   @override
@@ -1032,6 +1051,34 @@ class AppLocalizationsEn extends AppLocalizations {
   String parentDashboardChildSubtitle(int count, int pts) {
     return '$count grades · $pts pts pending';
   }
+
+  @override
+  String get homeActionCenterSubtitle => 'Here\'s what needs your attention';
+
+  @override
+  String homeUnsettledBannerTitle(int pts) {
+    return '$pts pts ready to settle';
+  }
+
+  @override
+  String homeUnsettledBannerSub(int count) {
+    return '$count unsettled items';
+  }
+
+  @override
+  String get homeGoToInsights => 'Go to Insights';
+
+  @override
+  String get homeTopPendingSection => 'Top pending';
+
+  @override
+  String get homeActiveTodaySection => 'Active today';
+
+  @override
+  String get homeActiveTodayEmpty => 'No activity in the last 24 hours';
+
+  @override
+  String get homeAllSettledUp => 'All caught up!';
 
   @override
   String get termDetailDeleteTitle => 'Delete Result';

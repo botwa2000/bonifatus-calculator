@@ -60,7 +60,14 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       email: _emailCtrl.text.trim(),
       password: _passCtrl.text,
     );
-    if (mounted) setState(() => _isSubmitting = false);
+    if (!mounted) return;
+    // Belt-and-suspenders: read current state after await in case the listener
+    // fired but the setState was batched away before taking effect.
+    final authState = ref.read(authStateNotifierProvider);
+    if (authState.hasError) {
+      setState(() => _error = authState.error?.toString().replaceFirst('Exception: ', ''));
+    }
+    setState(() => _isSubmitting = false);
   }
 
   Future<void> _loginWithGoogle() async {
@@ -71,6 +78,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     setState(() { _error = null; _isSubmitting = true; });
     try {
       final googleSignIn = GoogleSignIn(serverClientId: AppConstants.googleWebClientId);
+      // Always sign out first so the account picker appears on every tap,
+      // not just the first time. This lets users switch accounts after logout.
+      await googleSignIn.signOut();
       final account = await googleSignIn.signIn();
       debugPrint('[GoogleSignIn] signIn() result: $account');
       if (account == null) {

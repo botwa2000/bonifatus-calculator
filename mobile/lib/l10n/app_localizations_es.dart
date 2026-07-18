@@ -969,6 +969,25 @@ class AppLocalizationsEs extends AppLocalizations {
   String get rewardsSettled => '¡Liquidado!';
 
   @override
+  String get rewardsSectionTermGrades => 'Notas trimestrales';
+
+  @override
+  String rewardsSectionNotesWeek(String weekRange) {
+    return 'Notas — $weekRange';
+  }
+
+  @override
+  String rewardsGroupSettleBonusFor(String label, String childName) {
+    return 'Liquidar $label de $childName';
+  }
+
+  @override
+  String get childrenSearchPlaceholder => 'Buscar alumnos...';
+
+  @override
+  String get insightsFilterAll => 'Todos';
+
+  @override
   String get parentInsightsTitle => 'Análisis';
 
   @override
@@ -1040,6 +1059,34 @@ class AppLocalizationsEs extends AppLocalizations {
   String parentDashboardChildSubtitle(int count, int pts) {
     return '$count notas · $pts pts pendientes';
   }
+
+  @override
+  String get homeActionCenterSubtitle => 'Esto necesita tu atención';
+
+  @override
+  String homeUnsettledBannerTitle(int pts) {
+    return '$pts pts listos para liquidar';
+  }
+
+  @override
+  String homeUnsettledBannerSub(int count) {
+    return '$count elementos pendientes';
+  }
+
+  @override
+  String get homeGoToInsights => 'Ir a Análisis';
+
+  @override
+  String get homeTopPendingSection => 'Mayor elemento pendiente';
+
+  @override
+  String get homeActiveTodaySection => 'Activos hoy';
+
+  @override
+  String get homeActiveTodayEmpty => 'Sin actividad en las últimas 24 horas';
+
+  @override
+  String get homeAllSettledUp => '¡Todo al día!';
 
   @override
   String get termDetailDeleteTitle => 'Eliminar resultado';

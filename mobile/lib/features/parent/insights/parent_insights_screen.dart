@@ -49,11 +49,19 @@ class _NoteBundle {
 
 // ── screen ────────────────────────────────────────────────────────────────────
 
-class ParentInsightsScreen extends ConsumerWidget {
+class ParentInsightsScreen extends ConsumerStatefulWidget {
   const ParentInsightsScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<ParentInsightsScreen> createState() => _ParentInsightsScreenState();
+}
+
+class _ParentInsightsScreenState extends ConsumerState<ParentInsightsScreen> {
+  // Empty set = "All" selected. Non-empty = filter to these child IDs.
+  final Set<String> _selectedChildIds = {};
+
+  @override
+  Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final childrenAsync = ref.watch(childrenQuickGradesProvider);
     final theme = Theme.of(context);
@@ -102,7 +110,15 @@ class ParentInsightsScreen extends ConsumerWidget {
             );
           }
 
-          final allGrades = children
+          // Remove stale IDs that no longer exist in the loaded children list.
+          final validIds = children.map((c) => c.childId).toSet();
+          final activeIds = _selectedChildIds.intersection(validIds);
+
+          final visibleChildren = activeIds.isEmpty
+              ? children
+              : children.where((c) => activeIds.contains(c.childId)).toList();
+
+          final allGrades = visibleChildren
               .expand((c) => c.grades.map((g) => (child: c, grade: g)))
               .toList()
             ..sort((a, b) => b.grade.gradedAt.compareTo(a.grade.gradedAt));
@@ -130,13 +146,76 @@ class ParentInsightsScreen extends ConsumerWidget {
             onRefresh: () async => ref.invalidate(childrenQuickGradesProvider),
             child: CustomScrollView(
               slivers: [
+                // Child filter chips
+                if (children.length > 1)
+                  SliverToBoxAdapter(
+                    child: SizedBox(
+                      height: 44,
+                      child: ListView(
+                        scrollDirection: Axis.horizontal,
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.only(right: 8),
+                            child: FilterChip(
+                              label: Text(l10n.insightsFilterAll),
+                              selected: activeIds.isEmpty,
+                              onSelected: (_) => setState(() => _selectedChildIds.clear()),
+                              selectedColor: AppColors.primary.withValues(alpha: 0.15),
+                              checkmarkColor: AppColors.primary,
+                              labelStyle: TextStyle(
+                                fontWeight: FontWeight.w600,
+                                color: activeIds.isEmpty
+                                    ? AppColors.primary
+                                    : theme.colorScheme.onSurfaceVariant,
+                              ),
+                              side: BorderSide(
+                                color: activeIds.isEmpty
+                                    ? AppColors.primary
+                                    : theme.colorScheme.outlineVariant,
+                              ),
+                            ),
+                          ),
+                          for (final c in children)
+                            Padding(
+                              padding: const EdgeInsets.only(right: 8),
+                              child: FilterChip(
+                                label: Text(c.childName),
+                                selected: activeIds.contains(c.childId),
+                                onSelected: (on) => setState(() {
+                                  if (on) {
+                                    _selectedChildIds.add(c.childId);
+                                  } else {
+                                    _selectedChildIds.remove(c.childId);
+                                  }
+                                }),
+                                selectedColor: AppColors.primary.withValues(alpha: 0.15),
+                                checkmarkColor: AppColors.primary,
+                                labelStyle: TextStyle(
+                                  fontWeight: FontWeight.w600,
+                                  color: activeIds.contains(c.childId)
+                                      ? AppColors.primary
+                                      : theme.colorScheme.onSurfaceVariant,
+                                ),
+                                side: BorderSide(
+                                  color: activeIds.contains(c.childId)
+                                      ? AppColors.primary
+                                      : theme.colorScheme.outlineVariant,
+                                ),
+                              ),
+                            ),
+                        ],
+                      ),
+                    ),
+                  ),
+
                 SliverToBoxAdapter(
                   child: Padding(
-                    padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+                    padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
                     child: _SummaryBanner(
                       unsettledPts: totalUnsettledPts,
                       unsettledCount: totalUnsettledItems,
-                      childCount: children.length,
+                      childCount: visibleChildren.length,
                     ),
                   ),
                 ),

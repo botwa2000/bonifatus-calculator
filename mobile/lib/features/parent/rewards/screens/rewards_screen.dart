@@ -86,6 +86,24 @@ class RewardsScreen extends ConsumerWidget {
   }
 }
 
+// ── helpers (week grouping, same logic as Insights screen) ──────────────────
+
+DateTime _rewardsWeekStart(DateTime d) {
+  final local = d.toLocal();
+  final day = DateTime(local.year, local.month, local.day);
+  return day.subtract(Duration(days: day.weekday - 1));
+}
+
+String _rewardsWeekLabel(DateTime ws) {
+  final we = ws.add(const Duration(days: 6));
+  const months = ['', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  return ws.month == we.month
+      ? '${months[ws.month]} ${ws.day}–${we.day}'
+      : '${months[ws.month]} ${ws.day} – ${months[we.month]} ${we.day}';
+}
+
+// ── grades tab ───────────────────────────────────────────────────────────────
+
 class _GradesTab extends StatelessWidget {
   final List<ChildWithGrades> children;
 
@@ -107,7 +125,7 @@ class _GradesTab extends StatelessWidget {
       itemBuilder: (ctx, i) {
         final child = children[i];
         return Padding(
-          padding: const EdgeInsets.only(bottom: 16),
+          padding: const EdgeInsets.only(bottom: 20),
           child: _ChildGradesCard(child: child),
         );
       },
@@ -122,12 +140,23 @@ class _ChildGradesCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context)!;
     final pendingGrades = child.grades
         .where((g) => g.settlementStatus == 'unsettled')
         .toList()
       ..sort((a, b) => b.gradedAt.compareTo(a.gradedAt));
-    final totalPts =
-        pendingGrades.fold<int>(0, (sum, g) => sum + g.bonusPoints);
+    final totalPts = pendingGrades.fold<int>(0, (sum, g) => sum + g.bonusPoints);
+
+    // Split into term grades and note bundles by week
+    final termGrades = pendingGrades.where((g) => g.gradeSource == 'calculator').toList();
+    final noteGrades = pendingGrades.where((g) => g.gradeSource == 'notes').toList();
+
+    final Map<DateTime, List<ChildQuickGrade>> notesByWeek = {};
+    for (final g in noteGrades) {
+      final ws = _rewardsWeekStart(g.gradedAt);
+      notesByWeek.putIfAbsent(ws, () => []).add(g);
+    }
+    final sortedWeeks = notesByWeek.keys.toList()..sort((a, b) => b.compareTo(a));
 
     final cs = Theme.of(context).colorScheme;
     return Container(
@@ -135,148 +164,146 @@ class _ChildGradesCard extends ConsumerWidget {
         color: cs.surface,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
-          BoxShadow(
-            color: cs.shadow.withValues(alpha: 0.05),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
+          BoxShadow(color: cs.shadow.withValues(alpha: 0.05), blurRadius: 8, offset: const Offset(0, 2)),
         ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // Child header
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 14, 16, 0),
             child: Row(
               children: [
                 Container(
-                  width: 36,
-                  height: 36,
-                  decoration: const BoxDecoration(
-                    color: AppColors.primaryLight,
-                    shape: BoxShape.circle,
-                  ),
+                  width: 36, height: 36,
+                  decoration: const BoxDecoration(color: AppColors.primaryLight, shape: BoxShape.circle),
                   alignment: Alignment.center,
                   child: Text(
                     child.childName.substring(0, 1).toUpperCase(),
-                    style: const TextStyle(
-                      fontWeight: FontWeight.w700,
-                      color: AppColors.primary,
-                    ),
+                    style: const TextStyle(fontWeight: FontWeight.w700, color: AppColors.primary),
                   ),
                 ),
                 const SizedBox(width: 10),
                 Text(
                   child.childName,
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w700,
-                    color: cs.onSurface,
-                  ),
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: cs.onSurface),
                 ),
                 const Spacer(),
-                Text(
-                  '$totalPts ${AppLocalizations.of(context)!.ptsAbbr}',
-                  style: const TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.tierBest,
+                if (totalPts > 0)
+                  Text(
+                    '$totalPts ${l10n.ptsAbbr}',
+                    style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.tierBest),
                   ),
-                ),
               ],
             ),
           ),
           const SizedBox(height: 10),
-          Divider(height: 1, color: Theme.of(context).colorScheme.outlineVariant),
+          Divider(height: 1, color: cs.outlineVariant),
+
           if (pendingGrades.isEmpty)
             Padding(
               padding: const EdgeInsets.all(16),
-              child: Text(AppLocalizations.of(context)!.rewardsNoPendingGrades,
-                  style: TextStyle(color: cs.onSurfaceVariant)),
+              child: Text(l10n.rewardsNoPendingGrades, style: TextStyle(color: cs.onSurfaceVariant)),
             )
-          else
-            ...pendingGrades.take(5).map((g) => _GradeRow(
-              grade: g,
-              onTap: () => context.push('/parent/children/${child.childId}'),
-            )),
-          Divider(height: 1, color: Theme.of(context).colorScheme.outlineVariant),
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 10, 16, 14),
-            child: SizedBox(
-              width: double.infinity,
-              child: OutlinedButton(
-                onPressed: pendingGrades.isEmpty ? null : () => _showSettleSheet(context, ref, pendingGrades, child),
-                style: OutlinedButton.styleFrom(
-                  foregroundColor: AppColors.primary,
-                  disabledForegroundColor: Theme.of(context).colorScheme.onSurfaceVariant,
-                  side: BorderSide(
-                    color: pendingGrades.isEmpty ? Theme.of(context).colorScheme.outlineVariant : AppColors.primary,
-                  ),
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10)),
-                ),
-                child: Text(
-                  pendingGrades.isEmpty
-                      ? AppLocalizations.of(context)!.rewardsSettle
-                      : AppLocalizations.of(context)!.rewardsSettleAmount(
-                          pendingGrades.fold<int>(0, (s, g) => s + g.bonusPoints)),
-                  style: const TextStyle(fontWeight: FontWeight.w600),
-                ),
+          else ...[
+            // Term grades group
+            if (termGrades.isNotEmpty)
+              _GroupSection(
+                label: l10n.rewardsSectionTermGrades,
+                grades: termGrades,
+                child: child,
               ),
-            ),
-          ),
+            // Notes grouped by week
+            for (final ws in sortedWeeks)
+              _GroupSection(
+                label: l10n.rewardsSectionNotesWeek(_rewardsWeekLabel(ws)),
+                grades: notesByWeek[ws]!,
+                child: child,
+              ),
+          ],
+          const SizedBox(height: 4),
         ],
       ),
     );
   }
+}
 
-  void _showSettleSheet(BuildContext context, WidgetRef ref, List<ChildQuickGrade> pendingGrades, ChildWithGrades child) {
-    final total = pendingGrades.fold<int>(0, (s, g) => s + g.bonusPoints);
+class _GroupSection extends ConsumerWidget {
+  final String label;
+  final List<ChildQuickGrade> grades;
+  final ChildWithGrades child;
+
+  const _GroupSection({
+    required this.label,
+    required this.grades,
+    required this.child,
+  });
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context)!;
+    final groupPts = grades.fold<int>(0, (s, g) => s + g.bonusPoints);
+    final cs = Theme.of(context).colorScheme;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
+          child: Text(
+            label,
+            style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: cs.onSurfaceVariant, letterSpacing: 0.5),
+          ),
+        ),
+        ...grades.map((g) => _GradeRow(grade: g, onTap: () => GoRouter.of(context).push('/parent/children/${child.childId}'))),
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+          child: SizedBox(
+            width: double.infinity,
+            child: OutlinedButton(
+              onPressed: () => _showGroupSettleSheet(context, ref, groupPts),
+              style: OutlinedButton.styleFrom(
+                foregroundColor: AppColors.primary,
+                side: const BorderSide(color: AppColors.primary),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                padding: const EdgeInsets.symmetric(vertical: 10),
+              ),
+              child: Text(l10n.rewardsSettleAmount(groupPts), style: const TextStyle(fontWeight: FontWeight.w600)),
+            ),
+          ),
+        ),
+        Divider(height: 1, color: cs.outlineVariant),
+      ],
+    );
+  }
+
+  void _showGroupSettleSheet(BuildContext context, WidgetRef ref, int total) {
     final l10n = AppLocalizations.of(context)!;
     showModalBottomSheet<void>(
       context: context,
-      shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
-      builder: (ctx) {
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+      builder: (sheetCtx) {
         bool settling = false;
-        return StatefulBuilder(builder: (ctx, setSheet) => Padding(
+        return StatefulBuilder(builder: (sheetCtx, setSheet) => Padding(
           padding: const EdgeInsets.all(24),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                l10n.rewardsSettleBonusFor(child.childName),
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w700,
-                  color: Theme.of(ctx).colorScheme.onSurface,
-                ),
+                l10n.rewardsGroupSettleBonusFor(label, child.childName),
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: Theme.of(sheetCtx).colorScheme.onSurface),
               ),
               const SizedBox(height: 16),
               Container(
                 padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: AppColors.tierBestLight,
-                  borderRadius: BorderRadius.circular(12),
-                ),
+                decoration: BoxDecoration(color: AppColors.tierBestLight, borderRadius: BorderRadius.circular(12)),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(
-                      l10n.rewardsAmountToTransfer,
-                      style: TextStyle(
-                          color: Theme.of(ctx).colorScheme.onSurface,
-                          fontWeight: FontWeight.w500),
-                    ),
-                    Text(
-                      '$total ${l10n.ptsAbbr}',
-                      style: const TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.w800,
-                        color: AppColors.tierBest,
-                      ),
-                    ),
+                    Text(l10n.rewardsAmountToTransfer, style: TextStyle(color: Theme.of(sheetCtx).colorScheme.onSurface, fontWeight: FontWeight.w500)),
+                    Text('$total ${l10n.ptsAbbr}', style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w800, color: AppColors.tierBest)),
                   ],
                 ),
               ),
@@ -285,15 +312,13 @@ class _ChildGradesCard extends ConsumerWidget {
                 children: [
                   Expanded(
                     child: OutlinedButton(
-                      onPressed: settling ? null : () => Navigator.of(ctx).pop(),
+                      onPressed: settling ? null : () => Navigator.of(sheetCtx).pop(),
                       style: OutlinedButton.styleFrom(
-                        side: BorderSide(color: Theme.of(ctx).colorScheme.outlineVariant),
+                        side: BorderSide(color: Theme.of(sheetCtx).colorScheme.outlineVariant),
                         padding: const EdgeInsets.symmetric(vertical: 14),
-                        shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12)),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                       ),
-                      child: Text(l10n.rewardsCancel,
-                          style: TextStyle(color: Theme.of(ctx).colorScheme.onSurface)),
+                      child: Text(l10n.rewardsCancel, style: TextStyle(color: Theme.of(sheetCtx).colorScheme.onSurface)),
                     ),
                   ),
                   const SizedBox(width: 12),
@@ -302,21 +327,15 @@ class _ChildGradesCard extends ConsumerWidget {
                       onPressed: settling ? null : () async {
                         setSheet(() => settling = true);
                         try {
-                          final quickIds = pendingGrades
-                              .where((g) => g.gradeSource == 'notes')
-                              .map((g) => g.id)
-                              .toList();
-                          final subjectIds = pendingGrades
-                              .where((g) => g.gradeSource == 'calculator')
-                              .map((g) => g.id)
-                              .toList();
+                          final quickIds = grades.where((g) => g.gradeSource == 'notes').map((g) => g.id).toList();
+                          final subjectIds = grades.where((g) => g.gradeSource == 'calculator').map((g) => g.id).toList();
                           await ref.read(gradeServiceProvider).createSettlement(
                             childId: child.childId,
                             amount: total,
                             quickGradeIds: quickIds,
                             subjectGradeIds: subjectIds,
                           );
-                          if (ctx.mounted) Navigator.of(ctx).pop();
+                          if (sheetCtx.mounted) Navigator.of(sheetCtx).pop();
                           ref.read(childrenQuickGradesProvider.notifier).reload();
                           ref.read(settlementsProvider.notifier).reload();
                           if (context.mounted) {
@@ -326,9 +345,9 @@ class _ChildGradesCard extends ConsumerWidget {
                           }
                         } catch (e) {
                           setSheet(() => settling = false);
-                          if (ctx.mounted) {
-                            ScaffoldMessenger.of(ctx).showSnackBar(
-                              SnackBar(content: Text(AppLocalizations.of(ctx)!.genericFailedError(e.toString())), backgroundColor: AppColors.error),
+                          if (sheetCtx.mounted) {
+                            ScaffoldMessenger.of(sheetCtx).showSnackBar(
+                              SnackBar(content: Text(AppLocalizations.of(sheetCtx)!.genericFailedError(e.toString())), backgroundColor: AppColors.error),
                             );
                           }
                         }
@@ -337,13 +356,11 @@ class _ChildGradesCard extends ConsumerWidget {
                         backgroundColor: AppColors.primary,
                         foregroundColor: AppColors.white,
                         padding: const EdgeInsets.symmetric(vertical: 14),
-                        shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12)),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                       ),
                       child: settling
                           ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
-                          : Text(l10n.rewardsConfirmSettle,
-                              style: const TextStyle(fontWeight: FontWeight.w700)),
+                          : Text(l10n.rewardsConfirmSettle, style: const TextStyle(fontWeight: FontWeight.w700)),
                     ),
                   ),
                 ],

@@ -9,11 +9,25 @@ import '../../../../models/invite_code.dart';
 import '../../../../models/child_data.dart';
 import '../../providers/children_provider.dart';
 
-class ChildrenScreen extends ConsumerWidget {
+class ChildrenScreen extends ConsumerStatefulWidget {
   const ChildrenScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<ChildrenScreen> createState() => _ChildrenScreenState();
+}
+
+class _ChildrenScreenState extends ConsumerState<ChildrenScreen> {
+  final _searchCtrl = TextEditingController();
+  String _query = '';
+
+  @override
+  void dispose() {
+    _searchCtrl.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final childrenAsync = ref.watch(childrenQuickGradesProvider);
 
@@ -30,63 +44,64 @@ class ChildrenScreen extends ConsumerWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Padding(
-              padding: const EdgeInsets.fromLTRB(20, 16, 4, 8),
+              padding: const EdgeInsets.fromLTRB(20, 16, 4, 4),
               child: Row(
                 children: [
                   Text(
                     l10n.childrenTitle,
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.w700,
-                      color: Theme.of(context).colorScheme.onSurface,
-                    ),
+                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700, color: Theme.of(context).colorScheme.onSurface),
                   ),
                   const Spacer(),
                   IconButton(
-                    icon: const Icon(Icons.refresh_rounded,
-                        color: AppColors.primary),
-                    onPressed: () =>
-                        ref.read(childrenQuickGradesProvider.notifier).reload(),
+                    icon: const Icon(Icons.refresh_rounded, color: AppColors.primary),
+                    onPressed: () => ref.read(childrenQuickGradesProvider.notifier).reload(),
                   ),
                 ],
               ),
             ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+              child: TextField(
+                controller: _searchCtrl,
+                onChanged: (v) => setState(() => _query = v.trim().toLowerCase()),
+                decoration: InputDecoration(
+                  hintText: l10n.childrenSearchPlaceholder,
+                  prefixIcon: const Icon(Icons.search_rounded, size: 20),
+                  suffixIcon: _query.isNotEmpty
+                      ? IconButton(
+                          icon: const Icon(Icons.clear_rounded, size: 18),
+                          onPressed: () {
+                            _searchCtrl.clear();
+                            setState(() => _query = '');
+                          },
+                        )
+                      : null,
+                  isDense: true,
+                  contentPadding: const EdgeInsets.symmetric(vertical: 10),
+                  filled: true,
+                  fillColor: Theme.of(context).colorScheme.surfaceContainerHighest,
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+                ),
+              ),
+            ),
             Expanded(
               child: childrenAsync.when(
-                loading: () => const Center(
-                    child:
-                        CircularProgressIndicator(color: AppColors.primary)),
+                loading: () => const Center(child: CircularProgressIndicator(color: AppColors.primary)),
                 error: (err, _) => Center(
                   child: Padding(
                     padding: const EdgeInsets.all(32),
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        const Icon(Icons.error_outline,
-                            size: 48, color: AppColors.error),
+                        const Icon(Icons.error_outline, size: 48, color: AppColors.error),
                         const SizedBox(height: 16),
-                        Text(
-                          l10n.childrenFailedToLoad,
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600,
-                            color: Theme.of(context).colorScheme.onSurface,
-                          ),
-                        ),
+                        Text(l10n.childrenFailedToLoad, style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: Theme.of(context).colorScheme.onSurface)),
                         const SizedBox(height: 8),
-                        Text(err.toString(),
-                            style: TextStyle(
-                                fontSize: 13, color: Theme.of(context).colorScheme.onSurfaceVariant),
-                            textAlign: TextAlign.center),
+                        Text(err.toString(), style: TextStyle(fontSize: 13, color: Theme.of(context).colorScheme.onSurfaceVariant), textAlign: TextAlign.center),
                         const SizedBox(height: 20),
                         ElevatedButton(
-                          onPressed: () => ref
-                              .read(childrenQuickGradesProvider.notifier)
-                              .reload(),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: AppColors.primary,
-                            foregroundColor: AppColors.white,
-                          ),
+                          onPressed: () => ref.read(childrenQuickGradesProvider.notifier).reload(),
+                          style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary, foregroundColor: AppColors.white),
                           child: Text(l10n.childrenRetry),
                         ),
                       ],
@@ -95,7 +110,18 @@ class ChildrenScreen extends ConsumerWidget {
                 ),
                 data: (children) {
                   if (children.isEmpty) return _buildEmptyState(context, ref, l10n);
-                  return _buildList(context, ref, children, l10n);
+                  final filtered = _query.isEmpty
+                      ? children
+                      : children.where((c) => c.childName.toLowerCase().contains(_query)).toList();
+                  if (filtered.isEmpty) {
+                    return Center(
+                      child: Text(
+                        l10n.childrenNoChildrenConnected,
+                        style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant),
+                      ),
+                    );
+                  }
+                  return _buildList(context, ref, filtered, l10n);
                 },
               ),
             ),

@@ -977,6 +977,25 @@ class AppLocalizationsFr extends AppLocalizations {
   String get rewardsSettled => 'Réglé !';
 
   @override
+  String get rewardsSectionTermGrades => 'Notes de trimestre';
+
+  @override
+  String rewardsSectionNotesWeek(String weekRange) {
+    return 'Notes — $weekRange';
+  }
+
+  @override
+  String rewardsGroupSettleBonusFor(String label, String childName) {
+    return 'Régler $label pour $childName';
+  }
+
+  @override
+  String get childrenSearchPlaceholder => 'Rechercher des enfants...';
+
+  @override
+  String get insightsFilterAll => 'Tous';
+
+  @override
   String get parentInsightsTitle => 'Analyses';
 
   @override
@@ -1048,6 +1067,36 @@ class AppLocalizationsFr extends AppLocalizations {
   String parentDashboardChildSubtitle(int count, int pts) {
     return '$count notes · $pts pts en attente';
   }
+
+  @override
+  String get homeActionCenterSubtitle =>
+      'Voici ce qui nécessite votre attention';
+
+  @override
+  String homeUnsettledBannerTitle(int pts) {
+    return '$pts pts prêts à régler';
+  }
+
+  @override
+  String homeUnsettledBannerSub(int count) {
+    return '$count éléments en attente';
+  }
+
+  @override
+  String get homeGoToInsights => 'Aller aux Analyses';
+
+  @override
+  String get homeTopPendingSection => 'Meilleur élément en attente';
+
+  @override
+  String get homeActiveTodaySection => 'Actifs aujourd\'hui';
+
+  @override
+  String get homeActiveTodayEmpty =>
+      'Aucune activité dans les dernières 24 heures';
+
+  @override
+  String get homeAllSettledUp => 'Tout est réglé !';
 
   @override
   String get termDetailDeleteTitle => 'Supprimer le résultat';

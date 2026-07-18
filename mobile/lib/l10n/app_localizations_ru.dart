@@ -965,6 +965,25 @@ class AppLocalizationsRu extends AppLocalizations {
   String get rewardsSettled => 'Выплачено!';
 
   @override
+  String get rewardsSectionTermGrades => 'Оценки за четверть';
+
+  @override
+  String rewardsSectionNotesWeek(String weekRange) {
+    return 'Заметки — $weekRange';
+  }
+
+  @override
+  String rewardsGroupSettleBonusFor(String label, String childName) {
+    return 'Выплатить $label для $childName';
+  }
+
+  @override
+  String get childrenSearchPlaceholder => 'Поиск детей...';
+
+  @override
+  String get insightsFilterAll => 'Все';
+
+  @override
   String get parentInsightsTitle => 'Аналитика';
 
   @override
@@ -1036,6 +1055,34 @@ class AppLocalizationsRu extends AppLocalizations {
   String parentDashboardChildSubtitle(int count, int pts) {
     return '$count оценок · $pts Б ожидает';
   }
+
+  @override
+  String get homeActionCenterSubtitle => 'Вот что требует вашего внимания';
+
+  @override
+  String homeUnsettledBannerTitle(int pts) {
+    return '$pts Б готовы к выплате';
+  }
+
+  @override
+  String homeUnsettledBannerSub(int count) {
+    return '$count неоплаченных позиций';
+  }
+
+  @override
+  String get homeGoToInsights => 'Перейти к аналитике';
+
+  @override
+  String get homeTopPendingSection => 'Наибольший ожидающий';
+
+  @override
+  String get homeActiveTodaySection => 'Активны сегодня';
+
+  @override
+  String get homeActiveTodayEmpty => 'Нет активности за последние 24 часа';
+
+  @override
+  String get homeAllSettledUp => 'Всё выплачено!';
 
   @override
   String get termDetailDeleteTitle => 'Удалить результат';

@@ -373,6 +373,22 @@
   "rewardsCancel": "Cancel",
   "rewardsConfirmSettle": "Confirm Settle",
   "rewardsSettled": "Settled!",
+  "rewardsSectionTermGrades": "Term Grades",
+  "rewardsSectionNotesWeek": "Notes — {weekRange}",
+  "@rewardsSectionNotesWeek": {
+    "placeholders": {
+      "weekRange": { "type": "String" }
+    }
+  },
+  "rewardsGroupSettleBonusFor": "Settle {label} for {childName}",
+  "@rewardsGroupSettleBonusFor": {
+    "placeholders": {
+      "label": { "type": "String" },
+      "childName": { "type": "String" }
+    }
+  },
+  "childrenSearchPlaceholder": "Search children...",
+  "insightsFilterAll": "All",
 
   "parentInsightsTitle": "Insights",
   "parentInsightsFailedToLoad": "Failed to load insights",
@@ -414,6 +430,25 @@
       "pts": { "type": "int" }
     }
   },
+
+  "homeActionCenterSubtitle": "Here's what needs your attention",
+  "homeUnsettledBannerTitle": "{pts} pts ready to settle",
+  "@homeUnsettledBannerTitle": {
+    "placeholders": {
+      "pts": { "type": "int" }
+    }
+  },
+  "homeUnsettledBannerSub": "{count} unsettled items",
+  "@homeUnsettledBannerSub": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "homeGoToInsights": "Go to Insights",
+  "homeTopPendingSection": "Top pending",
+  "homeActiveTodaySection": "Active today",
+  "homeActiveTodayEmpty": "No activity in the last 24 hours",
+  "homeAllSettledUp": "All caught up!",
 
   "termDetailDeleteTitle": "Delete Result",
   "termDetailDeleteConfirm": "Are you sure you want to delete this result? This action cannot be undone.",

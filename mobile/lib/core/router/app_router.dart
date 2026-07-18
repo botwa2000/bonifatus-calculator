@@ -41,8 +41,12 @@ final appRouterProvider = Provider<GoRouter>((ref) {
 
       // Hold at splash while session is being restored — prevents login screen
       // from mounting (and showing the biometric button) before auth resolves.
+      // Exception: don't redirect away from auth/onboarding routes during loading
+      // (e.g. mid-login submission) — doing so would destroy the LoginScreen before
+      // it can display the error returned by the failed request.
       if (authState.isLoading) {
-        return loc == '/splash' ? null : '/splash';
+        final isAuthOrSplash = loc == '/splash' || loc.startsWith('/auth') || loc == '/onboarding';
+        return isAuthOrSplash ? null : '/splash';
       }
 
       final isAuthenticated = authState.valueOrNull?.isAuthenticated ?? false;

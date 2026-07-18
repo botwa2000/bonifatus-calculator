@@ -1918,6 +1918,36 @@ abstract class AppLocalizations {
   /// **'Settled!'**
   String get rewardsSettled;
 
+  /// No description provided for @rewardsSectionTermGrades.
+  ///
+  /// In en, this message translates to:
+  /// **'Term Grades'**
+  String get rewardsSectionTermGrades;
+
+  /// No description provided for @rewardsSectionNotesWeek.
+  ///
+  /// In en, this message translates to:
+  /// **'Notes — {weekRange}'**
+  String rewardsSectionNotesWeek(String weekRange);
+
+  /// No description provided for @rewardsGroupSettleBonusFor.
+  ///
+  /// In en, this message translates to:
+  /// **'Settle {label} for {childName}'**
+  String rewardsGroupSettleBonusFor(String label, String childName);
+
+  /// No description provided for @childrenSearchPlaceholder.
+  ///
+  /// In en, this message translates to:
+  /// **'Search children...'**
+  String get childrenSearchPlaceholder;
+
+  /// No description provided for @insightsFilterAll.
+  ///
+  /// In en, this message translates to:
+  /// **'All'**
+  String get insightsFilterAll;
+
   /// No description provided for @parentInsightsTitle.
   ///
   /// In en, this message translates to:
@@ -2049,6 +2079,54 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{count} grades · {pts} pts pending'**
   String parentDashboardChildSubtitle(int count, int pts);
+
+  /// No description provided for @homeActionCenterSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Here\'s what needs your attention'**
+  String get homeActionCenterSubtitle;
+
+  /// No description provided for @homeUnsettledBannerTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'{pts} pts ready to settle'**
+  String homeUnsettledBannerTitle(int pts);
+
+  /// No description provided for @homeUnsettledBannerSub.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} unsettled items'**
+  String homeUnsettledBannerSub(int count);
+
+  /// No description provided for @homeGoToInsights.
+  ///
+  /// In en, this message translates to:
+  /// **'Go to Insights'**
+  String get homeGoToInsights;
+
+  /// No description provided for @homeTopPendingSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Top pending'**
+  String get homeTopPendingSection;
+
+  /// No description provided for @homeActiveTodaySection.
+  ///
+  /// In en, this message translates to:
+  /// **'Active today'**
+  String get homeActiveTodaySection;
+
+  /// No description provided for @homeActiveTodayEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No activity in the last 24 hours'**
+  String get homeActiveTodayEmpty;
+
+  /// No description provided for @homeAllSettledUp.
+  ///
+  /// In en, this message translates to:
+  /// **'All caught up!'**
+  String get homeAllSettledUp;
 
   /// No description provided for @termDetailDeleteTitle.
   ///
