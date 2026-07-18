@@ -4,6 +4,7 @@ import { AppHeader } from '@/components/layout/AppHeader'
 import { JsonLd, organizationJsonLd } from '@/components/seo/JsonLd'
 import { auth } from '@/auth'
 import type { Metadata } from 'next'
+import { buildAlternates } from '@/lib/seo/alternates'
 import { GradeRewardCalculatorClient } from './GradeRewardCalculatorClient'
 
 export async function generateMetadata({
@@ -16,7 +17,7 @@ export async function generateMetadata({
   return {
     title: t('gradeCalculatorTitle'),
     description: t('gradeCalculatorDescription'),
-    alternates: { canonical: '/tools/grade-reward-calculator' },
+    alternates: buildAlternates(locale, '/tools/grade-reward-calculator'),
   }
 }
 

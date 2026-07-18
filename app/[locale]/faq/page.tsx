@@ -4,6 +4,7 @@ import { AppHeader } from '@/components/layout/AppHeader'
 import { FaqSection } from '@/components/faq-section'
 import { auth } from '@/auth'
 import type { Metadata } from 'next'
+import { buildAlternates } from '@/lib/seo/alternates'
 
 export async function generateMetadata({
   params,
@@ -15,7 +16,7 @@ export async function generateMetadata({
   return {
     title: t('faqTitle'),
     description: t('faqDescription'),
-    alternates: { canonical: '/faq' },
+    alternates: buildAlternates(locale, '/faq'),
   }
 }
 

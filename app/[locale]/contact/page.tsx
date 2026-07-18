@@ -4,6 +4,7 @@ import { AppHeader } from '@/components/layout/AppHeader'
 import { ContactForm } from '@/components/contact-form'
 import { auth } from '@/auth'
 import type { Metadata } from 'next'
+import { buildAlternates } from '@/lib/seo/alternates'
 
 export async function generateMetadata({
   params,
@@ -15,7 +16,7 @@ export async function generateMetadata({
   return {
     title: t('contactTitle'),
     description: t('contactDescription'),
-    alternates: { canonical: '/contact' },
+    alternates: buildAlternates(locale, '/contact'),
   }
 }
 

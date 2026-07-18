@@ -69,6 +69,8 @@ const publicRoutes = [
   '/contact',
   '/faq',
 ]
+// Marketing/SEO sections — all subpaths public so crawlers can index them
+const publicPathPrefixes = ['/tools', '/blog', '/compare']
 const publicApiPrefixes = ['/api/health', '/api/auth', '/api/config', '/api/contact', '/api/mobile']
 
 function stripLocalePrefix(pathname: string): string {
@@ -173,7 +175,10 @@ export default async function proxy(req: NextRequest) {
   dbg('mw', `auth check`, { isLoggedIn, barePath })
 
   // Public pages
-  if (publicRoutes.includes(barePath)) {
+  const isPublic =
+    publicRoutes.includes(barePath) ||
+    publicPathPrefixes.some((p) => barePath === p || barePath.startsWith(p + '/'))
+  if (isPublic) {
     if (isLoggedIn && ['/login', '/register', '/forgot-password'].includes(barePath)) {
       dbg('mw', `logged-in user on auth page → redirect to /dashboard`)
       return NextResponse.redirect(new URL(localePath('/dashboard', locale), req.url))

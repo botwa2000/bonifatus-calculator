@@ -1,5 +1,6 @@
 import { setRequestLocale, getTranslations } from 'next-intl/server'
 import type { Metadata } from 'next'
+import { buildAlternates } from '@/lib/seo/alternates'
 import Image from 'next/image'
 import { DemoSection } from '@/components/demo-section'
 import { HeroCta } from '@/components/hero-cta'
@@ -22,9 +23,7 @@ export async function generateMetadata({
   return {
     title: t('homeTitle'),
     description: t('homeDescription'),
-    alternates: {
-      canonical: '/',
-    },
+    alternates: buildAlternates(locale, '/'),
   }
 }
 

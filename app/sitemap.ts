@@ -1,24 +1,6 @@
 import type { MetadataRoute } from 'next'
 import { routing } from '@/i18n/routing'
-
-const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL ?? 'https://bonifatus.com'
-const { locales, defaultLocale } = routing
-
-function buildUrl(locale: string, path: string): string {
-  const prefix = locale === defaultLocale ? '' : `/${locale}`
-  // path is '/' or '/about' etc. — avoid double slash on root
-  const normalized = path === '/' ? '' : path
-  return `${BASE_URL}${prefix}${normalized || '/'}`
-}
-
-function alternates(path: string) {
-  const languages: Record<string, string> = {}
-  for (const locale of locales) {
-    languages[locale] = buildUrl(locale, path)
-  }
-  languages['x-default'] = buildUrl(defaultLocale, path)
-  return { languages }
-}
+import { buildUrl, buildLanguages } from '@/lib/seo/alternates'
 
 const routes: Array<{
   path: string
@@ -51,13 +33,13 @@ export default function sitemap(): MetadataRoute.Sitemap {
   const entries: MetadataRoute.Sitemap = []
 
   for (const { path, priority, changeFrequency } of routes) {
-    for (const locale of locales) {
+    for (const locale of routing.locales) {
       entries.push({
         url: buildUrl(locale, path),
         lastModified: now,
         changeFrequency,
         priority,
-        alternates: alternates(path),
+        alternates: { languages: buildLanguages(path) },
       })
     }
   }

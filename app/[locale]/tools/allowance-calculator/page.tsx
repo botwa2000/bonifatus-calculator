@@ -3,6 +3,7 @@ import { Link } from '@/i18n/navigation'
 import { AppHeader } from '@/components/layout/AppHeader'
 import { auth } from '@/auth'
 import type { Metadata } from 'next'
+import { buildAlternates } from '@/lib/seo/alternates'
 import { AllowanceCalculatorClient } from './AllowanceCalculatorClient'
 
 export async function generateMetadata({
@@ -15,7 +16,7 @@ export async function generateMetadata({
   return {
     title: t('allowanceCalculatorTitle'),
     description: t('allowanceCalculatorDescription'),
-    alternates: { canonical: '/tools/allowance-calculator' },
+    alternates: buildAlternates(locale, '/tools/allowance-calculator'),
   }
 }
 

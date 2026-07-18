@@ -3,6 +3,7 @@ import { Link } from '@/i18n/navigation'
 import { AppHeader } from '@/components/layout/AppHeader'
 import { auth } from '@/auth'
 import type { Metadata } from 'next'
+import { buildAlternates } from '@/lib/seo/alternates'
 
 export async function generateMetadata({
   params,
@@ -14,7 +15,7 @@ export async function generateMetadata({
   return {
     title: t('compareAppsTitle'),
     description: t('compareAppsDescription'),
-    alternates: { canonical: '/compare/apps-that-reward-good-grades' },
+    alternates: buildAlternates(locale, '/compare/apps-that-reward-good-grades'),
   }
 }
 

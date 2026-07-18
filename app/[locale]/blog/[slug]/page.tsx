@@ -6,6 +6,7 @@ import { getPost, getAllSlugs } from '@/content/blog/registry'
 import { auth } from '@/auth'
 import { notFound } from 'next/navigation'
 import type { Metadata } from 'next'
+import { buildAlternates } from '@/lib/seo/alternates'
 import { routing } from '@/i18n/routing'
 
 export async function generateStaticParams() {
@@ -30,7 +31,7 @@ export async function generateMetadata({
   return {
     title: post.title,
     description: post.description,
-    alternates: { canonical: `/blog/${slug}` },
+    alternates: buildAlternates(locale, `/blog/${slug}`),
     openGraph: {
       type: 'article',
       publishedTime: post.publishedAt,

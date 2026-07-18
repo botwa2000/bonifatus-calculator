@@ -5,6 +5,7 @@ import { JsonLd, webSiteJsonLd } from '@/components/seo/JsonLd'
 import { getAllPosts } from '@/content/blog/registry'
 import { auth } from '@/auth'
 import type { Metadata } from 'next'
+import { buildAlternates } from '@/lib/seo/alternates'
 
 export async function generateMetadata({
   params,
@@ -16,7 +17,7 @@ export async function generateMetadata({
   return {
     title: t('blogTitle'),
     description: t('blogDescription'),
-    alternates: { canonical: '/blog' },
+    alternates: buildAlternates(locale, '/blog'),
   }
 }
 
