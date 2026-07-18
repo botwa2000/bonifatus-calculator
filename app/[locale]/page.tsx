@@ -1,4 +1,5 @@
 import { setRequestLocale, getTranslations } from 'next-intl/server'
+import type { Metadata } from 'next'
 import Image from 'next/image'
 import { DemoSection } from '@/components/demo-section'
 import { HeroCta } from '@/components/hero-cta'
@@ -10,6 +11,22 @@ import { AppHeader } from '@/components/layout/AppHeader'
 import { AppStoreBadges } from '@/components/app-store-badges'
 
 export const dynamic = 'force-dynamic'
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>
+}): Promise<Metadata> {
+  const { locale } = await params
+  const t = await getTranslations({ locale, namespace: 'seo' })
+  return {
+    title: t('homeTitle'),
+    description: t('homeDescription'),
+    alternates: {
+      canonical: '/',
+    },
+  }
+}
 
 export default async function Home({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params
@@ -34,13 +51,13 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
                 {t('demoBadge')}
               </span>
             </div>
-            <h2 className="text-4xl sm:text-5xl font-bold text-neutral-900 dark:text-white">
+            <h1 className="text-4xl sm:text-5xl font-bold text-neutral-900 dark:text-white">
               {t('heroTitle')}
               <br />
               <span className="bg-gradient-to-r from-primary-600 to-secondary-600 bg-clip-text text-transparent">
                 {t('heroHighlight')}
               </span>
-            </h2>
+            </h1>
             <p className="text-lg text-neutral-600 dark:text-neutral-300 leading-relaxed">
               {t('heroDescription')}
             </p>

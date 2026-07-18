@@ -2,6 +2,21 @@ import { Link } from '@/i18n/navigation'
 import { setRequestLocale, getTranslations } from 'next-intl/server'
 import { AppHeader } from '@/components/layout/AppHeader'
 import { auth } from '@/auth'
+import type { Metadata } from 'next'
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>
+}): Promise<Metadata> {
+  const { locale } = await params
+  const t = await getTranslations({ locale, namespace: 'seo' })
+  return {
+    title: t('aboutTitle'),
+    description: t('aboutDescription'),
+    alternates: { canonical: '/about' },
+  }
+}
 
 export default async function AboutPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params

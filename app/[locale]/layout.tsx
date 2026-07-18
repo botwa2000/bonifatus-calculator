@@ -9,7 +9,9 @@ import { CookieConsentBanner } from '@/components/cookies/CookieConsentBanner'
 import { routing } from '@/i18n/routing'
 import { ServiceWorkerRegistrar } from '@/components/pwa/ServiceWorkerRegistrar'
 import { CapacitorInit } from '@/components/native/CapacitorInit'
+import { Analytics } from '@/components/analytics/Analytics'
 import { Geist, Geist_Mono } from 'next/font/google'
+import type { Metadata } from 'next'
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -25,16 +27,43 @@ export function generateStaticParams() {
   return routing.locales.map((locale) => ({ locale }))
 }
 
-export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }) {
+const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL ?? 'https://bonifatus.com'
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>
+}): Promise<Metadata> {
   const { locale } = await params
-  const t = await getTranslations({ locale, namespace: 'home' })
+  const t = await getTranslations({ locale, namespace: 'seo' })
 
   return {
-    title: 'Bonifatus - ' + t('heroTitle'),
-    description: t('heroDescription'),
+    metadataBase: new URL(BASE_URL),
+    title: {
+      template: '%s | Bonifatus',
+      default: 'Bonifatus',
+    },
+    description: t('homeDescription'),
     icons: {
       icon: '/favicon.png',
       apple: '/images/logo-192.png',
+    },
+    openGraph: {
+      type: 'website',
+      siteName: 'Bonifatus',
+      locale,
+      images: [
+        {
+          url: '/opengraph-image',
+          width: 1200,
+          height: 630,
+          alt: 'Bonifatus',
+        },
+      ],
+    },
+    twitter: {
+      card: 'summary_large_image',
+      site: '@bonifatus',
     },
   }
 }
@@ -79,6 +108,7 @@ export default async function LocaleLayout({
               <CookieConsentBanner />
               <ServiceWorkerRegistrar />
               <CapacitorInit />
+              <Analytics />
             </ThemeProvider>
           </NextIntlClientProvider>
         </SessionProvider>
