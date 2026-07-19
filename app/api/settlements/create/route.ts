@@ -13,6 +13,8 @@ const schema = z.object({
   splitConfig: z.record(z.string(), z.number()).optional(),
   quickGradeIds: z.array(z.string()).optional(),
   subjectGradeIds: z.array(z.string()).optional(),
+  packageType: z.string().max(50).optional(),
+  packageLabel: z.string().max(200).optional(),
 })
 
 export async function POST(request: NextRequest) {
@@ -68,6 +70,8 @@ export async function POST(request: NextRequest) {
       splitConfig: parsed.data.splitConfig,
       quickGradeIds: qgIds,
       subjectGradeIds: sgIds,
+      packageType: parsed.data.packageType,
+      packageLabel: parsed.data.packageLabel,
     })
 
     return NextResponse.json({ success: true, settlementId })

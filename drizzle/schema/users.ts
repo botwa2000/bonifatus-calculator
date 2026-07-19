@@ -49,6 +49,7 @@ export const userProfiles = pgTable('user_profiles', {
       email_security_alerts: true,
     })
     .notNull(),
+  settlementPeriodUnit: text('settlement_period_unit').default('monthly'),
   onboardingCompleted: boolean('onboarding_completed').default(false).notNull(),
   termsAcceptedAt: timestamp('terms_accepted_at', { mode: 'date' }),
   privacyPolicyAcceptedAt: timestamp('privacy_policy_accepted_at', {

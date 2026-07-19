@@ -1376,4 +1376,84 @@ class AppLocalizationsFr extends AppLocalizations {
   String settingsChildStats(int grades, int pts, int pending) {
     return '$grades notes · $pts pts au total · $pending en attente';
   }
+
+  @override
+  String get settleTitle => 'Régler';
+
+  @override
+  String get settleTabPending => 'En attente';
+
+  @override
+  String get settleTabHistory => 'Historique';
+
+  @override
+  String get settleNoPackages => 'Aucun paquet à régler';
+
+  @override
+  String get settleLoadError => 'Impossible de charger les paquets';
+
+  @override
+  String get settleRetry => 'Réessayer';
+
+  @override
+  String get settleFilterAll => 'Tous';
+
+  @override
+  String get settleFilterReportCards => 'Bulletins';
+
+  @override
+  String get settleFilterPeriods => 'Périodes de notes';
+
+  @override
+  String get settleReportCardBadge => 'Bulletin';
+
+  @override
+  String get settleGradePeriodBadge => 'Période de notes';
+
+  @override
+  String get settleOngoingBadge => 'En cours';
+
+  @override
+  String settlePackageItems(int count) {
+    return '$count éléments';
+  }
+
+  @override
+  String get settlePackageButton => 'Régler le paquet';
+
+  @override
+  String get settleConfirmTitle => 'Confirmer le règlement';
+
+  @override
+  String settleConfirmBody(int pts, String childName) {
+    return 'Transférer $pts pts à $childName';
+  }
+
+  @override
+  String get settleConfirmButton => 'Confirmer';
+
+  @override
+  String get settleSuccess => 'Paquet réglé !';
+
+  @override
+  String get settlePeriodLabel => 'Regroupement des périodes';
+
+  @override
+  String get settlePeriodWeekly => 'Hebdomadaire';
+
+  @override
+  String get settlePeriodMonthly => 'Mensuel';
+
+  @override
+  String get settlePeriodQuarterly => 'Trimestriel';
+
+  @override
+  String settleSchoolYear(String year) {
+    return 'Année scolaire $year';
+  }
+
+  @override
+  String settleClassLevel(int level) {
+    return 'Classe $level';
+  }
 }

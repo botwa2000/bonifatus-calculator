@@ -6,7 +6,6 @@ import '../../../../core/theme/app_colors.dart';
 import '../../auth/providers/auth_provider.dart';
 import '../providers/children_provider.dart';
 import '../../../../models/child_data.dart';
-import '../../../../api/services/grade_service.dart';
 
 typedef _Entry = ({ChildWithGrades child, ChildQuickGrade grade});
 
@@ -167,7 +166,7 @@ class _ActionCenter extends ConsumerWidget {
               pts: totalUnsettledPts,
               count: allUnsettled.length,
               l10n: l10n,
-              onGoToInsights: () => context.go('/parent/insights'),
+              onGoToInsights: () => context.go('/parent/settle'),
             ),
             const SizedBox(height: 16),
           ] else ...[
@@ -411,7 +410,7 @@ class _QuickSettleCard extends ConsumerWidget {
           ),
           const SizedBox(width: 8),
           FilledButton(
-            onPressed: () => _showSettleSheet(context, ref, l10n),
+            onPressed: () => context.go('/parent/settle'),
             style: FilledButton.styleFrom(
               backgroundColor: AppColors.tierBestLight,
               foregroundColor: AppColors.tierBest,
@@ -422,7 +421,7 @@ class _QuickSettleCard extends ConsumerWidget {
               elevation: 0,
             ),
             child: Text(
-              l10n.rewardsSettleAmount(grade.bonusPoints),
+              l10n.settleTitle,
               style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700),
             ),
           ),
@@ -431,164 +430,6 @@ class _QuickSettleCard extends ConsumerWidget {
     );
   }
 
-  void _showSettleSheet(BuildContext context, WidgetRef ref, AppLocalizations l10n) {
-    final grade = entry.grade;
-    final child = entry.child;
-    showModalBottomSheet<void>(
-      context: context,
-      shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
-      builder: (_) => _QuickSettleSheet(
-        title: l10n.rewardsSettleBonusFor(child.childName),
-        subtitle: grade.subjectName ?? l10n.subjectFallback,
-        pts: grade.bonusPoints,
-        onConfirm: () async {
-          if (grade.gradeSource == 'calculator') {
-            await ref.read(gradeServiceProvider).createSettlement(
-              childId: child.childId,
-              amount: grade.bonusPoints,
-              subjectGradeIds: [grade.id],
-            );
-          } else {
-            await ref.read(gradeServiceProvider).createSettlement(
-              childId: child.childId,
-              amount: grade.bonusPoints,
-              quickGradeIds: [grade.id],
-            );
-          }
-        },
-        onDone: () {
-          ref.read(childrenQuickGradesProvider.notifier).reload();
-          ref.read(settlementsProvider.notifier).reload();
-          if (context.mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-              content: Text(l10n.rewardsSettled),
-              backgroundColor: AppColors.tierBest,
-            ));
-          }
-        },
-      ),
-    );
-  }
-}
-
-class _QuickSettleSheet extends StatefulWidget {
-  final String title, subtitle;
-  final int pts;
-  final Future<void> Function() onConfirm;
-  final VoidCallback onDone;
-  const _QuickSettleSheet({
-    required this.title,
-    required this.subtitle,
-    required this.pts,
-    required this.onConfirm,
-    required this.onDone,
-  });
-
-  @override
-  State<_QuickSettleSheet> createState() => _QuickSettleSheetState();
-}
-
-class _QuickSettleSheetState extends State<_QuickSettleSheet> {
-  bool _settling = false;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final l10n = AppLocalizations.of(context)!;
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(24, 24, 24, 32),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(widget.title,
-              style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w700)),
-          const SizedBox(height: 4),
-          Text(widget.subtitle,
-              style: theme.textTheme.bodyMedium
-                  ?.copyWith(color: theme.colorScheme.onSurfaceVariant)),
-          const SizedBox(height: 16),
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: AppColors.tierBestLight,
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(l10n.rewardsAmountToTransfer,
-                    style: TextStyle(
-                        color: theme.colorScheme.onSurface, fontWeight: FontWeight.w500)),
-                Text(
-                  '+${widget.pts} ${l10n.ptsAbbr}',
-                  style: const TextStyle(
-                      fontSize: 22, fontWeight: FontWeight.w800, color: AppColors.tierBest),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 20),
-          Row(children: [
-            Expanded(
-              child: OutlinedButton(
-                onPressed: _settling ? null : () => Navigator.of(context).pop(),
-                style: OutlinedButton.styleFrom(
-                  side: BorderSide(color: theme.colorScheme.outlineVariant),
-                  padding: const EdgeInsets.symmetric(vertical: 14),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                ),
-                child: Text(l10n.rewardsCancel,
-                    style: TextStyle(color: theme.colorScheme.onSurface)),
-              ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: ElevatedButton(
-                onPressed: _settling
-                    ? null
-                    : () async {
-                        setState(() => _settling = true);
-                        final nav = Navigator.of(context);
-                        final messenger = ScaffoldMessenger.of(context);
-                        final errPrefix =
-                            AppLocalizations.of(context)!.genericFailedError('');
-                        try {
-                          await widget.onConfirm();
-                          if (!mounted) return;
-                          nav.pop();
-                          widget.onDone();
-                        } catch (e) {
-                          if (!mounted) return;
-                          setState(() => _settling = false);
-                          messenger.showSnackBar(SnackBar(
-                            content: Text('$errPrefix${e.toString()}'),
-                            backgroundColor: AppColors.error,
-                          ));
-                        }
-                      },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primary,
-                  foregroundColor: AppColors.white,
-                  padding: const EdgeInsets.symmetric(vertical: 14),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                ),
-                child: _settling
-                    ? const SizedBox(
-                        width: 20,
-                        height: 20,
-                        child:
-                            CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
-                    : Text(l10n.rewardsConfirmSettle,
-                        style: const TextStyle(fontWeight: FontWeight.w700)),
-              ),
-            ),
-          ]),
-        ],
-      ),
-    );
-  }
 }
 
 // ── active child row ──────────────────────────────────────────────────────────

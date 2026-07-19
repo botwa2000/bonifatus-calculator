@@ -3,6 +3,7 @@ import '../client.dart';
 import '../../models/quick_grade.dart';
 import '../../models/term_result.dart';
 import '../../models/child_data.dart';
+import '../../models/settlement_package.dart';
 
 final gradeServiceProvider = Provider<GradeService>((ref) {
   return GradeService(ref.read(apiClientProvider));
@@ -55,11 +56,32 @@ class GradeService {
         .toList();
   }
 
+  Future<List<SettlementPackage>> fetchSettlementPackages() async {
+    final resp = await _client.get('/api/parent/settlement/packages');
+    final packages = resp.data['packages'] as List<dynamic>? ?? [];
+    return packages
+        .map((p) => SettlementPackage.fromJson(p as Map<String, dynamic>))
+        .toList();
+  }
+
+  Future<String> fetchSettlementPeriodUnit() async {
+    final resp = await _client.get('/api/parent/settlement/preference');
+    return resp.data['periodUnit'] as String? ?? 'monthly';
+  }
+
+  Future<void> updateSettlementPeriodUnit(String periodUnit) async {
+    await _client.patch('/api/parent/settlement/preference', data: {
+      'periodUnit': periodUnit,
+    });
+  }
+
   Future<String> createSettlement({
     required String childId,
     required int amount,
     List<String> quickGradeIds = const [],
     List<String> subjectGradeIds = const [],
+    String? packageType,
+    String? packageLabel,
   }) async {
     final resp = await _client.post('/api/settlements/create', data: {
       'childId': childId,
@@ -68,6 +90,8 @@ class GradeService {
       'method': 'app',
       if (quickGradeIds.isNotEmpty) 'quickGradeIds': quickGradeIds,
       if (subjectGradeIds.isNotEmpty) 'subjectGradeIds': subjectGradeIds,
+      if (packageType != null) 'packageType': packageType,
+      if (packageLabel != null) 'packageLabel': packageLabel,
     });
     return resp.data['settlementId'] as String;
   }

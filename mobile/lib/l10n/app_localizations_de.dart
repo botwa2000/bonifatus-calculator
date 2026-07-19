@@ -1372,4 +1372,84 @@ class AppLocalizationsDe extends AppLocalizations {
   String settingsChildStats(int grades, int pts, int pending) {
     return '$grades Noten · $pts Pkt. gesamt · $pending ausstehend';
   }
+
+  @override
+  String get settleTitle => 'Abrechnen';
+
+  @override
+  String get settleTabPending => 'Ausstehend';
+
+  @override
+  String get settleTabHistory => 'Verlauf';
+
+  @override
+  String get settleNoPackages => 'Keine Pakete zur Abrechnung';
+
+  @override
+  String get settleLoadError => 'Pakete konnten nicht geladen werden';
+
+  @override
+  String get settleRetry => 'Erneut versuchen';
+
+  @override
+  String get settleFilterAll => 'Alle';
+
+  @override
+  String get settleFilterReportCards => 'Zeugnisse';
+
+  @override
+  String get settleFilterPeriods => 'Notenzeiträume';
+
+  @override
+  String get settleReportCardBadge => 'Zeugnis';
+
+  @override
+  String get settleGradePeriodBadge => 'Notenzeitraum';
+
+  @override
+  String get settleOngoingBadge => 'Laufend';
+
+  @override
+  String settlePackageItems(int count) {
+    return '$count Einträge';
+  }
+
+  @override
+  String get settlePackageButton => 'Paket abrechnen';
+
+  @override
+  String get settleConfirmTitle => 'Abrechnung bestätigen';
+
+  @override
+  String settleConfirmBody(int pts, String childName) {
+    return '$pts Pkt. an $childName übertragen';
+  }
+
+  @override
+  String get settleConfirmButton => 'Bestätigen';
+
+  @override
+  String get settleSuccess => 'Paket abgerechnet!';
+
+  @override
+  String get settlePeriodLabel => 'Notenzeitraum-Gruppierung';
+
+  @override
+  String get settlePeriodWeekly => 'Wöchentlich';
+
+  @override
+  String get settlePeriodMonthly => 'Monatlich';
+
+  @override
+  String get settlePeriodQuarterly => 'Vierteljährlich';
+
+  @override
+  String settleSchoolYear(String year) {
+    return 'Schuljahr $year';
+  }
+
+  @override
+  String settleClassLevel(int level) {
+    return 'Klasse $level';
+  }
 }

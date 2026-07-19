@@ -300,6 +300,8 @@ class SettlementRecord {
   final String? childName;
   final int amount;
   final String currency;
+  final String? packageType;
+  final String? packageLabel;
   final DateTime createdAt;
 
   const SettlementRecord({
@@ -308,8 +310,13 @@ class SettlementRecord {
     this.childName,
     required this.amount,
     required this.currency,
+    this.packageType,
+    this.packageLabel,
     required this.createdAt,
   });
+
+  bool get isReportCard => packageType == 'report_card';
+  bool get isGradePeriod => packageType == 'grade_period';
 
   factory SettlementRecord.fromJson(Map<String, dynamic> json) {
     return SettlementRecord(
@@ -318,6 +325,8 @@ class SettlementRecord {
       childName: json['childName'] as String?,
       amount: ((json['amount']) as num?)?.toInt() ?? 0,
       currency: json['currency'] as String? ?? 'pts',
+      packageType: json['packageType'] as String?,
+      packageLabel: json['packageLabel'] as String?,
       createdAt: DateTime.parse(json['createdAt'] as String),
     );
   }

@@ -207,6 +207,8 @@ class _ParentSettingsScreenState extends ConsumerState<ParentSettingsScreen> {
         trailing: Icon(Icons.chevron_right_rounded, color: cs.outlineVariant),
         onTap: () => _showGradingConfigSheet(context),
       ),
+      Divider(height: 1, indent: 16, endIndent: 16, color: cs.outlineVariant),
+      _GradePeriodSetting(),
     ]);
   }
 
@@ -1002,6 +1004,41 @@ class _ParentSettingsScreenState extends ConsumerState<ParentSettingsScreen> {
       if (lang.code == locale.languageCode) return '${lang.flag} ${lang.name}';
     }
     return locale.languageCode.toUpperCase();
+  }
+}
+
+class _GradePeriodSetting extends ConsumerWidget {
+  const _GradePeriodSetting();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context)!;
+    final cs = Theme.of(context).colorScheme;
+    final periodAsync = ref.watch(settlementPeriodUnitProvider);
+    final current = periodAsync.valueOrNull ?? 'monthly';
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Text(l10n.settlePeriodLabel,
+            style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: cs.onSurfaceVariant)),
+        const SizedBox(height: 10),
+        SegmentedButton<String>(
+          segments: [
+            ButtonSegment(value: 'weekly', label: Text(l10n.settlePeriodWeekly)),
+            ButtonSegment(value: 'monthly', label: Text(l10n.settlePeriodMonthly)),
+            ButtonSegment(value: 'quarterly', label: Text(l10n.settlePeriodQuarterly)),
+          ],
+          selected: {current},
+          onSelectionChanged: (s) =>
+              ref.read(settlementPeriodUnitProvider.notifier).setUnit(s.first),
+          style: ButtonStyle(
+            visualDensity: VisualDensity.compact,
+            textStyle: WidgetStateProperty.all(const TextStyle(fontSize: 12)),
+          ),
+        ),
+      ]),
+    );
   }
 }
 

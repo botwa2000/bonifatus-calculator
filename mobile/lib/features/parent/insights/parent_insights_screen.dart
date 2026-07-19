@@ -1,48 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:intl/intl.dart';
+import 'package:go_router/go_router.dart';
 import 'package:bonifatus_mobile/l10n/app_localizations.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../models/child_data.dart';
 import '../providers/children_provider.dart';
-import '../../../api/services/grade_service.dart';
 
 // ── helpers ───────────────────────────────────────────────────────────────────
-
-DateTime _weekStart(DateTime d) {
-  final local = d.toLocal();
-  final day = DateTime(local.year, local.month, local.day);
-  // Monday-based week (Dart weekday: 1=Mon … 7=Sun)
-  return day.subtract(Duration(days: day.weekday - 1));
-}
-
-String _weekLabel(DateTime ws) {
-  final we = ws.add(const Duration(days: 6));
-  final fmt = DateFormat.MMM();
-  return ws.month == we.month
-      ? '${fmt.format(ws)} ${ws.day}–${we.day}'
-      : '${fmt.format(ws)} ${ws.day} – ${fmt.format(we)} ${we.day}';
-}
 
 String _relativeDate(DateTime dt, AppLocalizations l10n) {
   final days = DateTime.now().difference(dt).inDays;
   if (days == 0) return l10n.insightsToday;
   if (days == 1) return l10n.insightsYesterday;
   return l10n.insightsDaysAgo(days);
-}
-
-// ── data shapes ───────────────────────────────────────────────────────────────
-
-typedef _GradeEntry = ({ChildWithGrades child, ChildQuickGrade grade});
-
-class _NoteBundle {
-  final ChildWithGrades child;
-  final DateTime weekStart;
-  final List<ChildQuickGrade> notes;
-
-  _NoteBundle({required this.child, required this.weekStart, required this.notes});
-
-  int get totalPts => notes.fold(0, (s, g) => s + g.bonusPoints);
 }
 
 // ── screen ────────────────────────────────────────────────────────────────────
@@ -121,24 +91,13 @@ class _ParentInsightsScreenState extends ConsumerState<ParentInsightsScreen> {
               .toList()
             ..sort((a, b) => b.grade.gradedAt.compareTo(a.grade.gradedAt));
 
-          // Unsettled calculator (subject) grades — settle per test result
-          final unsettledCalc = allGrades
-              .where((e) =>
-                  e.grade.settlementStatus == 'unsettled' &&
-                  e.grade.gradeSource == 'calculator')
+          final unsettledGrades = allGrades
+              .where((e) => e.grade.settlementStatus == 'unsettled')
               .toList();
 
-          // Unsettled notes — bundle by child + Monday-week
-          final noteBundles = _buildNoteBundles(
-            allGrades.where((e) =>
-                e.grade.settlementStatus == 'unsettled' &&
-                e.grade.gradeSource == 'notes'),
-          );
-
           final totalUnsettledPts =
-              unsettledCalc.fold<int>(0, (s, e) => s + e.grade.bonusPoints) +
-              noteBundles.fold<int>(0, (s, b) => s + b.totalPts);
-          final totalUnsettledItems = unsettledCalc.length + noteBundles.length;
+              unsettledGrades.fold<int>(0, (s, e) => s + e.grade.bonusPoints);
+          final totalUnsettledItems = unsettledGrades.length;
 
           return RefreshIndicator(
             onRefresh: () async => ref.invalidate(childrenQuickGradesProvider),
@@ -218,27 +177,15 @@ class _ParentInsightsScreenState extends ConsumerState<ParentInsightsScreen> {
                   ),
                 ),
 
-                if (unsettledCalc.isNotEmpty || noteBundles.isNotEmpty) ...[
+                if (totalUnsettledItems > 0) ...[
                   SliverToBoxAdapter(child: _SectionHeader(label: l10n.insightsReadyToSettle)),
-                  SliverList(
-                    delegate: SliverChildBuilderDelegate(
-                      (ctx, i) {
-                        if (i < unsettledCalc.length) {
-                          return Padding(
-                            padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
-                            child: _CalcGradeRow(
-                              child: unsettledCalc[i].child,
-                              grade: unsettledCalc[i].grade,
-                            ),
-                          );
-                        }
-                        final b = noteBundles[i - unsettledCalc.length];
-                        return Padding(
-                          padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
-                          child: _NoteBundleRow(bundle: b),
-                        );
-                      },
-                      childCount: unsettledCalc.length + noteBundles.length,
+                  SliverToBoxAdapter(
+                    child: Padding(
+                      padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+                      child: _SettleNavigationCard(
+                        pts: totalUnsettledPts,
+                        count: totalUnsettledItems,
+                      ),
                     ),
                   ),
                 ],
@@ -263,23 +210,6 @@ class _ParentInsightsScreenState extends ConsumerState<ParentInsightsScreen> {
     );
   }
 
-  static List<_NoteBundle> _buildNoteBundles(Iterable<_GradeEntry> notes) {
-    final map = <String, _NoteBundle>{};
-    for (final e in notes) {
-      final ws = _weekStart(e.grade.gradedAt);
-      final key = '${e.child.childId}__${ws.millisecondsSinceEpoch}';
-      if (map.containsKey(key)) {
-        map[key]!.notes.add(e.grade);
-      } else {
-        map[key] = _NoteBundle(child: e.child, weekStart: ws, notes: [e.grade]);
-      }
-    }
-    return map.values.toList()
-      ..sort((a, b) {
-        final cmp = b.weekStart.compareTo(a.weekStart);
-        return cmp != 0 ? cmp : a.child.childName.compareTo(b.child.childName);
-      });
-  }
 }
 
 // ── widgets ───────────────────────────────────────────────────────────────────
@@ -357,311 +287,65 @@ class _BannerStat extends StatelessWidget {
       );
 }
 
-// ── calculator grade row ──────────────────────────────────────────────────────
+// ── settle navigation card ────────────────────────────────────────────────────
 
-class _CalcGradeRow extends ConsumerWidget {
-  final ChildWithGrades child;
-  final ChildQuickGrade grade;
-  const _CalcGradeRow({required this.child, required this.grade});
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final l10n = AppLocalizations.of(context)!;
-    final tierColor = AppColors.tierColor(grade.gradeQualityTier);
-
-    return _SettleRow(
-      avatar: child.childName[0].toUpperCase(),
-      avatarColor: AppColors.tierColor(child.latestTier),
-      avatarBg: AppColors.tierColorLight(child.latestTier),
-      topLabel: child.childName,
-      mainLabel: grade.subjectName ?? l10n.subjectFallback,
-      badgeText: '${l10n.calculatorGradeLabel} ${grade.gradeValue}',
-      badgeColor: tierColor,
-      pts: grade.bonusPoints,
-      onSettle: () => _showSheet(context, ref, l10n),
-    );
-  }
-
-  void _showSheet(BuildContext context, WidgetRef ref, AppLocalizations l10n) {
-    showModalBottomSheet<void>(
-      context: context,
-      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
-      builder: (_) => _SettleSheet(
-        title: l10n.rewardsSettleBonusFor(child.childName),
-        subtitle: '${grade.subjectName ?? l10n.subjectFallback}  ·  ${l10n.calculatorGradeLabel} ${grade.gradeValue}',
-        pts: grade.bonusPoints,
-        onConfirm: () => ref.read(gradeServiceProvider).createSettlement(
-          childId: child.childId,
-          amount: grade.bonusPoints,
-          subjectGradeIds: [grade.id],
-        ),
-        onDone: () {
-          ref.read(childrenQuickGradesProvider.notifier).reload();
-          ref.read(settlementsProvider.notifier).reload();
-          if (context.mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-              content: Text(l10n.rewardsSettled),
-              backgroundColor: AppColors.tierBest,
-            ));
-          }
-        },
-      ),
-    );
-  }
-}
-
-// ── note bundle row ───────────────────────────────────────────────────────────
-
-class _NoteBundleRow extends ConsumerWidget {
-  final _NoteBundle bundle;
-  const _NoteBundleRow({required this.bundle});
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final l10n = AppLocalizations.of(context)!;
-    final count = bundle.notes.length;
-    final label = '$count ${count == 1 ? l10n.insightsNote : l10n.insightsNotes}  ·  ${_weekLabel(bundle.weekStart)}';
-
-    return _SettleRow(
-      avatar: bundle.child.childName[0].toUpperCase(),
-      avatarColor: AppColors.tierColor(bundle.child.latestTier),
-      avatarBg: AppColors.tierColorLight(bundle.child.latestTier),
-      topLabel: bundle.child.childName,
-      mainLabel: label,
-      pts: bundle.totalPts,
-      onSettle: () => _showSheet(context, ref, l10n),
-    );
-  }
-
-  void _showSheet(BuildContext context, WidgetRef ref, AppLocalizations l10n) {
-    final count = bundle.notes.length;
-    showModalBottomSheet<void>(
-      context: context,
-      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
-      builder: (_) => _SettleSheet(
-        title: l10n.rewardsSettleBonusFor(bundle.child.childName),
-        subtitle: '$count ${count == 1 ? l10n.insightsNote : l10n.insightsNotes}  ·  ${_weekLabel(bundle.weekStart)}',
-        pts: bundle.totalPts,
-        onConfirm: () => ref.read(gradeServiceProvider).createSettlement(
-          childId: bundle.child.childId,
-          amount: bundle.totalPts,
-          quickGradeIds: bundle.notes.map((g) => g.id).toList(),
-        ),
-        onDone: () {
-          ref.read(childrenQuickGradesProvider.notifier).reload();
-          ref.read(settlementsProvider.notifier).reload();
-          if (context.mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-              content: Text(l10n.rewardsSettled),
-              backgroundColor: AppColors.tierBest,
-            ));
-          }
-        },
-      ),
-    );
-  }
-}
-
-// ── shared settle row ─────────────────────────────────────────────────────────
-
-class _SettleRow extends StatelessWidget {
-  final String avatar, topLabel, mainLabel;
-  final Color avatarColor, avatarBg;
-  final String? badgeText;
-  final Color? badgeColor;
-  final int pts;
-  final VoidCallback onSettle;
-
-  const _SettleRow({
-    required this.avatar,
-    required this.avatarColor,
-    required this.avatarBg,
-    required this.topLabel,
-    required this.mainLabel,
-    this.badgeText,
-    this.badgeColor,
-    required this.pts,
-    required this.onSettle,
-  });
+class _SettleNavigationCard extends StatelessWidget {
+  final int pts, count;
+  const _SettleNavigationCard({required this.pts, required this.count});
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     final l10n = AppLocalizations.of(context)!;
+    final cs = Theme.of(context).colorScheme;
 
-    return Container(
-      decoration: BoxDecoration(
-        color: theme.colorScheme.surface,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: theme.colorScheme.outlineVariant.withValues(alpha: 0.5)),
-      ),
-      padding: const EdgeInsets.fromLTRB(12, 10, 10, 10),
-      child: Row(
-        children: [
-          Container(
-            width: 32, height: 32,
-            decoration: BoxDecoration(color: avatarBg, shape: BoxShape.circle),
-            alignment: Alignment.center,
-            child: Text(avatar, style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: avatarColor)),
-          ),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(topLabel,
-                    style: theme.textTheme.labelSmall?.copyWith(color: theme.colorScheme.onSurfaceVariant)),
-                const SizedBox(height: 1),
-                Text(mainLabel,
-                    style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600),
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis),
-              ],
-            ),
-          ),
-          if (badgeText != null && badgeColor != null) ...[
-            const SizedBox(width: 6),
+    return GestureDetector(
+      onTap: () => context.go('/parent/settle'),
+      child: Container(
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: cs.surface,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: AppColors.primary.withValues(alpha: 0.4)),
+        ),
+        child: Row(
+          children: [
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+              padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: badgeColor!.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(6),
+                color: AppColors.primaryLight,
+                borderRadius: BorderRadius.circular(10),
               ),
-              child: Text(badgeText!,
-                  style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: badgeColor)),
-            ),
-          ],
-          const SizedBox(width: 8),
-          FilledButton(
-            onPressed: onSettle,
-            style: FilledButton.styleFrom(
-              backgroundColor: AppColors.tierBestLight,
-              foregroundColor: AppColors.tierBest,
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-              minimumSize: Size.zero,
-              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-              elevation: 0,
-            ),
-            child: Text(l10n.rewardsSettleAmount(pts),
-                style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700)),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-// ── shared settle sheet ───────────────────────────────────────────────────────
-
-class _SettleSheet extends StatefulWidget {
-  final String title, subtitle;
-  final int pts;
-  final Future<void> Function() onConfirm;
-  final VoidCallback onDone;
-
-  const _SettleSheet({
-    required this.title,
-    required this.subtitle,
-    required this.pts,
-    required this.onConfirm,
-    required this.onDone,
-  });
-
-  @override
-  State<_SettleSheet> createState() => _SettleSheetState();
-}
-
-class _SettleSheetState extends State<_SettleSheet> {
-  bool _settling = false;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final l10n = AppLocalizations.of(context)!;
-
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(24, 24, 24, 32),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(widget.title,
-              style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w700)),
-          const SizedBox(height: 4),
-          Text(widget.subtitle,
-              style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.onSurfaceVariant)),
-          const SizedBox(height: 16),
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: AppColors.tierBestLight,
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(l10n.rewardsAmountToTransfer,
-                    style: TextStyle(color: theme.colorScheme.onSurface, fontWeight: FontWeight.w500)),
-                Text('+${widget.pts} ${l10n.ptsAbbr}',
-                    style: const TextStyle(
-                        fontSize: 22, fontWeight: FontWeight.w800, color: AppColors.tierBest)),
-              ],
-            ),
-          ),
-          const SizedBox(height: 20),
-          Row(children: [
-            Expanded(
-              child: OutlinedButton(
-                onPressed: _settling ? null : () => Navigator.of(context).pop(),
-                style: OutlinedButton.styleFrom(
-                  side: BorderSide(color: theme.colorScheme.outlineVariant),
-                  padding: const EdgeInsets.symmetric(vertical: 14),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                ),
-                child: Text(l10n.rewardsCancel, style: TextStyle(color: theme.colorScheme.onSurface)),
-              ),
+              child: const Icon(Icons.payments_outlined, color: AppColors.primary, size: 20),
             ),
             const SizedBox(width: 12),
             Expanded(
-              child: ElevatedButton(
-                onPressed: _settling
-                    ? null
-                    : () async {
-                        setState(() => _settling = true);
-                        final nav = Navigator.of(context);
-                        final messenger = ScaffoldMessenger.of(context);
-                        final errPrefix = AppLocalizations.of(context)!.genericFailedError('');
-                        try {
-                          await widget.onConfirm();
-                          if (!mounted) return;
-                          nav.pop();
-                          widget.onDone();
-                        } catch (e) {
-                          if (!mounted) return;
-                          setState(() => _settling = false);
-                          messenger.showSnackBar(SnackBar(
-                            content: Text('$errPrefix${e.toString()}'),
-                            backgroundColor: AppColors.error,
-                          ));
-                        }
-                      },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primary,
-                  foregroundColor: AppColors.white,
-                  padding: const EdgeInsets.symmetric(vertical: 14),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                ),
-                child: _settling
-                    ? const SizedBox(
-                        width: 20, height: 20,
-                        child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
-                    : Text(l10n.rewardsConfirmSettle,
-                        style: const TextStyle(fontWeight: FontWeight.w700)),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    '$count ${l10n.insightsUnsettledGrades}',
+                    style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: cs.onSurface),
+                  ),
+                  Text(
+                    '+$pts ${l10n.ptsAbbr} ${l10n.parentInsightsPending.toLowerCase()}',
+                    style: TextStyle(fontSize: 12, color: cs.onSurfaceVariant),
+                  ),
+                ],
               ),
             ),
-          ]),
-        ],
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+              decoration: BoxDecoration(
+                color: AppColors.primary,
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Text(
+                l10n.settleTitle,
+                style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: Colors.white),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

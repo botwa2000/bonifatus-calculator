@@ -2565,6 +2565,150 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{grades} grades · {pts} pts total · {pending} pending'**
   String settingsChildStats(int grades, int pts, int pending);
+
+  /// No description provided for @settleTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Settle'**
+  String get settleTitle;
+
+  /// No description provided for @settleTabPending.
+  ///
+  /// In en, this message translates to:
+  /// **'Pending'**
+  String get settleTabPending;
+
+  /// No description provided for @settleTabHistory.
+  ///
+  /// In en, this message translates to:
+  /// **'History'**
+  String get settleTabHistory;
+
+  /// No description provided for @settleNoPackages.
+  ///
+  /// In en, this message translates to:
+  /// **'No packages to settle'**
+  String get settleNoPackages;
+
+  /// No description provided for @settleLoadError.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to load settlement packages'**
+  String get settleLoadError;
+
+  /// No description provided for @settleRetry.
+  ///
+  /// In en, this message translates to:
+  /// **'Retry'**
+  String get settleRetry;
+
+  /// No description provided for @settleFilterAll.
+  ///
+  /// In en, this message translates to:
+  /// **'All'**
+  String get settleFilterAll;
+
+  /// No description provided for @settleFilterReportCards.
+  ///
+  /// In en, this message translates to:
+  /// **'Report Cards'**
+  String get settleFilterReportCards;
+
+  /// No description provided for @settleFilterPeriods.
+  ///
+  /// In en, this message translates to:
+  /// **'Grade Periods'**
+  String get settleFilterPeriods;
+
+  /// No description provided for @settleReportCardBadge.
+  ///
+  /// In en, this message translates to:
+  /// **'Report Card'**
+  String get settleReportCardBadge;
+
+  /// No description provided for @settleGradePeriodBadge.
+  ///
+  /// In en, this message translates to:
+  /// **'Grade Period'**
+  String get settleGradePeriodBadge;
+
+  /// No description provided for @settleOngoingBadge.
+  ///
+  /// In en, this message translates to:
+  /// **'Ongoing'**
+  String get settleOngoingBadge;
+
+  /// No description provided for @settlePackageItems.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} items'**
+  String settlePackageItems(int count);
+
+  /// No description provided for @settlePackageButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Settle Package'**
+  String get settlePackageButton;
+
+  /// No description provided for @settleConfirmTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm Settlement'**
+  String get settleConfirmTitle;
+
+  /// No description provided for @settleConfirmBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Transfer {pts} pts to {childName}'**
+  String settleConfirmBody(int pts, String childName);
+
+  /// No description provided for @settleConfirmButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm'**
+  String get settleConfirmButton;
+
+  /// No description provided for @settleSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Package settled!'**
+  String get settleSuccess;
+
+  /// No description provided for @settlePeriodLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Grade Period Grouping'**
+  String get settlePeriodLabel;
+
+  /// No description provided for @settlePeriodWeekly.
+  ///
+  /// In en, this message translates to:
+  /// **'Weekly'**
+  String get settlePeriodWeekly;
+
+  /// No description provided for @settlePeriodMonthly.
+  ///
+  /// In en, this message translates to:
+  /// **'Monthly'**
+  String get settlePeriodMonthly;
+
+  /// No description provided for @settlePeriodQuarterly.
+  ///
+  /// In en, this message translates to:
+  /// **'Quarterly'**
+  String get settlePeriodQuarterly;
+
+  /// No description provided for @settleSchoolYear.
+  ///
+  /// In en, this message translates to:
+  /// **'School year {year}'**
+  String settleSchoolYear(String year);
+
+  /// No description provided for @settleClassLevel.
+  ///
+  /// In en, this message translates to:
+  /// **'Class {level}'**
+  String settleClassLevel(int level);
 }
 
 class _AppLocalizationsDelegate

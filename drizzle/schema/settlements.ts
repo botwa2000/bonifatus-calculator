@@ -17,6 +17,8 @@ export const settlements = pgTable('settlements', {
   method: text('method').default('cash').notNull(),
   notes: text('notes'),
   splitConfig: jsonb('split_config'),
+  packageType: text('package_type'),
+  packageLabel: text('package_label'),
   createdAt: timestamp('created_at', { mode: 'date' }).defaultNow().notNull(),
 })
 

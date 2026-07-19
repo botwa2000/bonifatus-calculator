@@ -1366,4 +1366,84 @@ class AppLocalizationsRu extends AppLocalizations {
   String settingsChildStats(int grades, int pts, int pending) {
     return '$grades оценок · $pts баллов · $pending ожидает';
   }
+
+  @override
+  String get settleTitle => 'Расчёт';
+
+  @override
+  String get settleTabPending => 'Ожидает';
+
+  @override
+  String get settleTabHistory => 'История';
+
+  @override
+  String get settleNoPackages => 'Нет пакетов для расчёта';
+
+  @override
+  String get settleLoadError => 'Не удалось загрузить пакеты';
+
+  @override
+  String get settleRetry => 'Повторить';
+
+  @override
+  String get settleFilterAll => 'Все';
+
+  @override
+  String get settleFilterReportCards => 'Табели';
+
+  @override
+  String get settleFilterPeriods => 'Периоды оценок';
+
+  @override
+  String get settleReportCardBadge => 'Табель';
+
+  @override
+  String get settleGradePeriodBadge => 'Период оценок';
+
+  @override
+  String get settleOngoingBadge => 'Текущий';
+
+  @override
+  String settlePackageItems(int count) {
+    return '$count элем.';
+  }
+
+  @override
+  String get settlePackageButton => 'Рассчитать пакет';
+
+  @override
+  String get settleConfirmTitle => 'Подтвердить расчёт';
+
+  @override
+  String settleConfirmBody(int pts, String childName) {
+    return 'Перевести $pts пт. $childName';
+  }
+
+  @override
+  String get settleConfirmButton => 'Подтвердить';
+
+  @override
+  String get settleSuccess => 'Пакет рассчитан!';
+
+  @override
+  String get settlePeriodLabel => 'Группировка периодов оценок';
+
+  @override
+  String get settlePeriodWeekly => 'Еженедельно';
+
+  @override
+  String get settlePeriodMonthly => 'Ежемесячно';
+
+  @override
+  String get settlePeriodQuarterly => 'Ежеквартально';
+
+  @override
+  String settleSchoolYear(String year) {
+    return 'Учебный год $year';
+  }
+
+  @override
+  String settleClassLevel(int level) {
+    return 'Класс $level';
+  }
 }

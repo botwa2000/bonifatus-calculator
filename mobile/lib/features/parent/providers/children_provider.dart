@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../api/services/connection_service.dart';
 import '../../../api/services/grade_service.dart';
 import '../../../models/child_data.dart';
+import '../../../models/settlement_package.dart';
 
 List<ChildWithGrades> _demoChildren() => [
       ChildWithGrades(
@@ -97,4 +98,43 @@ class ChildProfilesNotifier extends AsyncNotifier<List<ChildProfile>> {
 final childProfilesProvider =
     AsyncNotifierProvider<ChildProfilesNotifier, List<ChildProfile>>(
   ChildProfilesNotifier.new,
+);
+
+class SettlementPackagesNotifier
+    extends AsyncNotifier<List<SettlementPackage>> {
+  @override
+  Future<List<SettlementPackage>> build() {
+    if (kIsWeb && kDebugMode) return Future.value([]);
+    return ref.read(gradeServiceProvider).fetchSettlementPackages();
+  }
+
+  Future<void> reload() async {
+    state = const AsyncValue.loading();
+    state = await AsyncValue.guard(
+      () => ref.read(gradeServiceProvider).fetchSettlementPackages(),
+    );
+  }
+}
+
+final settlementPackagesProvider =
+    AsyncNotifierProvider<SettlementPackagesNotifier, List<SettlementPackage>>(
+  SettlementPackagesNotifier.new,
+);
+
+class SettlementPeriodUnitNotifier extends AsyncNotifier<String> {
+  @override
+  Future<String> build() {
+    if (kIsWeb && kDebugMode) return Future.value('monthly');
+    return ref.read(gradeServiceProvider).fetchSettlementPeriodUnit();
+  }
+
+  Future<void> setUnit(String unit) async {
+    await ref.read(gradeServiceProvider).updateSettlementPeriodUnit(unit);
+    state = AsyncValue.data(unit);
+  }
+}
+
+final settlementPeriodUnitProvider =
+    AsyncNotifierProvider<SettlementPeriodUnitNotifier, String>(
+  SettlementPeriodUnitNotifier.new,
 );

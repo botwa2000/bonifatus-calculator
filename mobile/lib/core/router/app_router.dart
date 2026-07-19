@@ -23,7 +23,7 @@ import '../../features/student/settings/screens/student_settings_screen.dart';
 import '../../features/parent/dashboard/parent_dashboard_screen.dart';
 import '../../features/parent/children/screens/children_screen.dart';
 import '../../features/parent/children/screens/child_detail_screen.dart';
-import '../../features/parent/rewards/screens/rewards_screen.dart';
+import '../../features/parent/settle/screens/settle_screen.dart';
 import '../../features/parent/insights/parent_insights_screen.dart';
 import '../../features/parent/settings/screens/parent_settings_screen.dart';
 import '../shells/student_shell.dart';
@@ -154,7 +154,8 @@ final appRouterProvider = Provider<GoRouter>((ref) {
               ),
             ],
           ),
-          GoRoute(path: '/parent/rewards', builder: (_, __) => const RewardsScreen()),
+          GoRoute(path: '/parent/settle', builder: (_, __) => const SettleScreen()),
+          GoRoute(path: '/parent/rewards', redirect: (_, __) => '/parent/settle'),
           GoRoute(path: '/parent/insights', builder: (_, __) => const ParentInsightsScreen()),
           GoRoute(path: '/parent/settings', builder: (_, __) => const ParentSettingsScreen()),
         ],

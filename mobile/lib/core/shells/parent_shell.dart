@@ -11,7 +11,7 @@ class ParentShell extends StatelessWidget {
   static const _tabs = [
     _TabItem(icon: Icons.home_outlined, activeIcon: Icons.home, path: '/parent/home'),
     _TabItem(icon: Icons.people_outline, activeIcon: Icons.people, path: '/parent/children'),
-    _TabItem(icon: Icons.card_giftcard_outlined, activeIcon: Icons.card_giftcard, path: '/parent/rewards'),
+    _TabItem(icon: Icons.payments_outlined, activeIcon: Icons.payments, path: '/parent/settle'),
     _TabItem(icon: Icons.bar_chart_outlined, activeIcon: Icons.bar_chart, path: '/parent/insights'),
     _TabItem(icon: Icons.settings_outlined, activeIcon: Icons.settings, path: '/parent/settings'),
   ];
@@ -27,7 +27,7 @@ class ParentShell extends StatelessWidget {
   List<String> _labels(AppLocalizations l10n) => [
     l10n.navHome,
     l10n.childrenTitle,
-    l10n.rewardsTitle,
+    l10n.settleTitle,
     l10n.insightsTitle,
     l10n.settingsTitle,
   ];

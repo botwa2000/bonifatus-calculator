@@ -1356,4 +1356,84 @@ class AppLocalizationsEn extends AppLocalizations {
   String settingsChildStats(int grades, int pts, int pending) {
     return '$grades grades · $pts pts total · $pending pending';
   }
+
+  @override
+  String get settleTitle => 'Settle';
+
+  @override
+  String get settleTabPending => 'Pending';
+
+  @override
+  String get settleTabHistory => 'History';
+
+  @override
+  String get settleNoPackages => 'No packages to settle';
+
+  @override
+  String get settleLoadError => 'Failed to load settlement packages';
+
+  @override
+  String get settleRetry => 'Retry';
+
+  @override
+  String get settleFilterAll => 'All';
+
+  @override
+  String get settleFilterReportCards => 'Report Cards';
+
+  @override
+  String get settleFilterPeriods => 'Grade Periods';
+
+  @override
+  String get settleReportCardBadge => 'Report Card';
+
+  @override
+  String get settleGradePeriodBadge => 'Grade Period';
+
+  @override
+  String get settleOngoingBadge => 'Ongoing';
+
+  @override
+  String settlePackageItems(int count) {
+    return '$count items';
+  }
+
+  @override
+  String get settlePackageButton => 'Settle Package';
+
+  @override
+  String get settleConfirmTitle => 'Confirm Settlement';
+
+  @override
+  String settleConfirmBody(int pts, String childName) {
+    return 'Transfer $pts pts to $childName';
+  }
+
+  @override
+  String get settleConfirmButton => 'Confirm';
+
+  @override
+  String get settleSuccess => 'Package settled!';
+
+  @override
+  String get settlePeriodLabel => 'Grade Period Grouping';
+
+  @override
+  String get settlePeriodWeekly => 'Weekly';
+
+  @override
+  String get settlePeriodMonthly => 'Monthly';
+
+  @override
+  String get settlePeriodQuarterly => 'Quarterly';
+
+  @override
+  String settleSchoolYear(String year) {
+    return 'School year $year';
+  }
+
+  @override
+  String settleClassLevel(int level) {
+    return 'Class $level';
+  }
 }

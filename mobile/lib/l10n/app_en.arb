@@ -583,5 +583,45 @@
       "pts": { "type": "int" },
       "pending": { "type": "int" }
     }
+  },
+
+  "settleTitle": "Settle",
+  "settleTabPending": "Pending",
+  "settleTabHistory": "History",
+  "settleNoPackages": "No packages to settle",
+  "settleLoadError": "Failed to load settlement packages",
+  "settleRetry": "Retry",
+  "settleFilterAll": "All",
+  "settleFilterReportCards": "Report Cards",
+  "settleFilterPeriods": "Grade Periods",
+  "settleReportCardBadge": "Report Card",
+  "settleGradePeriodBadge": "Grade Period",
+  "settleOngoingBadge": "Ongoing",
+  "settlePackageItems": "{count} items",
+  "@settlePackageItems": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "settlePackageButton": "Settle Package",
+  "settleConfirmTitle": "Confirm Settlement",
+  "settleConfirmBody": "Transfer {pts} pts to {childName}",
+  "@settleConfirmBody": {
+    "placeholders": {
+      "pts": { "type": "int" },
+      "childName": { "type": "String" }
+    }
+  },
+  "settleConfirmButton": "Confirm",
+  "settleSuccess": "Package settled!",
+  "settlePeriodLabel": "Grade Period Grouping",
+  "settlePeriodWeekly": "Weekly",
+  "settlePeriodMonthly": "Monthly",
+  "settlePeriodQuarterly": "Quarterly",
+  "settleSchoolYear": "School year {year}",
+  "@settleSchoolYear": {
+    "placeholders": { "year": { "type": "String" } }
+  },
+  "settleClassLevel": "Class {level}",
+  "@settleClassLevel": {
+    "placeholders": { "level": { "type": "int" } }
   }
 }
