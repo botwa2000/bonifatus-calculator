@@ -36,7 +36,7 @@ export default function ParentDashboardPage() {
           </div>
           <div className="flex flex-col sm:flex-row gap-2">
             <Link
-              href="/parent/rewards"
+              href="/parent/settle"
               className="rounded-xl bg-white/20 backdrop-blur-sm px-5 py-2.5 text-sm font-semibold text-white hover:bg-white/30 transition text-center"
             >
               {t('settleNow')}
@@ -124,7 +124,7 @@ export default function ParentDashboardPage() {
                           )}
                         </div>
                         <Link
-                          href="/parent/rewards"
+                          href="/parent/settle"
                           className="px-3 py-1.5 rounded-lg bg-gradient-to-r from-primary-600 to-secondary-600 text-white text-sm font-semibold shadow-sm hover:opacity-90 transition text-center"
                         >
                           {t('settleNow')}

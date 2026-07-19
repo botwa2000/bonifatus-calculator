@@ -1,5 +1,6 @@
 import NextAuth from 'next-auth'
 import Credentials from 'next-auth/providers/credentials'
+import Google from 'next-auth/providers/google'
 import { DrizzleAdapter } from '@auth/drizzle-adapter'
 import { db } from '@/lib/db/client'
 import { eq } from 'drizzle-orm'
@@ -17,6 +18,17 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     error: '/login',
   },
   providers: [
+    Google({
+      clientId: process.env.GOOGLE_CLIENT_ID ?? '',
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET ?? '',
+      authorization: {
+        params: {
+          prompt: 'select_account',
+          access_type: 'offline',
+          response_type: 'code',
+        },
+      },
+    }),
     Credentials({
       credentials: {
         email: { label: 'Email', type: 'email' },
@@ -69,7 +81,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     }),
   ],
   callbacks: {
-    async jwt({ token, user }) {
+    async jwt({ token, user, account }) {
       if (user) {
         token.id = user.id
         try {
@@ -78,7 +90,15 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
             .from(userProfiles)
             .where(eq(userProfiles.id, user.id!))
             .limit(1)
-          token.role = profile?.role ?? 'child'
+          if (!profile && account?.provider === 'google') {
+            // New Google user — needs profile setup
+            token.role = 'setup_needed'
+            token.needsSetup = true
+            dbg('auth', 'jwt callback — google user needs profile setup', { userId: user.id })
+          } else {
+            token.role = profile?.role ?? 'child'
+            token.needsSetup = false
+          }
           token.roleRefreshedAt = Date.now()
           dbg('auth', 'jwt callback — role resolved', { userId: user.id, role: token.role })
         } catch (err) {
@@ -87,6 +107,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
             error: String(err),
           })
           token.role = 'child'
+          token.needsSetup = false
           token.roleRefreshedAt = Date.now()
         }
       } else {
@@ -117,6 +138,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       if (session.user) {
         session.user.id = token.id as string
         session.user.role = token.role as 'parent' | 'child' | 'admin'
+        session.user.needsSetup = token.needsSetup as boolean | undefined
       }
       dbg('auth', 'session callback', { userId: session.user?.id, role: session.user?.role })
       return session

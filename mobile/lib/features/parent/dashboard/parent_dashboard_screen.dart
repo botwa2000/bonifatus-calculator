@@ -291,7 +291,7 @@ class _UnsettledBanner extends StatelessWidget {
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: Text(
-                  l10n.homeGoToInsights,
+                  l10n.settleTitle,
                   style: const TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.w700,

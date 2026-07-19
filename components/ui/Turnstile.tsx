@@ -17,7 +17,7 @@ export interface TurnstileProps {
   executeOnReady?: boolean
   action?: string
   theme?: 'light' | 'dark' | 'auto'
-  size?: 'normal' | 'compact' | 'invisible'
+  size?: 'normal' | 'compact' | 'flexible' | 'invisible'
 }
 
 declare global {
@@ -32,7 +32,8 @@ declare global {
           'expired-callback'?: () => void
           action?: string
           theme?: 'light' | 'dark' | 'auto'
-          size?: 'normal' | 'compact' | 'invisible'
+          size?: 'normal' | 'compact' | 'flexible'
+          appearance?: 'always' | 'execute' | 'interaction-only'
         }
       ) => string
       remove: (widgetId: string) => void
@@ -81,8 +82,8 @@ export const Turnstile: React.FC<TurnstileProps> = ({
   const readyAtRef = useRef<number | null>(null)
   const executeTimerRef = useRef<number | null>(null)
   const executeOnce = React.useCallback(() => {
-    // Invisible widgets auto-execute; skip manual execute to avoid race
-    if (executeOnReadyRef.current && size === 'invisible') {
+    // Auto-execute mode (formerly 'invisible'): widget executes on render; skip manual execute
+    if (executeOnReadyRef.current) {
       log('execute skipped (auto invisible mode)', {
         widgetId: widgetIdRef.current,
       })
@@ -289,7 +290,9 @@ export const Turnstile: React.FC<TurnstileProps> = ({
           },
           action,
           theme,
-          size: executeOnReady ? 'invisible' : size,
+          // 'invisible' was removed from the size API; use appearance:'interaction-only' instead
+          size: executeOnReady || size === 'invisible' ? 'compact' : size,
+          ...(executeOnReady && { appearance: 'interaction-only' }),
         })
         log('widget rendered', {
           widgetId: widgetIdRef.current,

@@ -18,6 +18,7 @@ services:
       - prod_EMAIL_PASSWORD
       - prod_FMP_API_KEY
       - prod_GOOGLE_CLIENT_ID
+      - prod_GOOGLE_CLIENT_SECRET
     extra_hosts:
       - "host.docker.internal:host-gateway"
     environment:
@@ -65,4 +66,6 @@ secrets:
   prod_FMP_API_KEY:
     external: true
   prod_GOOGLE_CLIENT_ID:
+    external: true
+  prod_GOOGLE_CLIENT_SECRET:
     external: true

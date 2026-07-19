@@ -9,6 +9,7 @@ declare module 'next-auth' {
       name?: string | null
       image?: string | null
       role: 'parent' | 'child' | 'admin'
+      needsSetup?: boolean
     }
   }
 
@@ -20,6 +21,8 @@ declare module 'next-auth' {
 declare module 'next-auth/jwt' {
   interface JWT {
     id?: string
-    role?: 'parent' | 'child' | 'admin'
+    role?: 'parent' | 'child' | 'admin' | 'setup_needed'
+    needsSetup?: boolean
+    roleRefreshedAt?: number
   }
 }
