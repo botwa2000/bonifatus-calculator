@@ -3,13 +3,45 @@ import { z } from 'zod'
 import { db } from '@/lib/db/client'
 import { users } from '@/drizzle/schema/auth'
 import { userProfiles } from '@/drizzle/schema/users'
-import { verificationCodes } from '@/drizzle/schema/security'
+import { verificationCodes, securityEvents } from '@/drizzle/schema/security'
 import { eq, and, gt, isNull, count } from 'drizzle-orm'
 import { verifyTurnstileToken, getClientIp } from '@/lib/auth/turnstile'
 import { validateMobileToken } from '@/lib/auth/validate-mobile-token'
 import { sendEmail } from '@/lib/email/service'
 import { getPasswordResetCodeEmail } from '@/lib/email/templates'
 import { generateCode } from '@/lib/auth/generate-code'
+
+// Rate limits
+const IP_HOURLY_LIMIT = 5
+const USER_DAILY_LIMIT = 2 // intentionally low — legitimate users rarely need more than 2/day
+const USER_COOLDOWN_MS = 15 * 60_000 // 15 minutes between codes for the same user
+
+async function auditLog(params: {
+  eventType: 'password_reset' | 'rate_limit_exceeded'
+  severity: 'info' | 'warning'
+  userId?: string | null
+  ipAddress: string
+  userAgent: string | null
+  metadata: Record<string, unknown>
+}) {
+  try {
+    await db.insert(securityEvents).values({
+      eventType: params.eventType,
+      severity: params.severity,
+      userId: params.userId ?? null,
+      ipAddress: params.ipAddress,
+      userAgent: params.userAgent,
+      eventMetadata: params.metadata,
+    })
+    console.log(`[forgot-password:${params.eventType}]`, {
+      severity: params.severity,
+      ip: params.ipAddress,
+      ...params.metadata,
+    })
+  } catch {
+    // Never let logging break the response path
+  }
+}
 
 const schema = z.object({
   email: z.string().email('Invalid email address'),
@@ -69,7 +101,21 @@ export async function POST(request: NextRequest) {
           gt(verificationCodes.createdAt, ipRateLimitSince)
         )
       )
-    if ((ipCount?.n ?? 0) >= 5) return successResponse
+    if ((ipCount?.n ?? 0) >= IP_HOURLY_LIMIT) {
+      await auditLog({
+        eventType: 'rate_limit_exceeded',
+        severity: 'warning',
+        ipAddress: clientIp || '0.0.0.0',
+        userAgent: request.headers.get('user-agent'),
+        metadata: {
+          reason: 'ip_hourly',
+          email,
+          source: isMobile ? 'mobile' : 'web',
+          count: ipCount?.n,
+        },
+      })
+      return successResponse
+    }
 
     const [user] = await db.select().from(users).where(eq(users.email, email)).limit(1)
     if (!user) return successResponse
@@ -80,7 +126,7 @@ export async function POST(request: NextRequest) {
       .where(eq(userProfiles.id, user.id))
       .limit(1)
 
-    // Hard daily cap: max 5 reset emails per user per 24 hours, regardless of IP.
+    // Hard daily cap: max 2 reset emails per user per 24 hours, regardless of IP.
     // This is the primary defence against persistent targeted spam — it can't be
     // bypassed by rotating IPs or solving Turnstile from multiple addresses.
     const dailyLimitSince = new Date(Date.now() - 24 * 60 * 60_000)
@@ -94,15 +140,30 @@ export async function POST(request: NextRequest) {
           gt(verificationCodes.createdAt, dailyLimitSince)
         )
       )
-    if ((dailyCount?.n ?? 0) >= 5) return successResponse
+    if ((dailyCount?.n ?? 0) >= USER_DAILY_LIMIT) {
+      await auditLog({
+        eventType: 'rate_limit_exceeded',
+        severity: 'warning',
+        userId: user.id,
+        ipAddress: clientIp || '0.0.0.0',
+        userAgent: request.headers.get('user-agent'),
+        metadata: {
+          reason: 'user_daily',
+          email,
+          source: isMobile ? 'mobile' : 'web',
+          count: dailyCount?.n,
+        },
+      })
+      return successResponse
+    }
 
-    // Server-side rate limit: one email per 3 minutes per user.
+    // Server-side rate limit: one email per 15 minutes per user.
     // Intentionally does NOT filter by verifiedAt — when the invalidation step below
     // marks an old code as verified, that must not reset the cooldown window, otherwise
     // back-to-back requests (at the 60 s boundary) bypass the limit entirely.
-    const cooldownSince = new Date(Date.now() - 3 * 60_000)
+    const cooldownSince = new Date(Date.now() - USER_COOLDOWN_MS)
     const [recentCode] = await db
-      .select({ id: verificationCodes.id })
+      .select({ id: verificationCodes.id, createdAt: verificationCodes.createdAt })
       .from(verificationCodes)
       .where(
         and(
@@ -112,7 +173,22 @@ export async function POST(request: NextRequest) {
         )
       )
       .limit(1)
-    if (recentCode) return successResponse
+    if (recentCode) {
+      await auditLog({
+        eventType: 'rate_limit_exceeded',
+        severity: 'warning',
+        userId: user.id,
+        ipAddress: clientIp || '0.0.0.0',
+        userAgent: request.headers.get('user-agent'),
+        metadata: {
+          reason: 'user_cooldown',
+          email,
+          source: isMobile ? 'mobile' : 'web',
+          lastSentAt: recentCode.createdAt,
+        },
+      })
+      return successResponse
+    }
 
     // Invalidate old codes
     await db
@@ -148,13 +224,13 @@ export async function POST(request: NextRequest) {
       html: template.html,
     })
 
-    // Audit log — helps trace automated/unexpected reset requests
-    console.log('[forgot-password] reset email sent', {
+    await auditLog({
+      eventType: 'password_reset',
+      severity: 'info',
       userId: user.id,
-      email: user.email,
-      source: isMobile ? 'mobile' : 'web',
-      ip: clientIp,
+      ipAddress: clientIp || '0.0.0.0',
       userAgent: request.headers.get('user-agent'),
+      metadata: { email: user.email, source: isMobile ? 'mobile' : 'web' },
     })
 
     return successResponse
