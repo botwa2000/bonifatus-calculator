@@ -512,5 +512,22 @@
   "settlePeriodMonthly": "Mensuel",
   "settlePeriodQuarterly": "Trimestriel",
   "settleSchoolYear": "Année scolaire {year}",
-  "settleClassLevel": "Classe {level}"
+  "settleClassLevel": "Classe {level}",
+  "termDetailEditFull": "Modifier le rapport",
+  "insightsGradeTrend": "Tendance des notes",
+  "insightsGradeTrendSubtitle": "Moyennes par période",
+  "insightsNoTermResults": "Aucun résultat calculateur",
+  "insightsSubjectRankings": "Classement des matières",
+  "insightsBestSubject": "Meilleure matière",
+  "insightsWorstSubject": "À améliorer",
+  "insightsStreak": "Série active",
+  "insightsStreakWeeks": "{count}s",
+  "@insightsStreakWeeks": { "placeholders": { "count": { "type": "int" } } },
+  "insightsBestGrade": "Meilleure note",
+  "insightsWorstGrade": "Note la plus basse",
+  "insightsNoStreak": "Commencez votre série !",
+  "homeChildPts": "{pts} pts",
+  "@homeChildPts": { "placeholders": { "pts": { "type": "int" } } },
+  "homeChildGrades": "{count} note(s)",
+  "@homeChildGrades": { "placeholders": { "count": { "type": "int" } } }
 }

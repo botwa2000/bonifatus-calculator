@@ -1439,4 +1439,52 @@ class AppLocalizationsIt extends AppLocalizations {
   String settleClassLevel(int level) {
     return 'Classe $level';
   }
+
+  @override
+  String get termDetailEditFull => 'Modifica rapporto';
+
+  @override
+  String get insightsGradeTrend => 'Andamento voti';
+
+  @override
+  String get insightsGradeTrendSubtitle => 'Medie per periodo';
+
+  @override
+  String get insightsNoTermResults => 'Nessun risultato dal calcolatore';
+
+  @override
+  String get insightsSubjectRankings => 'Classifica materie';
+
+  @override
+  String get insightsBestSubject => 'Materia migliore';
+
+  @override
+  String get insightsWorstSubject => 'Da migliorare';
+
+  @override
+  String get insightsStreak => 'Serie attiva';
+
+  @override
+  String insightsStreakWeeks(int count) {
+    return '${count}s';
+  }
+
+  @override
+  String get insightsBestGrade => 'Voto migliore';
+
+  @override
+  String get insightsWorstGrade => 'Voto più basso';
+
+  @override
+  String get insightsNoStreak => 'Inizia la tua serie!';
+
+  @override
+  String homeChildPts(int pts) {
+    return '$pts pts';
+  }
+
+  @override
+  String homeChildGrades(int count) {
+    return '$count voto/i';
+  }
 }

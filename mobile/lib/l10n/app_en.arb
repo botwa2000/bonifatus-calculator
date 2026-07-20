@@ -623,5 +623,22 @@
   "settleClassLevel": "Class {level}",
   "@settleClassLevel": {
     "placeholders": { "level": { "type": "int" } }
-  }
+  },
+  "termDetailEditFull": "Edit Report",
+  "insightsGradeTrend": "Grade Trend",
+  "insightsGradeTrendSubtitle": "Term averages over time",
+  "insightsNoTermResults": "No calculator results yet",
+  "insightsSubjectRankings": "Subject Rankings",
+  "insightsBestSubject": "Best Subject",
+  "insightsWorstSubject": "Needs Most Work",
+  "insightsStreak": "Active Streak",
+  "insightsStreakWeeks": "{count}w",
+  "@insightsStreakWeeks": { "placeholders": { "count": { "type": "int" } } },
+  "insightsBestGrade": "Best Grade",
+  "insightsWorstGrade": "Lowest Grade",
+  "insightsNoStreak": "Start your streak!",
+  "homeChildPts": "{pts} pts",
+  "@homeChildPts": { "placeholders": { "pts": { "type": "int" } } },
+  "homeChildGrades": "{count} grade(s)",
+  "@homeChildGrades": { "placeholders": { "count": { "type": "int" } } }
 }

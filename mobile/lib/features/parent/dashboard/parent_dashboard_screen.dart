@@ -200,7 +200,7 @@ class _ActionCenter extends ConsumerWidget {
             for (final child in activeToday)
               Padding(
                 padding: const EdgeInsets.only(bottom: 10),
-                child: _ActiveChildRow(child: child, l10n: l10n),
+                child: _ChildCard(child: child),
               ),
         ],
       ),
@@ -432,75 +432,121 @@ class _QuickSettleCard extends ConsumerWidget {
 
 }
 
-// ── active child row ──────────────────────────────────────────────────────────
+// ── active child card (with period toggle) ────────────────────────────────────
 
-class _ActiveChildRow extends StatelessWidget {
+enum _DashPeriod { week, month, allTime }
+
+class _ChildCard extends StatefulWidget {
   final ChildWithGrades child;
-  final AppLocalizations l10n;
-  const _ActiveChildRow({required this.child, required this.l10n});
+  const _ChildCard({required this.child});
+  @override
+  State<_ChildCard> createState() => _ChildCardState();
+}
+
+class _ChildCardState extends State<_ChildCard> {
+  _DashPeriod _period = _DashPeriod.week;
+
+  List<ChildQuickGrade> _filtered(DateTime now) {
+    final g = widget.child.grades;
+    return switch (_period) {
+      _DashPeriod.week => () {
+          final wStart = DateTime(now.year, now.month, now.day - (now.weekday - 1));
+          return g.where((e) => !e.gradedAt.isBefore(wStart)).toList();
+        }(),
+      _DashPeriod.month =>
+        g.where((e) => e.gradedAt.year == now.year && e.gradedAt.month == now.month).toList(),
+      _DashPeriod.allTime => g,
+    };
+  }
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final child = widget.child;
     final sorted = [...child.grades]..sort((a, b) => b.gradedAt.compareTo(a.gradedAt));
     final latest = sorted.first;
     final tierColor = AppColors.tierColor(latest.gradeQualityTier);
     final tierColorLight = AppColors.tierColorLight(latest.gradeQualityTier);
     final theme = Theme.of(context);
-    final daysAgo = DateTime.now().difference(latest.gradedAt).inDays;
-    final timeLabel = daysAgo == 0 ? l10n.insightsToday : l10n.insightsYesterday;
+    final now = DateTime.now();
+    final filtered = _filtered(now);
+    final totalPts = filtered.fold<int>(0, (s, g) => s + g.bonusPoints);
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+      padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
       decoration: BoxDecoration(
         color: theme.colorScheme.surface,
         borderRadius: BorderRadius.circular(12),
-        border:
-            Border.all(color: theme.colorScheme.outlineVariant.withValues(alpha: 0.4)),
+        border: Border.all(color: theme.colorScheme.outlineVariant.withValues(alpha: 0.4)),
       ),
-      child: Row(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Container(
-            width: 36,
-            height: 36,
-            decoration: const BoxDecoration(color: AppColors.primaryLight, shape: BoxShape.circle),
-            alignment: Alignment.center,
-            child: Text(
-              child.childName[0].toUpperCase(),
-              style: const TextStyle(
-                  fontSize: 14, fontWeight: FontWeight.w700, color: AppColors.primary),
-            ),
-          ),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(child.childName,
-                    style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600)),
-                Text(
-                  '${latest.subjectName ?? l10n.subjectFallback}  ·  $timeLabel',
-                  style: theme.textTheme.bodySmall
-                      ?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+          Row(
+            children: [
+              Container(
+                width: 36, height: 36,
+                decoration: const BoxDecoration(
+                    color: AppColors.primaryLight, shape: BoxShape.circle),
+                alignment: Alignment.center,
+                child: Text(
+                  child.childName[0].toUpperCase(),
+                  style: const TextStyle(
+                      fontSize: 14, fontWeight: FontWeight.w700, color: AppColors.primary),
                 ),
-              ],
-            ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(child.childName,
+                    style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600)),
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                decoration:
+                    BoxDecoration(color: tierColorLight, borderRadius: BorderRadius.circular(6)),
+                child: Text(
+                  latest.gradeSource == 'calculator'
+                      ? '${l10n.calculatorGradeLabel} ${latest.gradeValue}'
+                      : latest.gradeValue,
+                  style: TextStyle(
+                      fontSize: 12, fontWeight: FontWeight.w700, color: tierColor),
+                ),
+              ),
+            ],
           ),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-            decoration:
-                BoxDecoration(color: tierColorLight, borderRadius: BorderRadius.circular(6)),
-            child: Text(
-              latest.gradeSource == 'calculator'
-                  ? '${l10n.calculatorGradeLabel} ${latest.gradeValue}'
-                  : latest.gradeValue,
-              style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: tierColor),
+          const SizedBox(height: 10),
+          SegmentedButton<_DashPeriod>(
+            style: SegmentedButton.styleFrom(
+              textStyle: const TextStyle(fontSize: 11),
+              visualDensity: VisualDensity.compact,
             ),
+            segments: [
+              ButtonSegment(value: _DashPeriod.week, label: Text(l10n.periodWeek)),
+              ButtonSegment(value: _DashPeriod.month, label: Text(l10n.periodMonth)),
+              ButtonSegment(value: _DashPeriod.allTime, label: Text(l10n.periodAllTime)),
+            ],
+            selected: {_period},
+            onSelectionChanged: (sel) => setState(() => _period = sel.first),
           ),
-          const SizedBox(width: 8),
-          Text(
-            '+${latest.bonusPoints} ${l10n.ptsAbbr}',
-            style: const TextStyle(
-                fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.tierBest),
+          const SizedBox(height: 8),
+          Row(
+            children: [
+              const Icon(Icons.school_outlined, size: 14, color: AppColors.primary),
+              const SizedBox(width: 4),
+              Text(
+                l10n.homeChildGrades(filtered.length),
+                style: const TextStyle(
+                    fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.primary),
+              ),
+              const SizedBox(width: 14),
+              const Icon(Icons.star_outline_rounded, size: 14, color: AppColors.tierBest),
+              const SizedBox(width: 4),
+              Text(
+                l10n.homeChildPts(totalPts),
+                style: const TextStyle(
+                    fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.tierBest),
+              ),
+            ],
           ),
         ],
       ),

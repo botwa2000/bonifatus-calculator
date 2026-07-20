@@ -6,6 +6,7 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../models/term_result.dart';
 import '../../providers/term_results_provider.dart';
 import '../../../../utils/term_type_utils.dart';
+import '../../calculator/screens/calculator_screen.dart';
 
 class TermDetailScreen extends ConsumerWidget {
   final String termId;
@@ -276,6 +277,15 @@ class TermDetailScreen extends ConsumerWidget {
             ),
             actions: isUnsettled
                 ? [
+                    IconButton(
+                      icon: const Icon(Icons.edit_note_rounded),
+                      tooltip: l10n.termDetailEditFull,
+                      onPressed: () => Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (_) => CalculatorScreen(editingTerm: term),
+                        ),
+                      ),
+                    ),
                     IconButton(
                       icon: const Icon(Icons.edit_outlined),
                       tooltip: l10n.termDetailEditLabel,

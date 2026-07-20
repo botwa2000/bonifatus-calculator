@@ -40,6 +40,28 @@ class TermResultsNotifier extends AsyncNotifier<List<TermResult>> {
     await reload();
   }
 
+  Future<void> updateFullTerm({
+    required String termId,
+    required String gradingSystemId,
+    required int classLevel,
+    required String termType,
+    required String schoolYear,
+    String? termName,
+    required List<Map<String, dynamic>> subjects,
+  }) async {
+    final service = ref.read(gradeServiceProvider);
+    await service.updateFullTerm(
+      termId: termId,
+      gradingSystemId: gradingSystemId,
+      classLevel: classLevel,
+      termType: termType,
+      schoolYear: schoolYear,
+      termName: termName,
+      subjects: subjects,
+    );
+    await reload();
+  }
+
   Future<String> saveTerm({
     required String gradingSystemId,
     required int classLevel,

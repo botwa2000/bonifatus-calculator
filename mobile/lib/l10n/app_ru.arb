@@ -512,5 +512,22 @@
   "settlePeriodMonthly": "Ежемесячно",
   "settlePeriodQuarterly": "Ежеквартально",
   "settleSchoolYear": "Учебный год {year}",
-  "settleClassLevel": "Класс {level}"
+  "settleClassLevel": "Класс {level}",
+  "termDetailEditFull": "Редактировать отчёт",
+  "insightsGradeTrend": "Тренд оценок",
+  "insightsGradeTrendSubtitle": "Средние за период",
+  "insightsNoTermResults": "Нет результатов калькулятора",
+  "insightsSubjectRankings": "Рейтинг предметов",
+  "insightsBestSubject": "Лучший предмет",
+  "insightsWorstSubject": "Нужно улучшить",
+  "insightsStreak": "Активная серия",
+  "insightsStreakWeeks": "{count}н.",
+  "@insightsStreakWeeks": { "placeholders": { "count": { "type": "int" } } },
+  "insightsBestGrade": "Лучшая оценка",
+  "insightsWorstGrade": "Низшая оценка",
+  "insightsNoStreak": "Начни серию!",
+  "homeChildPts": "{pts} бал.",
+  "@homeChildPts": { "placeholders": { "pts": { "type": "int" } } },
+  "homeChildGrades": "{count} оц.",
+  "@homeChildGrades": { "placeholders": { "count": { "type": "int" } } }
 }

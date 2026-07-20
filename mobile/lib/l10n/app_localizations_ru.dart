@@ -1446,4 +1446,52 @@ class AppLocalizationsRu extends AppLocalizations {
   String settleClassLevel(int level) {
     return 'Класс $level';
   }
+
+  @override
+  String get termDetailEditFull => 'Редактировать отчёт';
+
+  @override
+  String get insightsGradeTrend => 'Тренд оценок';
+
+  @override
+  String get insightsGradeTrendSubtitle => 'Средние за период';
+
+  @override
+  String get insightsNoTermResults => 'Нет результатов калькулятора';
+
+  @override
+  String get insightsSubjectRankings => 'Рейтинг предметов';
+
+  @override
+  String get insightsBestSubject => 'Лучший предмет';
+
+  @override
+  String get insightsWorstSubject => 'Нужно улучшить';
+
+  @override
+  String get insightsStreak => 'Активная серия';
+
+  @override
+  String insightsStreakWeeks(int count) {
+    return '$countн.';
+  }
+
+  @override
+  String get insightsBestGrade => 'Лучшая оценка';
+
+  @override
+  String get insightsWorstGrade => 'Низшая оценка';
+
+  @override
+  String get insightsNoStreak => 'Начни серию!';
+
+  @override
+  String homeChildPts(int pts) {
+    return '$pts бал.';
+  }
+
+  @override
+  String homeChildGrades(int count) {
+    return '$count оц.';
+  }
 }

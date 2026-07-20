@@ -120,6 +120,26 @@ class GradeService {
     });
   }
 
+  Future<void> updateFullTerm({
+    required String termId,
+    required String gradingSystemId,
+    required int classLevel,
+    required String termType,
+    required String schoolYear,
+    String? termName,
+    required List<Map<String, dynamic>> subjects,
+  }) async {
+    await _client.post('/api/grades/update', data: {
+      'termId': termId,
+      'gradingSystemId': gradingSystemId,
+      'classLevel': classLevel,
+      'termType': termType,
+      'schoolYear': schoolYear,
+      if (termName != null && termName.isNotEmpty) 'termName': termName,
+      'subjects': subjects,
+    });
+  }
+
   Future<void> deleteTerm(String id) async {
     await _client.delete('/api/grades/delete', data: {'id': id});
   }

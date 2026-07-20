@@ -1436,4 +1436,52 @@ class AppLocalizationsEn extends AppLocalizations {
   String settleClassLevel(int level) {
     return 'Class $level';
   }
+
+  @override
+  String get termDetailEditFull => 'Edit Report';
+
+  @override
+  String get insightsGradeTrend => 'Grade Trend';
+
+  @override
+  String get insightsGradeTrendSubtitle => 'Term averages over time';
+
+  @override
+  String get insightsNoTermResults => 'No calculator results yet';
+
+  @override
+  String get insightsSubjectRankings => 'Subject Rankings';
+
+  @override
+  String get insightsBestSubject => 'Best Subject';
+
+  @override
+  String get insightsWorstSubject => 'Needs Most Work';
+
+  @override
+  String get insightsStreak => 'Active Streak';
+
+  @override
+  String insightsStreakWeeks(int count) {
+    return '${count}w';
+  }
+
+  @override
+  String get insightsBestGrade => 'Best Grade';
+
+  @override
+  String get insightsWorstGrade => 'Lowest Grade';
+
+  @override
+  String get insightsNoStreak => 'Start your streak!';
+
+  @override
+  String homeChildPts(int pts) {
+    return '$pts pts';
+  }
+
+  @override
+  String homeChildGrades(int count) {
+    return '$count grade(s)';
+  }
 }

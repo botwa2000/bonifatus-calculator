@@ -1445,4 +1445,52 @@ class AppLocalizationsEs extends AppLocalizations {
   String settleClassLevel(int level) {
     return 'Clase $level';
   }
+
+  @override
+  String get termDetailEditFull => 'Editar informe';
+
+  @override
+  String get insightsGradeTrend => 'Tendencia de notas';
+
+  @override
+  String get insightsGradeTrendSubtitle => 'Promedios por período';
+
+  @override
+  String get insightsNoTermResults => 'Sin resultados del calculador';
+
+  @override
+  String get insightsSubjectRankings => 'Ranking de materias';
+
+  @override
+  String get insightsBestSubject => 'Mejor materia';
+
+  @override
+  String get insightsWorstSubject => 'A mejorar';
+
+  @override
+  String get insightsStreak => 'Racha activa';
+
+  @override
+  String insightsStreakWeeks(int count) {
+    return '${count}s';
+  }
+
+  @override
+  String get insightsBestGrade => 'Mejor nota';
+
+  @override
+  String get insightsWorstGrade => 'Nota más baja';
+
+  @override
+  String get insightsNoStreak => '¡Empieza tu racha!';
+
+  @override
+  String homeChildPts(int pts) {
+    return '$pts pts';
+  }
+
+  @override
+  String homeChildGrades(int count) {
+    return '$count nota(s)';
+  }
 }

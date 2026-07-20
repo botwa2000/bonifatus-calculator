@@ -5,12 +5,14 @@ import 'package:go_router/go_router.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../../models/calculator_config.dart';
+import '../../../../models/term_result.dart';
 import '../../providers/calculator_config_provider.dart';
 import '../../providers/term_results_provider.dart';
 import '../../../../utils/term_type_utils.dart';
 
 class CalculatorScreen extends ConsumerStatefulWidget {
-  const CalculatorScreen({super.key});
+  final TermResult? editingTerm;
+  const CalculatorScreen({super.key, this.editingTerm});
 
   @override
   ConsumerState<CalculatorScreen> createState() => _CalculatorScreenState();
@@ -31,8 +33,27 @@ class _CalculatorScreenState extends ConsumerState<CalculatorScreen> {
   @override
   void initState() {
     super.initState();
-    _schoolYearCtrl = TextEditingController(text: _defaultSchoolYear());
-    _termNameCtrl = TextEditingController();
+    final editing = widget.editingTerm;
+    if (editing != null) {
+      _selectedSystemId = editing.gradingSystemId;
+      _classLevel = editing.classLevel;
+      _termType = editing.termType;
+      _schoolYearCtrl = TextEditingController(text: editing.schoolYear);
+      _termNameCtrl = TextEditingController(text: editing.termName ?? '');
+      for (final s in editing.subjects) {
+        final nameMap = s.subjectNameMap;
+        final name = (nameMap['en'] ?? nameMap.values.firstOrNull ?? s.subjectId) as String;
+        _subjects.add(_SubjectEntry(
+          subjectId: s.subjectId,
+          subject: name,
+          grade: s.gradeValue,
+          weight: 1.0,
+        ));
+      }
+    } else {
+      _schoolYearCtrl = TextEditingController(text: _defaultSchoolYear());
+      _termNameCtrl = TextEditingController();
+    }
   }
 
   @override
@@ -444,6 +465,7 @@ class _CalculatorScreenState extends ConsumerState<CalculatorScreen> {
                                 weight: pickedWeight,
                               ));
                             });
+                            FocusScope.of(context).unfocus();
                             Navigator.of(sheetCtx).pop();
                           }
                         },
@@ -482,24 +504,46 @@ class _CalculatorScreenState extends ConsumerState<CalculatorScreen> {
               })
           .toList();
 
-      await ref.read(termResultsProvider.notifier).saveTerm(
-            gradingSystemId: system.id,
-            classLevel: _classLevel,
-            termType: _termType,
-            schoolYear: _schoolYearCtrl.text,
-            termName: _termNameCtrl.text.isNotEmpty ? _termNameCtrl.text : null,
-            subjects: subjects,
+      final editing = widget.editingTerm;
+      if (editing != null) {
+        await ref.read(termResultsProvider.notifier).updateFullTerm(
+              termId: editing.id,
+              gradingSystemId: system.id,
+              classLevel: _classLevel,
+              termType: _termType,
+              schoolYear: _schoolYearCtrl.text,
+              termName: _termNameCtrl.text.isNotEmpty ? _termNameCtrl.text : null,
+              subjects: subjects,
+            );
+        if (mounted) {
+          final l10n = AppLocalizations.of(context)!;
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(l10n.calculatorResultSaved),
+              backgroundColor: AppColors.tierBest,
+            ),
           );
-
-      if (mounted) {
-        final l10n = AppLocalizations.of(context)!;
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(l10n.calculatorResultSaved),
-            backgroundColor: AppColors.tierBest,
-          ),
-        );
-        context.go('/student/results');
+          context.pop();
+        }
+      } else {
+        await ref.read(termResultsProvider.notifier).saveTerm(
+              gradingSystemId: system.id,
+              classLevel: _classLevel,
+              termType: _termType,
+              schoolYear: _schoolYearCtrl.text,
+              termName: _termNameCtrl.text.isNotEmpty ? _termNameCtrl.text : null,
+              subjects: subjects,
+            );
+        if (mounted) {
+          final l10n = AppLocalizations.of(context)!;
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(l10n.calculatorResultSaved),
+              backgroundColor: AppColors.tierBest,
+            ),
+          );
+          context.go('/student/results');
+        }
       }
     } catch (e) {
       if (mounted) {
@@ -537,6 +581,14 @@ class _CalculatorScreenState extends ConsumerState<CalculatorScreen> {
             }
           });
         }
+        // Normalize _termType if the stored code doesn't exist in this config.
+        // Happens when editing a term saved with a legacy code (e.g. 'S1').
+        final validCodes = config.effectiveTermTypes.map((t) => t.code).toSet();
+        if (validCodes.isNotEmpty && !validCodes.contains(_termType)) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (mounted) setState(() => _termType = config.effectiveTermTypes.first.code);
+          });
+        }
         return _buildBody(config, l10n);
       },
     );
@@ -551,7 +603,7 @@ class _CalculatorScreenState extends ConsumerState<CalculatorScreen> {
       appBar: AppBar(
         elevation: 0,
         title: Text(
-          l10n.calculatorTitle,
+          widget.editingTerm != null ? l10n.termDetailEditFull : l10n.calculatorTitle,
           style: TextStyle(
             color: cs.onSurface,
             fontWeight: FontWeight.w700,
@@ -692,7 +744,9 @@ class _CalculatorScreenState extends ConsumerState<CalculatorScreen> {
                             color: cs.onSurfaceVariant)),
                     const SizedBox(height: 6),
                     DropdownButtonFormField<String>(
-                      initialValue: _termType,
+                      initialValue: config.effectiveTermTypes.any((t) => t.code == _termType)
+                          ? _termType
+                          : config.effectiveTermTypes.firstOrNull?.code,
                       isExpanded: true,
                       decoration: InputDecoration(
                         isDense: true,

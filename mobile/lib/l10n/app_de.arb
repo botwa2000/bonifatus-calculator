@@ -512,5 +512,22 @@
   "settlePeriodMonthly": "Monatlich",
   "settlePeriodQuarterly": "Vierteljährlich",
   "settleSchoolYear": "Schuljahr {year}",
-  "settleClassLevel": "Klasse {level}"
+  "settleClassLevel": "Klasse {level}",
+  "termDetailEditFull": "Bericht bearbeiten",
+  "insightsGradeTrend": "Notenverlauf",
+  "insightsGradeTrendSubtitle": "Halbjahresdurchschnitte im Verlauf",
+  "insightsNoTermResults": "Noch keine Rechnergebnisse",
+  "insightsSubjectRankings": "Fach-Rankings",
+  "insightsBestSubject": "Bestes Fach",
+  "insightsWorstSubject": "Verbesserungspotenzial",
+  "insightsStreak": "Aktuelle Serie",
+  "insightsStreakWeeks": "{count}W",
+  "@insightsStreakWeeks": { "placeholders": { "count": { "type": "int" } } },
+  "insightsBestGrade": "Beste Note",
+  "insightsWorstGrade": "Niedrigste Note",
+  "insightsNoStreak": "Starte deine Serie!",
+  "homeChildPts": "{pts} Pkt.",
+  "@homeChildPts": { "placeholders": { "pts": { "type": "int" } } },
+  "homeChildGrades": "{count} Noten",
+  "@homeChildGrades": { "placeholders": { "count": { "type": "int" } } }
 }

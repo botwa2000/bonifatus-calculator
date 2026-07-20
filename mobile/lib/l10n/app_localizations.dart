@@ -2709,6 +2709,90 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Class {level}'**
   String settleClassLevel(int level);
+
+  /// No description provided for @termDetailEditFull.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit Report'**
+  String get termDetailEditFull;
+
+  /// No description provided for @insightsGradeTrend.
+  ///
+  /// In en, this message translates to:
+  /// **'Grade Trend'**
+  String get insightsGradeTrend;
+
+  /// No description provided for @insightsGradeTrendSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Term averages over time'**
+  String get insightsGradeTrendSubtitle;
+
+  /// No description provided for @insightsNoTermResults.
+  ///
+  /// In en, this message translates to:
+  /// **'No calculator results yet'**
+  String get insightsNoTermResults;
+
+  /// No description provided for @insightsSubjectRankings.
+  ///
+  /// In en, this message translates to:
+  /// **'Subject Rankings'**
+  String get insightsSubjectRankings;
+
+  /// No description provided for @insightsBestSubject.
+  ///
+  /// In en, this message translates to:
+  /// **'Best Subject'**
+  String get insightsBestSubject;
+
+  /// No description provided for @insightsWorstSubject.
+  ///
+  /// In en, this message translates to:
+  /// **'Needs Most Work'**
+  String get insightsWorstSubject;
+
+  /// No description provided for @insightsStreak.
+  ///
+  /// In en, this message translates to:
+  /// **'Active Streak'**
+  String get insightsStreak;
+
+  /// No description provided for @insightsStreakWeeks.
+  ///
+  /// In en, this message translates to:
+  /// **'{count}w'**
+  String insightsStreakWeeks(int count);
+
+  /// No description provided for @insightsBestGrade.
+  ///
+  /// In en, this message translates to:
+  /// **'Best Grade'**
+  String get insightsBestGrade;
+
+  /// No description provided for @insightsWorstGrade.
+  ///
+  /// In en, this message translates to:
+  /// **'Lowest Grade'**
+  String get insightsWorstGrade;
+
+  /// No description provided for @insightsNoStreak.
+  ///
+  /// In en, this message translates to:
+  /// **'Start your streak!'**
+  String get insightsNoStreak;
+
+  /// No description provided for @homeChildPts.
+  ///
+  /// In en, this message translates to:
+  /// **'{pts} pts'**
+  String homeChildPts(int pts);
+
+  /// No description provided for @homeChildGrades.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} grade(s)'**
+  String homeChildGrades(int count);
 }
 
 class _AppLocalizationsDelegate
