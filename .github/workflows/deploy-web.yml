@@ -118,6 +118,8 @@ jobs:
             cd "$REPO_DIR"
             git fetch origin
             git checkout "${{ github.ref_name }}"
+            # proxy.ts was renamed to middleware.ts; remove stale untracked copies if present
+            rm -f proxy.ts middleware.ts
             git pull origin "${{ github.ref_name }}"
 
             echo "=== [2/5] Build image ==="

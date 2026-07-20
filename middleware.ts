@@ -68,6 +68,11 @@ const publicRoutes = [
   '/about',
   '/contact',
   '/faq',
+  // Static/SEO files that must be publicly accessible
+  '/sitemap.xml',
+  '/robots.txt',
+  '/sw.js',
+  '/offline.html',
 ]
 // Marketing/SEO sections — all subpaths public so crawlers can index them
 const publicPathPrefixes = ['/tools', '/blog', '/compare']
@@ -108,7 +113,7 @@ function localePath(path: string, locale: string): string {
   return `/${locale}${path}`
 }
 
-export default async function proxy(req: NextRequest) {
+export default async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl
 
   // Skip static assets

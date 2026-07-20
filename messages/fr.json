@@ -271,7 +271,11 @@
     "googleProfileRoleParent": "Parent",
     "googleProfileDobLabel": "Date de naissance",
     "googleProfileError": "Impossible de créer le profil",
-    "googleProfileSubmit": "Terminer la configuration"
+    "googleProfileSubmit": "Terminer la configuration",
+    "registrationFailed": "Inscription échouée",
+    "verificationFailed": "Vérification échouée",
+    "resendFailed": "Renvoi du code échoué",
+    "namePlaceholder": "Votre nom complet"
   },
   "calculator": {
     "settings": "Paramètres",
@@ -327,7 +331,9 @@
     "quarterly": "Trimestre",
     "browse": "Parcourir",
     "core": "Principal",
-    "couldNotStoreDefault": "Impossible de stocker ta préférence par défaut dans ce navigateur."
+    "couldNotStoreDefault": "Impossible de stocker ta préférence par défaut dans ce navigateur.",
+    "semester1": "1er semestre",
+    "semester2": "2ème semestre"
   },
   "quickGrade": {
     "title": "Note rapide",
@@ -466,7 +472,11 @@
     "weight": "Coefficient",
     "tier": "Niveau",
     "scaleLabel": "{min} – {max}",
-    "lowerIsBetter": "Plus bas est mieux"
+    "lowerIsBetter": "Plus bas est mieux",
+    "paidOut": "Versé",
+    "payouts": "Versements",
+    "noPayoutsYet": "Pas encore de versements. Continue comme ça !",
+    "subjectCount": "{count} matières"
   },
   "studentProfile": {
     "header": "Profil élève",
@@ -713,7 +723,16 @@
     "gradeCount": "{count} notes",
     "totalPts": "{pts} pts",
     "notePlaceholder": "Ajouter une note optionnelle…",
-    "totalLabel": "Total"
+    "totalLabel": "Total",
+    "statusAccepted": "accepté",
+    "connectedSince": "Connecté : {date}",
+    "gradeBreakdown": "Récapitulatif · Classe {level}",
+    "formulaLine": "Classe {level} × Fact. × Palier",
+    "showGrades": "Afficher les notes",
+    "hideGrades": "Masquer les notes",
+    "loadPackagesError": "Chargement des forfaits échoué",
+    "loadHistoryError": "Chargement de l'historique échoué",
+    "createSettlementError": "Création de l'accord échouée"
   },
   "admin": {
     "dashboardTitle": "Tableau de bord admin",
@@ -1064,7 +1083,14 @@
     "tabSecurity": "Sécurité",
     "tabSchool": "École",
     "tabConnections": "Connexions",
-    "tabDanger": "Zone de danger"
+    "tabDanger": "Zone de danger",
+    "roleProfileChild": "Profil élève",
+    "roleProfileParent": "Profil parent",
+    "roleParentLabel": "Parent",
+    "roleChildLabel": "Élève",
+    "connectedSuccessfully": "Connecté avec succès !",
+    "connectionRemoved": "Connexion supprimée.",
+    "fileTooLarge": "Fichier trop volumineux (max 5 Mo)"
   },
   "about": {
     "title": "À propos de Bonifatus",
@@ -1219,7 +1245,9 @@
     "ctaTitle": "Mettez ces idées en pratique",
     "ctaDesc": "Bonifatus rend les récompenses scolaires simples, transparentes et automatiques.",
     "ctaButton": "Essayer Bonifatus gratuitement",
-    "relatedTitle": "Autres articles"
+    "relatedTitle": "Autres articles",
+    "backLink": "Blog",
+    "faqHeading": "FAQ"
   },
   "compare": {
     "indexTitle": "Comparer les applications de récompenses scolaires",

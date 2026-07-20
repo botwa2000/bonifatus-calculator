@@ -5,6 +5,7 @@ import dynamic from 'next/dynamic'
 import { useTranslations } from 'next-intl'
 import { useLocale } from 'next-intl'
 import { resolveLocalized } from '@/lib/i18n'
+import { formatTermType } from '@/lib/format-term-type'
 
 const QRCode = dynamic(() => import('qrcode.react').then((mod) => mod.QRCodeSVG), { ssr: false })
 
@@ -83,6 +84,7 @@ type GradesResponse = {
 export default function ParentChildrenPage() {
   const t = useTranslations('parent')
   const tc = useTranslations('common')
+  const tCalc = useTranslations('calculator')
   const locale = useLocale()
 
   const [connections, setConnections] = useState<Connection[]>([])
@@ -263,10 +265,22 @@ export default function ParentChildrenPage() {
     })
 
   const TIER_META: Record<string, { label: string; color: string; dot: string }> = {
-    best: { label: 'Best', color: 'text-green-600 dark:text-green-400', dot: 'bg-green-500' },
-    second: { label: 'Good', color: 'text-indigo-600 dark:text-indigo-400', dot: 'bg-indigo-500' },
-    third: { label: 'Pass', color: 'text-amber-600 dark:text-amber-400', dot: 'bg-amber-500' },
-    below: { label: 'Below', color: 'text-red-600 dark:text-red-400', dot: 'bg-red-500' },
+    best: {
+      label: t('tierBest'),
+      color: 'text-green-600 dark:text-green-400',
+      dot: 'bg-green-500',
+    },
+    second: {
+      label: t('tierSecond'),
+      color: 'text-indigo-600 dark:text-indigo-400',
+      dot: 'bg-indigo-500',
+    },
+    third: {
+      label: t('tierThird'),
+      color: 'text-amber-600 dark:text-amber-400',
+      dot: 'bg-amber-500',
+    },
+    below: { label: t('tierBelow'), color: 'text-red-600 dark:text-red-400', dot: 'bg-red-500' },
   }
   const TIER_ORDER = ['best', 'second', 'third', 'below']
 
@@ -366,11 +380,14 @@ export default function ParentChildrenPage() {
                               )}
                               <div className="flex flex-wrap gap-3 text-xs text-neutral-600 dark:text-neutral-400">
                                 <span className="font-semibold text-primary-600 dark:text-primary-300">
-                                  {connection.invitationStatus || 'accepted'}
+                                  {connection.invitationStatus || t('statusAccepted')}
                                 </span>
                                 <span>
-                                  Connected:{' '}
-                                  {formatDate(connection.respondedAt || connection.invitedAt)}
+                                  {t('connectedSince', {
+                                    date: formatDate(
+                                      connection.respondedAt || connection.invitedAt
+                                    ),
+                                  })}
                                 </span>
                               </div>
                               <div className="flex flex-wrap gap-2 text-xs">
@@ -418,7 +435,8 @@ export default function ParentChildrenPage() {
                                       <div className="flex items-center justify-between gap-2">
                                         <div className="space-y-0.5">
                                           <p className="font-semibold text-neutral-900 dark:text-white">
-                                            {term.school_year} · {term.term_type}
+                                            {term.school_year} ·{' '}
+                                            {formatTermType(term.term_type, tCalc)}
                                             {term.term_name ? ` · ${term.term_name}` : ''}
                                           </p>
                                           <p className="text-neutral-500">
@@ -450,7 +468,9 @@ export default function ParentChildrenPage() {
                                               return (
                                                 <div className="rounded border border-neutral-200 dark:border-neutral-800 bg-neutral-50 dark:bg-neutral-900/60 px-3 py-2 space-y-1.5 text-[11px]">
                                                   <p className="font-semibold text-neutral-700 dark:text-neutral-300 text-xs">
-                                                    Grade breakdown · Class {term.class_level}
+                                                    {t('gradeBreakdown', {
+                                                      level: term.class_level,
+                                                    })}
                                                   </p>
                                                   <div className="space-y-1">
                                                     {TIER_ORDER.filter((tier) => stats[tier]).map(
@@ -472,8 +492,7 @@ export default function ParentChildrenPage() {
                                                                 {meta.label}
                                                               </span>
                                                               <span className="text-neutral-500">
-                                                                {s.count} subject
-                                                                {s.count !== 1 ? 's' : ''}
+                                                                {t('subjects', { count: s.count })}
                                                               </span>
                                                             </div>
                                                             <span className="text-neutral-600 dark:text-neutral-300 font-mono">
@@ -489,11 +508,15 @@ export default function ParentChildrenPage() {
                                                   </div>
                                                   <div className="border-t border-neutral-200 dark:border-neutral-700 pt-1 flex items-center justify-between">
                                                     <span className="text-neutral-500">
-                                                      Formula: Class {term.class_level} × Term
-                                                      factor × Grade tier
+                                                      {t('formulaLine', {
+                                                        level: term.class_level,
+                                                      })}
                                                     </span>
                                                     <span className="font-semibold text-primary-600 dark:text-primary-300">
-                                                      Total {term.total_bonus_points.toFixed(2)} pts
+                                                      {t('totalLabel')}:{' '}
+                                                      {t('totalPts', {
+                                                        pts: term.total_bonus_points.toFixed(2),
+                                                      })}
                                                     </span>
                                                   </div>
                                                 </div>

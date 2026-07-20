@@ -271,7 +271,11 @@
     "googleProfileRoleParent": "Padre/Madre",
     "googleProfileDobLabel": "Fecha de nacimiento",
     "googleProfileError": "Error al crear el perfil",
-    "googleProfileSubmit": "Completar configuración"
+    "googleProfileSubmit": "Completar configuración",
+    "registrationFailed": "Error de registro",
+    "verificationFailed": "Error de verificación",
+    "resendFailed": "Error al reenviar el código",
+    "namePlaceholder": "Tu nombre completo"
   },
   "calculator": {
     "settings": "Configuración",
@@ -327,7 +331,9 @@
     "quarterly": "Trimestre",
     "browse": "Explorar",
     "core": "Principal",
-    "couldNotStoreDefault": "No se pudo guardar tu preferencia predeterminada en este navegador."
+    "couldNotStoreDefault": "No se pudo guardar tu preferencia predeterminada en este navegador.",
+    "semester1": "Semestre 1",
+    "semester2": "Semestre 2"
   },
   "quickGrade": {
     "title": "Calificación rápida",
@@ -466,7 +472,11 @@
     "weight": "Peso",
     "tier": "Nivel",
     "scaleLabel": "{min} – {max}",
-    "lowerIsBetter": "Más bajo es mejor"
+    "lowerIsBetter": "Más bajo es mejor",
+    "paidOut": "Pagado",
+    "payouts": "Pagos",
+    "noPayoutsYet": "¡Aún no hay pagos. Sigue así!",
+    "subjectCount": "{count} materias"
   },
   "studentProfile": {
     "header": "Perfil del estudiante",
@@ -713,7 +723,16 @@
     "gradeCount": "{count} notas",
     "totalPts": "{pts} pts",
     "notePlaceholder": "Agregar una nota opcional…",
-    "totalLabel": "Total"
+    "totalLabel": "Total",
+    "statusAccepted": "aceptado",
+    "connectedSince": "Conectado: {date}",
+    "gradeBreakdown": "Desglose · Clase {level}",
+    "formulaLine": "Clase {level} × Factor × Nivel",
+    "showGrades": "Mostrar notas",
+    "hideGrades": "Ocultar notas",
+    "loadPackagesError": "Error al cargar paquetes",
+    "loadHistoryError": "Error al cargar el historial",
+    "createSettlementError": "Error al crear liquidación"
   },
   "admin": {
     "dashboardTitle": "Panel de administración",
@@ -1064,7 +1083,14 @@
     "tabSecurity": "Seguridad",
     "tabSchool": "Colegio",
     "tabConnections": "Conexiones",
-    "tabDanger": "Zona de peligro"
+    "tabDanger": "Zona de peligro",
+    "roleProfileChild": "Perfil de estudiante",
+    "roleProfileParent": "Perfil de padre",
+    "roleParentLabel": "Padre/Madre",
+    "roleChildLabel": "Estudiante",
+    "connectedSuccessfully": "¡Conectado con éxito!",
+    "connectionRemoved": "Conexión eliminada.",
+    "fileTooLarge": "Archivo demasiado grande (máx. 5 MB)"
   },
   "about": {
     "title": "Acerca de Bonifatus",
@@ -1219,7 +1245,9 @@
     "ctaTitle": "Pon estas ideas en práctica",
     "ctaDesc": "Bonifatus hace que las recompensas por notas sean simples, transparentes y automáticas.",
     "ctaButton": "Probar Bonifatus gratis",
-    "relatedTitle": "Más artículos"
+    "relatedTitle": "Más artículos",
+    "backLink": "Blog",
+    "faqHeading": "FAQ"
   },
   "compare": {
     "indexTitle": "Comparar apps de recompensas por notas",

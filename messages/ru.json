@@ -271,7 +271,11 @@
     "googleProfileRoleParent": "Родитель",
     "googleProfileDobLabel": "Дата рождения",
     "googleProfileError": "Не удалось создать профиль",
-    "googleProfileSubmit": "Завершить настройку"
+    "googleProfileSubmit": "Завершить настройку",
+    "registrationFailed": "Ошибка регистрации",
+    "verificationFailed": "Ошибка верификации",
+    "resendFailed": "Не удалось повторно отправить код",
+    "namePlaceholder": "Ваше полное имя"
   },
   "calculator": {
     "settings": "Настройки",
@@ -327,7 +331,9 @@
     "quarterly": "Четверть",
     "browse": "Обзор",
     "core": "Основные",
-    "couldNotStoreDefault": "Не удалось сохранить настройку по умолчанию в этом браузере."
+    "couldNotStoreDefault": "Не удалось сохранить настройку по умолчанию в этом браузере.",
+    "semester1": "Семестр 1",
+    "semester2": "Семестр 2"
   },
   "quickGrade": {
     "title": "Быстрая оценка",
@@ -466,7 +472,11 @@
     "weight": "Вес",
     "tier": "Уровень",
     "scaleLabel": "{min} – {max}",
-    "lowerIsBetter": "Чем ниже, тем лучше"
+    "lowerIsBetter": "Чем ниже, тем лучше",
+    "paidOut": "Выплачено",
+    "payouts": "Выплаты",
+    "noPayoutsYet": "Выплат пока нет. Продолжай в том же духе!",
+    "subjectCount": "{count} предметов"
   },
   "studentProfile": {
     "header": "Профиль ученика",
@@ -713,7 +723,16 @@
     "gradeCount": "{count} оценок",
     "totalPts": "{pts} балл.",
     "notePlaceholder": "Добавить необязательную заметку…",
-    "totalLabel": "Итого"
+    "totalLabel": "Итого",
+    "statusAccepted": "принято",
+    "connectedSince": "Подключено: {date}",
+    "gradeBreakdown": "Оценки · Класс {level}",
+    "formulaLine": "Класс {level} × Коэф. × Уровень",
+    "showGrades": "Показать оценки",
+    "hideGrades": "Скрыть оценки",
+    "loadPackagesError": "Ошибка загрузки пакетов",
+    "loadHistoryError": "Ошибка загрузки истории",
+    "createSettlementError": "Ошибка создания расчёта"
   },
   "admin": {
     "dashboardTitle": "Панель администратора",
@@ -1064,7 +1083,14 @@
     "tabSecurity": "Безопасность",
     "tabSchool": "Школа",
     "tabConnections": "Связи",
-    "tabDanger": "Опасная зона"
+    "tabDanger": "Опасная зона",
+    "roleProfileChild": "Профиль ученика",
+    "roleProfileParent": "Профиль родителя",
+    "roleParentLabel": "Родитель",
+    "roleChildLabel": "Ученик",
+    "connectedSuccessfully": "Успешно подключено!",
+    "connectionRemoved": "Связь удалена.",
+    "fileTooLarge": "Файл слишком большой (макс. 5 МБ)"
   },
   "about": {
     "title": "О Bonifatus",
@@ -1219,7 +1245,9 @@
     "ctaTitle": "Воплотите эти идеи в жизнь",
     "ctaDesc": "Bonifatus делает вознаграждения за оценки простыми, прозрачными и автоматическими.",
     "ctaButton": "Попробовать Bonifatus бесплатно",
-    "relatedTitle": "Другие статьи"
+    "relatedTitle": "Другие статьи",
+    "backLink": "Блог",
+    "faqHeading": "ЧАВО"
   },
   "compare": {
     "indexTitle": "Сравнение приложений для вознаграждения за оценки",

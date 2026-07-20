@@ -7,6 +7,7 @@ import { useStudentData } from '@/hooks/useStudentData'
 import { QuickGradeForm } from '@/components/quick-grade-form'
 import { GradeTrendChart } from '@/components/charts'
 import { formatDate } from '@/lib/utils/grade-helpers'
+import { formatTermType } from '@/lib/format-term-type'
 import { BonusIcon } from '@/components/ui'
 
 type ChildSettlement = {
@@ -44,6 +45,7 @@ function currencySymbol(c: string) {
 export default function StudentDashboardPage() {
   const t = useTranslations('student')
   const tc = useTranslations('common')
+  const tCalc = useTranslations('calculator')
   const { terms, loading, stats, profile, profileLoading } = useStudentData()
 
   const [settlements, setSettlements] = useState<ChildSettlement[]>([])
@@ -157,7 +159,7 @@ export default function StudentDashboardPage() {
               {Number(stats.best.total_bonus_points ?? 0).toFixed(2)} {tc('pts')}
             </p>
             <p className="text-xs text-neutral-500 dark:text-neutral-400">
-              {stats.best.school_year} &middot; {stats.best.term_type}
+              {stats.best.school_year} &middot; {formatTermType(stats.best.term_type, tCalc)}
             </p>
           </div>
         </div>
@@ -206,9 +208,11 @@ export default function StudentDashboardPage() {
                 className="rounded-xl border border-neutral-100 dark:border-neutral-800 bg-neutral-50 dark:bg-neutral-900/60 p-4"
               >
                 <p className="text-sm font-semibold text-neutral-900 dark:text-white">
-                  {term.school_year} &middot; {term.term_type}
+                  {term.school_year} &middot; {formatTermType(term.term_type, tCalc)}
                 </p>
-                <p className="text-xs text-neutral-500">{term.subject_grades.length} subjects</p>
+                <p className="text-xs text-neutral-500">
+                  {t('subjectCount', { count: term.subject_grades.length })}
+                </p>
                 <p className="mt-2 text-lg font-bold text-primary-600 dark:text-primary-300 flex items-center gap-1">
                   <BonusIcon className="w-4 h-4 text-primary-500" />
                   {Number(term.total_bonus_points ?? 0).toFixed(2)} {tc('pts')}
@@ -251,7 +255,7 @@ export default function StudentDashboardPage() {
               <>
                 <div className="rounded-xl bg-success-50 dark:bg-success-900/20 border border-success-100 dark:border-success-800 p-3">
                   <p className="text-xs text-success-600 dark:text-success-400 font-medium">
-                    Ausgezahlt
+                    {t('paidOut')}
                   </p>
                   <p className="text-xl font-bold text-success-700 dark:text-success-200">
                     {currencySymbol(rewardStats.currency)}
@@ -260,7 +264,7 @@ export default function StudentDashboardPage() {
                 </div>
                 <div className="rounded-xl bg-amber-50 dark:bg-amber-900/20 border border-amber-100 dark:border-amber-800 p-3">
                   <p className="text-xs text-amber-600 dark:text-amber-400 font-medium">
-                    Auszahlungen
+                    {t('payouts')}
                   </p>
                   <p className="text-xl font-bold text-amber-700 dark:text-amber-200">
                     {rewardStats.count}
@@ -299,9 +303,7 @@ export default function StudentDashboardPage() {
             </div>
           )}
           {settlementsLoaded && settlements.length === 0 && (
-            <p className="text-xs text-neutral-500 dark:text-neutral-400">
-              Noch keine Auszahlungen erhalten. Gib dein Bestes!
-            </p>
+            <p className="text-xs text-neutral-500 dark:text-neutral-400">{t('noPayoutsYet')}</p>
           )}
         </div>
       )}

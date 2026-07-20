@@ -56,6 +56,7 @@ export default function ProfileClient({
   const tn = useTranslations('nav')
   const ta = useTranslations('auth')
   const tc = useTranslations('common')
+  const ts = useTranslations('settings')
 
   const tabs: { key: Tab; label: string }[] = [
     { key: 'personal', label: t('tabPersonal') },
@@ -252,7 +253,7 @@ export default function ProfileClient({
     const file = e.target.files?.[0]
     if (!file) return
     if (file.size > 5 * 1024 * 1024) {
-      showStatus('File too large (max 5MB)', 'error')
+      showStatus(t('fileTooLarge'), 'error')
       return
     }
     setSaving((prev) => ({ ...prev, avatar: true }))
@@ -368,7 +369,7 @@ export default function ProfileClient({
       })
       const data = await res.json()
       if (data.success) {
-        showStatus('Connected successfully!', 'success')
+        showStatus(t('connectedSuccessfully'), 'success')
         setConnectCode('')
         const listRes = await fetch('/api/connections/list')
         const listData = await listRes.json()
@@ -394,7 +395,7 @@ export default function ProfileClient({
       const data = await res.json()
       if (data.success) {
         setConnections((prev) => prev.filter((c) => c.id !== id))
-        showStatus('Connection removed.', 'success')
+        showStatus(t('connectionRemoved'), 'success')
       } else {
         showStatus(data.error || tc('error'), 'error')
       }
@@ -456,7 +457,7 @@ export default function ProfileClient({
             </div>
             <div>
               <p className="text-sm text-neutral-500 dark:text-neutral-400 capitalize">
-                {t('roleProfile', { role })}
+                {role === 'child' ? t('roleProfileChild') : t('roleProfileParent')}
               </p>
               <h1 className="text-2xl sm:text-3xl font-bold text-neutral-900 dark:text-white">
                 {t('title')}
@@ -589,7 +590,9 @@ export default function ProfileClient({
                   >
                     {choice === 'system'
                       ? t('systemDefault')
-                      : choice.charAt(0).toUpperCase() + choice.slice(1)}
+                      : choice === 'light'
+                        ? ts('light')
+                        : ts('dark')}
                   </button>
                 ))}
               </div>
@@ -895,7 +898,7 @@ export default function ProfileClient({
                   {connections.map((conn) => {
                     const otherPerson = role === 'child' ? conn.parent : conn.child
                     const otherName = otherPerson?.fullName || 'Unknown'
-                    const otherRole = role === 'child' ? 'Parent' : 'Child'
+                    const otherRole = role === 'child' ? t('roleParentLabel') : t('roleChildLabel')
 
                     return (
                       <div

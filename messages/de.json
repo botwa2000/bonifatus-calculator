@@ -271,7 +271,11 @@
     "googleProfileRoleParent": "Elternteil",
     "googleProfileDobLabel": "Geburtsdatum",
     "googleProfileError": "Profil konnte nicht erstellt werden",
-    "googleProfileSubmit": "Einrichtung abschließen"
+    "googleProfileSubmit": "Einrichtung abschließen",
+    "registrationFailed": "Registrierung fehlgeschlagen",
+    "verificationFailed": "Verifizierung fehlgeschlagen",
+    "resendFailed": "Code konnte nicht erneut gesendet werden",
+    "namePlaceholder": "Ihr vollständiger Name"
   },
   "calculator": {
     "settings": "Einstellungen",
@@ -327,7 +331,9 @@
     "quarterly": "Quartal",
     "browse": "Durchsuchen",
     "core": "Kernfach",
-    "couldNotStoreDefault": "Die Standardeinstellung konnte in diesem Browser nicht gespeichert werden."
+    "couldNotStoreDefault": "Die Standardeinstellung konnte in diesem Browser nicht gespeichert werden.",
+    "semester1": "1. Halbjahr",
+    "semester2": "2. Halbjahr"
   },
   "quickGrade": {
     "title": "Schnellnote",
@@ -466,7 +472,11 @@
     "weight": "Gewichtung",
     "tier": "Stufe",
     "scaleLabel": "{min} – {max}",
-    "lowerIsBetter": "Niedriger ist besser"
+    "lowerIsBetter": "Niedriger ist besser",
+    "paidOut": "Ausgezahlt",
+    "payouts": "Auszahlungen",
+    "noPayoutsYet": "Noch keine Auszahlungen erhalten. Gib dein Bestes!",
+    "subjectCount": "{count} Fächer"
   },
   "studentProfile": {
     "header": "Schülerprofil",
@@ -713,7 +723,16 @@
     "gradeCount": "{count} Noten",
     "totalPts": "{pts} Pkt.",
     "notePlaceholder": "Optionale Notiz hinzufügen…",
-    "totalLabel": "Gesamt"
+    "totalLabel": "Gesamt",
+    "statusAccepted": "akzeptiert",
+    "connectedSince": "Verbunden: {date}",
+    "gradeBreakdown": "Notenübersicht · Klasse {level}",
+    "formulaLine": "Klasse {level} × Periodenf. × Notentier",
+    "showGrades": "Noten anzeigen",
+    "hideGrades": "Noten ausblenden",
+    "loadPackagesError": "Pakete konnten nicht geladen werden",
+    "loadHistoryError": "Verlauf konnte nicht geladen werden",
+    "createSettlementError": "Abrechnung konnte nicht erstellt werden"
   },
   "admin": {
     "dashboardTitle": "Admin-Dashboard",
@@ -1063,7 +1082,14 @@
     "tabSecurity": "Sicherheit",
     "tabSchool": "Schule",
     "tabConnections": "Verbindungen",
-    "tabDanger": "Gefahrenzone"
+    "tabDanger": "Gefahrenzone",
+    "roleProfileChild": "Schüler-Profil",
+    "roleProfileParent": "Eltern-Profil",
+    "roleParentLabel": "Elternteil",
+    "roleChildLabel": "Schüler",
+    "connectedSuccessfully": "Erfolgreich verbunden!",
+    "connectionRemoved": "Verbindung entfernt.",
+    "fileTooLarge": "Datei zu groß (max. 5 MB)"
   },
   "about": {
     "title": "Über Bonifatus",
@@ -1218,7 +1244,9 @@
     "ctaTitle": "Diese Ideen in die Praxis umsetzen",
     "ctaDesc": "Bonifatus macht notenbasierte Belohnungen einfach, transparent und automatisch.",
     "ctaButton": "Bonifatus kostenlos testen",
-    "relatedTitle": "Weitere Artikel"
+    "relatedTitle": "Weitere Artikel",
+    "backLink": "Blog",
+    "faqHeading": "FAQ"
   },
   "compare": {
     "indexTitle": "Noten-Belohnungs-Apps im Vergleich",

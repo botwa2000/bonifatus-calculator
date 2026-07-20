@@ -58,6 +58,22 @@ export default function ForgotPasswordPage() {
       setError(t('passwordMinLength'))
       return
     }
+    if (!/[A-Z]/.test(newPassword)) {
+      setError(t('passwordUppercase'))
+      return
+    }
+    if (!/[a-z]/.test(newPassword)) {
+      setError(t('passwordLowercase'))
+      return
+    }
+    if (!/[0-9]/.test(newPassword)) {
+      setError(t('passwordNumber'))
+      return
+    }
+    if (!/[^A-Za-z0-9]/.test(newPassword)) {
+      setError(t('passwordSpecial'))
+      return
+    }
     setLoading(true)
     try {
       const res = await fetch('/api/auth/reset-password', {

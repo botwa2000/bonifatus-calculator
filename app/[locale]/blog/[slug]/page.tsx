@@ -75,7 +75,7 @@ export default async function BlogPostPage({
           href="/blog"
           className="text-sm text-primary-600 dark:text-primary-400 hover:underline mb-8 inline-block"
         >
-          ← Blog
+          ← {t('backLink')}
         </Link>
 
         {/* Header */}
@@ -130,7 +130,9 @@ export default async function BlogPostPage({
             {/* FAQ section */}
             {post.faqs && post.faqs.length > 0 && (
               <div className="mt-12 border-t pt-8 border-neutral-200 dark:border-neutral-700">
-                <h2 className="text-2xl font-bold text-neutral-900 dark:text-white mb-6">FAQ</h2>
+                <h2 className="text-2xl font-bold text-neutral-900 dark:text-white mb-6">
+                  {t('faqHeading')}
+                </h2>
                 <div className="space-y-6">
                   {post.faqs.map((faq, idx) => (
                     <div key={idx}>

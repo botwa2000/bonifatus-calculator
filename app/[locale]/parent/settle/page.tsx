@@ -39,6 +39,7 @@ const METHODS = [
 
 export default function SettlePage() {
   const t = useTranslations('parent')
+  const tc = useTranslations('common')
 
   const [activeTab, setActiveTab] = useState<'pending' | 'history'>('pending')
   const [packages, setPackages] = useState<SettlementPackage[]>([])
@@ -70,11 +71,11 @@ export default function SettlePage() {
       setPackages(data.packages)
       setPeriodUnit(data.periodUnit)
     } catch {
-      setError('Failed to load packages')
+      setError(t('loadPackagesError'))
     } finally {
       setLoading(false)
     }
-  }, [])
+  }, [t])
 
   const loadHistory = useCallback(async () => {
     if (historyLoaded) return
@@ -86,11 +87,11 @@ export default function SettlePage() {
       setHistory(data.settlements)
       setHistoryLoaded(true)
     } catch {
-      setError('Failed to load history')
+      setError(t('loadHistoryError'))
     } finally {
       setHistoryLoading(false)
     }
-  }, [historyLoaded])
+  }, [historyLoaded, t])
 
   useEffect(() => {
     loadPackages()
@@ -157,7 +158,7 @@ export default function SettlePage() {
       await loadPackages()
       setTimeout(() => setSuccessMsg(''), 4000)
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to create settlement')
+      setError(err instanceof Error ? err.message : t('createSettlementError'))
     } finally {
       setSettling(false)
     }
@@ -377,7 +378,7 @@ export default function SettlePage() {
                           onClick={() => setExpandedPackage(isExpanded ? null : pkg.id)}
                           className="text-xs text-primary-600 dark:text-primary-300 hover:underline"
                         >
-                          {isExpanded ? '▲ Hide' : '▼ Show'} grades
+                          {isExpanded ? `▲ ${t('hideGrades')}` : `▼ ${t('showGrades')}`}
                         </button>
                         <button
                           onClick={() => openConfirm(pkg)}
@@ -409,7 +410,7 @@ export default function SettlePage() {
                               )}
                             </div>
                             <span className="text-xs font-semibold text-primary-600 dark:text-primary-300 shrink-0">
-                              +{item.bonusPoints} pts
+                              +{item.bonusPoints} {tc('pts')}
                             </span>
                           </div>
                         ))}

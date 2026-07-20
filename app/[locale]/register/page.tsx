@@ -90,6 +90,7 @@ export default function RegisterPage() {
   const [passwordStrength, setPasswordStrength] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
+  const [resendSuccess, setResendSuccess] = useState(false)
 
   const validatePassword = (password: string) => {
     if (password.length < 12) {
@@ -166,7 +167,7 @@ export default function RegisterPage() {
       })
       const data = await response.json()
       if (!response.ok) {
-        setError(data.error || 'Registration failed')
+        setError(data.error || t('registrationFailed'))
         setLoading(false)
         return
       }
@@ -198,7 +199,7 @@ export default function RegisterPage() {
       })
       const data = await response.json()
       if (!response.ok) {
-        setError(data.error || 'Verification failed')
+        setError(data.error || t('verificationFailed'))
         setLoading(false)
         return
       }
@@ -235,11 +236,11 @@ export default function RegisterPage() {
       })
       const data = await response.json()
       if (!response.ok) {
-        setError(data.error || 'Failed to resend code')
+        setError(data.error || t('resendFailed'))
         setLoading(false)
         return
       }
-      alert(t('codeResent'))
+      setResendSuccess(true)
       setLoading(false)
     } catch {
       setError(t('unexpectedError'))
@@ -291,6 +292,13 @@ export default function RegisterPage() {
                 {error && (
                   <div className="bg-error-50 dark:bg-error-900/20 border border-error-200 dark:border-error-800 rounded-lg p-4">
                     <p className="text-sm text-error-600 dark:text-error-400">{error}</p>
+                  </div>
+                )}
+                {resendSuccess && (
+                  <div className="bg-success-50 dark:bg-success-900/20 border border-success-200 dark:border-success-800 rounded-lg p-4">
+                    <p className="text-sm text-success-600 dark:text-success-400">
+                      {t('codeResent')}
+                    </p>
                   </div>
                 )}
                 <div>
@@ -445,7 +453,7 @@ export default function RegisterPage() {
                   value={formData.fullName}
                   onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
                   className="w-full px-4 py-3 rounded-lg border-2 border-neutral-300 dark:border-neutral-600 bg-white dark:bg-neutral-700 text-neutral-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-normal outline-none"
-                  placeholder="John Doe"
+                  placeholder={t('namePlaceholder')}
                 />
               </div>
               <div>

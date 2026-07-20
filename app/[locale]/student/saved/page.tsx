@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { useTranslations } from 'next-intl'
-import { Link } from '@/i18n/navigation'
+import { Link, useRouter } from '@/i18n/navigation'
 import Image from 'next/image'
 import { resolveLocalized } from '@/lib/i18n'
 import { useStudentData, Term } from '@/hooks/useStudentData'
@@ -11,6 +11,7 @@ import {
   convertNormalizedToScale,
   formatSecondaryAverage,
 } from '@/lib/utils/grade-helpers'
+import { formatTermType } from '@/lib/format-term-type'
 import { BonusIcon } from '@/components/ui'
 
 /* ------------------------------------------------------------------ */
@@ -258,6 +259,8 @@ function TierBadge({ tier }: { tier: string | null }) {
 export default function StudentSavedPage() {
   const t = useTranslations('student')
   const tc = useTranslations('common')
+  const tCalc = useTranslations('calculator')
+  const router = useRouter()
   const {
     loading,
     error,
@@ -305,10 +308,10 @@ export default function StudentSavedPage() {
             className="rounded-lg border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 px-3 py-2 text-sm text-neutral-900 dark:text-white"
           >
             <option value="all">{t('allTerms')}</option>
-            <option value="midterm">Midterm</option>
-            <option value="final">Final</option>
-            <option value="semester">Semester</option>
-            <option value="quarterly">Quarter</option>
+            <option value="midterm">{tCalc('midterm')}</option>
+            <option value="final">{tCalc('final')}</option>
+            <option value="semester">{tCalc('semester')}</option>
+            <option value="quarterly">{tCalc('quarterly')}</option>
           </select>
           <button
             onClick={loadTerms}
@@ -323,10 +326,7 @@ export default function StudentSavedPage() {
         <div className="rounded-lg border border-red-200 bg-red-50 text-red-700 px-4 py-3">
           {error}{' '}
           {sessionExpired && (
-            <button
-              onClick={() => (window.location.href = '/login')}
-              className="underline font-semibold"
-            >
+            <button onClick={() => router.push('/login')} className="underline font-semibold">
               {t('signInLink')}
             </button>
           )}
@@ -356,7 +356,7 @@ export default function StudentSavedPage() {
                 <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                   <div>
                     <p className="text-sm text-neutral-500 dark:text-neutral-400">
-                      {term.school_year} &middot; {term.term_type}
+                      {term.school_year} &middot; {formatTermType(term.term_type, tCalc)}
                       {term.term_name ? ` \u00b7 ${term.term_name}` : ''}
                     </p>
                     <p className="text-lg font-semibold text-neutral-900 dark:text-white">

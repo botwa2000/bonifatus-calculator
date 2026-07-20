@@ -271,7 +271,11 @@
     "googleProfileRoleParent": "Genitore",
     "googleProfileDobLabel": "Data di nascita",
     "googleProfileError": "Impossibile creare il profilo",
-    "googleProfileSubmit": "Completa la configurazione"
+    "googleProfileSubmit": "Completa la configurazione",
+    "registrationFailed": "Registrazione fallita",
+    "verificationFailed": "Verifica fallita",
+    "resendFailed": "Reinvio codice fallito",
+    "namePlaceholder": "Il tuo nome completo"
   },
   "calculator": {
     "settings": "Impostazioni",
@@ -327,7 +331,9 @@
     "quarterly": "Trimestre",
     "browse": "Sfoglia",
     "core": "Principali",
-    "couldNotStoreDefault": "Impossibile salvare la preferenza predefinita in questo browser."
+    "couldNotStoreDefault": "Impossibile salvare la preferenza predefinita in questo browser.",
+    "semester1": "1° Semestre",
+    "semester2": "2° Semestre"
   },
   "quickGrade": {
     "title": "Voto rapido",
@@ -466,7 +472,11 @@
     "weight": "Peso",
     "tier": "Livello",
     "scaleLabel": "{min} – {max}",
-    "lowerIsBetter": "Più basso è meglio"
+    "lowerIsBetter": "Più basso è meglio",
+    "paidOut": "Pagato",
+    "payouts": "Pagamenti",
+    "noPayoutsYet": "Nessun pagamento ricevuto. Continua così!",
+    "subjectCount": "{count} materie"
   },
   "studentProfile": {
     "header": "Profilo studente",
@@ -713,7 +723,16 @@
     "gradeCount": "{count} voti",
     "totalPts": "{pts} pts",
     "notePlaceholder": "Aggiungi una nota opzionale…",
-    "totalLabel": "Totale"
+    "totalLabel": "Totale",
+    "statusAccepted": "accettato",
+    "connectedSince": "Connesso: {date}",
+    "gradeBreakdown": "Riepilogo voti · Classe {level}",
+    "formulaLine": "Classe {level} × Fattore × Livello",
+    "showGrades": "Mostra voti",
+    "hideGrades": "Nascondi voti",
+    "loadPackagesError": "Caricamento pacchetti fallito",
+    "loadHistoryError": "Caricamento storico fallito",
+    "createSettlementError": "Creazione accordo fallita"
   },
   "admin": {
     "dashboardTitle": "Pannello di amministrazione",
@@ -1064,7 +1083,14 @@
     "tabSecurity": "Sicurezza",
     "tabSchool": "Scuola",
     "tabConnections": "Connessioni",
-    "tabDanger": "Zona pericolosa"
+    "tabDanger": "Zona pericolosa",
+    "roleProfileChild": "Profilo studente",
+    "roleProfileParent": "Profilo genitore",
+    "roleParentLabel": "Genitore",
+    "roleChildLabel": "Studente",
+    "connectedSuccessfully": "Connesso con successo!",
+    "connectionRemoved": "Connessione rimossa.",
+    "fileTooLarge": "File troppo grande (max 5 MB)"
   },
   "about": {
     "title": "Chi è Bonifatus",
@@ -1219,7 +1245,9 @@
     "ctaTitle": "Metti in pratica queste idee",
     "ctaDesc": "Bonifatus rende i premi scolastici semplici, trasparenti e automatici.",
     "ctaButton": "Prova Bonifatus gratis",
-    "relatedTitle": "Altri articoli"
+    "relatedTitle": "Altri articoli",
+    "backLink": "Blog",
+    "faqHeading": "FAQ"
   },
   "compare": {
     "indexTitle": "Confronta le app per premi scolastici",
