@@ -718,6 +718,18 @@ abstract class AppLocalizations {
   /// **'Change Password'**
   String get settingsChangePasswordTitle;
 
+  /// No description provided for @settingsCurrentPassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Current Password'**
+  String get settingsCurrentPassword;
+
+  /// No description provided for @settingsEnterCurrentPassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter your current password'**
+  String get settingsEnterCurrentPassword;
+
   /// No description provided for @settingsNewPassword.
   ///
   /// In en, this message translates to:

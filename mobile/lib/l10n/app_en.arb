@@ -125,6 +125,8 @@
   "settingsNameCannotBeEmpty": "Name cannot be empty",
   "settingsProfileUpdated": "Profile updated",
   "settingsChangePasswordTitle": "Change Password",
+  "settingsCurrentPassword": "Current Password",
+  "settingsEnterCurrentPassword": "Enter your current password",
   "settingsNewPassword": "New Password",
   "settingsConfirmPassword": "Confirm Password",
   "settingsEnterPassword": "Enter a password",

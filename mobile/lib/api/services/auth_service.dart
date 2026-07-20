@@ -229,8 +229,8 @@ class AuthService {
     }
   }
 
-  Future<void> deleteAccount() async {
-    await _client.post('/api/profile/delete', data: {});
+  Future<void> deleteAccount({required String password}) async {
+    await _client.post('/api/profile/delete', data: {'password': password});
     await _storage.deleteAll();
   }
 

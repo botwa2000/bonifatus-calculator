@@ -418,31 +418,47 @@ class _ParentSettingsScreenState extends ConsumerState<ParentSettingsScreen> {
 
   void _confirmDeleteAccount(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final pwCtrl = TextEditingController();
     showDialog<void>(
       context: context,
-      builder: (ctx) => AlertDialog(
-        title: Text(l10n.settingsDeleteAccountDialogTitle),
-        content: Text(l10n.settingsDeleteAccountDialogContent),
-        actions: [
-          TextButton(onPressed: () => Navigator.of(ctx).pop(), child: Text(l10n.settingsCancel)),
-          TextButton(
-            onPressed: () async {
-              Navigator.of(ctx).pop();
-              try {
-                await ref.read(authStateNotifierProvider.notifier).deleteAccount();
-                if (context.mounted) context.go('/onboarding');
-              } catch (e) {
-                if (context.mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text(l10n.settingsDeleteAccountFailed(e.toString())), backgroundColor: AppColors.error),
-                  );
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setDialogState) => AlertDialog(
+          title: Text(l10n.settingsDeleteAccountDialogTitle),
+          content: Column(mainAxisSize: MainAxisSize.min, children: [
+            Text(l10n.settingsDeleteAccountDialogContent),
+            const SizedBox(height: 16),
+            TextField(
+              controller: pwCtrl,
+              obscureText: true,
+              decoration: InputDecoration(
+                labelText: l10n.settingsCurrentPassword,
+                border: const OutlineInputBorder(),
+              ),
+              onChanged: (_) => setDialogState(() {}),
+            ),
+          ]),
+          actions: [
+            TextButton(onPressed: () => Navigator.of(ctx).pop(), child: Text(l10n.settingsCancel)),
+            TextButton(
+              onPressed: pwCtrl.text.isEmpty ? null : () async {
+                final password = pwCtrl.text;
+                Navigator.of(ctx).pop();
+                try {
+                  await ref.read(authStateNotifierProvider.notifier).deleteAccount(password: password);
+                  if (context.mounted) context.go('/onboarding');
+                } catch (e) {
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text(l10n.settingsDeleteAccountFailed(e.toString())), backgroundColor: AppColors.error),
+                    );
+                  }
                 }
-              }
-            },
-            style: TextButton.styleFrom(foregroundColor: AppColors.error),
-            child: Text(l10n.settingsDeleteAccountConfirm),
-          ),
-        ],
+              },
+              style: TextButton.styleFrom(foregroundColor: AppColors.error),
+              child: Text(l10n.settingsDeleteAccountConfirm),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -640,6 +656,7 @@ class _ParentSettingsScreenState extends ConsumerState<ParentSettingsScreen> {
 
   void _showChangePasswordSheet(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final currentPwCtrl = TextEditingController();
     final pwCtrl = TextEditingController();
     final confirmCtrl = TextEditingController();
     final formKey = GlobalKey<FormState>();
@@ -661,15 +678,25 @@ class _ParentSettingsScreenState extends ConsumerState<ParentSettingsScreen> {
               Text(l10n.settingsChangePasswordTitle, style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w700)),
               const SizedBox(height: 20),
               TextFormField(
-                controller: pwCtrl,
+                controller: currentPwCtrl,
                 obscureText: obscure,
                 decoration: InputDecoration(
-                  labelText: l10n.settingsNewPassword,
+                  labelText: l10n.settingsCurrentPassword,
                   border: const OutlineInputBorder(),
                   suffixIcon: IconButton(
                     icon: Icon(obscure ? Icons.visibility_off_outlined : Icons.visibility_outlined),
                     onPressed: () => setSheetState(() => obscure = !obscure),
                   ),
+                ),
+                validator: (v) => (v == null || v.isEmpty) ? l10n.settingsEnterCurrentPassword : null,
+              ),
+              const SizedBox(height: 12),
+              TextFormField(
+                controller: pwCtrl,
+                obscureText: obscure,
+                decoration: InputDecoration(
+                  labelText: l10n.settingsNewPassword,
+                  border: const OutlineInputBorder(),
                 ),
                 validator: (v) {
                   if (v == null || v.isEmpty) return l10n.settingsEnterPassword;
@@ -691,7 +718,10 @@ class _ParentSettingsScreenState extends ConsumerState<ParentSettingsScreen> {
                   if (!formKey.currentState!.validate()) return;
                   Navigator.of(ctx).pop();
                   try {
-                    await ref.read(profileServiceProvider).changePassword(newPassword: pwCtrl.text);
+                    await ref.read(profileServiceProvider).changePassword(
+                      currentPassword: currentPwCtrl.text,
+                      newPassword: pwCtrl.text,
+                    );
                     if (context.mounted) {
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(content: Text(l10n.settingsPasswordChanged)),

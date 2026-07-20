@@ -142,7 +142,7 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
         controller: _codeCtrl,
         keyboardType: TextInputType.number,
         textInputAction: TextInputAction.next,
-        maxLength: 8,
+        maxLength: 6,
         decoration: InputDecoration(labelText: l10n.forgotPasswordResetCodeLabel, prefixIcon: const Icon(Icons.pin_outlined)),
       ),
       const SizedBox(height: 16),

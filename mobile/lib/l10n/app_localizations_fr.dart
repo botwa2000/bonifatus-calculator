@@ -338,6 +338,13 @@ class AppLocalizationsFr extends AppLocalizations {
   String get settingsChangePasswordTitle => 'Changer le mot de passe';
 
   @override
+  String get settingsCurrentPassword => 'Mot de passe actuel';
+
+  @override
+  String get settingsEnterCurrentPassword =>
+      'Saisissez votre mot de passe actuel';
+
+  @override
   String get settingsNewPassword => 'Nouveau mot de passe';
 
   @override

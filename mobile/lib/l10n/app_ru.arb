@@ -110,6 +110,8 @@
   "settingsNameCannotBeEmpty": "Имя не может быть пустым",
   "settingsProfileUpdated": "Профиль обновлён",
   "settingsChangePasswordTitle": "Изменить пароль",
+  "settingsCurrentPassword": "Текущий пароль",
+  "settingsEnterCurrentPassword": "Введите текущий пароль",
   "settingsNewPassword": "Новый пароль",
   "settingsConfirmPassword": "Подтвердите пароль",
   "settingsEnterPassword": "Введите пароль",

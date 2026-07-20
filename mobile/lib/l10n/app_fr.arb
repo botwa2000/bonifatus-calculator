@@ -110,6 +110,8 @@
   "settingsNameCannotBeEmpty": "Le nom ne peut pas être vide",
   "settingsProfileUpdated": "Profil mis à jour",
   "settingsChangePasswordTitle": "Changer le mot de passe",
+  "settingsCurrentPassword": "Mot de passe actuel",
+  "settingsEnterCurrentPassword": "Saisissez votre mot de passe actuel",
   "settingsNewPassword": "Nouveau mot de passe",
   "settingsConfirmPassword": "Confirmer le mot de passe",
   "settingsEnterPassword": "Entre un mot de passe",

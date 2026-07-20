@@ -335,6 +335,12 @@ class AppLocalizationsIt extends AppLocalizations {
   String get settingsChangePasswordTitle => 'Cambia password';
 
   @override
+  String get settingsCurrentPassword => 'Password attuale';
+
+  @override
+  String get settingsEnterCurrentPassword => 'Inserisci la password attuale';
+
+  @override
   String get settingsNewPassword => 'Nuova password';
 
   @override

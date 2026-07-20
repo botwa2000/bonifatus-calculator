@@ -18,8 +18,11 @@ class ProfileService {
     await _client.post('/api/profile/update', data: {'fullName': fullName});
   }
 
-  Future<void> changePassword({required String newPassword}) async {
-    await _client.post('/api/profile/password', data: {'newPassword': newPassword});
+  Future<void> changePassword({required String currentPassword, required String newPassword}) async {
+    await _client.post('/api/profile/password', data: {
+      'currentPassword': currentPassword,
+      'newPassword': newPassword,
+    });
   }
 
   Future<void> requestEmailChange({required String newEmail}) async {

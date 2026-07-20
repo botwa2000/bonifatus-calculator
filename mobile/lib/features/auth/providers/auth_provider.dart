@@ -66,10 +66,10 @@ class AuthStateNotifier extends AsyncNotifier<AuthState> {
     return result;
   }
 
-  Future<void> deleteAccount() async {
+  Future<void> deleteAccount({required String password}) async {
     state = const AsyncValue.loading();
     final service = ref.read(authServiceProvider);
-    await service.deleteAccount();
+    await service.deleteAccount(password: password);
     state = AsyncValue.data(AuthState.unauthenticated());
   }
 }

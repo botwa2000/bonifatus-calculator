@@ -110,6 +110,8 @@
   "settingsNameCannotBeEmpty": "Name darf nicht leer sein",
   "settingsProfileUpdated": "Profil aktualisiert",
   "settingsChangePasswordTitle": "Passwort ändern",
+  "settingsCurrentPassword": "Aktuelles Passwort",
+  "settingsEnterCurrentPassword": "Aktuelles Passwort eingeben",
   "settingsNewPassword": "Neues Passwort",
   "settingsConfirmPassword": "Passwort bestätigen",
   "settingsEnterPassword": "Passwort eingeben",
