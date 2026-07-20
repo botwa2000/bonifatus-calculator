@@ -9,6 +9,45 @@ final gradeServiceProvider = Provider<GradeService>((ref) {
   return GradeService(ref.read(apiClientProvider));
 });
 
+class PreviewSubjectResult {
+  final String subjectId;
+  final String tier;
+  final double bonus;
+  final double weight;
+
+  const PreviewSubjectResult({
+    required this.subjectId,
+    required this.tier,
+    required this.bonus,
+    required this.weight,
+  });
+
+  factory PreviewSubjectResult.fromJson(Map<String, dynamic> json) {
+    return PreviewSubjectResult(
+      subjectId: (json['subjectId'] ?? json['subject_id']) as String? ?? '',
+      tier: (json['tier'] as String?) ?? 'below',
+      bonus: ((json['bonus'] as num?)?.toDouble() ?? 0.0),
+      weight: ((json['weight'] as num?)?.toDouble() ?? 1.0),
+    );
+  }
+}
+
+class PreviewResult {
+  final double total;
+  final List<PreviewSubjectResult> breakdown;
+
+  const PreviewResult({required this.total, required this.breakdown});
+
+  factory PreviewResult.fromJson(Map<String, dynamic> json) {
+    return PreviewResult(
+      total: ((json['total'] as num?)?.toDouble() ?? 0.0),
+      breakdown: (json['breakdown'] as List<dynamic>? ?? [])
+          .map((s) => PreviewSubjectResult.fromJson(s as Map<String, dynamic>))
+          .toList(),
+    );
+  }
+}
+
 class GradeService {
   final ApiClient _client;
   GradeService(this._client);
@@ -142,6 +181,21 @@ class GradeService {
 
   Future<void> deleteTerm(String id) async {
     await _client.delete('/api/grades/delete', data: {'id': id});
+  }
+
+  Future<PreviewResult> previewTerm({
+    required String gradingSystemId,
+    required int classLevel,
+    required String termType,
+    required List<Map<String, dynamic>> subjects,
+  }) async {
+    final resp = await _client.post('/api/grades/preview', data: {
+      'gradingSystemId': gradingSystemId,
+      'classLevel': classLevel,
+      'termType': termType,
+      'subjects': subjects,
+    });
+    return PreviewResult.fromJson(resp.data as Map<String, dynamic>);
   }
 
   Future<void> updateTermName({

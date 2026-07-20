@@ -6,6 +6,7 @@ class SubjectResult {
   final double bonusPoints;
   final String? gradeQualityTier;
   final String settlementStatus;
+  final double weight;
 
   const SubjectResult({
     required this.subjectId,
@@ -15,6 +16,7 @@ class SubjectResult {
     required this.bonusPoints,
     this.gradeQualityTier,
     this.settlementStatus = 'unsettled',
+    this.weight = 1.0,
   });
 
   String localizedName(String locale, {String fallback = ''}) {
@@ -36,6 +38,7 @@ class SubjectResult {
     final tier = (json['gradeQualityTier'] ?? json['grade_quality_tier']) as String?;
     final norm = ((json['gradeNormalized100'] ?? json['grade_normalized_100']) as num?)?.toDouble();
     final settlementStatus = (json['settlementStatus'] ?? json['settlement_status']) as String? ?? 'unsettled';
+    final weight = ((json['subjectWeight'] ?? json['subject_weight']) as num?)?.toDouble() ?? 1.0;
 
     Map<String, dynamic> nameMap = {};
     final directName = json['subjectName'] ?? json['subject_name'];
@@ -61,6 +64,7 @@ class SubjectResult {
       bonusPoints: bonusPoints,
       gradeQualityTier: tier,
       settlementStatus: settlementStatus,
+      weight: weight,
     );
   }
 }
@@ -139,11 +143,14 @@ class TermResult {
     );
   }
 
-  // Average of normalized_100 values (0-100, higher=better universally).
+  // Weighted average of normalized_100 values (0-100, higher=better universally).
   double? get averageNormalized100 {
-    final norms = subjects.map((s) => s.gradeNormalized100).whereType<double>().toList();
-    if (norms.isEmpty) return null;
-    return norms.reduce((a, b) => a + b) / norms.length;
+    final valid = subjects.where((s) => s.gradeNormalized100 != null).toList();
+    if (valid.isEmpty) return null;
+    final totalWeight = valid.fold<double>(0, (sum, s) => sum + s.weight);
+    if (totalWeight == 0) return null;
+    final weightedSum = valid.fold<double>(0, (sum, s) => sum + s.gradeNormalized100! * s.weight);
+    return weightedSum / totalWeight;
   }
 
   // Tier based on normalized average — works for all grading systems.

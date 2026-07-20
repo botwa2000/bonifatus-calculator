@@ -1,7 +1,10 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import '../../../../api/services/grade_service.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../../models/calculator_config.dart';
@@ -26,6 +29,10 @@ class _CalculatorScreenState extends ConsumerState<CalculatorScreen> {
   String? _selectedSystemId;
   int _classLevel = 7;
   String _termType = 'semester_2';
+
+  Timer? _debounceTimer;
+  _CalcResult? _serverPreview;
+  int _previewSeq = 0;
 
   late final TextEditingController _schoolYearCtrl;
   late final TextEditingController _termNameCtrl;
@@ -58,6 +65,7 @@ class _CalculatorScreenState extends ConsumerState<CalculatorScreen> {
 
   @override
   void dispose() {
+    _debounceTimer?.cancel();
     _schoolYearCtrl.dispose();
     _termNameCtrl.dispose();
     super.dispose();
@@ -118,6 +126,54 @@ class _CalculatorScreenState extends ConsumerState<CalculatorScreen> {
     }
     final total = rawTotal < 0 ? 0.0 : rawTotal;
     return _CalcResult(total: total, breakdown: breakdown);
+  }
+
+  // Calls the server engine with a debounce so the displayed result is always
+  // authoritative — same code path as save. Local _calculate() is the instant
+  // placeholder shown while the request is in flight.
+  void _scheduleServerPreview() {
+    _debounceTimer?.cancel();
+    if (_subjects.isEmpty) return;
+    final seq = ++_previewSeq;
+    _debounceTimer = Timer(const Duration(milliseconds: 400), () async {
+      if (!mounted) return;
+      final config = ref.read(calculatorConfigProvider).valueOrNull;
+      if (config == null) return;
+      final system = _resolveSystem(config);
+      try {
+        final result = await ref.read(gradeServiceProvider).previewTerm(
+          gradingSystemId: system.id,
+          classLevel: _classLevel,
+          termType: _termType,
+          subjects: _subjects
+              .map((e) => <String, dynamic>{
+                    'subjectId': e.subjectId,
+                    'grade': e.grade,
+                    'weight': e.weight,
+                  })
+              .toList(),
+        );
+        if (!mounted || _previewSeq != seq) return;
+        setState(() {
+          _serverPreview = _CalcResult(
+            total: result.total,
+            breakdown: List.generate(result.breakdown.length, (i) {
+              final sr = result.breakdown[i];
+              final local = i < _subjects.length ? _subjects[i] : null;
+              return _BreakdownItem(
+                subject: local?.subject ?? '',
+                grade: local?.grade ?? '',
+                tier: sr.tier,
+                bonus: sr.bonus,
+                weight: sr.weight,
+              );
+            }),
+          );
+        });
+      } catch (_) {
+        // Server unreachable — local _calculate() result remains shown
+      }
+    });
   }
 
   void _showAddSubjectSheet(CalculatorConfig config) {
@@ -464,9 +520,11 @@ class _CalculatorScreenState extends ConsumerState<CalculatorScreen> {
                                 grade: pickedGrade.trim(),
                                 weight: pickedWeight,
                               ));
+                              _serverPreview = null;
                             });
                             FocusScope.of(context).unfocus();
                             Navigator.of(sheetCtx).pop();
+                            _scheduleServerPreview();
                           }
                         },
                         style: ElevatedButton.styleFrom(
@@ -595,7 +653,7 @@ class _CalculatorScreenState extends ConsumerState<CalculatorScreen> {
   }
 
   Widget _buildBody(CalculatorConfig config, AppLocalizations l10n) {
-    final calcResult = _calculate(config);
+    final calcResult = _serverPreview ?? _calculate(config);
     final hasSubjects = _subjects.isNotEmpty;
 
     final cs = Theme.of(context).colorScheme;
@@ -705,7 +763,10 @@ class _CalculatorScreenState extends ConsumerState<CalculatorScreen> {
                             style: const TextStyle(fontSize: 14)),
                       ))
                   .toList(),
-              onChanged: (v) => setState(() => _selectedSystemId = v),
+              onChanged: (v) {
+                setState(() { _selectedSystemId = v; _serverPreview = null; });
+                _scheduleServerPreview();
+              },
             ),
             const SizedBox(height: 12),
           ],
@@ -726,7 +787,10 @@ class _CalculatorScreenState extends ConsumerState<CalculatorScreen> {
                     const SizedBox(height: 6),
                     _ClassLevelStepper(
                       value: _classLevel,
-                      onChanged: (v) => setState(() => _classLevel = v),
+                      onChanged: (v) {
+                        setState(() { _classLevel = v; _serverPreview = null; });
+                        _scheduleServerPreview();
+                      },
                     ),
                   ],
                 ),
@@ -767,8 +831,10 @@ class _CalculatorScreenState extends ConsumerState<CalculatorScreen> {
                                     style: const TextStyle(fontSize: 14)),
                               ))
                           .toList(),
-                      onChanged: (v) =>
-                          setState(() => _termType = v ?? _termType),
+                      onChanged: (v) {
+                        setState(() { _termType = v ?? _termType; _serverPreview = null; });
+                        _scheduleServerPreview();
+                      },
                     ),
                   ],
                 ),
@@ -988,7 +1054,10 @@ class _CalculatorScreenState extends ConsumerState<CalculatorScreen> {
 
               // Delete
               GestureDetector(
-                onTap: () => setState(() => _subjects.removeAt(index)),
+                onTap: () {
+                  setState(() { _subjects.removeAt(index); _serverPreview = null; });
+                  _scheduleServerPreview();
+                },
                 child: Container(
                   padding: const EdgeInsets.all(6),
                   child: Icon(Icons.close_rounded,
@@ -1034,7 +1103,11 @@ class _CalculatorScreenState extends ConsumerState<CalculatorScreen> {
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: Theme.of(ctx).colorScheme.onSurface))),
               IconButton(
                 icon: const Icon(Icons.delete_outline_rounded, color: AppColors.error),
-                onPressed: () { setState(() => _subjects.removeAt(index)); Navigator.of(sheetCtx).pop(); },
+                onPressed: () {
+                  setState(() { _subjects.removeAt(index); _serverPreview = null; });
+                  Navigator.of(sheetCtx).pop();
+                  _scheduleServerPreview();
+                },
                 tooltip: l10n.calculatorRemoveSubject,
               ),
             ]),
@@ -1079,13 +1152,17 @@ class _CalculatorScreenState extends ConsumerState<CalculatorScreen> {
               width: double.infinity,
               child: ElevatedButton(
                 onPressed: pickedGrade.trim().isEmpty ? null : () {
-                  setState(() => _subjects[index] = _SubjectEntry(
-                    subjectId: existing.subjectId,
-                    subject: existing.subject,
-                    grade: pickedGrade.trim(),
-                    weight: pickedWeight,
-                  ));
+                  setState(() {
+                    _subjects[index] = _SubjectEntry(
+                      subjectId: existing.subjectId,
+                      subject: existing.subject,
+                      grade: pickedGrade.trim(),
+                      weight: pickedWeight,
+                    );
+                    _serverPreview = null;
+                  });
                   Navigator.of(sheetCtx).pop();
+                  _scheduleServerPreview();
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.primary, foregroundColor: AppColors.white,
