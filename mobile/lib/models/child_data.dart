@@ -64,6 +64,8 @@ class ChildSubjectGrade {
   final int bonusPoints;
   final double weight;
   final double? gradeNormalized100;
+  // Native-scale grade value (e.g. 2.0 for DE grade "2"); avoids non-linear normalization round-trip
+  final double? gradeNumeric;
   final String settlementStatus;
 
   const ChildSubjectGrade({
@@ -75,6 +77,7 @@ class ChildSubjectGrade {
     required this.bonusPoints,
     this.weight = 1.0,
     this.gradeNormalized100,
+    this.gradeNumeric,
     this.settlementStatus = 'unsettled',
   });
 
@@ -108,6 +111,7 @@ class ChildSubjectGrade {
       weight: ((json['subject_weight'] ?? json['subjectWeight']) as num?)?.toDouble() ?? 1.0,
       gradeNormalized100:
           ((json['grade_normalized_100'] ?? json['gradeNormalized100']) as num?)?.toDouble(),
+      gradeNumeric: ((json['grade_numeric'] ?? json['gradeNumeric']) as num?)?.toDouble(),
       settlementStatus: (json['settlement_status'] ?? json['settlementStatus']) as String? ?? 'unsettled',
     );
   }
@@ -183,9 +187,30 @@ class ChildTermResult {
   }
 
   double? get averageNormalized100 {
-    final norms = subjects.map((s) => s.gradeNormalized100).whereType<double>().toList();
-    if (norms.isEmpty) return null;
-    return norms.reduce((a, b) => a + b) / norms.length;
+    if (subjects.isEmpty) return null;
+    double totalWeight = 0;
+    double totalScore = 0;
+    for (final s in subjects) {
+      final norm = s.gradeNormalized100;
+      if (norm == null) continue;
+      totalWeight += s.weight;
+      totalScore += norm * s.weight;
+    }
+    return totalWeight > 0 ? totalScore / totalWeight : null;
+  }
+
+  /// Weighted average in native grade scale using grade_numeric when available.
+  /// More accurate than converting from normalized for non-linear systems (e.g. DE_1_6).
+  double? get averageNative {
+    final sgs = subjects.where((s) => s.gradeNumeric != null).toList();
+    if (sgs.isEmpty) return null;
+    double totalWeight = 0;
+    double totalScore = 0;
+    for (final sg in sgs) {
+      totalWeight += sg.weight;
+      totalScore += sg.gradeNumeric! * sg.weight;
+    }
+    return totalWeight > 0 ? totalScore / totalWeight : null;
   }
 
   String get tier {
@@ -203,12 +228,17 @@ class ChildTermResult {
     final scaleType = gradingSystemScaleType;
     if (scaleType == 'letter') return _nearestLetter(avg);
     if (scaleType == 'percentage') return '${avg.toStringAsFixed(0)}%';
+    // For numeric systems use grade_numeric directly — avoids round-trip error
+    // through non-linear normalized_100 (e.g. DE_1_6 grade "2" → 83, not 80)
+    final nativeAvg = averageNative;
+    if (nativeAvg != null) return nativeAvg.toStringAsFixed(2);
+    // Fallback linear conversion when grade_numeric is unavailable
     final min = gradingSystemMinValue ?? 1.0;
     final max = gradingSystemMaxValue ?? 6.0;
     final native = gradingSystemBestIsHighest
         ? min + (avg / 100) * (max - min)
         : max - (avg / 100) * (max - min);
-    return native.toStringAsFixed(1);
+    return native.toStringAsFixed(2);
   }
 
   String? get averageSecondary {

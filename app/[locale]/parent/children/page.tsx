@@ -51,6 +51,7 @@ type TermPreview = {
   subject_grades: Array<{
     id: string
     grade_value: string | null
+    grade_numeric: number | null
     grade_normalized_100: number | null
     grade_quality_tier: string | null
     subject_weight: number | null
@@ -244,9 +245,11 @@ export default function ParentChildrenPage() {
     let totalScore = 0
     subjects.forEach((sg) => {
       const weight = Number(sg.subject_weight ?? 1)
-      const normalized = Number(sg.grade_normalized_100 ?? 0)
+      // Use grade_numeric (native scale) to avoid round-trip error through non-linear normalized_100
+      const score =
+        sg.grade_numeric != null ? Number(sg.grade_numeric) : Number(sg.grade_normalized_100 ?? 0)
       totalWeight += weight
-      totalScore += normalized * weight
+      totalScore += score * weight
     })
     if (totalWeight === 0) return 0
     return totalScore / totalWeight

@@ -141,18 +141,16 @@ class _ChildGradesCard extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context)!;
+    // Rewards screen handles Notes (quick grades) only.
+    // Test-report grades (gradeSource == 'calculator') are settled exclusively via the Settle tab.
     final pendingGrades = child.grades
-        .where((g) => g.settlementStatus == 'unsettled')
+        .where((g) => g.settlementStatus == 'unsettled' && g.gradeSource == 'notes')
         .toList()
       ..sort((a, b) => b.gradedAt.compareTo(a.gradedAt));
     final totalPts = pendingGrades.fold<int>(0, (sum, g) => sum + g.bonusPoints);
 
-    // Split into term grades and note bundles by week
-    final termGrades = pendingGrades.where((g) => g.gradeSource == 'calculator').toList();
-    final noteGrades = pendingGrades.where((g) => g.gradeSource == 'notes').toList();
-
     final Map<DateTime, List<ChildQuickGrade>> notesByWeek = {};
-    for (final g in noteGrades) {
+    for (final g in pendingGrades) {
       final ws = _rewardsWeekStart(g.gradedAt);
       notesByWeek.putIfAbsent(ws, () => []).add(g);
     }
@@ -207,14 +205,6 @@ class _ChildGradesCard extends ConsumerWidget {
               child: Text(l10n.rewardsNoPendingGrades, style: TextStyle(color: cs.onSurfaceVariant)),
             )
           else ...[
-            // Term grades group
-            if (termGrades.isNotEmpty)
-              _GroupSection(
-                label: l10n.rewardsSectionTermGrades,
-                grades: termGrades,
-                child: child,
-              ),
-            // Notes grouped by week
             for (final ws in sortedWeeks)
               _GroupSection(
                 label: l10n.rewardsSectionNotesWeek(_rewardsWeekLabel(ws)),
@@ -477,8 +467,11 @@ class _SummaryTab extends StatelessWidget {
       itemCount: children.length,
       itemBuilder: (ctx, i) {
         final child = children[i];
-        final totalPts = child.grades.fold<int>(0, (s, g) => s + g.bonusPoints);
-        final pending = child.totalPendingPoints;
+        final notesGrades = child.grades.where((g) => g.gradeSource == 'notes').toList();
+        final totalPts = notesGrades.fold<int>(0, (s, g) => s + g.bonusPoints);
+        final pending = notesGrades
+            .where((g) => g.settlementStatus == 'unsettled')
+            .fold<int>(0, (s, g) => s + g.bonusPoints);
 
         return Card(
           margin: const EdgeInsets.only(bottom: 12),
@@ -521,7 +514,7 @@ class _SummaryTab extends StatelessWidget {
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        AppLocalizations.of(context)!.rewardsSummarySubtitle(child.grades.length, totalPts),
+                        AppLocalizations.of(context)!.rewardsSummarySubtitle(notesGrades.length, totalPts),
                         style: TextStyle(
                             fontSize: 13, color: Theme.of(ctx).colorScheme.onSurfaceVariant),
                       ),

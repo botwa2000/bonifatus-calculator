@@ -38,6 +38,7 @@ export type TermPreview = {
   subject_grades: Array<{
     id: string
     grade_value: string | null
+    grade_numeric: number | null
     grade_normalized_100: number | null
     subject_weight: number | null
     bonus_points: number | null

@@ -372,15 +372,23 @@ export default function StudentSavedPage() {
                           const totals = term.subject_grades.reduce(
                             (acc, sg) => {
                               const w = Number(sg.subject_weight ?? 1)
-                              const n = Number(sg.grade_normalized_100 ?? 0)
+                              // Use grade_numeric (native scale value) when available to avoid
+                              // round-trip error through non-linear normalized_100 (e.g. DE_1_6)
+                              const gn = sg.grade_numeric
+                              const n =
+                                gn != null
+                                  ? Number(gn)
+                                  : convertNormalizedToScale(
+                                      term.grading_systems,
+                                      Number(sg.grade_normalized_100 ?? 0)
+                                    )
                               acc.weighted += n * w
                               acc.weight += w
                               return acc
                             },
                             { weighted: 0, weight: 0 }
                           )
-                          const avgNorm = totals.weight > 0 ? totals.weighted / totals.weight : 0
-                          const avgRaw = convertNormalizedToScale(term.grading_systems, avgNorm)
+                          const avgRaw = totals.weight > 0 ? totals.weighted / totals.weight : 0
                           const max = term.grading_systems?.max_value
                           const secondary = formatSecondaryAverage(
                             term.grading_systems?.code,
