@@ -4,7 +4,7 @@ import Google from 'next-auth/providers/google'
 import { DrizzleAdapter } from '@auth/drizzle-adapter'
 import { db } from '@/lib/db/client'
 import { eq } from 'drizzle-orm'
-import { users } from '@/drizzle/schema/auth'
+import { users, accounts, sessions, verificationTokens } from '@/drizzle/schema/auth'
 import { userProfiles } from '@/drizzle/schema/users'
 import bcrypt from 'bcryptjs'
 import { dbg, dbgWarn, dbgError } from '@/lib/debug'
@@ -19,7 +19,12 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     },
   },
   trustHost: true,
-  adapter: DrizzleAdapter(db),
+  adapter: DrizzleAdapter(db, {
+    usersTable: users,
+    accountsTable: accounts,
+    sessionsTable: sessions,
+    verificationTokensTable: verificationTokens,
+  }),
   session: { strategy: 'jwt', maxAge: 30 * 24 * 60 * 60 },
   pages: {
     signIn: '/login',
