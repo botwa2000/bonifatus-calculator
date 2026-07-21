@@ -6,6 +6,7 @@ import '../../../../core/theme/app_colors.dart';
 import '../../auth/providers/auth_provider.dart';
 import '../providers/children_provider.dart';
 import '../../../../models/child_data.dart';
+import '../../../../utils/format_utils.dart';
 
 typedef _Entry = ({ChildWithGrades child, ChildQuickGrade grade});
 
@@ -142,7 +143,7 @@ class _ActionCenter extends ConsumerWidget {
             .map<_Entry>((g) => (child: c, grade: g)))
         .toList();
 
-    final totalUnsettledPts = allUnsettled.fold<int>(0, (s, e) => s + e.grade.bonusPoints);
+    final totalUnsettledPts = allUnsettled.fold<double>(0.0, (s, e) => s + e.grade.bonusPoints);
 
     _Entry? topPending;
     if (allUnsettled.isNotEmpty) {
@@ -229,7 +230,8 @@ class _SectionLabel extends StatelessWidget {
 // ── unsettled banner ──────────────────────────────────────────────────────────
 
 class _UnsettledBanner extends StatelessWidget {
-  final int pts, count;
+  final double pts;
+  final int count;
   final AppLocalizations l10n;
   final VoidCallback onGoToInsights;
   const _UnsettledBanner({
@@ -268,7 +270,7 @@ class _UnsettledBanner extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      l10n.homeUnsettledBannerTitle(pts),
+                      l10n.homeUnsettledBannerTitle(ptsPrecise(pts)),
                       style: const TextStyle(
                         fontSize: 17,
                         fontWeight: FontWeight.w800,
@@ -470,7 +472,7 @@ class _ChildCardState extends State<_ChildCard> {
     final theme = Theme.of(context);
     final now = DateTime.now();
     final filtered = _filtered(now);
-    final totalPts = filtered.fold<int>(0, (s, g) => s + g.bonusPoints);
+    final totalPts = filtered.fold<double>(0.0, (s, g) => s + g.bonusPoints);
 
     return Container(
       padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
@@ -542,7 +544,7 @@ class _ChildCardState extends State<_ChildCard> {
               const Icon(Icons.star_outline_rounded, size: 14, color: AppColors.tierBest),
               const SizedBox(width: 4),
               Text(
-                l10n.homeChildPts(totalPts),
+                l10n.homeChildPts(ptsPrecise(totalPts)),
                 style: const TextStyle(
                     fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.tierBest),
               ),

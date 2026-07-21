@@ -3,7 +3,7 @@ class SettlementPackageItem {
   final String? subjectName;
   final String? gradeValue;
   final String? gradeQualityTier;
-  final int bonusPoints;
+  final double bonusPoints;
   final DateTime gradedAt;
   final String source; // 'calculator' | 'notes'
 
@@ -23,7 +23,7 @@ class SettlementPackageItem {
       subjectName: json['subjectName'] as String?,
       gradeValue: json['gradeValue'] as String?,
       gradeQualityTier: json['gradeQualityTier'] as String?,
-      bonusPoints: ((json['bonusPoints']) as num?)?.toInt() ?? 0,
+      bonusPoints: ((json['bonusPoints']) as num?)?.toDouble() ?? 0.0,
       gradedAt: DateTime.parse(json['gradedAt'] as String),
       source: json['source'] as String? ?? 'notes',
     );
@@ -37,7 +37,7 @@ class SettlementPackage {
   final String childId;
   final String childName;
   final int itemCount;
-  final int totalPoints;
+  final double totalPoints;
   final String? periodStart;
   final String? periodEnd;
   final bool isOngoing;
@@ -84,7 +84,7 @@ class SettlementPackage {
       childId: json['childId'] as String,
       childName: json['childName'] as String,
       itemCount: ((json['itemCount']) as num?)?.toInt() ?? 0,
-      totalPoints: ((json['totalPoints']) as num?)?.toInt() ?? 0,
+      totalPoints: ((json['totalPoints']) as num?)?.toDouble() ?? 0.0,
       periodStart: json['periodStart'] as String?,
       periodEnd: json['periodEnd'] as String?,
       isOngoing: json['isOngoing'] as bool? ?? false,

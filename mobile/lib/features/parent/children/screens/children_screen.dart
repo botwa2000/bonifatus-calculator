@@ -8,6 +8,7 @@ import '../../../../api/services/connection_service.dart';
 import '../../../../models/invite_code.dart';
 import '../../../../models/child_data.dart';
 import '../../providers/children_provider.dart';
+import '../../../../utils/format_utils.dart';
 
 class ChildrenScreen extends ConsumerStatefulWidget {
   const ChildrenScreen({super.key});
@@ -450,7 +451,7 @@ class _ChildCard extends StatelessWidget {
                         ),
                         const SizedBox(width: 8),
                         Text(
-                          l10n.childrenPtsPending(pendingPts),
+                          l10n.childrenPtsPending(ptsPrecise(pendingPts)),
                           style: TextStyle(
                             fontSize: 12,
                             color: cs.onSurfaceVariant,

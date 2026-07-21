@@ -1,4 +1,4 @@
-﻿{
+{
   "@@locale": "es",
   "@@last_modified": "2026-07-09T00:00:00.000000",
 
@@ -373,7 +373,7 @@
   "rewardsSettleAmount": "Liquidar · {pts} pts",
   "@rewardsSettleAmount": {
     "placeholders": {
-      "pts": { "type": "int" }
+      "pts": { "type": "num" }
     }
   },
 
@@ -384,7 +384,7 @@
   "@parentDashboardChildSubtitle": {
     "placeholders": {
       "count": { "type": "int" },
-      "pts": { "type": "int" }
+      "pts": { "type": "num" }
     }
   },
 
@@ -392,7 +392,7 @@
   "homeUnsettledBannerTitle": "{pts} pts listos para liquidar",
   "@homeUnsettledBannerTitle": {
     "placeholders": {
-      "pts": { "type": "int" }
+      "pts": { "type": "num" }
     }
   },
   "homeUnsettledBannerSub": "{count} elementos pendientes",
@@ -529,7 +529,7 @@
   "insightsWorstGrade": "Nota más baja",
   "insightsNoStreak": "¡Empieza tu racha!",
   "homeChildPts": "{pts} pts",
-  "@homeChildPts": { "placeholders": { "pts": { "type": "int" } } },
+  "@homeChildPts": { "placeholders": { "pts": { "type": "num" } } },
   "homeChildGrades": "{count} nota(s)",
   "@homeChildGrades": { "placeholders": { "count": { "type": "int" } } }
 ,

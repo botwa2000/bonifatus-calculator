@@ -1077,7 +1077,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get insightsNotes => 'notes';
 
   @override
-  String rewardsSettleAmount(int pts) {
+  String rewardsSettleAmount(num pts) {
     return 'Régler · $pts pts';
   }
 
@@ -1088,7 +1088,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get navCalculator => 'Calculatrice';
 
   @override
-  String parentDashboardChildSubtitle(int count, int pts) {
+  String parentDashboardChildSubtitle(int count, num pts) {
     return '$count notes · $pts pts en attente';
   }
 
@@ -1097,7 +1097,7 @@ class AppLocalizationsFr extends AppLocalizations {
       'Voici ce qui nécessite votre attention';
 
   @override
-  String homeUnsettledBannerTitle(int pts) {
+  String homeUnsettledBannerTitle(num pts) {
     return '$pts pts prêts à régler';
   }
 
@@ -1202,12 +1202,12 @@ class AppLocalizationsFr extends AppLocalizations {
   String get childrenView => 'Voir';
 
   @override
-  String childrenPtsPending(int pts) {
+  String childrenPtsPending(num pts) {
     return '$pts pts en attente';
   }
 
   @override
-  String rewardsSummarySubtitle(int count, int pts) {
+  String rewardsSummarySubtitle(int count, num pts) {
     return '$count notes · $pts pts au total';
   }
 
@@ -1380,7 +1380,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get settingsChildNotSpecified => 'Non renseigné';
 
   @override
-  String settingsChildStats(int grades, int pts, int pending) {
+  String settingsChildStats(int grades, num pts, num pending) {
     return '$grades notes · $pts pts au total · $pending en attente';
   }
 
@@ -1432,7 +1432,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get settleConfirmTitle => 'Confirmer le règlement';
 
   @override
-  String settleConfirmBody(int pts, String childName) {
+  String settleConfirmBody(num pts, String childName) {
     return 'Transférer $pts pts à $childName';
   }
 
@@ -1503,7 +1503,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get insightsNoStreak => 'Commencez votre série !';
 
   @override
-  String homeChildPts(int pts) {
+  String homeChildPts(num pts) {
     return '$pts pts';
   }
 

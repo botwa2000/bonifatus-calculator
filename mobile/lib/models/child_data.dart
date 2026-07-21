@@ -4,7 +4,7 @@ class ChildQuickGrade {
   final Map<String, dynamic> subjectNameMap;
   final String gradeValue;
   final String gradeQualityTier;
-  final int bonusPoints;
+  final double bonusPoints;
   final String settlementStatus;
   final DateTime gradedAt;
   // 'notes' = quick-capture note; 'calculator' = saved term subject grade
@@ -47,7 +47,7 @@ class ChildQuickGrade {
       subjectNameMap: nameMap,
       gradeValue: json['gradeValue'] as String? ?? '',
       gradeQualityTier: json['gradeQualityTier'] as String? ?? 'below',
-      bonusPoints: ((json['bonusPoints']) as num?)?.toInt() ?? 0,
+      bonusPoints: ((json['bonusPoints']) as num?)?.toDouble() ?? 0.0,
       settlementStatus: json['settlementStatus'] as String? ?? 'unsettled',
       gradedAt: DateTime.parse(json['gradedAt'] as String),
       gradeSource: json['gradeSource'] as String? ?? 'notes',
@@ -61,7 +61,7 @@ class ChildSubjectGrade {
   final Map<String, dynamic> subjectNameMap;
   final String? gradeValue;
   final String? gradeQualityTier;
-  final int bonusPoints;
+  final double bonusPoints;
   final double weight;
   final double? gradeNormalized100;
   // Native-scale grade value (e.g. 2.0 for DE grade "2"); avoids non-linear normalization round-trip
@@ -107,7 +107,7 @@ class ChildSubjectGrade {
       subjectNameMap: nameMap,
       gradeValue: (json['grade_value'] ?? json['gradeValue']) as String?,
       gradeQualityTier: (json['grade_quality_tier'] ?? json['gradeQualityTier']) as String?,
-      bonusPoints: ((json['bonus_points'] ?? json['bonusPoints']) as num?)?.toInt() ?? 0,
+      bonusPoints: ((json['bonus_points'] ?? json['bonusPoints']) as num?)?.toDouble() ?? 0.0,
       weight: ((json['subject_weight'] ?? json['subjectWeight']) as num?)?.toDouble() ?? 1.0,
       gradeNormalized100:
           ((json['grade_normalized_100'] ?? json['gradeNormalized100']) as num?)?.toDouble(),
@@ -123,7 +123,7 @@ class ChildTermResult {
   final String termType;
   final String? termName;
   final int classLevel;
-  final int totalBonusPoints;
+  final double totalBonusPoints;
   final String settlementStatus;
   final DateTime createdAt;
   final List<ChildSubjectGrade> subjects;
@@ -173,7 +173,7 @@ class ChildTermResult {
       termName: (json['term_name'] ?? json['termName']) as String?,
       classLevel: ((json['class_level'] ?? json['classLevel']) as num?)?.toInt() ?? 1,
       totalBonusPoints:
-          ((json['total_bonus_points'] ?? json['totalBonusPoints']) as num?)?.toInt() ?? 0,
+          ((json['total_bonus_points'] ?? json['totalBonusPoints']) as num?)?.toDouble() ?? 0.0,
       settlementStatus: (json['settlement_status'] ?? json['settlementStatus']) as String? ?? 'open',
       createdAt: createdRaw != null ? DateTime.parse(createdRaw) : DateTime.now(),
       subjects: subjectsRaw.map((s) => ChildSubjectGrade.fromJson(s as Map<String, dynamic>)).toList(),
@@ -284,9 +284,9 @@ class ChildWithGrades {
     );
   }
 
-  int get totalPendingPoints => grades
+  double get totalPendingPoints => grades
       .where((g) => g.settlementStatus == 'unsettled')
-      .fold(0, (sum, g) => sum + g.bonusPoints);
+      .fold(0.0, (sum, g) => sum + g.bonusPoints);
 
   String get latestTier {
     if (grades.isEmpty) return 'below';
@@ -328,7 +328,7 @@ class SettlementRecord {
   final String id;
   final String childId;
   final String? childName;
-  final int amount;
+  final double amount;
   final String currency;
   final String? packageType;
   final String? packageLabel;
@@ -353,7 +353,7 @@ class SettlementRecord {
       id: json['id'] as String,
       childId: json['childId'] as String,
       childName: json['childName'] as String?,
-      amount: ((json['amount']) as num?)?.toInt() ?? 0,
+      amount: ((json['amount']) as num?)?.toDouble() ?? 0.0,
       currency: json['currency'] as String? ?? 'pts',
       packageType: json['packageType'] as String?,
       packageLabel: json['packageLabel'] as String?,

@@ -9,6 +9,7 @@ import '../../providers/children_provider.dart';
 import '../../../../models/child_data.dart';
 import '../../../../api/services/connection_service.dart';
 import '../../../../utils/term_type_utils.dart';
+import '../../../../utils/format_utils.dart';
 
 List<ChildTermResult> _demoTermResults() => [
       ChildTermResult(
@@ -16,13 +17,13 @@ List<ChildTermResult> _demoTermResults() => [
         schoolYear: '2024/25',
         termType: 'semester_2',
         classLevel: 7,
-        totalBonusPoints: 14,
+        totalBonusPoints: 14.0,
         createdAt: DateTime(2025, 6, 15),
         subjects: [
-          ChildSubjectGrade(id: 'sg1', subjectNameMap: const {'en': 'Mathematics', 'de': 'Mathematik'}, gradeValue: '2', gradeQualityTier: 'best', bonusPoints: 4),
-          ChildSubjectGrade(id: 'sg2', subjectNameMap: const {'en': 'German', 'de': 'Deutsch'}, gradeValue: '1', gradeQualityTier: 'best', bonusPoints: 4),
-          ChildSubjectGrade(id: 'sg3', subjectNameMap: const {'en': 'English', 'de': 'Englisch'}, gradeValue: '3', gradeQualityTier: 'second', bonusPoints: 2),
-          ChildSubjectGrade(id: 'sg4', subjectNameMap: const {'en': 'Physics', 'de': 'Physik'}, gradeValue: '2', gradeQualityTier: 'best', bonusPoints: 4),
+          ChildSubjectGrade(id: 'sg1', subjectNameMap: const {'en': 'Mathematics', 'de': 'Mathematik'}, gradeValue: '2', gradeQualityTier: 'best', bonusPoints: 4.0),
+          ChildSubjectGrade(id: 'sg2', subjectNameMap: const {'en': 'German', 'de': 'Deutsch'}, gradeValue: '1', gradeQualityTier: 'best', bonusPoints: 4.0),
+          ChildSubjectGrade(id: 'sg3', subjectNameMap: const {'en': 'English', 'de': 'Englisch'}, gradeValue: '3', gradeQualityTier: 'second', bonusPoints: 2.0),
+          ChildSubjectGrade(id: 'sg4', subjectNameMap: const {'en': 'Physics', 'de': 'Physik'}, gradeValue: '2', gradeQualityTier: 'best', bonusPoints: 4.0),
         ],
       ),
       ChildTermResult(
@@ -30,12 +31,12 @@ List<ChildTermResult> _demoTermResults() => [
         schoolYear: '2024/25',
         termType: 'semester_1',
         classLevel: 7,
-        totalBonusPoints: 10,
+        totalBonusPoints: 10.0,
         createdAt: DateTime(2025, 1, 20),
         subjects: [
-          ChildSubjectGrade(id: 'sg5', subjectNameMap: const {'en': 'Mathematics', 'de': 'Mathematik'}, gradeValue: '3', gradeQualityTier: 'second', bonusPoints: 2),
-          ChildSubjectGrade(id: 'sg6', subjectNameMap: const {'en': 'German', 'de': 'Deutsch'}, gradeValue: '2', gradeQualityTier: 'best', bonusPoints: 4),
-          ChildSubjectGrade(id: 'sg7', subjectNameMap: const {'en': 'English', 'de': 'Englisch'}, gradeValue: '2', gradeQualityTier: 'best', bonusPoints: 4),
+          ChildSubjectGrade(id: 'sg5', subjectNameMap: const {'en': 'Mathematics', 'de': 'Mathematik'}, gradeValue: '3', gradeQualityTier: 'second', bonusPoints: 2.0),
+          ChildSubjectGrade(id: 'sg6', subjectNameMap: const {'en': 'German', 'de': 'Deutsch'}, gradeValue: '2', gradeQualityTier: 'best', bonusPoints: 4.0),
+          ChildSubjectGrade(id: 'sg7', subjectNameMap: const {'en': 'English', 'de': 'Englisch'}, gradeValue: '2', gradeQualityTier: 'best', bonusPoints: 4.0),
         ],
       ),
     ];
@@ -113,10 +114,10 @@ class ChildDetailScreen extends ConsumerWidget {
 
     final termResultsAsync = ref.watch(childTermResultsProvider(childId));
     final termPts = termResultsAsync.valueOrNull
-            ?.fold<int>(0, (s, t) => s + t.totalBonusPoints) ??
-        0;
+            ?.fold<double>(0.0, (s, t) => s + t.totalBonusPoints) ??
+        0.0;
     final totalPts =
-        child.grades.fold<int>(0, (s, g) => s + g.bonusPoints) + termPts;
+        child.grades.fold<double>(0.0, (s, g) => s + g.bonusPoints) + termPts;
     final pendingPts = child.totalPendingPoints;
 
     final cs = Theme.of(context).colorScheme;
@@ -278,7 +279,7 @@ class ChildDetailScreen extends ConsumerWidget {
   }
 
   Widget _buildSummaryCard(
-      ChildWithGrades child, int totalPts, int pendingPts, AppLocalizations l10n) {
+      ChildWithGrades child, double totalPts, double pendingPts, AppLocalizations l10n) {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -311,7 +312,7 @@ class ChildDetailScreen extends ConsumerWidget {
             child: _Stat(
               icon: Icons.star_outline_rounded,
               label: l10n.childDetailTotalPts,
-              value: totalPts.toString(),
+              value: fmtPts(totalPts),
             ),
           ),
           Container(
@@ -320,7 +321,7 @@ class ChildDetailScreen extends ConsumerWidget {
             child: _Stat(
               icon: Icons.pending_outlined,
               label: l10n.childDetailPending,
-              value: '$pendingPts ${l10n.ptsAbbr}',
+              value: '${fmtPts(pendingPts)} ${l10n.ptsAbbr}',
             ),
           ),
         ],
@@ -436,7 +437,7 @@ class _TermResultCard extends StatelessWidget {
         style: TextStyle(fontSize: 11, color: Theme.of(context).colorScheme.onSurfaceVariant),
       ),
       trailing: Text(
-        '+$pts ${l10n.ptsAbbr}',
+        '+${fmtPts(pts)} ${l10n.ptsAbbr}',
         style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: AppColors.tierBest),
       ),
       children: [
@@ -463,7 +464,7 @@ class _TermResultCard extends StatelessWidget {
                     style: TextStyle(fontSize: 13, color: Theme.of(context).colorScheme.onSurfaceVariant),
                   ),
                 ),
-                Text('+${s.bonusPoints} ${l10n.ptsAbbr}',
+                Text('+${fmtPts(s.bonusPoints)} ${l10n.ptsAbbr}',
                     style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.tierBest)),
               ],
             ),
@@ -477,7 +478,7 @@ class _TermResultCard extends StatelessWidget {
             children: [
               Text('${l10n.calculatorSubjectsLabel(term.subjects.length)}  ·  ${l10n.termDetailAverage}: $primary${secondary != null ? ' ($secondary)' : ''}',
                   style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.onSurfaceVariant)),
-              Text('+$pts ${l10n.ptsAbbr}',
+              Text('+${fmtPts(pts)} ${l10n.ptsAbbr}',
                   style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: AppColors.tierBest)),
             ],
           ),
@@ -524,7 +525,7 @@ class _GradeCard extends StatelessWidget {
           ]),
           const SizedBox(height: 20),
           Row(children: [
-            Expanded(child: _DetailChip(label: l10n.childDetailBonus, value: '+${grade.bonusPoints} ${l10n.ptsAbbr}', color: AppColors.tierBest, bg: AppColors.tierBestLight)),
+            Expanded(child: _DetailChip(label: l10n.childDetailBonus, value: '+${fmtPts(grade.bonusPoints)} ${l10n.ptsAbbr}', color: AppColors.tierBest, bg: AppColors.tierBestLight)),
             const SizedBox(width: 10),
             Expanded(child: _DetailChip(label: l10n.childDetailStatus,
               value: grade.settlementStatus == 'settled' ? l10n.childDetailSettled : l10n.childDetailPending,
@@ -608,7 +609,7 @@ class _GradeCard extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
               Text(
-                '+${grade.bonusPoints} ${AppLocalizations.of(context)!.ptsAbbr}',
+                '+${fmtPts(grade.bonusPoints)} ${AppLocalizations.of(context)!.ptsAbbr}',
                 style: const TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w700,

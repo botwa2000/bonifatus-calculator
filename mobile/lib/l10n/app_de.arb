@@ -1,4 +1,4 @@
-﻿{
+{
   "@@locale": "de",
   "@@last_modified": "2026-07-09T00:00:00.000000",
 
@@ -373,7 +373,7 @@
   "rewardsSettleAmount": "Abrechnen · {pts} Pts",
   "@rewardsSettleAmount": {
     "placeholders": {
-      "pts": { "type": "int" }
+      "pts": { "type": "num" }
     }
   },
 
@@ -384,7 +384,7 @@
   "@parentDashboardChildSubtitle": {
     "placeholders": {
       "count": { "type": "int" },
-      "pts": { "type": "int" }
+      "pts": { "type": "num" }
     }
   },
 
@@ -392,7 +392,7 @@
   "homeUnsettledBannerTitle": "{pts} Pkt. zum Auszahlen bereit",
   "@homeUnsettledBannerTitle": {
     "placeholders": {
-      "pts": { "type": "int" }
+      "pts": { "type": "num" }
     }
   },
   "homeUnsettledBannerSub": "{count} offene Posten",
@@ -529,7 +529,7 @@
   "insightsWorstGrade": "Niedrigste Note",
   "insightsNoStreak": "Starte deine Serie!",
   "homeChildPts": "{pts} Pkt.",
-  "@homeChildPts": { "placeholders": { "pts": { "type": "int" } } },
+  "@homeChildPts": { "placeholders": { "pts": { "type": "num" } } },
   "homeChildGrades": "{count} Noten",
   "@homeChildGrades": { "placeholders": { "count": { "type": "int" } } }
 ,

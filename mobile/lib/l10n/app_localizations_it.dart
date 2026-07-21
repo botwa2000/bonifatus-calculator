@@ -1061,7 +1061,7 @@ class AppLocalizationsIt extends AppLocalizations {
   String get insightsNotes => 'note';
 
   @override
-  String rewardsSettleAmount(int pts) {
+  String rewardsSettleAmount(num pts) {
     return 'Liquida · $pts pts';
   }
 
@@ -1072,7 +1072,7 @@ class AppLocalizationsIt extends AppLocalizations {
   String get navCalculator => 'Calcolatrice';
 
   @override
-  String parentDashboardChildSubtitle(int count, int pts) {
+  String parentDashboardChildSubtitle(int count, num pts) {
     return '$count voti · $pts pts in sospeso';
   }
 
@@ -1080,7 +1080,7 @@ class AppLocalizationsIt extends AppLocalizations {
   String get homeActionCenterSubtitle => 'Ecco cosa richiede la tua attenzione';
 
   @override
-  String homeUnsettledBannerTitle(int pts) {
+  String homeUnsettledBannerTitle(num pts) {
     return '$pts pts pronti per il saldo';
   }
 
@@ -1184,12 +1184,12 @@ class AppLocalizationsIt extends AppLocalizations {
   String get childrenView => 'Visualizza';
 
   @override
-  String childrenPtsPending(int pts) {
+  String childrenPtsPending(num pts) {
     return '$pts pts in sospeso';
   }
 
   @override
-  String rewardsSummarySubtitle(int count, int pts) {
+  String rewardsSummarySubtitle(int count, num pts) {
     return '$count voti · $pts pts totali';
   }
 
@@ -1362,7 +1362,7 @@ class AppLocalizationsIt extends AppLocalizations {
   String get settingsChildNotSpecified => 'Non specificato';
 
   @override
-  String settingsChildStats(int grades, int pts, int pending) {
+  String settingsChildStats(int grades, num pts, num pending) {
     return '$grades voti · $pts pts totali · $pending in sospeso';
   }
 
@@ -1414,7 +1414,7 @@ class AppLocalizationsIt extends AppLocalizations {
   String get settleConfirmTitle => 'Conferma regolazione';
 
   @override
-  String settleConfirmBody(int pts, String childName) {
+  String settleConfirmBody(num pts, String childName) {
     return 'Trasferisci $pts pts a $childName';
   }
 
@@ -1485,7 +1485,7 @@ class AppLocalizationsIt extends AppLocalizations {
   String get insightsNoStreak => 'Inizia la tua serie!';
 
   @override
-  String homeChildPts(int pts) {
+  String homeChildPts(num pts) {
     return '$pts pts';
   }
 

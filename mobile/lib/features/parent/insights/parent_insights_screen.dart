@@ -5,6 +5,7 @@ import 'package:bonifatus_mobile/l10n/app_localizations.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../models/child_data.dart';
 import '../providers/children_provider.dart';
+import '../../../utils/format_utils.dart';
 
 // ── helpers ───────────────────────────────────────────────────────────────────
 
@@ -96,7 +97,7 @@ class _ParentInsightsScreenState extends ConsumerState<ParentInsightsScreen> {
               .toList();
 
           final totalUnsettledPts =
-              unsettledGrades.fold<int>(0, (s, e) => s + e.grade.bonusPoints);
+              unsettledGrades.fold<double>(0.0, (s, e) => s + e.grade.bonusPoints);
           final totalUnsettledItems = unsettledGrades.length;
 
           return RefreshIndicator(
@@ -232,7 +233,8 @@ class _SectionHeader extends StatelessWidget {
 }
 
 class _SummaryBanner extends StatelessWidget {
-  final int unsettledPts, unsettledCount, childCount;
+  final double unsettledPts;
+  final int unsettledCount, childCount;
   const _SummaryBanner({required this.unsettledPts, required this.unsettledCount, required this.childCount});
 
   @override
@@ -250,7 +252,7 @@ class _SummaryBanner extends StatelessWidget {
       ),
       child: Row(
         children: [
-          Expanded(child: _BannerStat(value: '$unsettledPts', unit: l10n.ptsAbbr, label: l10n.insightsPendingPts)),
+          Expanded(child: _BannerStat(value: fmtPts(unsettledPts), unit: l10n.ptsAbbr, label: l10n.insightsPendingPts)),
           Container(width: 1, height: 36, color: Colors.white24),
           Expanded(child: _BannerStat(value: '$unsettledCount', label: l10n.insightsUnsettledGrades)),
           Container(width: 1, height: 36, color: Colors.white24),
@@ -290,7 +292,8 @@ class _BannerStat extends StatelessWidget {
 // ── settle navigation card ────────────────────────────────────────────────────
 
 class _SettleNavigationCard extends StatelessWidget {
-  final int pts, count;
+  final double pts;
+  final int count;
   const _SettleNavigationCard({required this.pts, required this.count});
 
   @override
@@ -327,7 +330,7 @@ class _SettleNavigationCard extends StatelessWidget {
                     style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: cs.onSurface),
                   ),
                   Text(
-                    '+$pts ${l10n.ptsAbbr} ${l10n.parentInsightsPending.toLowerCase()}',
+                    '+${fmtPts(pts)} ${l10n.ptsAbbr} ${l10n.parentInsightsPending.toLowerCase()}',
                     style: TextStyle(fontSize: 12, color: cs.onSurfaceVariant),
                   ),
                 ],
@@ -411,7 +414,7 @@ class _ActivityRow extends StatelessWidget {
           Column(
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
-              Text('+${grade.bonusPoints} ${l10n.ptsAbbr}',
+              Text('+${fmtPts(grade.bonusPoints)} ${l10n.ptsAbbr}',
                   style: const TextStyle(
                       fontSize: 13, fontWeight: FontWeight.w700, color: AppColors.tierBest)),
               if (isSettled)

@@ -6,6 +6,7 @@ import '../../../../core/theme/app_colors.dart';
 import '../../providers/children_provider.dart';
 import '../../../../models/settlement_package.dart';
 import '../../../../api/services/grade_service.dart';
+import '../../../../utils/format_utils.dart';
 
 class SettleScreen extends ConsumerStatefulWidget {
   const SettleScreen({super.key});
@@ -450,7 +451,7 @@ class _PackageCardState extends ConsumerState<_PackageCard> {
                       ],
                       const Spacer(),
                       Text(
-                        '+${pkg.totalPoints} ${l10n.ptsAbbr}',
+                        '+${fmtPts(pkg.totalPoints)} ${l10n.ptsAbbr}',
                         style: const TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.w800,
@@ -613,12 +614,12 @@ class _PackageCardState extends ConsumerState<_PackageCard> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
-                        l10n.settleConfirmBody(pkg.totalPoints, pkg.childName),
+                        l10n.settleConfirmBody(ptsPrecise(pkg.totalPoints), pkg.childName),
                         style: TextStyle(
                             color: cs.onSurface, fontWeight: FontWeight.w500),
                       ),
                       Text(
-                        '+${pkg.totalPoints} ${l10n.ptsAbbr}',
+                        '+${fmtPts(pkg.totalPoints)} ${l10n.ptsAbbr}',
                         style: const TextStyle(
                           fontSize: 20,
                           fontWeight: FontWeight.w800,
@@ -762,7 +763,7 @@ class _ItemRow extends StatelessWidget {
             const SizedBox(width: 8),
           ],
           Text(
-            '+${item.bonusPoints} ${l10n.ptsAbbr}',
+            '+${fmtPts(item.bonusPoints)} ${l10n.ptsAbbr}',
             style: const TextStyle(
               fontSize: 13,
               fontWeight: FontWeight.w700,
@@ -891,7 +892,7 @@ class _HistoryTab extends ConsumerWidget {
                           color: AppColors.tierBestLight,
                           borderRadius: BorderRadius.circular(20)),
                       child: Text(
-                        '+${s.amount} ${l10n.ptsAbbr}',
+                        '+${fmtPts(s.amount)} ${l10n.ptsAbbr}',
                         style: const TextStyle(
                           fontSize: 13,
                           fontWeight: FontWeight.w700,

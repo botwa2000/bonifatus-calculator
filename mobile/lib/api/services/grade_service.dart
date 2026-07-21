@@ -60,7 +60,7 @@ class GradeService {
         .toList();
   }
 
-  Future<({String id, int bonusPoints})> saveQuickGrade({
+  Future<({String id, double bonusPoints})> saveQuickGrade({
     required String subjectId,
     required String gradingSystemId,
     required int classLevel,
@@ -79,7 +79,7 @@ class GradeService {
     final qg = resp.data['quickGrade'] as Map<String, dynamic>;
     return (
       id: qg['id'] as String,
-      bonusPoints: qg['bonusPoints'] as int? ?? 0,
+      bonusPoints: (qg['bonusPoints'] as num?)?.toDouble() ?? 0.0,
     );
   }
 
@@ -116,7 +116,7 @@ class GradeService {
 
   Future<String> createSettlement({
     required String childId,
-    required int amount,
+    required double amount,
     List<String> quickGradeIds = const [],
     List<String> subjectGradeIds = const [],
     String? packageType,
@@ -124,7 +124,7 @@ class GradeService {
   }) async {
     final resp = await _client.post('/api/settlements/create', data: {
       'childId': childId,
-      'amount': amount.toDouble(),
+      'amount': amount,
       'currency': 'pts',
       'method': 'app',
       if (quickGradeIds.isNotEmpty) 'quickGradeIds': quickGradeIds,

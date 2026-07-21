@@ -2102,7 +2102,7 @@ abstract class AppLocalizations {
   ///
   /// In en, this message translates to:
   /// **'Settle · {pts} pts'**
-  String rewardsSettleAmount(int pts);
+  String rewardsSettleAmount(num pts);
 
   /// No description provided for @navHome.
   ///
@@ -2120,7 +2120,7 @@ abstract class AppLocalizations {
   ///
   /// In en, this message translates to:
   /// **'{count} grades · {pts} pts pending'**
-  String parentDashboardChildSubtitle(int count, int pts);
+  String parentDashboardChildSubtitle(int count, num pts);
 
   /// No description provided for @homeActionCenterSubtitle.
   ///
@@ -2132,7 +2132,7 @@ abstract class AppLocalizations {
   ///
   /// In en, this message translates to:
   /// **'{pts} pts ready to settle'**
-  String homeUnsettledBannerTitle(int pts);
+  String homeUnsettledBannerTitle(num pts);
 
   /// No description provided for @homeUnsettledBannerSub.
   ///
@@ -2270,13 +2270,13 @@ abstract class AppLocalizations {
   ///
   /// In en, this message translates to:
   /// **'{pts} pts pending'**
-  String childrenPtsPending(int pts);
+  String childrenPtsPending(num pts);
 
   /// No description provided for @rewardsSummarySubtitle.
   ///
   /// In en, this message translates to:
   /// **'{count} grades · {pts} pts total'**
-  String rewardsSummarySubtitle(int count, int pts);
+  String rewardsSummarySubtitle(int count, num pts);
 
   /// No description provided for @subjectFallback.
   ///
@@ -2576,7 +2576,7 @@ abstract class AppLocalizations {
   ///
   /// In en, this message translates to:
   /// **'{grades} grades · {pts} pts total · {pending} pending'**
-  String settingsChildStats(int grades, int pts, int pending);
+  String settingsChildStats(int grades, num pts, num pending);
 
   /// No description provided for @settleTitle.
   ///
@@ -2672,7 +2672,7 @@ abstract class AppLocalizations {
   ///
   /// In en, this message translates to:
   /// **'Transfer {pts} pts to {childName}'**
-  String settleConfirmBody(int pts, String childName);
+  String settleConfirmBody(num pts, String childName);
 
   /// No description provided for @settleConfirmButton.
   ///
@@ -2798,7 +2798,7 @@ abstract class AppLocalizations {
   ///
   /// In en, this message translates to:
   /// **'{pts} pts'**
-  String homeChildPts(int pts);
+  String homeChildPts(num pts);
 
   /// No description provided for @homeChildGrades.
   ///

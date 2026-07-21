@@ -7,6 +7,7 @@ import '../../../../core/theme/app_colors.dart';
 import '../../providers/children_provider.dart';
 import '../../../../models/child_data.dart';
 import '../../../../api/services/grade_service.dart';
+import '../../../../utils/format_utils.dart';
 
 class RewardsScreen extends ConsumerWidget {
   const RewardsScreen({super.key});
@@ -147,7 +148,7 @@ class _ChildGradesCard extends ConsumerWidget {
         .where((g) => g.settlementStatus == 'unsettled' && g.gradeSource == 'notes')
         .toList()
       ..sort((a, b) => b.gradedAt.compareTo(a.gradedAt));
-    final totalPts = pendingGrades.fold<int>(0, (sum, g) => sum + g.bonusPoints);
+    final totalPts = pendingGrades.fold<double>(0.0, (sum, g) => sum + g.bonusPoints);
 
     final Map<DateTime, List<ChildQuickGrade>> notesByWeek = {};
     for (final g in pendingGrades) {
@@ -233,7 +234,7 @@ class _GroupSection extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context)!;
-    final groupPts = grades.fold<int>(0, (s, g) => s + g.bonusPoints);
+    final groupPts = grades.fold<double>(0.0, (s, g) => s + g.bonusPoints);
     final cs = Theme.of(context).colorScheme;
 
     return Column(
@@ -259,7 +260,7 @@ class _GroupSection extends ConsumerWidget {
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                 padding: const EdgeInsets.symmetric(vertical: 10),
               ),
-              child: Text(l10n.rewardsSettleAmount(groupPts), style: const TextStyle(fontWeight: FontWeight.w600)),
+              child: Text(l10n.rewardsSettleAmount(ptsPrecise(groupPts)), style: const TextStyle(fontWeight: FontWeight.w600)),
             ),
           ),
         ),
@@ -268,7 +269,7 @@ class _GroupSection extends ConsumerWidget {
     );
   }
 
-  void _showGroupSettleSheet(BuildContext context, WidgetRef ref, int total) {
+  void _showGroupSettleSheet(BuildContext context, WidgetRef ref, double total) {
     final l10n = AppLocalizations.of(context)!;
     showModalBottomSheet<void>(
       context: context,
@@ -293,7 +294,7 @@ class _GroupSection extends ConsumerWidget {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(l10n.rewardsAmountToTransfer, style: TextStyle(color: Theme.of(sheetCtx).colorScheme.onSurface, fontWeight: FontWeight.w500)),
-                    Text('$total ${l10n.ptsAbbr}', style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w800, color: AppColors.tierBest)),
+                    Text('${fmtPts(total)} ${l10n.ptsAbbr}', style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w800, color: AppColors.tierBest)),
                   ],
                 ),
               ),
@@ -434,7 +435,7 @@ class _GradeRow extends StatelessWidget {
           ),
           const SizedBox(width: 12),
           Text(
-            '+${grade.bonusPoints} ${AppLocalizations.of(context)!.ptsAbbr}',
+            '+${fmtPts(grade.bonusPoints)} ${AppLocalizations.of(context)!.ptsAbbr}',
             style: const TextStyle(
               fontSize: 13,
               fontWeight: FontWeight.w700,
@@ -468,10 +469,10 @@ class _SummaryTab extends StatelessWidget {
       itemBuilder: (ctx, i) {
         final child = children[i];
         final notesGrades = child.grades.where((g) => g.gradeSource == 'notes').toList();
-        final totalPts = notesGrades.fold<int>(0, (s, g) => s + g.bonusPoints);
+        final totalPts = notesGrades.fold<double>(0.0, (s, g) => s + g.bonusPoints);
         final pending = notesGrades
             .where((g) => g.settlementStatus == 'unsettled')
-            .fold<int>(0, (s, g) => s + g.bonusPoints);
+            .fold<double>(0.0, (s, g) => s + g.bonusPoints);
 
         return Card(
           margin: const EdgeInsets.only(bottom: 12),
@@ -514,7 +515,7 @@ class _SummaryTab extends StatelessWidget {
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        AppLocalizations.of(context)!.rewardsSummarySubtitle(notesGrades.length, totalPts),
+                        AppLocalizations.of(context)!.rewardsSummarySubtitle(notesGrades.length, ptsPrecise(totalPts)),
                         style: TextStyle(
                             fontSize: 13, color: Theme.of(ctx).colorScheme.onSurfaceVariant),
                       ),
@@ -529,7 +530,7 @@ class _SummaryTab extends StatelessWidget {
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: Text(
-                    '$pending ${AppLocalizations.of(context)!.ptsAbbr}',
+                    '${fmtPts(pending)} ${AppLocalizations.of(context)!.ptsAbbr}',
                     style: const TextStyle(
                       fontSize: 13,
                       fontWeight: FontWeight.w700,
@@ -648,7 +649,7 @@ class _HistoryTab extends ConsumerWidget {
                         borderRadius: BorderRadius.circular(20),
                       ),
                       child: Text(
-                        '+${s.amount} ${l10n.ptsAbbr}',
+                        '+${fmtPts(s.amount)} ${l10n.ptsAbbr}',
                         style: const TextStyle(
                           fontSize: 13,
                           fontWeight: FontWeight.w700,

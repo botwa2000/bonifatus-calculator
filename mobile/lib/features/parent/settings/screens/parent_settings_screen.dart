@@ -15,6 +15,7 @@ import '../../../../api/services/profile_service.dart';
 import '../../../../core/constants/app_constants.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../../models/child_data.dart';
+import '../../../../utils/format_utils.dart';
 
 class _TierFactor {
   final String tier;
@@ -977,8 +978,8 @@ class _ParentSettingsScreenState extends ConsumerState<ParentSettingsScreen> {
     }
 
     final totalGrades = grades?.grades.length ?? 0;
-    final totalPts = grades?.grades.fold<int>(0, (s, g) => s + g.bonusPoints) ?? 0;
-    final pendingPts = grades?.totalPendingPoints ?? 0;
+    final totalPts = grades?.grades.fold<double>(0.0, (s, g) => s + g.bonusPoints) ?? 0.0;
+    final pendingPts = grades?.totalPendingPoints ?? 0.0;
 
     return ExpansionTile(
       tilePadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
@@ -1009,7 +1010,7 @@ class _ParentSettingsScreenState extends ConsumerState<ParentSettingsScreen> {
         Divider(height: 1, color: cs.outlineVariant),
         const SizedBox(height: 10),
         Text(
-          l10n.settingsChildStats(totalGrades, totalPts, pendingPts),
+          l10n.settingsChildStats(totalGrades, ptsPrecise(totalPts), ptsPrecise(pendingPts)),
           style: TextStyle(fontSize: 12, color: cs.onSurfaceVariant),
         ),
       ],

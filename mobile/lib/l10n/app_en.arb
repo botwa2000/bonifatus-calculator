@@ -423,7 +423,7 @@
   "rewardsSettleAmount": "Settle · {pts} pts",
   "@rewardsSettleAmount": {
     "placeholders": {
-      "pts": { "type": "int" }
+      "pts": { "type": "num" }
     }
   },
 
@@ -434,7 +434,7 @@
   "@parentDashboardChildSubtitle": {
     "placeholders": {
       "count": { "type": "int" },
-      "pts": { "type": "int" }
+      "pts": { "type": "num" }
     }
   },
 
@@ -442,7 +442,7 @@
   "homeUnsettledBannerTitle": "{pts} pts ready to settle",
   "@homeUnsettledBannerTitle": {
     "placeholders": {
-      "pts": { "type": "int" }
+      "pts": { "type": "num" }
     }
   },
   "homeUnsettledBannerSub": "{count} unsettled items",
@@ -494,13 +494,13 @@
   "childrenView": "View",
   "childrenPtsPending": "{pts} pts pending",
   "@childrenPtsPending": {
-    "placeholders": { "pts": { "type": "int" } }
+    "placeholders": { "pts": { "type": "num" } }
   },
   "rewardsSummarySubtitle": "{count} grades · {pts} pts total",
   "@rewardsSummarySubtitle": {
     "placeholders": {
       "count": { "type": "int" },
-      "pts": { "type": "int" }
+      "pts": { "type": "num" }
     }
   },
   "subjectFallback": "Subject",
@@ -582,8 +582,8 @@
   "@settingsChildStats": {
     "placeholders": {
       "grades": { "type": "int" },
-      "pts": { "type": "int" },
-      "pending": { "type": "int" }
+      "pts": { "type": "num" },
+      "pending": { "type": "num" }
     }
   },
 
@@ -608,7 +608,7 @@
   "settleConfirmBody": "Transfer {pts} pts to {childName}",
   "@settleConfirmBody": {
     "placeholders": {
-      "pts": { "type": "int" },
+      "pts": { "type": "num" },
       "childName": { "type": "String" }
     }
   },
@@ -640,7 +640,7 @@
   "insightsWorstGrade": "Lowest Grade",
   "insightsNoStreak": "Start your streak!",
   "homeChildPts": "{pts} pts",
-  "@homeChildPts": { "placeholders": { "pts": { "type": "int" } } },
+  "@homeChildPts": { "placeholders": { "pts": { "type": "num" } } },
   "homeChildGrades": "{count} grade(s)",
   "@homeChildGrades": { "placeholders": { "count": { "type": "int" } } },
 
