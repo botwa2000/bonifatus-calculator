@@ -10,6 +10,14 @@ import bcrypt from 'bcryptjs'
 import { dbg, dbgWarn, dbgError } from '@/lib/debug'
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
+  logger: {
+    error: (code, ...message) => {
+      console.error('[auth:error]', code, ...message)
+    },
+    warn: (code) => {
+      console.warn('[auth:warn]', code)
+    },
+  },
   trustHost: true,
   adapter: DrizzleAdapter(db),
   session: { strategy: 'jwt', maxAge: 30 * 24 * 60 * 60 },
