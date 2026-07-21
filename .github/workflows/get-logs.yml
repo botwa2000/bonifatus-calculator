@@ -1,0 +1,24 @@
+name: Get Production Logs
+
+on:
+  workflow_dispatch:
+    inputs:
+      lines:
+        description: 'Number of log lines to retrieve'
+        required: false
+        default: '80'
+
+jobs:
+  logs:
+    name: Fetch Docker service logs
+    runs-on: ubuntu-latest
+    steps:
+      - name: Fetch logs via SSH
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: 159.69.180.183
+          username: root
+          key: ${{ secrets.HETZNER_SSH_PRIVATE_KEY }}
+          script: |
+            echo "=== Recent app logs (last ${{ inputs.lines }} lines) ==="
+            docker service logs bonifatus-prod_app --tail ${{ inputs.lines }} --no-trunc 2>&1 || true
