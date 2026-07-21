@@ -133,8 +133,7 @@ jobs:
               DB_URL=$(docker exec "$RUNNING_CONTAINER" cat "/run/secrets/${ENV}_DATABASE_URL" 2>/dev/null || true)
             fi
             if [ -n "$DB_URL" ]; then
-              # Rewrite localhost → host.docker.internal so the node container reaches the host DB
-              DB_URL=$(printf '%s' "$DB_URL" | sed 's|@localhost:|@host.docker.internal:|')
+              # With --network host the node container sees host's localhost directly; no rewrite needed
               docker run --rm \
                 --network host \
                 -v "$REPO_DIR:/workspace" \
