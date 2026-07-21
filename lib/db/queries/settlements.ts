@@ -293,7 +293,7 @@ export async function getSettlementPackages(
         subjectName: name,
         gradeValue: r.gradeValue,
         gradeQualityTier: r.gradeQualityTier,
-        bonusPoints: Math.round((r.bonusPoints ?? 0) as number),
+        bonusPoints: (r.bonusPoints ?? 0) as number,
         gradedAt: r.createdAt ?? new Date(),
         source: 'calculator',
       }
@@ -366,7 +366,7 @@ export async function getSettlementPackages(
         subjectName: name,
         gradeValue: r.gradeValue,
         gradeQualityTier: r.gradeQualityTier,
-        bonusPoints: Math.round((r.bonusPoints ?? 0) as number),
+        bonusPoints: (r.bonusPoints ?? 0) as number,
         gradedAt: r.gradedAt ?? new Date(),
         source: 'notes',
       }
