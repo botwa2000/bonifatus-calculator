@@ -192,6 +192,7 @@
     "signingIn": "Signing in...",
     "emailVerifiedLogin": "Email verified successfully! Please sign in.",
     "sessionExpiredLogin": "You were signed out due to inactivity. Please sign in again.",
+    "oauthAccountNotLinked": "This email is already registered. Please sign in with your email and password.",
     "noAccount": "Don't have an account?",
     "signUpLink": "Sign up",
     "hasAccount": "Already have an account?",

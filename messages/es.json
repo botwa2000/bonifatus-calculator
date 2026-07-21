@@ -192,6 +192,7 @@
     "signingIn": "Iniciando sesión...",
     "emailVerifiedLogin": "¡Correo electrónico verificado con éxito! Por favor, inicia sesión.",
     "sessionExpiredLogin": "Tu sesión expiró por inactividad. Por favor, inicia sesión de nuevo.",
+    "oauthAccountNotLinked": "Este correo ya está registrado. Por favor, inicia sesión con tu correo y contraseña.",
     "noAccount": "¿No tienes una cuenta?",
     "signUpLink": "Regístrate",
     "hasAccount": "¿Ya tienes una cuenta?",

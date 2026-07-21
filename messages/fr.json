@@ -192,6 +192,7 @@
     "signingIn": "Connexion en cours...",
     "emailVerifiedLogin": "E-mail vérifié avec succès ! Veuillez vous connecter.",
     "sessionExpiredLogin": "Vous avez été déconnecté pour inactivité. Veuillez vous reconnecter.",
+    "oauthAccountNotLinked": "Cet e-mail est déjà enregistré. Veuillez vous connecter avec votre e-mail et mot de passe.",
     "noAccount": "Tu n'as pas de compte ?",
     "signUpLink": "S'inscrire",
     "hasAccount": "Tu as déjà un compte ?",

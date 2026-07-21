@@ -192,6 +192,7 @@
     "signingIn": "Anmeldung läuft...",
     "emailVerifiedLogin": "E-Mail erfolgreich verifiziert! Bitte melden Sie sich an.",
     "sessionExpiredLogin": "Sie wurden wegen Inaktivität abgemeldet. Bitte melden Sie sich erneut an.",
+    "oauthAccountNotLinked": "Diese E-Mail ist bereits registriert. Bitte melden Sie sich mit E-Mail und Passwort an.",
     "noAccount": "Noch kein Konto?",
     "signUpLink": "Registrieren",
     "hasAccount": "Bereits ein Konto?",

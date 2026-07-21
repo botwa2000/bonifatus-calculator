@@ -142,6 +142,14 @@ export default function LoginPage() {
     if (params.get('timeout') === '1') {
       setError(t('sessionExpiredLogin'))
     }
+    const authError = params.get('error')
+    if (authError) {
+      if (authError === 'OAuthAccountNotLinked') {
+        setError(t('oauthAccountNotLinked'))
+      } else {
+        setError(t('unexpectedError'))
+      }
+    }
   }, [t])
 
   // Sync browser-autofilled values into React state.
