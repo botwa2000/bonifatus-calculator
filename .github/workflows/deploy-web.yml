@@ -126,24 +126,15 @@ jobs:
             git checkout -- middleware.ts 2>/dev/null || true
 
             echo "=== [1.5/5] Run DB migrations ==="
-            # Read DATABASE_URL from the running service container (Swarm secrets are only
-            # accessible inside running services, not via docker run --secret)
+            # Run migrations inside the currently running container: it already has the correct
+            # DATABASE_URL and network access. Swarm secrets are not accessible outside services.
             RUNNING_CONTAINER=$(docker ps --filter "name=${STACK}_app" --format "{{.ID}}" | head -1)
             if [ -n "$RUNNING_CONTAINER" ]; then
-              DB_URL=$(docker exec "$RUNNING_CONTAINER" cat "/run/secrets/${ENV}_DATABASE_URL" 2>/dev/null || true)
-            fi
-            if [ -n "$DB_URL" ]; then
-              # With --network host the node container sees host's localhost directly; no rewrite needed
-              docker run --rm \
-                --network host \
-                -v "$REPO_DIR:/workspace" \
-                -w /workspace \
-                -e DATABASE_URL="$DB_URL" \
-                node:20-alpine \
-                sh -c 'npm ci --ignore-scripts --legacy-peer-deps --silent 2>&1 | tail -2 && npx drizzle-kit migrate'
+              docker exec "$RUNNING_CONTAINER" sh -c \
+                "cd /app && DATABASE_URL=\$(cat /run/secrets/${ENV}_DATABASE_URL) npx drizzle-kit migrate"
               echo "=== DB migrations complete ==="
             else
-              echo "WARNING: No running container found to read DATABASE_URL; run migrations manually"
+              echo "WARNING: No running container found; run migrations manually after deploy"
             fi
 
             echo "=== [2/5] Build image ==="
