@@ -125,17 +125,17 @@ jobs:
             # when git pull brought in commits that didn't touch middleware.ts)
             git checkout -- middleware.ts 2>/dev/null || true
 
-            echo "=== [1.5/5] Run DB migrations ==="
-            # Run migrations inside the currently running container: it already has the correct
-            # DATABASE_URL and network access. Swarm secrets are not accessible outside services.
-            RUNNING_CONTAINER=$(docker ps --filter "name=${STACK}_app" --format "{{.ID}}" | head -1)
-            if [ -n "$RUNNING_CONTAINER" ]; then
-              docker exec "$RUNNING_CONTAINER" sh -c \
-                "cd /app && DATABASE_URL=\$(cat /run/secrets/${ENV}_DATABASE_URL) npx drizzle-kit migrate"
-              echo "=== DB migrations complete ==="
-            else
-              echo "WARNING: No running container found; run migrations manually after deploy"
-            fi
+            echo "=== [1.5/5] Run DB migrations (manual) ==="
+            # drizzle-kit is a devDependency not present in the production image.
+            # To run a migration: ssh root@159.69.180.183 and exec into the running container:
+            #   CONTAINER=$(docker ps --filter name=bonifatus-prod_app --format "{{.ID}}" | head -1)
+            #   DB_URL=$(docker exec $CONTAINER cat /run/secrets/prod_DATABASE_URL)
+            #   docker exec $CONTAINER node -e "
+            #     const {Client}=require('/app/node_modules/pg');
+            #     const c=new Client({connectionString:'$DB_URL'});
+            #     c.connect().then(()=>c.query('ALTER TABLE ... ADD COLUMN IF NOT EXISTS ...')).then(()=>c.end())
+            #   "
+            echo "NOTE: Run migrations manually via docker exec if schema changes are pending"
 
             echo "=== [2/5] Build image ==="
             docker build \
