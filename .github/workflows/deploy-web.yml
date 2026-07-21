@@ -118,9 +118,12 @@ jobs:
             cd "$REPO_DIR"
             git fetch origin
             git checkout "${{ github.ref_name }}"
-            # proxy.ts was renamed to middleware.ts; remove stale untracked copies if present
-            rm -f proxy.ts middleware.ts
+            # proxy.ts is the old name for middleware.ts — remove if stale on disk
+            rm -f proxy.ts
             git pull origin "${{ github.ref_name }}"
+            # Ensure middleware.ts is present (rm -f above used to include it, causing 404
+            # when git pull brought in commits that didn't touch middleware.ts)
+            git checkout -- middleware.ts 2>/dev/null || true
 
             echo "=== [1.5/5] Run DB migrations ==="
             # DATABASE_URL lives in Docker Swarm secrets; read it via a temp container
