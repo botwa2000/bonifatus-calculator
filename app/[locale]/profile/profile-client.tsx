@@ -28,6 +28,9 @@ interface ProfileClientProps {
   themePreference: ThemeChoice
   role: 'parent' | 'child'
   schoolName?: string | null
+  schoolTown?: string | null
+  semesterCount?: number | null
+  programLength?: number | null
   avatarUrl?: string | null
   defaultGradingSystemId?: string | null
   defaultClassLevel?: number | null
@@ -45,6 +48,9 @@ export default function ProfileClient({
   themePreference,
   role,
   schoolName: initialSchoolName,
+  schoolTown: initialSchoolTown,
+  semesterCount: initialSemesterCount,
+  programLength: initialProgramLength,
   avatarUrl: initialAvatarUrl,
   defaultGradingSystemId: initialGradingSystemId,
   defaultClassLevel: initialClassLevel,
@@ -99,6 +105,9 @@ export default function ProfileClient({
   const [emailChangeStep, setEmailChangeStep] = useState<'idle' | 'code_sent' | 'done'>('idle')
 
   // School & Grading
+  const [schoolTownVal, setSchoolTownVal] = useState(initialSchoolTown || '')
+  const [semesterCount, setSemesterCount] = useState<number>(initialSemesterCount || 2)
+  const [programLength, setProgramLength] = useState<number>(initialProgramLength || 13)
   const [gradingSystemId, setGradingSystemId] = useState(initialGradingSystemId || '')
   const [classLevel, setClassLevel] = useState(initialClassLevel || 1)
 
@@ -328,6 +337,9 @@ export default function ProfileClient({
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           schoolName: schoolNameVal.trim() || null,
+          schoolTown: schoolTownVal.trim() || null,
+          semesterCount,
+          programLength,
           defaultGradingSystemId: gradingSystemId || null,
           defaultClassLevel: classLevel,
         }),
@@ -806,6 +818,18 @@ export default function ProfileClient({
             </div>
             <label className="block space-y-1">
               <span className="text-sm text-neutral-700 dark:text-neutral-300">
+                {t('schoolTown')}
+              </span>
+              <input
+                type="text"
+                value={schoolTownVal}
+                onChange={(e) => setSchoolTownVal(e.target.value)}
+                placeholder={t('schoolTownPlaceholder')}
+                className={inputClass}
+              />
+            </label>
+            <label className="block space-y-1">
+              <span className="text-sm text-neutral-700 dark:text-neutral-300">
                 {t('schoolName')}
               </span>
               <input
@@ -849,6 +873,40 @@ export default function ProfileClient({
                   </option>
                 ))}
               </select>
+            </label>
+            <label className="block space-y-1">
+              <span className="text-sm text-neutral-700 dark:text-neutral-300">
+                {t('semesterSystem')}
+              </span>
+              <select
+                value={semesterCount}
+                onChange={(e) => setSemesterCount(Number(e.target.value))}
+                className={inputClass}
+              >
+                <option value={2}>{t('semesterCount2')}</option>
+                <option value={3}>{t('semesterCount3')}</option>
+                <option value={4}>{t('semesterCount4')}</option>
+              </select>
+            </label>
+            <label className="block space-y-1">
+              <span className="text-sm text-neutral-700 dark:text-neutral-300">
+                {t('programLength')}
+              </span>
+              <select
+                value={programLength}
+                onChange={(e) => setProgramLength(Number(e.target.value))}
+                className={inputClass}
+              >
+                {Array.from({ length: 20 }, (_, i) => i + 1).map((n) => (
+                  <option key={n} value={n}>
+                    {n} {t('programLengthYears')}
+                    {n === 13 ? ` (${t('programLengthDefault')})` : ''}
+                  </option>
+                ))}
+              </select>
+              <p className="text-xs text-neutral-500 dark:text-neutral-400">
+                {t('programLengthHint')}
+              </p>
             </label>
             <button onClick={handleSaveSchool} disabled={saving.school} className={btnPrimary}>
               {saving.school ? tc('saving') : tc('save')}

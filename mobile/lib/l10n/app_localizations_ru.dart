@@ -1500,4 +1500,66 @@ class AppLocalizationsRu extends AppLocalizations {
   String homeChildGrades(int count) {
     return '$count оц.';
   }
+
+  @override
+  String get settingsSectionSchool => 'Shkolnaya informatsiya';
+
+  @override
+  String get settingsSchoolInfo => 'Shkola i sistema otsenok';
+
+  @override
+  String get settingsSchoolInfoDesc =>
+      'Nastroyte shkolnye dannye dlya tochnogo raschyota bonusov';
+
+  @override
+  String get profileSchoolTown => 'Gorod shkoly';
+
+  @override
+  String get profileSchoolTownPlaceholder => 'napr., Myunkhen';
+
+  @override
+  String get profileSchoolName => 'Nazvanie shkoly';
+
+  @override
+  String get profileSchoolNamePlaceholder => 'napr., Maximilians-Gymnasium';
+
+  @override
+  String get profileSemesterSystem => 'Sistema semestrov';
+
+  @override
+  String get profileSemesterCount2 => '2 semestra v god';
+
+  @override
+  String get profileSemesterCount3 => '3 trimestra v god';
+
+  @override
+  String get profileSemesterCount4 => '4 chetverti v god';
+
+  @override
+  String get profileProgramLength => 'Dlina shkolnoy programmy';
+
+  @override
+  String get profileProgramLengthYears => 'let';
+
+  @override
+  String get profileProgramLengthDefault => 'standart';
+
+  @override
+  String get profileProgramLengthHint =>
+      'Dlya spravedlivogo raschyota bonusov mezhdu raznymi shkolnymi programmami';
+
+  @override
+  String get profileSaved => 'Profil sokhranyyon';
+
+  @override
+  String get insightsPeriodMonth => '1 Mesyats';
+
+  @override
+  String get insightsPeriod3Months => '3 Mesyatsa';
+
+  @override
+  String get insightsPeriodYear => '1 God';
+
+  @override
+  String get insightsPeriodAll => 'Za vsyo vremya';
 }

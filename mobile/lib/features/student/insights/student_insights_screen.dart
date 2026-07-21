@@ -60,7 +60,7 @@ class StudentInsightsScreen extends ConsumerWidget {
   }
 }
 
-enum _Period { week, month, allTime }
+enum _Period { month, threeMonths, year, allTime }
 
 int _tierPriority(String tier) => switch (tier) {
       'best' => 4,
@@ -101,30 +101,31 @@ class _InsightsBody extends StatefulWidget {
 }
 
 class _InsightsBodyState extends State<_InsightsBody> {
-  _Period _period = _Period.week;
+  _Period _period = _Period.allTime;
 
-  List<QuickGrade> _periodGrades(DateTime now) {
-    final g = widget.grades;
-    return switch (_period) {
-      _Period.week => () {
-          final wStart = DateTime(now.year, now.month, now.day - (now.weekday - 1));
-          return g.where((e) => !e.gradedAt.isBefore(wStart)).toList();
-        }(),
-      _Period.month =>
-        g.where((e) => e.gradedAt.year == now.year && e.gradedAt.month == now.month).toList(),
-      _Period.allTime => g,
+  List<T> _filterByPeriod<T>(List<T> items, DateTime Function(T) getDate, DateTime now) {
+    if (_period == _Period.allTime) return items;
+    final cutoff = switch (_period) {
+      _Period.month => DateTime(now.year, now.month - 1, now.day),
+      _Period.threeMonths => DateTime(now.year, now.month - 3, now.day),
+      _Period.year => DateTime(now.year - 1, now.month, now.day),
+      _Period.allTime => DateTime(1970),
     };
+    return items.where((item) => !getDate(item).isBefore(cutoff)).toList();
   }
 
   @override
   Widget build(BuildContext context) {
-    final grades = widget.grades;
-    final terms = widget.terms;
     final l10n = AppLocalizations.of(context)!;
     final locale = Localizations.localeOf(context).languageCode;
     final theme = Theme.of(context);
+    final now = DateTime.now();
 
-    if (grades.isEmpty && terms.isEmpty) {
+    // Apply global period filter to both data sources
+    final grades = _filterByPeriod(widget.grades, (g) => g.gradedAt, now);
+    final terms = _filterByPeriod(widget.terms, (t) => t.createdAt, now);
+
+    if (widget.grades.isEmpty && widget.terms.isEmpty) {
       return Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -140,8 +141,6 @@ class _InsightsBodyState extends State<_InsightsBody> {
         ),
       );
     }
-
-    final now = DateTime.now();
 
     // ── Grade Trend (from calculator terms) ───────────────────────────────
     final trendTerms = [...terms]..sort((a, b) => a.createdAt.compareTo(b.createdAt));
@@ -184,8 +183,8 @@ class _InsightsBodyState extends State<_InsightsBody> {
       return '${(c * 100 / total).round()}%';
     }
 
-    // ── Period stats ──────────────────────────────────────────────────────
-    final pGrades = _periodGrades(now);
+    // ── Period stats (uses already-filtered grades) ───────────────────────
+    final pGrades = grades;
     final pPts = pGrades.fold(0.0, (s, g) => s + g.bonusPoints);
     final pPending = pGrades
         .where((g) => g.settlementStatus == 'pending')
@@ -231,13 +230,39 @@ class _InsightsBodyState extends State<_InsightsBody> {
           if (pa != pb) return pa < pb ? a : b;
           return a.bonusPoints <= b.bonusPoints ? a : b;
         });
-        if (worstGrade!.id == bestGrade.id) worstGrade = null;
+        if (worstGrade.id == bestGrade.id) worstGrade = null;
       }
     }
 
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
       child: Column(children: [
+
+        // ── Global period filter ──────────────────────────────────────────
+        SegmentedButton<_Period>(
+          style: SegmentedButton.styleFrom(
+            textStyle: const TextStyle(fontSize: 11),
+            visualDensity: VisualDensity.compact,
+          ),
+          segments: [
+            ButtonSegment(value: _Period.month, label: Text(l10n.insightsPeriodMonth)),
+            ButtonSegment(value: _Period.threeMonths, label: Text(l10n.insightsPeriod3Months)),
+            ButtonSegment(value: _Period.year, label: Text(l10n.insightsPeriodYear)),
+            ButtonSegment(value: _Period.allTime, label: Text(l10n.insightsPeriodAll)),
+          ],
+          selected: {_period},
+          onSelectionChanged: (sel) => setState(() => _period = sel.first),
+        ),
+        const SizedBox(height: 12),
+
+        if (grades.isEmpty && terms.isEmpty) ...[
+          const SizedBox(height: 48),
+          Icon(Icons.filter_list_rounded, size: 40, color: theme.colorScheme.outlineVariant),
+          const SizedBox(height: 8),
+          Text(l10n.insightsNoGradesYet,
+              style: TextStyle(color: theme.colorScheme.onSurfaceVariant, fontSize: 14)),
+          const SizedBox(height: 60),
+        ],
 
         // ── Grade Trend (calculator terms) ────────────────────────────────
         if (trendSpots.length >= 2) ...[
@@ -580,26 +605,10 @@ class _InsightsBodyState extends State<_InsightsBody> {
           Card(
             child: Padding(
               padding: const EdgeInsets.all(16),
-              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                SegmentedButton<_Period>(
-                  style: SegmentedButton.styleFrom(
-                    textStyle: const TextStyle(fontSize: 12),
-                    visualDensity: VisualDensity.compact,
-                  ),
-                  segments: [
-                    ButtonSegment(value: _Period.week, label: Text(l10n.periodWeek)),
-                    ButtonSegment(value: _Period.month, label: Text(l10n.periodMonth)),
-                    ButtonSegment(value: _Period.allTime, label: Text(l10n.periodAllTime)),
-                  ],
-                  selected: {_period},
-                  onSelectionChanged: (sel) => setState(() => _period = sel.first),
-                ),
-                const SizedBox(height: 16),
-                Row(mainAxisAlignment: MainAxisAlignment.spaceAround, children: [
-                  _BigStat(label: l10n.insightsGrades, value: pGrades.length.toString()),
-                  _BigStat(label: l10n.insightsEarned, value: fmtPts(pPts)),
-                  _BigStat(label: l10n.insightsPending, value: fmtPts(pPending)),
-                ]),
+              child: Row(mainAxisAlignment: MainAxisAlignment.spaceAround, children: [
+                _BigStat(label: l10n.insightsGrades, value: pGrades.length.toString()),
+                _BigStat(label: l10n.insightsEarned, value: fmtPts(pPts)),
+                _BigStat(label: l10n.insightsPending, value: fmtPts(pPending)),
               ]),
             ),
           ),

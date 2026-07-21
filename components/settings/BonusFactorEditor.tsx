@@ -26,6 +26,17 @@ const TERM_TYPE_KEYS = [
 ] as const
 const CLASS_LEVEL_KEYS = Array.from({ length: 13 }, (_, i) => `class_${i + 1}`) as string[]
 
+/** Sensible fallback when no DB default exists for a given key. */
+function fallbackValue(factorType: string, factorKey: string): number {
+  if (factorType === 'grade_tier') {
+    if (factorKey === 'best') return 2
+    if (factorKey === 'second') return 1
+    if (factorKey === 'third') return 0
+    if (factorKey === 'below') return -1
+  }
+  return 0
+}
+
 function getEffectiveValue(
   factorType: string,
   factorKey: string,
@@ -35,7 +46,7 @@ function getEffectiveValue(
   const override = overrides.find((f) => f.factorType === factorType && f.factorKey === factorKey)
   if (override !== undefined) return override.factorValue
   const def = defaults.find((f) => f.factorType === factorType && f.factorKey === factorKey)
-  return def?.factorValue ?? 0
+  return def?.factorValue ?? fallbackValue(factorType, factorKey)
 }
 
 function buildCurrentFactors(
@@ -197,7 +208,7 @@ export default function BonusFactorEditor() {
             factors.push({
               factorType: section.type,
               factorKey: key,
-              factorValue: def?.factorValue ?? 0,
+              factorValue: def?.factorValue ?? fallbackValue(section.type, key),
             })
           } else {
             const effective = getEffectiveValue(section.type, key, defaults, remaining)
@@ -242,7 +253,7 @@ export default function BonusFactorEditor() {
   const getDefaultValue = useCallback(
     (factorType: string, factorKey: string): number => {
       const def = defaults.find((f) => f.factorType === factorType && f.factorKey === factorKey)
-      return def?.factorValue ?? 0
+      return def?.factorValue ?? fallbackValue(factorType, factorKey)
     },
     [defaults]
   )
@@ -352,6 +363,8 @@ export default function BonusFactorEditor() {
               isOverridden={isOverridden('grade_tier', key)}
               onChange={(val) => handleChange('grade_tier', key, val)}
               step={0.5}
+              min={-5}
+              max={10}
             />
           ))}
         </div>
@@ -482,6 +495,8 @@ function FactorInput({
   isOverridden,
   onChange,
   step = 0.1,
+  min,
+  max,
 }: {
   label: string
   value: number
@@ -489,6 +504,8 @@ function FactorInput({
   isOverridden: boolean
   onChange: (val: number) => void
   step?: number
+  min?: number
+  max?: number
 }) {
   return (
     <div className="flex items-center justify-between gap-3">
@@ -505,6 +522,8 @@ function FactorInput({
         <input
           type="number"
           step={step}
+          min={min}
+          max={max}
           value={value}
           onChange={(e) => {
             const parsed = parseFloat(e.target.value)

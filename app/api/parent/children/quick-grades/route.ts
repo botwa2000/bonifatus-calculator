@@ -3,7 +3,7 @@ import { requireAuthApi, getUserProfile } from '@/lib/auth/session'
 import { getAcceptedChildren } from '@/lib/db/queries/relationships'
 import {
   getChildQuickGrades,
-  getChildTermSubjectGradesForDashboard,
+  getChildTermSummariesForDashboard,
 } from '@/lib/db/queries/settlements'
 
 export async function GET() {
@@ -26,13 +26,13 @@ export async function GET() {
 
     const childrenGrades = await Promise.all(
       relationships.map(async (rel) => {
-        const [quickGrades, termGrades] = await Promise.all([
+        const [quickGrades, termSummaries] = await Promise.all([
           getChildQuickGrades(rel.childId),
-          getChildTermSubjectGradesForDashboard(rel.childId),
+          getChildTermSummariesForDashboard(rel.childId),
         ])
-        // Combine both grade sources; term grades fill the gap for children who
-        // have calculator results but no ongoing quick grades yet
-        const grades = [...quickGrades, ...termGrades].sort(
+        // Combine individual quick-grades (notes) with one summary entry per term.
+        // This prevents flooding the Kids tab with individual subject lines from test reports.
+        const grades = [...quickGrades, ...termSummaries].sort(
           (a, b) => new Date(b.gradedAt ?? 0).getTime() - new Date(a.gradedAt ?? 0).getTime()
         )
         const child = profileMap[rel.childId]

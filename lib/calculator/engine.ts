@@ -23,6 +23,10 @@ export type CalculatorInput = {
   classLevel: number
   termType: string
   subjects: CalculatorInputSubject[]
+  /** Number of years in the school program (e.g. 13 for G9, 12 for G8).
+   *  When provided, classLevel is normalized to the equivalent G9 level
+   *  so students in shorter programs aren't disadvantaged. */
+  programLength?: number
 }
 
 export type CalculatorSubjectResult = {
@@ -178,7 +182,15 @@ export function calculateSingleGradeBonus(input: SingleGradeInput): CalculatorSu
 }
 
 export function calculateBonus(input: CalculatorInput): CalculatorResult {
-  const { gradingSystem, factors, classLevel, termType, subjects } = input
+  const { gradingSystem, factors, termType, subjects } = input
+
+  // Normalize classLevel for program length: G8 class 12 ≡ G9 class 13 (same final year).
+  // Formula: effectiveClass = round(classLevel / programLength × 13), clamped 1–13.
+  const normalizedClassLevel =
+    input.programLength && input.programLength !== 13
+      ? Math.max(1, Math.min(13, Math.round((input.classLevel / input.programLength) * 13)))
+      : input.classLevel
+  const classLevel = normalizedClassLevel
 
   // Formula: class_level × term_factor × grade_factor × weight, floored at 0
   // Class level factor equals the class number (5th class = 5, 10th class = 10)

@@ -642,5 +642,28 @@
   "homeChildPts": "{pts} pts",
   "@homeChildPts": { "placeholders": { "pts": { "type": "int" } } },
   "homeChildGrades": "{count} grade(s)",
-  "@homeChildGrades": { "placeholders": { "count": { "type": "int" } } }
+  "@homeChildGrades": { "placeholders": { "count": { "type": "int" } } },
+
+  "settingsSectionSchool": "School Information",
+  "settingsSchoolInfo": "School & Grading System",
+  "settingsSchoolInfoDesc": "Configure your school details for accurate bonus calculations",
+
+  "profileSchoolTown": "School Town / City",
+  "profileSchoolTownPlaceholder": "e.g. Munich",
+  "profileSchoolName": "School Name",
+  "profileSchoolNamePlaceholder": "e.g. Maximilians-Gymnasium",
+  "profileSemesterSystem": "Semester System",
+  "profileSemesterCount2": "2 semesters per year",
+  "profileSemesterCount3": "3 trimesters per year",
+  "profileSemesterCount4": "4 quarters per year",
+  "profileProgramLength": "School Program Length",
+  "profileProgramLengthYears": "years",
+  "profileProgramLengthDefault": "standard",
+  "profileProgramLengthHint": "Used to fairly calculate bonus points across different school programs (e.g. G8 vs G9)",
+  "profileSaved": "Profile saved",
+
+  "insightsPeriodMonth": "1 Month",
+  "insightsPeriod3Months": "3 Months",
+  "insightsPeriodYear": "1 Year",
+  "insightsPeriodAll": "All Time"
 }

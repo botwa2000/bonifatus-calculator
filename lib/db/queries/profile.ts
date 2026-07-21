@@ -15,6 +15,9 @@ export async function updateProfile(
     dateOfBirth?: string
     themePreference?: 'light' | 'dark' | 'system'
     schoolName?: string | null
+    schoolTown?: string | null
+    semesterCount?: number | null
+    programLength?: number | null
     avatarUrl?: string | null
     defaultGradingSystemId?: string | null
     defaultClassLevel?: number | null
@@ -25,6 +28,9 @@ export async function updateProfile(
   if (data.dateOfBirth !== undefined) updateData.dateOfBirth = data.dateOfBirth
   if (data.themePreference !== undefined) updateData.themePreference = data.themePreference
   if (data.schoolName !== undefined) updateData.schoolName = data.schoolName
+  if (data.schoolTown !== undefined) updateData.schoolTown = data.schoolTown
+  if (data.semesterCount !== undefined) updateData.semesterCount = data.semesterCount
+  if (data.programLength !== undefined) updateData.programLength = data.programLength
   if (data.avatarUrl !== undefined) updateData.avatarUrl = data.avatarUrl
   if (data.defaultGradingSystemId !== undefined)
     updateData.defaultGradingSystemId = data.defaultGradingSystemId

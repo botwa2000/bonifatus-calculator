@@ -21,6 +21,7 @@ type Connection = {
     fullName: string
     role?: string
     schoolName?: string | null
+    schoolTown?: string | null
     email?: string | null
   }
 }
@@ -98,6 +99,7 @@ export default function ParentChildrenPage() {
   const [nowMs, setNowMs] = useState(() => Date.now())
   const [gradeSummaries, setGradeSummaries] = useState<Record<string, ChildGradeSummary>>({})
   const [gradePreviews, setGradePreviews] = useState<Record<string, TermPreview[]>>({})
+  const [pendingPoints, setPendingPoints] = useState<Record<string, number>>({})
   const [gradesLoaded, setGradesLoaded] = useState(false)
   const [expandedTerm, setExpandedTerm] = useState<Record<string, string | null>>({})
 
@@ -116,13 +118,15 @@ export default function ParentChildrenPage() {
     setGradesLoaded(false)
     setError(null)
     try {
-      const [connRes, gradesRes] = await Promise.all([
+      const [connRes, gradesRes, unsettledRes] = await Promise.all([
         fetch('/api/connections/list'),
         fetch('/api/parent/children/grades'),
+        fetch('/api/parent/children/unsettled-grades'),
       ])
-      const [connJson, gradesJson] = await Promise.all([
+      const [connJson, gradesJson, unsettledJson] = await Promise.all([
         connRes.json(),
         gradesRes.json() as Promise<GradesResponse>,
+        unsettledRes.json(),
       ])
 
       if (!connRes.ok || !connJson.success) {
@@ -176,6 +180,18 @@ export default function ParentChildrenPage() {
         })
         setGradeSummaries(summaries)
         setGradePreviews(previews)
+      }
+
+      // Compute pending (unsettled) points per child from both calc and quick grades
+      if (unsettledRes.ok && unsettledJson?.success) {
+        const pending: Record<string, number> = {}
+        for (const child of unsettledJson.children || []) {
+          pending[child.childId] = (child.grades || []).reduce(
+            (sum: number, g: { bonusPoints: number }) => sum + (Number(g.bonusPoints) || 0),
+            0
+          )
+        }
+        setPendingPoints(pending)
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load connections')
@@ -352,9 +368,9 @@ export default function ParentChildrenPage() {
                     gradesLoaded && gradeSummaries[connection.childId]
                       ? gradeSummaries[connection.childId].savedTerms
                       : '-'
-                  const totalBonus =
-                    gradesLoaded && gradeSummaries[connection.childId]
-                      ? Number(gradeSummaries[connection.childId].totalBonus || 0).toFixed(2)
+                  const pendingBonus =
+                    gradesLoaded && pendingPoints[connection.childId] !== undefined
+                      ? Number(pendingPoints[connection.childId] || 0).toFixed(2)
                       : '-'
                   const lastUpdated =
                     gradesLoaded && gradeSummaries[connection.childId]
@@ -373,9 +389,11 @@ export default function ParentChildrenPage() {
                               <p className="text-lg font-semibold text-neutral-900 dark:text-white">
                                 {connection.child?.fullName || t('child')}
                               </p>
-                              {connection.child?.schoolName && (
+                              {(connection.child?.schoolTown || connection.child?.schoolName) && (
                                 <p className="text-xs text-neutral-500 dark:text-neutral-400">
-                                  {connection.child.schoolName}
+                                  {[connection.child.schoolTown, connection.child.schoolName]
+                                    .filter(Boolean)
+                                    .join(' · ')}
                                 </p>
                               )}
                               <div className="flex flex-wrap gap-3 text-xs text-neutral-600 dark:text-neutral-400">
@@ -395,7 +413,7 @@ export default function ParentChildrenPage() {
                                   {t('savedResultsCount', { count: savedTerms })}
                                 </span>
                                 <span className="rounded-full bg-amber-50 text-amber-700 dark:bg-amber-900/40 dark:text-amber-200 px-2 py-1">
-                                  {t('bonusLabel', { value: totalBonus })}
+                                  {t('pendingBonus', { value: pendingBonus })}
                                 </span>
                                 <span className="rounded-full bg-neutral-100 text-neutral-700 dark:bg-neutral-800 dark:text-neutral-200 px-2 py-1">
                                   {t('updated', { date: lastUpdated })}

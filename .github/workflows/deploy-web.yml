@@ -122,6 +122,26 @@ jobs:
             rm -f proxy.ts middleware.ts
             git pull origin "${{ github.ref_name }}"
 
+            echo "=== [1.5/5] Run DB migrations ==="
+            # DATABASE_URL lives in Docker Swarm secrets; read it via a temp container
+            DB_URL=$(docker run --rm \
+              --secret source="${ENV}_DATABASE_URL",target=db_url \
+              alpine cat /run/secrets/db_url 2>/dev/null || true)
+            if [ -n "$DB_URL" ]; then
+              # Rewrite localhost → host.docker.internal so the container reaches the host DB
+              DB_URL=$(printf '%s' "$DB_URL" | sed 's|@localhost:|@host.docker.internal:|')
+              docker run --rm \
+                --network host \
+                -v "$REPO_DIR:/workspace" \
+                -w /workspace \
+                -e DATABASE_URL="$DB_URL" \
+                node:20-alpine \
+                sh -c 'npm ci --ignore-scripts --legacy-peer-deps --silent 2>&1 | tail -2 && npx drizzle-kit migrate'
+              echo "=== DB migrations complete ==="
+            else
+              echo "WARNING: DATABASE_URL Swarm secret not found; run migrations manually"
+            fi
+
             echo "=== [2/5] Build image ==="
             docker build \
               --build-arg NEXT_PUBLIC_TURNSTILE_SITE_KEY="$TURNSTILE_KEY" \

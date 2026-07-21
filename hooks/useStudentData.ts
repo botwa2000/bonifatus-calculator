@@ -53,6 +53,8 @@ export type TermPrefill = {
   }>
 }
 
+export type InsightsPeriod = 'month' | '3months' | 'year' | 'all'
+
 export function useStudentData() {
   const locale = useLocale()
   const [terms, setTerms] = useState<Term[]>([])
@@ -61,6 +63,7 @@ export function useStudentData() {
   const [selectedYear, setSelectedYear] = useState<string>('all')
   const [selectedTermType, setSelectedTermType] = useState<string>('all')
   const [expandedTerm, setExpandedTerm] = useState<string | null>(null)
+  const [insightsPeriod, setInsightsPeriod] = useState<InsightsPeriod>('all')
   const [profile, setProfile] = useState<{
     full_name?: string | null
     date_of_birth?: string | null
@@ -129,17 +132,28 @@ export function useStudentData() {
     })
   }, [terms, selectedYear, selectedTermType])
 
+  // Terms filtered for the insights page (by period only)
+  const insightTerms = useMemo(() => {
+    if (insightsPeriod === 'all') return terms
+    const cutoff = new Date()
+    if (insightsPeriod === 'month') cutoff.setMonth(cutoff.getMonth() - 1)
+    else if (insightsPeriod === '3months') cutoff.setMonth(cutoff.getMonth() - 3)
+    else if (insightsPeriod === 'year') cutoff.setFullYear(cutoff.getFullYear() - 1)
+    return terms.filter((t) => new Date(t.created_at) >= cutoff)
+  }, [terms, insightsPeriod])
+
   const stats = useMemo(() => {
-    if (!terms.length) return null
-    const total = terms.reduce((acc, t) => acc + (Number(t.total_bonus_points) || 0), 0)
-    const best = terms.reduce((prev, curr) =>
+    const src = insightTerms
+    if (!src.length) return null
+    const total = src.reduce((acc, t) => acc + (Number(t.total_bonus_points) || 0), 0)
+    const best = src.reduce((prev, curr) =>
       (curr.total_bonus_points || 0) > (prev.total_bonus_points || 0) ? curr : prev
     )
-    const byYear = terms.reduce<Record<string, number>>((acc, t) => {
+    const byYear = src.reduce<Record<string, number>>((acc, t) => {
       acc[t.school_year] = (acc[t.school_year] || 0) + (Number(t.total_bonus_points) || 0)
       return acc
     }, {})
-    const overallWeights = terms.reduce(
+    const overallWeights = src.reduce(
       (acc, t) => {
         t.subject_grades.forEach((sg) => {
           const weight = Number(sg.subject_weight ?? 1)
@@ -156,8 +170,8 @@ export function useStudentData() {
     const trend = Object.entries(byYear)
       .sort((a, b) => a[0].localeCompare(b[0]))
       .map(([year, value]) => ({ label: year, value }))
-    return { total, best, trend, count: terms.length, overallAvg }
-  }, [terms])
+    return { total, best, trend, count: src.length, overallAvg }
+  }, [insightTerms])
 
   const handleDelete = useCallback(
     async (termId: string) => {
@@ -208,7 +222,7 @@ export function useStudentData() {
       string,
       { name: string; totalNorm: number; totalWeight: number; count: number }
     > = {}
-    terms.forEach((t) => {
+    insightTerms.forEach((t) => {
       t.subject_grades.forEach((sg) => {
         const name = resolveLocalized(sg.subjects?.name, locale) || 'Unknown'
         const key = sg.subject_id || name
@@ -224,14 +238,14 @@ export function useStudentData() {
       avgScore: s.totalWeight > 0 ? s.totalNorm / s.totalWeight : 0,
       count: s.count,
     }))
-  }, [terms, locale])
+  }, [insightTerms, locale])
 
   const tierDistribution = useMemo(() => {
     let best = 0,
       second = 0,
       third = 0,
       below = 0
-    terms.forEach((t) => {
+    insightTerms.forEach((t) => {
       t.subject_grades.forEach((sg) => {
         const tier = sg.grade_quality_tier || ''
         if (tier === 'best') best++
@@ -246,10 +260,10 @@ export function useStudentData() {
       { name: 'Third', value: third, color: '#f59e0b' },
       { name: 'Below', value: below, color: '#ef4444' },
     ].filter((d) => d.value > 0)
-  }, [terms])
+  }, [insightTerms])
 
   const termComparison = useMemo(() => {
-    return terms
+    return insightTerms
       .slice()
       .sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime())
       .slice(-8)
@@ -257,7 +271,7 @@ export function useStudentData() {
         label: `${t.school_year} ${t.term_type}`,
         bonus: Number(t.total_bonus_points || 0),
       }))
-  }, [terms])
+  }, [insightTerms])
 
   return {
     terms,
@@ -282,5 +296,7 @@ export function useStudentData() {
     tierDistribution,
     termComparison,
     locale,
+    insightsPeriod,
+    setInsightsPeriod,
   }
 }

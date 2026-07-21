@@ -1493,4 +1493,66 @@ class AppLocalizationsIt extends AppLocalizations {
   String homeChildGrades(int count) {
     return '$count voto/i';
   }
+
+  @override
+  String get settingsSectionSchool => 'Informazioni scolastiche';
+
+  @override
+  String get settingsSchoolInfo => 'Scuola e sistema di valutazione';
+
+  @override
+  String get settingsSchoolInfoDesc =>
+      'Configura i dati scolastici per calcoli bonus accurati';
+
+  @override
+  String get profileSchoolTown => 'Citta della scuola';
+
+  @override
+  String get profileSchoolTownPlaceholder => 'es. Monaco';
+
+  @override
+  String get profileSchoolName => 'Nome della scuola';
+
+  @override
+  String get profileSchoolNamePlaceholder => 'es. Maximilians-Gymnasium';
+
+  @override
+  String get profileSemesterSystem => 'Sistema semestrale';
+
+  @override
+  String get profileSemesterCount2 => '2 semestri per anno';
+
+  @override
+  String get profileSemesterCount3 => '3 trimestri per anno';
+
+  @override
+  String get profileSemesterCount4 => '4 trimestri per anno';
+
+  @override
+  String get profileProgramLength => 'Durata del programma scolastico';
+
+  @override
+  String get profileProgramLengthYears => 'anni';
+
+  @override
+  String get profileProgramLengthDefault => 'standard';
+
+  @override
+  String get profileProgramLengthHint =>
+      'Per calcolare equamente i punti bonus tra diversi programmi scolastici';
+
+  @override
+  String get profileSaved => 'Profilo salvato';
+
+  @override
+  String get insightsPeriodMonth => '1 Mese';
+
+  @override
+  String get insightsPeriod3Months => '3 Mesi';
+
+  @override
+  String get insightsPeriodYear => '1 Anno';
+
+  @override
+  String get insightsPeriodAll => 'Sempre';
 }

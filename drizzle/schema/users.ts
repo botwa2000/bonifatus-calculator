@@ -49,6 +49,9 @@ export const userProfiles = pgTable('user_profiles', {
       email_security_alerts: true,
     })
     .notNull(),
+  schoolTown: text('school_town'),
+  semesterCount: integer('semester_count').default(2),
+  programLength: integer('program_length').default(13),
   settlementPeriodUnit: text('settlement_period_unit').default('monthly'),
   onboardingCompleted: boolean('onboarding_completed').default(false).notNull(),
   termsAcceptedAt: timestamp('terms_accepted_at', { mode: 'date' }),

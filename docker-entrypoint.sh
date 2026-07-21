@@ -26,6 +26,13 @@ if [ -z "$AUTH_SECRET" ] && [ -n "$NEXTAUTH_SECRET" ]; then
   export AUTH_SECRET
 fi
 
+# Auth.js v5 uses AUTH_URL; alias from NEXTAUTH_URL so the OAuth callback URI
+# is constructed from the public hostname, not the internal Docker address.
+if [ -z "$AUTH_URL" ] && [ -n "$NEXTAUTH_URL" ]; then
+  AUTH_URL="$NEXTAUTH_URL"
+  export AUTH_URL
+fi
+
 # In Docker, `localhost` in DATABASE_URL refers to the container loopback, not the host.
 # Replace with host.docker.internal (mapped to the Docker host via extra_hosts in the stack).
 if [ -n "$DATABASE_URL" ]; then

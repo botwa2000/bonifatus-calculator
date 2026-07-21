@@ -1,4 +1,4 @@
-{
+﻿{
   "@@locale": "it",
   "@@last_modified": "2026-07-09T00:00:00.000000",
 
@@ -532,4 +532,27 @@
   "@homeChildPts": { "placeholders": { "pts": { "type": "int" } } },
   "homeChildGrades": "{count} voto/i",
   "@homeChildGrades": { "placeholders": { "count": { "type": "int" } } }
+,
+
+  "profileSchoolTown": "Citta della scuola",
+  "profileSchoolTownPlaceholder": "es. Monaco",
+  "profileSchoolName": "Nome della scuola",
+  "profileSchoolNamePlaceholder": "es. Maximilians-Gymnasium",
+  "profileSemesterSystem": "Sistema semestrale",
+  "profileSemesterCount2": "2 semestri per anno",
+  "profileSemesterCount3": "3 trimestri per anno",
+  "profileSemesterCount4": "4 trimestri per anno",
+  "profileProgramLength": "Durata del programma scolastico",
+  "profileProgramLengthYears": "anni",
+  "profileProgramLengthDefault": "standard",
+  "profileProgramLengthHint": "Per calcolare equamente i punti bonus tra diversi programmi scolastici",
+  "profileSaved": "Profilo salvato",
+  "insightsPeriodMonth": "1 Mese",
+  "insightsPeriod3Months": "3 Mesi",
+  "insightsPeriodYear": "1 Anno",
+  "insightsPeriodAll": "Sempre"
+,
+  "settingsSectionSchool": "Informazioni scolastiche",
+  "settingsSchoolInfo": "Scuola e sistema di valutazione",
+  "settingsSchoolInfoDesc": "Configura i dati scolastici per calcoli bonus accurati"
 }

@@ -1,4 +1,4 @@
-{
+﻿{
   "@@locale": "de",
   "@@last_modified": "2026-07-09T00:00:00.000000",
 
@@ -532,4 +532,27 @@
   "@homeChildPts": { "placeholders": { "pts": { "type": "int" } } },
   "homeChildGrades": "{count} Noten",
   "@homeChildGrades": { "placeholders": { "count": { "type": "int" } } }
+,
+
+  "profileSchoolTown": "Schulstadt",
+  "profileSchoolTownPlaceholder": "z.B. Muenchen",
+  "profileSchoolName": "Schulname",
+  "profileSchoolNamePlaceholder": "z.B. Maximilians-Gymnasium",
+  "profileSemesterSystem": "Halbjahressystem",
+  "profileSemesterCount2": "2 Halbjahre pro Jahr",
+  "profileSemesterCount3": "3 Trimester pro Jahr",
+  "profileSemesterCount4": "4 Quartale pro Jahr",
+  "profileProgramLength": "Schullaufbahnlaenge",
+  "profileProgramLengthYears": "Jahre",
+  "profileProgramLengthDefault": "Standard",
+  "profileProgramLengthHint": "Zur fairen Berechnung von Bonuspunkten bei unterschiedlichen Schullaufbahnen (z.B. G8 vs G9)",
+  "profileSaved": "Profil gespeichert",
+  "insightsPeriodMonth": "1 Monat",
+  "insightsPeriod3Months": "3 Monate",
+  "insightsPeriodYear": "1 Jahr",
+  "insightsPeriodAll": "Alle Zeit"
+,
+  "settingsSectionSchool": "Schuldaten",
+  "settingsSchoolInfo": "Schule & Notensystem",
+  "settingsSchoolInfoDesc": "Schuldaten fuer genaue Bonusberechnungen konfigurieren"
 }

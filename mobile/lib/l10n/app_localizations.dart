@@ -2805,6 +2805,126 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{count} grade(s)'**
   String homeChildGrades(int count);
+
+  /// No description provided for @settingsSectionSchool.
+  ///
+  /// In en, this message translates to:
+  /// **'School Information'**
+  String get settingsSectionSchool;
+
+  /// No description provided for @settingsSchoolInfo.
+  ///
+  /// In en, this message translates to:
+  /// **'School & Grading System'**
+  String get settingsSchoolInfo;
+
+  /// No description provided for @settingsSchoolInfoDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Configure your school details for accurate bonus calculations'**
+  String get settingsSchoolInfoDesc;
+
+  /// No description provided for @profileSchoolTown.
+  ///
+  /// In en, this message translates to:
+  /// **'School Town / City'**
+  String get profileSchoolTown;
+
+  /// No description provided for @profileSchoolTownPlaceholder.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. Munich'**
+  String get profileSchoolTownPlaceholder;
+
+  /// No description provided for @profileSchoolName.
+  ///
+  /// In en, this message translates to:
+  /// **'School Name'**
+  String get profileSchoolName;
+
+  /// No description provided for @profileSchoolNamePlaceholder.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. Maximilians-Gymnasium'**
+  String get profileSchoolNamePlaceholder;
+
+  /// No description provided for @profileSemesterSystem.
+  ///
+  /// In en, this message translates to:
+  /// **'Semester System'**
+  String get profileSemesterSystem;
+
+  /// No description provided for @profileSemesterCount2.
+  ///
+  /// In en, this message translates to:
+  /// **'2 semesters per year'**
+  String get profileSemesterCount2;
+
+  /// No description provided for @profileSemesterCount3.
+  ///
+  /// In en, this message translates to:
+  /// **'3 trimesters per year'**
+  String get profileSemesterCount3;
+
+  /// No description provided for @profileSemesterCount4.
+  ///
+  /// In en, this message translates to:
+  /// **'4 quarters per year'**
+  String get profileSemesterCount4;
+
+  /// No description provided for @profileProgramLength.
+  ///
+  /// In en, this message translates to:
+  /// **'School Program Length'**
+  String get profileProgramLength;
+
+  /// No description provided for @profileProgramLengthYears.
+  ///
+  /// In en, this message translates to:
+  /// **'years'**
+  String get profileProgramLengthYears;
+
+  /// No description provided for @profileProgramLengthDefault.
+  ///
+  /// In en, this message translates to:
+  /// **'standard'**
+  String get profileProgramLengthDefault;
+
+  /// No description provided for @profileProgramLengthHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Used to fairly calculate bonus points across different school programs (e.g. G8 vs G9)'**
+  String get profileProgramLengthHint;
+
+  /// No description provided for @profileSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Profile saved'**
+  String get profileSaved;
+
+  /// No description provided for @insightsPeriodMonth.
+  ///
+  /// In en, this message translates to:
+  /// **'1 Month'**
+  String get insightsPeriodMonth;
+
+  /// No description provided for @insightsPeriod3Months.
+  ///
+  /// In en, this message translates to:
+  /// **'3 Months'**
+  String get insightsPeriod3Months;
+
+  /// No description provided for @insightsPeriodYear.
+  ///
+  /// In en, this message translates to:
+  /// **'1 Year'**
+  String get insightsPeriodYear;
+
+  /// No description provided for @insightsPeriodAll.
+  ///
+  /// In en, this message translates to:
+  /// **'All Time'**
+  String get insightsPeriodAll;
 }
 
 class _AppLocalizationsDelegate

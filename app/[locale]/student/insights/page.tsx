@@ -2,7 +2,7 @@
 
 import { useMemo } from 'react'
 import { useTranslations } from 'next-intl'
-import { useStudentData } from '@/hooks/useStudentData'
+import { useStudentData, type InsightsPeriod } from '@/hooks/useStudentData'
 import {
   GradeTrendChart,
   SubjectPerformanceChart,
@@ -10,10 +10,25 @@ import {
   GradeDistributionChart,
 } from '@/components/charts'
 
+const PERIODS: { value: InsightsPeriod; labelKey: string }[] = [
+  { value: 'month', labelKey: 'insightsPeriodMonth' },
+  { value: '3months', labelKey: 'insightsPeriod3Months' },
+  { value: 'year', labelKey: 'insightsPeriodYear' },
+  { value: 'all', labelKey: 'insightsPeriodAll' },
+]
+
 export default function StudentInsightsPage() {
   const t = useTranslations('student')
   const tc = useTranslations('common')
-  const { loading, stats, subjectAggregates, tierDistribution, termComparison } = useStudentData()
+  const {
+    loading,
+    stats,
+    subjectAggregates,
+    tierDistribution,
+    termComparison,
+    insightsPeriod,
+    setInsightsPeriod,
+  } = useStudentData()
 
   const yearOverYearChange = useMemo(() => {
     if (!stats || stats.trend.length < 2) return null
@@ -34,11 +49,30 @@ export default function StudentInsightsPage() {
 
   return (
     <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-8">
-      <header>
-        <h1 className="text-2xl sm:text-3xl font-bold text-neutral-900 dark:text-white">
-          {t('insightsTitle')}
-        </h1>
-        <p className="text-neutral-600 dark:text-neutral-300 text-sm">{t('insightsDesc')}</p>
+      <header className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
+        <div>
+          <h1 className="text-2xl sm:text-3xl font-bold text-neutral-900 dark:text-white">
+            {t('insightsTitle')}
+          </h1>
+          <p className="text-neutral-600 dark:text-neutral-300 text-sm">{t('insightsDesc')}</p>
+        </div>
+        {/* Period filter */}
+        <div className="flex gap-1 rounded-xl border border-neutral-200 dark:border-neutral-800 bg-neutral-100 dark:bg-neutral-800/50 p-1 self-start sm:self-auto">
+          {PERIODS.map(({ value, labelKey }) => (
+            <button
+              key={value}
+              type="button"
+              onClick={() => setInsightsPeriod(value)}
+              className={`px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all ${
+                insightsPeriod === value
+                  ? 'bg-white dark:bg-neutral-900 text-primary-700 dark:text-primary-200 shadow-sm'
+                  : 'text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white'
+              }`}
+            >
+              {t(labelKey as never)}
+            </button>
+          ))}
+        </div>
       </header>
 
       {!stats ? (
@@ -132,8 +166,7 @@ export default function StudentInsightsPage() {
                     yearOverYearChange >= 0 ? 'text-success-600' : 'text-error-600'
                   }`}
                 >
-                  {yearOverYearChange >= 0 ? '\u2191' : '\u2193'}{' '}
-                  {Math.abs(yearOverYearChange).toFixed(1)}%
+                  {yearOverYearChange >= 0 ? '↑' : '↓'} {Math.abs(yearOverYearChange).toFixed(1)}%
                 </p>
                 <p className="text-sm text-neutral-500 mt-2">{t('changeFromLastYear')}</p>
               </div>

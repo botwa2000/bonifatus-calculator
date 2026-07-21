@@ -1,4 +1,4 @@
-{
+﻿{
   "@@locale": "ru",
   "@@last_modified": "2026-07-09T00:00:00.000000",
 
@@ -532,4 +532,27 @@
   "@homeChildPts": { "placeholders": { "pts": { "type": "int" } } },
   "homeChildGrades": "{count} оц.",
   "@homeChildGrades": { "placeholders": { "count": { "type": "int" } } }
+,
+
+  "profileSchoolTown": "Gorod shkoly",
+  "profileSchoolTownPlaceholder": "napr., Myunkhen",
+  "profileSchoolName": "Nazvanie shkoly",
+  "profileSchoolNamePlaceholder": "napr., Maximilians-Gymnasium",
+  "profileSemesterSystem": "Sistema semestrov",
+  "profileSemesterCount2": "2 semestra v god",
+  "profileSemesterCount3": "3 trimestra v god",
+  "profileSemesterCount4": "4 chetverti v god",
+  "profileProgramLength": "Dlina shkolnoy programmy",
+  "profileProgramLengthYears": "let",
+  "profileProgramLengthDefault": "standart",
+  "profileProgramLengthHint": "Dlya spravedlivogo raschyota bonusov mezhdu raznymi shkolnymi programmami",
+  "profileSaved": "Profil sokhranyyon",
+  "insightsPeriodMonth": "1 Mesyats",
+  "insightsPeriod3Months": "3 Mesyatsa",
+  "insightsPeriodYear": "1 God",
+  "insightsPeriodAll": "Za vsyo vremya"
+,
+  "settingsSectionSchool": "Shkolnaya informatsiya",
+  "settingsSchoolInfo": "Shkola i sistema otsenok",
+  "settingsSchoolInfoDesc": "Nastroyte shkolnye dannye dlya tochnogo raschyota bonusov"
 }

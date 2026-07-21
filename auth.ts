@@ -120,8 +120,15 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
             userId: user.id,
             error: String(err),
           })
-          token.role = 'child'
-          token.needsSetup = false
+          // For new Google users we cannot confirm a profile exists — default to setup_needed
+          // so they reach the profile setup page rather than a broken dashboard.
+          if (account?.provider === 'google') {
+            token.role = 'setup_needed'
+            token.needsSetup = true
+          } else {
+            token.role = 'child'
+            token.needsSetup = false
+          }
           token.roleRefreshedAt = Date.now()
         }
       } else {

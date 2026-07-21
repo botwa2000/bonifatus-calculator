@@ -23,6 +23,9 @@ const schema = z.object({
   dateOfBirth: z.string().nullable().optional(),
   themePreference: z.enum(['light', 'dark', 'system']).optional(),
   schoolName: z.string().max(200).nullable().optional(),
+  schoolTown: z.string().max(200).nullable().optional(),
+  semesterCount: z.number().int().min(2).max(4).nullable().optional(),
+  programLength: z.number().int().min(1).max(20).nullable().optional(),
   defaultGradingSystemId: z.string().uuid().nullable().optional(),
   defaultClassLevel: z.number().int().min(1).max(13).nullable().optional(),
 })
@@ -47,6 +50,9 @@ export async function POST(request: NextRequest) {
       ...parsed.data,
       dateOfBirth: parsed.data.dateOfBirth ?? undefined,
       schoolName: parsed.data.schoolName ?? undefined,
+      schoolTown: parsed.data.schoolTown ?? undefined,
+      semesterCount: parsed.data.semesterCount ?? undefined,
+      programLength: parsed.data.programLength ?? undefined,
       defaultGradingSystemId: parsed.data.defaultGradingSystemId ?? undefined,
       defaultClassLevel: parsed.data.defaultClassLevel ?? undefined,
     })

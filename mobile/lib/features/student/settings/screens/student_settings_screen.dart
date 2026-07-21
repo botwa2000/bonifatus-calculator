@@ -27,11 +27,31 @@ class _StudentSettingsScreenState extends ConsumerState<StudentSettingsScreen> {
   bool _biometricAvailable = false;
   bool _biometricEnabled = false;
 
+  // School profile state
+  String? _schoolName;
+  String? _schoolTown;
+  int _semesterCount = 2;
+  int _programLength = 13;
+
   @override
   void initState() {
     super.initState();
     _loadConnections();
     _checkBiometric();
+    _loadProfile();
+  }
+
+  Future<void> _loadProfile() async {
+    try {
+      final profile = await ref.read(profileServiceProvider).fetchProfile();
+      if (!mounted) return;
+      setState(() {
+        _schoolName = profile['schoolName'] as String?;
+        _schoolTown = profile['schoolTown'] as String?;
+        _semesterCount = (profile['semesterCount'] as int?) ?? 2;
+        _programLength = (profile['programLength'] as int?) ?? 13;
+      });
+    } catch (_) {}
   }
 
   Future<void> _loadConnections() async {
@@ -93,6 +113,10 @@ class _StudentSettingsScreenState extends ConsumerState<StudentSettingsScreen> {
           _SectionHeader(title: l10n.settingsSectionAccount),
           const SizedBox(height: 8),
           _buildAccountCard(context),
+          const SizedBox(height: 20),
+          _SectionHeader(title: l10n.settingsSectionSchool),
+          const SizedBox(height: 8),
+          _buildSchoolCard(context),
           const SizedBox(height: 20),
           _SectionHeader(title: l10n.settingsSectionConnectedParents),
           const SizedBox(height: 8),
@@ -194,6 +218,154 @@ class _StudentSettingsScreenState extends ConsumerState<StudentSettingsScreen> {
         onTap: () => _confirmDeleteAccount(context),
       ),
     ]);
+  }
+
+  Widget _buildSchoolCard(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final cs = Theme.of(context).colorScheme;
+    final subtitle = [
+      if (_schoolTown != null && _schoolTown!.isNotEmpty) _schoolTown,
+      if (_schoolName != null && _schoolName!.isNotEmpty) _schoolName,
+    ].join(' · ');
+    return _Card(children: [
+      ListTile(
+        leading: Icon(Icons.school_outlined, color: cs.onSurfaceVariant, size: 22),
+        title: Text(l10n.settingsSchoolInfo, style: TextStyle(fontSize: 15, color: cs.onSurface, fontWeight: FontWeight.w500)),
+        subtitle: subtitle.isNotEmpty
+            ? Text(subtitle, style: TextStyle(fontSize: 12, color: cs.onSurfaceVariant))
+            : null,
+        trailing: Icon(Icons.chevron_right_rounded, color: cs.outlineVariant),
+        onTap: () => _showSchoolInfoSheet(context),
+      ),
+    ]);
+  }
+
+  void _showSchoolInfoSheet(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final townCtrl = TextEditingController(text: _schoolTown ?? '');
+    final nameCtrl = TextEditingController(text: _schoolName ?? '');
+    int semesterCount = _semesterCount;
+    int programLength = _programLength;
+    bool saving = false;
+
+    showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setSheetState) {
+          final cs = Theme.of(ctx).colorScheme;
+          return Padding(
+            padding: EdgeInsets.only(
+              left: 20, right: 20, top: 20,
+              bottom: MediaQuery.of(ctx).viewInsets.bottom + 24,
+            ),
+            child: SingleChildScrollView(
+              child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
+                Center(child: Container(width: 40, height: 4, margin: const EdgeInsets.only(bottom: 16),
+                    decoration: BoxDecoration(color: cs.outlineVariant, borderRadius: BorderRadius.circular(2)))),
+                Text(l10n.settingsSchoolInfo, style: TextStyle(fontSize: 17, fontWeight: FontWeight.w700, color: cs.onSurface)),
+                const SizedBox(height: 4),
+                Text(l10n.settingsSchoolInfoDesc, style: TextStyle(fontSize: 13, color: cs.onSurfaceVariant)),
+                const SizedBox(height: 20),
+                TextField(
+                  controller: townCtrl,
+                  decoration: InputDecoration(
+                    labelText: l10n.profileSchoolTown,
+                    hintText: l10n.profileSchoolTownPlaceholder,
+                    border: const OutlineInputBorder(),
+                  ),
+                  textInputAction: TextInputAction.next,
+                ),
+                const SizedBox(height: 12),
+                TextField(
+                  controller: nameCtrl,
+                  decoration: InputDecoration(
+                    labelText: l10n.profileSchoolName,
+                    hintText: l10n.profileSchoolNamePlaceholder,
+                    border: const OutlineInputBorder(),
+                  ),
+                  textInputAction: TextInputAction.done,
+                ),
+                const SizedBox(height: 16),
+                Text(l10n.profileSemesterSystem, style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: cs.onSurfaceVariant)),
+                const SizedBox(height: 8),
+                SegmentedButton<int>(
+                  segments: [
+                    ButtonSegment(value: 2, label: Text('2×', style: const TextStyle(fontSize: 12))),
+                    ButtonSegment(value: 3, label: Text('3×', style: const TextStyle(fontSize: 12))),
+                    ButtonSegment(value: 4, label: Text('4×', style: const TextStyle(fontSize: 12))),
+                  ],
+                  selected: {semesterCount},
+                  onSelectionChanged: (s) => setSheetState(() => semesterCount = s.first),
+                  style: const ButtonStyle(visualDensity: VisualDensity.compact),
+                ),
+                const SizedBox(height: 16),
+                Text(l10n.profileProgramLength, style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: cs.onSurfaceVariant)),
+                const SizedBox(height: 8),
+                InputDecorator(
+                  decoration: const InputDecoration(border: OutlineInputBorder(), contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 4)),
+                  child: DropdownButtonHideUnderline(
+                    child: DropdownButton<int>(
+                      value: programLength,
+                      isExpanded: true,
+                      items: List.generate(20, (i) => i + 1).map((y) => DropdownMenuItem(
+                        value: y,
+                        child: Text('$y ${l10n.profileProgramLengthYears}${y == 13 ? '  (${l10n.profileProgramLengthDefault})' : ''}'),
+                      )).toList(),
+                      onChanged: (v) { if (v != null) setSheetState(() => programLength = v); },
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(l10n.profileProgramLengthHint, style: TextStyle(fontSize: 11, color: cs.onSurfaceVariant)),
+                const SizedBox(height: 24),
+                SizedBox(
+                  width: double.infinity,
+                  child: FilledButton(
+                    onPressed: saving ? null : () async {
+                      setSheetState(() => saving = true);
+                      try {
+                        await ref.read(profileServiceProvider).updateProfile(
+                          schoolName: nameCtrl.text.trim().isEmpty ? null : nameCtrl.text.trim(),
+                          schoolTown: townCtrl.text.trim().isEmpty ? null : townCtrl.text.trim(),
+                          semesterCount: semesterCount,
+                          programLength: programLength,
+                        );
+                        if (mounted) {
+                          setState(() {
+                            _schoolName = nameCtrl.text.trim().isEmpty ? null : nameCtrl.text.trim();
+                            _schoolTown = townCtrl.text.trim().isEmpty ? null : townCtrl.text.trim();
+                            _semesterCount = semesterCount;
+                            _programLength = programLength;
+                          });
+                        }
+                        if (ctx.mounted) {
+                          Navigator.of(ctx).pop();
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text(l10n.profileSaved), backgroundColor: AppColors.tierBest),
+                          );
+                        }
+                      } catch (e) {
+                        setSheetState(() => saving = false);
+                        if (ctx.mounted) {
+                          ScaffoldMessenger.of(ctx).showSnackBar(
+                            SnackBar(content: Text(e.toString()), backgroundColor: AppColors.error),
+                          );
+                        }
+                      }
+                    },
+                    child: saving
+                        ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                        : Text(l10n.settingsSave),
+                  ),
+                ),
+              ]),
+            ),
+          );
+        },
+      ),
+    );
   }
 
   Widget _buildConnectedParentsCard(BuildContext context) {

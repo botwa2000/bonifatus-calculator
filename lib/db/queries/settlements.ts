@@ -445,9 +445,83 @@ export async function getChildQuickGrades(childId: string) {
 }
 
 /**
- * Return all subject grades from saved term results for a child,
- * shaped identically to getChildQuickGrades() so the parent dashboard
- * can combine both sources in a single list.
+ * Return ONE summary entry per saved term for a child (not per subject).
+ * Each entry is shaped like a ChildQuickGrade so the parent dashboard
+ * can merge both note grades and calculator terms in one list without
+ * flooding the list with individual subject lines from test reports.
+ *
+ * Settlement status is 'unsettled' if ANY subject in the term is unsettled.
+ * bonusPoints is the term's total_bonus_points so the parent sees the full
+ * value for the report, not a per-subject fragment.
+ */
+export async function getChildTermSummariesForDashboard(childId: string) {
+  // Fetch all terms with their subject grades to determine settlement status
+  const rows = await db
+    .select({
+      termId: termGrades.id,
+      schoolYear: termGrades.schoolYear,
+      termType: termGrades.termType,
+      termName: termGrades.termName,
+      totalBonusPoints: termGrades.totalBonusPoints,
+      createdAt: termGrades.createdAt,
+      subjectSettlementStatus: subjectGrades.settlementStatus,
+    })
+    .from(termGrades)
+    .leftJoin(subjectGrades, eq(subjectGrades.termGradeId, termGrades.id))
+    .where(eq(termGrades.childId, childId))
+    .orderBy(desc(termGrades.createdAt))
+
+  // Group by term and aggregate settlement status
+  const termMap = new Map<
+    string,
+    {
+      termId: string
+      schoolYear: string
+      termType: string
+      termName: string | null
+      totalBonusPoints: number
+      createdAt: Date | null
+      hasUnsettled: boolean
+    }
+  >()
+
+  for (const row of rows) {
+    if (!termMap.has(row.termId)) {
+      termMap.set(row.termId, {
+        termId: row.termId,
+        schoolYear: row.schoolYear,
+        termType: row.termType,
+        termName: row.termName,
+        totalBonusPoints: Number(row.totalBonusPoints ?? 0),
+        createdAt: row.createdAt,
+        hasUnsettled: false,
+      })
+    }
+    if (row.subjectSettlementStatus === 'unsettled') {
+      termMap.get(row.termId)!.hasUnsettled = true
+    }
+  }
+
+  return Array.from(termMap.values()).map((t) => ({
+    id: t.termId,
+    subjectId: '',
+    gradeValue: '',
+    gradeNormalized100: null as number | null,
+    gradeQualityTier: 'below' as string,
+    bonusPoints: t.totalBonusPoints,
+    note: null as string | null,
+    gradedAt: t.createdAt,
+    createdAt: t.createdAt,
+    settlementStatus: t.hasUnsettled ? 'unsettled' : 'settled',
+    settlementId: null as string | null,
+    subjectName: t.termName || `${t.schoolYear} ${t.termType}`,
+    gradeSource: 'calculator' as const,
+  }))
+}
+
+/**
+ * @deprecated Use getChildTermSummariesForDashboard instead.
+ * Returns individual subject grades from saved terms — too granular for the Kids tab.
  */
 export async function getChildTermSubjectGradesForDashboard(childId: string) {
   const rows = await db

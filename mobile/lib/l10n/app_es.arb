@@ -1,4 +1,4 @@
-{
+﻿{
   "@@locale": "es",
   "@@last_modified": "2026-07-09T00:00:00.000000",
 
@@ -532,4 +532,27 @@
   "@homeChildPts": { "placeholders": { "pts": { "type": "int" } } },
   "homeChildGrades": "{count} nota(s)",
   "@homeChildGrades": { "placeholders": { "count": { "type": "int" } } }
+,
+
+  "profileSchoolTown": "Ciudad del colegio",
+  "profileSchoolTownPlaceholder": "p.ej. Munich",
+  "profileSchoolName": "Nombre del colegio",
+  "profileSchoolNamePlaceholder": "p.ej. Maximilians-Gymnasium",
+  "profileSemesterSystem": "Sistema de semestres",
+  "profileSemesterCount2": "2 semestres por ao",
+  "profileSemesterCount3": "3 trimestres por ao",
+  "profileSemesterCount4": "4 cuatrimestres por ao",
+  "profileProgramLength": "Duracion del programa escolar",
+  "profileProgramLengthYears": "anos",
+  "profileProgramLengthDefault": "estandar",
+  "profileProgramLengthHint": "Para calcular equitativamente los puntos de bonificacion entre diferentes programas escolares",
+  "profileSaved": "Perfil guardado",
+  "insightsPeriodMonth": "1 Mes",
+  "insightsPeriod3Months": "3 Meses",
+  "insightsPeriodYear": "1 Ano",
+  "insightsPeriodAll": "Todo el tiempo"
+,
+  "settingsSectionSchool": "Informacion escolar",
+  "settingsSchoolInfo": "Colegio y sistema de calificacion",
+  "settingsSchoolInfoDesc": "Configura los datos del colegio para calculos de bonificacion precisos"
 }

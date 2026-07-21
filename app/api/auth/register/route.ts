@@ -25,6 +25,10 @@ const registerSchema = z.object({
     .optional(),
   role: z.enum(['parent', 'child']),
   turnstileToken: z.string().optional(),
+  schoolTown: z.string().max(200).optional(),
+  schoolName: z.string().max(200).optional(),
+  semesterCount: z.number().int().min(1).max(4).optional(),
+  programLength: z.number().int().min(1).max(20).optional(),
 })
 
 export async function POST(request: NextRequest) {
@@ -47,6 +51,10 @@ export async function POST(request: NextRequest) {
       dateOfBirth: dateOfBirthField,
       role,
       turnstileToken,
+      schoolTown,
+      schoolName,
+      semesterCount,
+      programLength,
     } = validationResult.data
 
     const fullName = (fullNameField || nameField || '').trim()
@@ -137,6 +145,12 @@ export async function POST(request: NextRequest) {
         role,
         fullName,
         dateOfBirth,
+        ...(role === 'child' && {
+          schoolTown: schoolTown ?? null,
+          schoolName: schoolName ?? null,
+          semesterCount: semesterCount ?? 2,
+          programLength: programLength ?? 13,
+        }),
       })
     })
 
