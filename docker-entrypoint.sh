@@ -19,6 +19,13 @@ if [ -d "$SECRETS_DIR" ]; then
   done
 fi
 
+# Auth.js v5 uses AUTH_SECRET; alias from NEXTAUTH_SECRET for backward compatibility
+# with the existing prod_NEXTAUTH_SECRET Docker secret.
+if [ -z "$AUTH_SECRET" ] && [ -n "$NEXTAUTH_SECRET" ]; then
+  AUTH_SECRET="$NEXTAUTH_SECRET"
+  export AUTH_SECRET
+fi
+
 # In Docker, `localhost` in DATABASE_URL refers to the container loopback, not the host.
 # Replace with host.docker.internal (mapped to the Docker host via extra_hosts in the stack).
 if [ -n "$DATABASE_URL" ]; then
