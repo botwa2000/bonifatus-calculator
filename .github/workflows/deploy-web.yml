@@ -126,12 +126,14 @@ jobs:
             git checkout -- middleware.ts 2>/dev/null || true
 
             echo "=== [1.5/5] Run DB migrations ==="
-            # DATABASE_URL lives in Docker Swarm secrets; read it via a temp container
-            DB_URL=$(docker run --rm \
-              --secret source="${ENV}_DATABASE_URL",target=db_url \
-              alpine cat /run/secrets/db_url 2>/dev/null || true)
+            # Read DATABASE_URL from the running service container (Swarm secrets are only
+            # accessible inside running services, not via docker run --secret)
+            RUNNING_CONTAINER=$(docker ps --filter "name=${STACK}_app" --format "{{.ID}}" | head -1)
+            if [ -n "$RUNNING_CONTAINER" ]; then
+              DB_URL=$(docker exec "$RUNNING_CONTAINER" cat "/run/secrets/${ENV}_DATABASE_URL" 2>/dev/null || true)
+            fi
             if [ -n "$DB_URL" ]; then
-              # Rewrite localhost → host.docker.internal so the container reaches the host DB
+              # Rewrite localhost → host.docker.internal so the node container reaches the host DB
               DB_URL=$(printf '%s' "$DB_URL" | sed 's|@localhost:|@host.docker.internal:|')
               docker run --rm \
                 --network host \
@@ -142,7 +144,7 @@ jobs:
                 sh -c 'npm ci --ignore-scripts --legacy-peer-deps --silent 2>&1 | tail -2 && npx drizzle-kit migrate'
               echo "=== DB migrations complete ==="
             else
-              echo "WARNING: DATABASE_URL Swarm secret not found; run migrations manually"
+              echo "WARNING: No running container found to read DATABASE_URL; run migrations manually"
             fi
 
             echo "=== [2/5] Build image ==="
