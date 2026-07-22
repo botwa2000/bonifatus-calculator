@@ -84,7 +84,7 @@ jobs:
             [ -n "$MOBILE_APP_SECRET"     ] || { echo "ERROR: MOBILE_APP_SECRET secret is empty";     exit 1; }
             [ -n "$GOOGLE_CLIENT_ID"      ] || { echo "ERROR: GOOGLE_CLIENT_ID secret is empty";      exit 1; }
             [ -n "$GOOGLE_CLIENT_SECRET"  ] || { echo "ERROR: GOOGLE_CLIENT_SECRET secret is empty";  exit 1; }
-            [ -n "$FMP_API_KEY"           ] || { echo "ERROR: FMP_API_KEY secret is empty";           exit 1; }
+            [ -n "$FMP_API_KEY"           ] || echo "WARNING: FMP_API_KEY is not set — market ticker will use fallback data"
 
             echo "=== [0/5] Provision Swarm secrets ==="
             echo "Docker info:" && docker info --format '{{.Swarm.LocalNodeState}}' 2>&1 || true
@@ -116,13 +116,15 @@ jobs:
               echo "Created Docker secret $SECRET_NAME"
             fi
 
-            SECRET_NAME="${ENV}_FMP_API_KEY"
-            if docker secret inspect "$SECRET_NAME" > /dev/null 2>&1; then
-              echo "Docker secret $SECRET_NAME already exists -- skipping"
-            else
-              echo "Creating Docker secret $SECRET_NAME"
-              printf '%s' "$FMP_API_KEY" | docker secret create "$SECRET_NAME" -
-              echo "Created Docker secret $SECRET_NAME"
+            if [ -n "$FMP_API_KEY" ]; then
+              SECRET_NAME="${ENV}_FMP_API_KEY"
+              if docker secret inspect "$SECRET_NAME" > /dev/null 2>&1; then
+                echo "Docker secret $SECRET_NAME already exists -- skipping"
+              else
+                echo "Creating Docker secret $SECRET_NAME"
+                printf '%s' "$FMP_API_KEY" | docker secret create "$SECRET_NAME" -
+                echo "Created Docker secret $SECRET_NAME"
+              fi
             fi
 
             echo "=== [1/5] Pull latest ==="
