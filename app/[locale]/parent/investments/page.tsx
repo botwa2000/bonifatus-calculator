@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { useTranslations } from 'next-intl'
 import SavingsSimulator from '@/components/investments/SavingsSimulator'
 import StockSimulator from '@/components/investments/StockSimulator'
+import { StockTickerWidget } from '@/components/widgets/StockTickerWidget'
 
 type Tab = 'savings' | 'etf'
 
@@ -46,6 +47,14 @@ export default function InvestmentsPage() {
 
       {/* Tab Content */}
       {activeTab === 'savings' ? <SavingsSimulator /> : <StockSimulator />}
+
+      {/* Live Market Context */}
+      <section className="space-y-3">
+        <h2 className="text-base font-semibold text-neutral-900 dark:text-white">
+          {t('liveMarketTitle')}
+        </h2>
+        <StockTickerWidget />
+      </section>
     </div>
   )
 }

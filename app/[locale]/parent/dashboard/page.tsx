@@ -5,7 +5,7 @@ import { useTranslations } from 'next-intl'
 import { useParentData } from '@/hooks/useParentData'
 import { formatDate } from '@/lib/utils/grade-helpers'
 import { GradeTrendChart } from '@/components/charts'
-import { StockTickerWidget } from '@/components/widgets/StockTickerWidget'
+import { InvestmentPreviewCard } from '@/components/widgets/InvestmentPreviewCard'
 import { BonusIcon } from '@/components/ui'
 
 export default function ParentDashboardPage() {
@@ -216,8 +216,8 @@ export default function ParentDashboardPage() {
             </div>
           </div>
 
-          {/* Stock Ticker */}
-          <StockTickerWidget />
+          {/* Investment Preview */}
+          <InvestmentPreviewCard totalPts={combinedBonus} childCount={connections.length} />
         </div>
       </div>
     </div>

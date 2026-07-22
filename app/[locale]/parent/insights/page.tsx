@@ -889,16 +889,22 @@ export default function ParentInsightsPage() {
               {/* ── SINGLE CHILD VIEW ───────────────────────── */}
 
               {/* Bonus Trend */}
-              {childBonusTrend.length >= 2 && (
-                <Card padding="md">
-                  <CardContent>
-                    <h2 className="text-lg font-semibold text-neutral-900 dark:text-white mb-4">
-                      {t('comparativeBonus')}
-                    </h2>
+              <Card padding="md">
+                <CardContent>
+                  <h2 className="text-lg font-semibold text-neutral-900 dark:text-white mb-4">
+                    {t('comparativeBonus')}
+                  </h2>
+                  {childBonusTrend.length >= 2 ? (
                     <GradeTrendChart data={childBonusTrend} height={300} />
-                  </CardContent>
-                </Card>
-              )}
+                  ) : (
+                    <div className="flex items-center justify-center h-[180px] text-center px-4">
+                      <p className="text-sm text-neutral-400 dark:text-neutral-500">
+                        {t('trendNotEnoughData')}
+                      </p>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
 
               {/* Subject Performance + Grade Distribution */}
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -929,16 +935,22 @@ export default function ParentInsightsPage() {
               </div>
 
               {/* Term Comparison */}
-              {childTermComparison.length > 1 && (
-                <Card padding="md">
-                  <CardContent>
-                    <h2 className="text-lg font-semibold text-neutral-900 dark:text-white mb-4">
-                      {t('termComparisonLabel')}
-                    </h2>
+              <Card padding="md">
+                <CardContent>
+                  <h2 className="text-lg font-semibold text-neutral-900 dark:text-white mb-4">
+                    {t('termComparisonLabel')}
+                  </h2>
+                  {childTermComparison.length >= 1 ? (
                     <TermComparisonChart data={childTermComparison} height={300} />
-                  </CardContent>
-                </Card>
-              )}
+                  ) : (
+                    <div className="flex items-center justify-center h-[180px] text-center px-4">
+                      <p className="text-sm text-neutral-400 dark:text-neutral-500">
+                        {t('termNotEnoughData')}
+                      </p>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
 
               {/* Year-over-Year + Top/Bottom Subjects */}
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
