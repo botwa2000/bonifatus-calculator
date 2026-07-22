@@ -111,19 +111,27 @@ jobs:
         env:
           CM_TOKEN: ${{ secrets.CODEMAGIC_API_TOKEN }}
           CM_APP_ID: ${{ secrets.BONIFATUS_CODEMAGIC_APP_ID }}
+          CM_CERT_KEY: ${{ secrets.CM_CERTIFICATE_PRIVATE_KEY }}
         run: |
           [ -n "$CM_TOKEN" ] || { echo "::error::CODEMAGIC_API_TOKEN is empty"; exit 1; }
           [ -n "$CM_APP_ID" ] || { echo "::error::BONIFATUS_CODEMAGIC_APP_ID is empty"; exit 1; }
-          echo "Secrets OK (app id length ${#CM_APP_ID})"
+          [ -n "$CM_CERT_KEY" ] || { echo "::error::CM_CERTIFICATE_PRIVATE_KEY is empty"; exit 1; }
+          echo "Secrets OK (app id length ${#CM_APP_ID}, cert key length ${#CM_CERT_KEY})"
       - name: Trigger Codemagic flutter-release
         env:
           CM_TOKEN: ${{ secrets.CODEMAGIC_API_TOKEN }}
           CM_APP_ID: ${{ secrets.BONIFATUS_CODEMAGIC_APP_ID }}
+          CM_CERT_KEY: ${{ secrets.CM_CERTIFICATE_PRIVATE_KEY }}
         run: |
+          payload=$(jq -n \
+            --arg appId "$CM_APP_ID" \
+            --arg certKey "$CM_CERT_KEY" \
+            '{appId: $appId, workflowId: "flutter-release", branch: "main",
+              environment: {variables: {CM_CERTIFICATE_PRIVATE_KEY: $certKey}}}')
           resp=$(curl -s -w "\n%{http_code}" -X POST \
             -H "x-auth-token: $CM_TOKEN" \
             -H "Content-Type: application/json" \
-            -d "{\"appId\":\"$CM_APP_ID\",\"workflowId\":\"flutter-release\",\"branch\":\"main\"}" \
+            -d "$payload" \
             https://api.codemagic.io/builds)
           code=$(echo "$resp" | tail -n1)
           body=$(echo "$resp" | sed '$d')

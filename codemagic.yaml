@@ -1,0 +1,79 @@
+workflows:
+  # — Flutter iOS release — manual only ————————————————————————
+  # Triggered by the GitHub Actions ios-trigger job via the Codemagic API.
+  # CM_CERTIFICATE_PRIVATE_KEY is injected at trigger time from the GitHub
+  # secret — not stored in Codemagic.
+  flutter-release:
+    name: Bonifatus Flutter iOS — TestFlight
+    max_build_duration: 60
+    instance_type: mac_mini_m2
+
+    triggering:
+      events: []  # no automatic triggers — GitHub Actions ios-trigger job fires this
+
+    integrations:
+      app_store_connect: Bonistock ASC
+
+    environment:
+      vars:
+        APP_STORE_APPLE_ID: "6745130824"
+        FLUTTER_APP_DIR: "mobile"
+      flutter: stable
+
+    scripts:
+      - name: Compute CFBundleVersion (must exceed latest TestFlight)
+        script: |
+          LATEST=$(app-store-connect get-latest-testflight-build-number "$APP_STORE_APPLE_ID" 2>/dev/null || echo "")
+          if ! echo "$LATEST" | grep -qE '^[0-9]+$'; then LATEST=0; fi
+          CODE=$((LATEST + 1))
+          if [ "$CODE" -le 1000 ]; then CODE=1001; fi
+          echo "BUILD_CODE=$CODE" >> $CM_ENV
+          echo ">>> latest TestFlight build=${LATEST}; will build CFBundleVersion=${CODE}"
+
+      - name: Get Flutter dependencies
+        script: |
+          cd $FLUTTER_APP_DIR
+          flutter pub get
+
+      - name: Run tests
+        script: |
+          cd $FLUTTER_APP_DIR
+          flutter test
+
+      - name: Set up keychain
+        script: keychain initialize
+
+      - name: Fetch or create signing certificate & provisioning profile
+        script: |
+          app-store-connect fetch-signing-files dev.bonifatus.gradecalc \
+            --type IOS_APP_STORE \
+            --create \
+            --certificate-key @env:CM_CERTIFICATE_PRIVATE_KEY
+
+      - name: Add certificates to keychain
+        script: keychain add-certificates
+
+      - name: Apply signing profiles to Xcode project
+        script: |
+          cd $FLUTTER_APP_DIR
+          xcode-project use-profiles --export-options-plist "$CM_BUILD_DIR/export_options.plist"
+
+      - name: Build Flutter IPA
+        script: |
+          cd $FLUTTER_APP_DIR
+          set -o pipefail
+          echo ">>> building IPA with CFBundleVersion (--build-number) = ${BUILD_CODE}"
+          flutter build ipa --release --verbose \
+            --build-number="${BUILD_CODE}" \
+            --export-options-plist="$CM_BUILD_DIR/export_options.plist" 2>&1 | tee "$CM_BUILD_DIR/flutter_build_ipa.log"
+
+    artifacts:
+      - mobile/build/ios/ipa/*.ipa
+      - $CM_BUILD_DIR/flutter_build_ipa.log
+      - /tmp/xcodebuild_logs/*.log
+
+    publishing:
+      app_store_connect:
+        auth: integration
+        submit_to_testflight: true
+        submit_to_app_store: false
