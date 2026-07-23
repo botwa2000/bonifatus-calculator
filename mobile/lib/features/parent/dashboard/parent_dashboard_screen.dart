@@ -18,7 +18,7 @@ class ParentDashboardScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context)!;
     final authAsync = ref.watch(authStateNotifierProvider);
-    final userName = authAsync.valueOrNull?.name ?? l10n.parentFallback;
+    final userName = authAsync.value?.name ?? l10n.parentFallback;
     final childrenAsync = ref.watch(childrenQuickGradesProvider);
 
     return Scaffold(

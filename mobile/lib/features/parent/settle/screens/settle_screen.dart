@@ -83,7 +83,7 @@ class _SettleScreenState extends ConsumerState<SettleScreen>
   void _showPeriodSheet(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final periodAsync = ref.read(settlementPeriodUnitProvider);
-    final currentUnit = periodAsync.valueOrNull ?? 'monthly';
+    final currentUnit = periodAsync.value ?? 'monthly';
 
     showModalBottomSheet<void>(
       context: context,

@@ -51,10 +51,7 @@ class BiometricService {
     try {
       return await _auth.authenticate(
         localizedReason: reason,
-        options: const AuthenticationOptions(
-          stickyAuth: false,
-          biometricOnly: true,
-        ),
+        biometricOnly: true,
       );
     } catch (_) {
       return false;

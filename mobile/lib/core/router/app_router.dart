@@ -49,14 +49,14 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         return isAuthOrSplash ? null : '/splash';
       }
 
-      final isAuthenticated = authState.valueOrNull?.isAuthenticated ?? false;
+      final isAuthenticated = authState.value?.isAuthenticated ?? false;
       final hasSeen = ref.read(hasSeenOnboardingProvider);
       final isAuthRoute = loc.startsWith('/auth') || loc == '/onboarding' || loc == '/splash';
 
       // Once auth is resolved, always leave the splash screen immediately.
       if (loc == '/splash') {
         if (!isAuthenticated) return hasSeen ? '/auth/login' : '/onboarding';
-        final role = authState.valueOrNull?.role ?? 'child';
+        final role = authState.value?.role ?? 'child';
         return role == 'parent' ? '/parent/home' : '/student/home';
       }
 
@@ -70,7 +70,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
 
       // Authenticated user landing on an auth/onboarding screen → go home
       if (isAuthenticated && isAuthRoute) {
-        final role = authState.valueOrNull?.role ?? 'child';
+        final role = authState.value?.role ?? 'child';
         return role == 'parent' ? '/parent/home' : '/student/home';
       }
       return null;

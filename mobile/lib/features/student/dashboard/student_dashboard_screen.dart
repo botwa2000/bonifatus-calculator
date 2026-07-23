@@ -18,7 +18,7 @@ class StudentDashboardScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context)!;
     final authAsync = ref.watch(authStateNotifierProvider);
-    final userName = authAsync.valueOrNull?.name ?? l10n.registerRoleStudentTitle;
+    final userName = authAsync.value?.name ?? l10n.registerRoleStudentTitle;
     final gradesAsync = ref.watch(quickGradesProvider);
     final termsAsync = ref.watch(termResultsProvider);
 
@@ -48,7 +48,7 @@ class StudentDashboardScreen extends ConsumerWidget {
               SliverToBoxAdapter(
                 child: Padding(
                   padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
-                  child: _HeroCard(grades: gradesAsync.valueOrNull ?? []),
+                  child: _HeroCard(grades: gradesAsync.value ?? []),
                 ),
               ),
               SliverToBoxAdapter(

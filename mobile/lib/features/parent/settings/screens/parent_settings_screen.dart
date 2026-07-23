@@ -120,8 +120,8 @@ class _ParentSettingsScreenState extends ConsumerState<ParentSettingsScreen> {
     final theme = Theme.of(context);
     final cs = theme.colorScheme;
     final l10n = AppLocalizations.of(context)!;
-    final currentThemeMode = ref.watch(themeModeProvider).valueOrNull ?? ThemeMode.system;
-    final currentLocale = ref.watch(localeProvider).valueOrNull;
+    final currentThemeMode = ref.watch(themeModeProvider).value ?? ThemeMode.system;
+    final currentLocale = ref.watch(localeProvider).value;
 
     return Scaffold(
       backgroundColor: cs.surfaceContainerLowest,
@@ -370,7 +370,7 @@ class _ParentSettingsScreenState extends ConsumerState<ParentSettingsScreen> {
 
   void _showLanguagePicker(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final current = ref.read(localeProvider).valueOrNull;
+    final current = ref.read(localeProvider).value;
     showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
@@ -602,7 +602,7 @@ class _ParentSettingsScreenState extends ConsumerState<ParentSettingsScreen> {
 
   void _showEditProfileSheet(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final authState = ref.read(authStateNotifierProvider).valueOrNull;
+    final authState = ref.read(authStateNotifierProvider).value;
     final nameCtrl = TextEditingController(text: authState?.name ?? '');
     final formKey = GlobalKey<FormState>();
 
@@ -909,7 +909,7 @@ class _ParentSettingsScreenState extends ConsumerState<ParentSettingsScreen> {
     final l10n = AppLocalizations.of(context)!;
     final profilesAsync = ref.watch(childProfilesProvider);
     final gradesMap = {
-      for (final c in ref.watch(childrenQuickGradesProvider).valueOrNull ?? [])
+      for (final c in ref.watch(childrenQuickGradesProvider).value ?? [])
         c.childId: c
     };
 
@@ -1046,7 +1046,7 @@ class _GradePeriodSetting extends ConsumerWidget {
     final l10n = AppLocalizations.of(context)!;
     final cs = Theme.of(context).colorScheme;
     final periodAsync = ref.watch(settlementPeriodUnitProvider);
-    final current = periodAsync.valueOrNull ?? 'monthly';
+    final current = periodAsync.value ?? 'monthly';
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),

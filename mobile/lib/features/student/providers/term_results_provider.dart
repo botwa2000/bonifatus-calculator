@@ -24,7 +24,7 @@ class TermResultsNotifier extends AsyncNotifier<List<TermResult>> {
 
   Future<void> updateTermName(String id, String newName) async {
     final service = ref.read(gradeServiceProvider);
-    final terms = state.valueOrNull ?? [];
+    final terms = state.value ?? [];
     final term = terms.where((t) => t.id == id).firstOrNull;
     if (term == null) return;
     await service.updateTermName(term: term, newName: newName);
@@ -33,7 +33,7 @@ class TermResultsNotifier extends AsyncNotifier<List<TermResult>> {
 
   Future<void> updateTermGrades(String termId, List<Map<String, dynamic>> subjects) async {
     final service = ref.read(gradeServiceProvider);
-    final terms = state.valueOrNull ?? [];
+    final terms = state.value ?? [];
     final term = terms.where((t) => t.id == termId).firstOrNull;
     if (term == null) return;
     await service.updateTerm(term: term, subjects: subjects);

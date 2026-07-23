@@ -114,7 +114,7 @@ class ChildDetailScreen extends ConsumerWidget {
       ..sort((a, b) => b.gradedAt.compareTo(a.gradedAt));
 
     final termResultsAsync = ref.watch(childTermResultsProvider(childId));
-    final termPts = termResultsAsync.valueOrNull
+    final termPts = termResultsAsync.value
             ?.fold<double>(0.0, (s, t) => s + t.totalBonusPoints) ??
         0.0;
     // Notes pts + term pts — no double-counting (child.grades calculator entries excluded)
@@ -122,7 +122,7 @@ class ChildDetailScreen extends ConsumerWidget {
         .where((g) => g.gradeSource == 'notes')
         .fold<double>(0.0, (s, g) => s + g.bonusPoints);
     final totalPts = notesPts + termPts;
-    final termCount = termResultsAsync.valueOrNull?.length ?? 0;
+    final termCount = termResultsAsync.value?.length ?? 0;
     final totalGradeCount = notesGrades.length + termCount;
     final pendingPts = child.totalPendingPoints;
 

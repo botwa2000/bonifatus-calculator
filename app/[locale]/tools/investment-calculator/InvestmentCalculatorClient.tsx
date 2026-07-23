@@ -174,7 +174,7 @@ export function InvestmentCalculatorClient() {
                   tickFormatter={(v) => `€${(v / 1000).toFixed(0)}k`}
                 />
                 <Tooltip
-                  formatter={(value: number | undefined) => (value != null ? formatEur(value) : '')}
+                  formatter={(value) => (typeof value === 'number' ? formatEur(value) : '')}
                   labelFormatter={(label) => `Year ${label}`}
                 />
                 <Area

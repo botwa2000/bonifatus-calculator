@@ -50,8 +50,8 @@ class StudentInsightsScreen extends ConsumerWidget {
       );
     }
 
-    final grades = gradesAsync.valueOrNull ?? [];
-    final terms = termsAsync.valueOrNull ?? [];
+    final grades = gradesAsync.value ?? [];
+    final terms = termsAsync.value ?? [];
 
     return Scaffold(
       appBar: AppBar(title: Text(l10n.insightsTitle)),

@@ -137,7 +137,7 @@ class _CalculatorScreenState extends ConsumerState<CalculatorScreen> {
     final seq = ++_previewSeq;
     _debounceTimer = Timer(const Duration(milliseconds: 400), () async {
       if (!mounted) return;
-      final config = ref.read(calculatorConfigProvider).valueOrNull;
+      final config = ref.read(calculatorConfigProvider).value;
       if (config == null) return;
       final system = _resolveSystem(config);
       try {

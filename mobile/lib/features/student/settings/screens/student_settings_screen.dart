@@ -93,8 +93,8 @@ class _StudentSettingsScreenState extends ConsumerState<StudentSettingsScreen> {
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
     final l10n = AppLocalizations.of(context)!;
-    final currentThemeMode = ref.watch(themeModeProvider).valueOrNull ?? ThemeMode.system;
-    final currentLocale = ref.watch(localeProvider).valueOrNull;
+    final currentThemeMode = ref.watch(themeModeProvider).value ?? ThemeMode.system;
+    final currentLocale = ref.watch(localeProvider).value;
 
     return Scaffold(
       backgroundColor: cs.surfaceContainerLowest,
@@ -452,7 +452,7 @@ class _StudentSettingsScreenState extends ConsumerState<StudentSettingsScreen> {
 
   void _showLanguagePicker(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final current = ref.read(localeProvider).valueOrNull;
+    final current = ref.read(localeProvider).value;
     showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
@@ -712,7 +712,7 @@ class _StudentSettingsScreenState extends ConsumerState<StudentSettingsScreen> {
 
   void _showEditProfileSheet(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final authState = ref.read(authStateNotifierProvider).valueOrNull;
+    final authState = ref.read(authStateNotifierProvider).value;
     final nameCtrl = TextEditingController(text: authState?.name ?? '');
     final formKey = GlobalKey<FormState>();
 

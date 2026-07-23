@@ -77,20 +77,14 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     }
     setState(() { _error = null; _isSubmitting = true; });
     try {
-      final googleSignIn = GoogleSignIn(serverClientId: AppConstants.googleWebClientId);
       // Always sign out first so the account picker appears on every tap,
       // not just the first time. This lets users switch accounts after logout.
-      await googleSignIn.signOut();
-      final account = await googleSignIn.signIn();
-      debugPrint('[GoogleSignIn] signIn() result: $account');
-      if (account == null) {
-        // User cancelled — stay silent so the screen doesn't show an error for a deliberate cancel.
-        setState(() => _isSubmitting = false);
-        return;
-      }
-      final auth = await account.authentication;
+      await GoogleSignIn.instance.signOut();
+      final account = await GoogleSignIn.instance.authenticate();
+      debugPrint('[GoogleSignIn] authenticate() result: $account');
+      final auth = account.authentication;
       final idToken = auth.idToken;
-      debugPrint('[GoogleSignIn] idToken null=${idToken == null}, accessToken null=${auth.accessToken == null}');
+      debugPrint('[GoogleSignIn] idToken null=${idToken == null}');
       if (idToken == null || !mounted) {
         setState(() { _error = 'Could not get Google token — SHA-1 certificate may not be registered in Google Cloud Console.'; _isSubmitting = false; });
         return;
@@ -104,11 +98,18 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
           'email': result.email,
         });
       }
+    } on GoogleSignInException catch (e) {
+      debugPrint('[GoogleSignIn] GoogleSignInException code=${e.code} description=${e.description}');
+      if (e.code == GoogleSignInExceptionCode.canceled) {
+        // User cancelled — stay silent
+        return;
+      }
+      if (mounted) {
+        setState(() => _error = e.description ?? 'Google Sign-In error');
+      }
     } on PlatformException catch (e) {
       debugPrint('[GoogleSignIn] PlatformException code=${e.code} message=${e.message} details=${e.details}');
       if (mounted) {
-        // sign_in_failed with details containing "10" or "DEVELOPER_ERROR" means the
-        // release SHA-1 is not registered in Google Cloud Console for this package.
         final details = e.details?.toString() ?? '';
         final String msg;
         if (e.code == 'sign_in_failed' && (details.contains('10') || details.contains('DEVELOPER_ERROR'))) {

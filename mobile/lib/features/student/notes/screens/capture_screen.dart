@@ -456,7 +456,7 @@ class _CaptureScreenState extends ConsumerState<CaptureScreen> {
     // Watch config to keep the provider alive; in confirming state prefer the
     // cached _config so a mid-flow provider re-load doesn't blank the body.
     final configAsync = ref.watch(calculatorConfigProvider);
-    final config = isConfirming ? (_config ?? configAsync.valueOrNull) : null;
+    final config = isConfirming ? (_config ?? configAsync.value) : null;
 
     return Scaffold(
       backgroundColor: isConfirming

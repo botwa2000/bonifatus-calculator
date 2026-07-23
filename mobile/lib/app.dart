@@ -13,8 +13,8 @@ class BonifatusApp extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final router = ref.watch(appRouterProvider);
-    final themeMode = ref.watch(themeModeProvider).valueOrNull ?? ThemeMode.system;
-    final locale = ref.watch(localeProvider).valueOrNull;
+    final themeMode = ref.watch(themeModeProvider).value ?? ThemeMode.system;
+    final locale = ref.watch(localeProvider).value;
 
     return MaterialApp.router(
       title: 'Bonifatus',
