@@ -909,10 +909,10 @@ class AppLocalizationsRu extends AppLocalizations {
       'Не удалось загрузить результаты за полугодие';
 
   @override
-  String get childDetailQuickGrades => 'Быстрые оценки';
+  String get childDetailQuickGrades => 'Результаты тестов';
 
   @override
-  String get childDetailNoQuickGrades => 'Быстрых оценок пока нет';
+  String get childDetailNoQuickGrades => 'Результатов тестов пока нет';
 
   @override
   String get childDetailGrades => 'Оценки';

@@ -515,6 +515,9 @@ export async function getChildTermSummariesForDashboard(childId: string) {
     settlementStatus: t.hasUnsettled ? 'unsettled' : 'settled',
     settlementId: null as string | null,
     subjectName: t.termName || `${t.schoolYear} ${t.termType}`,
+    schoolYear: t.schoolYear,
+    termType: t.termType,
+    termName: t.termName,
     gradeSource: 'calculator' as const,
   }))
 }

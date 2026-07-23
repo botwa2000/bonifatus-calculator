@@ -1813,13 +1813,13 @@ abstract class AppLocalizations {
   /// No description provided for @childDetailQuickGrades.
   ///
   /// In en, this message translates to:
-  /// **'Quick Grades'**
+  /// **'Test Reports'**
   String get childDetailQuickGrades;
 
   /// No description provided for @childDetailNoQuickGrades.
   ///
   /// In en, this message translates to:
-  /// **'No quick grades yet'**
+  /// **'No test reports yet'**
   String get childDetailNoQuickGrades;
 
   /// No description provided for @childDetailGrades.

@@ -109,15 +109,21 @@ class ChildDetailScreen extends ConsumerWidget {
   }
 
   Widget _buildScreen(BuildContext context, WidgetRef ref, ChildWithGrades child, AppLocalizations l10n) {
-    final sortedGrades = [...child.grades]
+    // Segregate: notes = individual test reports; calculator = term summaries already in Term Results
+    final notesGrades = [...child.grades.where((g) => g.gradeSource == 'notes')]
       ..sort((a, b) => b.gradedAt.compareTo(a.gradedAt));
 
     final termResultsAsync = ref.watch(childTermResultsProvider(childId));
     final termPts = termResultsAsync.valueOrNull
             ?.fold<double>(0.0, (s, t) => s + t.totalBonusPoints) ??
         0.0;
-    final totalPts =
-        child.grades.fold<double>(0.0, (s, g) => s + g.bonusPoints) + termPts;
+    // Notes pts + term pts — no double-counting (child.grades calculator entries excluded)
+    final notesPts = child.grades
+        .where((g) => g.gradeSource == 'notes')
+        .fold<double>(0.0, (s, g) => s + g.bonusPoints);
+    final totalPts = notesPts + termPts;
+    final termCount = termResultsAsync.valueOrNull?.length ?? 0;
+    final totalGradeCount = notesGrades.length + termCount;
     final pendingPts = child.totalPendingPoints;
 
     final cs = Theme.of(context).colorScheme;
@@ -142,7 +148,7 @@ class ChildDetailScreen extends ConsumerWidget {
           SliverToBoxAdapter(
             child: Padding(
               padding: const EdgeInsets.all(20),
-              child: _buildSummaryCard(child, totalPts, pendingPts, l10n),
+              child: _buildSummaryCard(totalGradeCount, totalPts, pendingPts, l10n),
             ),
           ),
 
@@ -247,7 +253,7 @@ class ChildDetailScreen extends ConsumerWidget {
             ),
           ),
 
-          if (sortedGrades.isEmpty)
+          if (notesGrades.isEmpty)
             SliverToBoxAdapter(
               child: Padding(
                 padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
@@ -261,13 +267,13 @@ class ChildDetailScreen extends ConsumerWidget {
               sliver: SliverList(
                 delegate: SliverChildBuilderDelegate(
                   (ctx, i) {
-                    final grade = sortedGrades[i];
+                    final grade = notesGrades[i];
                     return Padding(
                       padding: const EdgeInsets.only(bottom: 10),
                       child: _GradeCard(grade: grade),
                     );
                   },
-                  childCount: sortedGrades.length,
+                  childCount: notesGrades.length,
                 ),
               ),
             ),
@@ -279,7 +285,7 @@ class ChildDetailScreen extends ConsumerWidget {
   }
 
   Widget _buildSummaryCard(
-      ChildWithGrades child, double totalPts, double pendingPts, AppLocalizations l10n) {
+      int gradesCount, double totalPts, double pendingPts, AppLocalizations l10n) {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -303,7 +309,7 @@ class ChildDetailScreen extends ConsumerWidget {
             child: _Stat(
               icon: Icons.grade_outlined,
               label: l10n.childDetailGrades,
-              value: child.grades.length.toString(),
+              value: gradesCount.toString(),
             ),
           ),
           Container(

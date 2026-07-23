@@ -7,6 +7,7 @@ import '../../auth/providers/auth_provider.dart';
 import '../providers/children_provider.dart';
 import '../../../../models/child_data.dart';
 import '../../../../utils/format_utils.dart';
+import '../../../../utils/term_type_utils.dart';
 
 typedef _Entry = ({ChildWithGrades child, ChildQuickGrade grade});
 
@@ -90,13 +91,6 @@ class _Header extends StatelessWidget {
                   fontSize: 26,
                   fontWeight: FontWeight.w800,
                   color: Theme.of(context).colorScheme.onSurface,
-                ),
-              ),
-              Text(
-                l10n.homeActionCenterSubtitle,
-                style: TextStyle(
-                  fontSize: 14,
-                  color: Theme.of(context).colorScheme.onSurfaceVariant,
                 ),
               ),
             ],
@@ -394,7 +388,9 @@ class _QuickSettleCard extends ConsumerWidget {
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  grade.subjectName ?? l10n.subjectFallback,
+                  grade.gradeSource == 'calculator'
+                      ? localizeTermLabel(l10n, grade.rawTermType ?? '', grade.termSchoolYear ?? '', grade.termName)
+                      : (grade.subjectName ?? l10n.subjectFallback),
                   style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600),
                 ),
               ],
@@ -402,12 +398,19 @@ class _QuickSettleCard extends ConsumerWidget {
           ),
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-            decoration: BoxDecoration(color: tierColorLight, borderRadius: BorderRadius.circular(6)),
+            decoration: BoxDecoration(
+              color: grade.gradeSource == 'calculator' ? AppColors.primaryLight : tierColorLight,
+              borderRadius: BorderRadius.circular(6),
+            ),
             child: Text(
               grade.gradeSource == 'calculator'
-                  ? '${l10n.calculatorGradeLabel} ${grade.gradeValue}'
+                  ? localizeTermType(l10n, grade.rawTermType ?? '')
                   : grade.gradeValue,
-              style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: tierColor),
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w700,
+                color: grade.gradeSource == 'calculator' ? AppColors.primary : tierColor,
+              ),
             ),
           ),
           const SizedBox(width: 8),
@@ -466,12 +469,14 @@ class _ChildCardState extends State<_ChildCard> {
     final l10n = AppLocalizations.of(context)!;
     final child = widget.child;
     final sorted = [...child.grades]..sort((a, b) => b.gradedAt.compareTo(a.gradedAt));
-    final latest = sorted.first;
+    final notesSorted = sorted.where((g) => g.gradeSource == 'notes').toList();
+    final latest = notesSorted.isNotEmpty ? notesSorted.first : sorted.first;
     final tierColor = AppColors.tierColor(latest.gradeQualityTier);
     final tierColorLight = AppColors.tierColorLight(latest.gradeQualityTier);
     final theme = Theme.of(context);
     final now = DateTime.now();
-    final filtered = _filtered(now);
+    final filteredAll = _filtered(now);
+    final filtered = filteredAll.where((g) => g.gradeSource == 'notes').toList();
     final totalPts = filtered.fold<double>(0.0, (s, g) => s + g.bonusPoints);
 
     return Container(

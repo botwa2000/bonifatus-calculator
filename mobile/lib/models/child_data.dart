@@ -9,6 +9,10 @@ class ChildQuickGrade {
   final DateTime gradedAt;
   // 'notes' = quick-capture note; 'calculator' = saved term subject grade
   final String gradeSource;
+  // Populated for gradeSource == 'calculator' only:
+  final String? termSchoolYear;
+  final String? rawTermType;
+  final String? termName;
 
   const ChildQuickGrade({
     required this.id,
@@ -20,6 +24,9 @@ class ChildQuickGrade {
     required this.settlementStatus,
     required this.gradedAt,
     this.gradeSource = 'notes',
+    this.termSchoolYear,
+    this.rawTermType,
+    this.termName,
   });
 
   String localizedName(String locale, {String fallback = ''}) {
@@ -51,6 +58,9 @@ class ChildQuickGrade {
       settlementStatus: json['settlementStatus'] as String? ?? 'unsettled',
       gradedAt: DateTime.parse(json['gradedAt'] as String),
       gradeSource: json['gradeSource'] as String? ?? 'notes',
+      termSchoolYear: json['schoolYear'] as String?,
+      rawTermType: json['termType'] as String?,
+      termName: json['termName'] as String?,
     );
   }
 }

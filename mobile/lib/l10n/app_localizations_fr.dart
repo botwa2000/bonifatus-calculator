@@ -923,10 +923,10 @@ class AppLocalizationsFr extends AppLocalizations {
       'Impossible de charger les résultats semestriels';
 
   @override
-  String get childDetailQuickGrades => 'Notes rapides';
+  String get childDetailQuickGrades => 'Bulletins de tests';
 
   @override
-  String get childDetailNoQuickGrades => 'Pas encore de notes rapides';
+  String get childDetailNoQuickGrades => 'Pas encore de bulletins de tests';
 
   @override
   String get childDetailGrades => 'Notes';

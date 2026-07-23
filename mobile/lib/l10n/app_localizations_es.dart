@@ -913,10 +913,10 @@ class AppLocalizationsEs extends AppLocalizations {
       'No se pudieron cargar los resultados trimestrales';
 
   @override
-  String get childDetailQuickGrades => 'Notas rápidas';
+  String get childDetailQuickGrades => 'Informes de prueba';
 
   @override
-  String get childDetailNoQuickGrades => 'Todavía no hay notas rápidas';
+  String get childDetailNoQuickGrades => 'Aún no hay informes de prueba';
 
   @override
   String get childDetailGrades => 'Notas';

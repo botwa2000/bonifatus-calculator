@@ -906,10 +906,10 @@ class AppLocalizationsEn extends AppLocalizations {
       'Could not load term results';
 
   @override
-  String get childDetailQuickGrades => 'Quick Grades';
+  String get childDetailQuickGrades => 'Test Reports';
 
   @override
-  String get childDetailNoQuickGrades => 'No quick grades yet';
+  String get childDetailNoQuickGrades => 'No test reports yet';
 
   @override
   String get childDetailGrades => 'Grades';

@@ -917,10 +917,10 @@ class AppLocalizationsDe extends AppLocalizations {
       'Halbjahresergebnisse konnten nicht geladen werden';
 
   @override
-  String get childDetailQuickGrades => 'Schnellnoten';
+  String get childDetailQuickGrades => 'Testberichte';
 
   @override
-  String get childDetailNoQuickGrades => 'Noch keine Schnellnoten';
+  String get childDetailNoQuickGrades => 'Noch keine Testberichte';
 
   @override
   String get childDetailGrades => 'Noten';

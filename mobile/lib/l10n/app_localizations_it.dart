@@ -908,10 +908,10 @@ class AppLocalizationsIt extends AppLocalizations {
       'Impossibile caricare i risultati semestrali';
 
   @override
-  String get childDetailQuickGrades => 'Voti rapidi';
+  String get childDetailQuickGrades => 'Risultati dei test';
 
   @override
-  String get childDetailNoQuickGrades => 'Nessun voto rapido ancora';
+  String get childDetailNoQuickGrades => 'Nessun risultato di test ancora';
 
   @override
   String get childDetailGrades => 'Voti';

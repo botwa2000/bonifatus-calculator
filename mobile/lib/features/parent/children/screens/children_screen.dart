@@ -441,7 +441,7 @@ class _ChildCard extends StatelessWidget {
                             borderRadius: BorderRadius.circular(8),
                           ),
                           child: Text(
-                            l10n.childrenGradesCount(child.grades.length),
+                            l10n.childrenGradesCount(child.grades.where((g) => g.gradeSource == 'notes').length),
                             style: TextStyle(
                               fontSize: 11,
                               fontWeight: FontWeight.w600,
