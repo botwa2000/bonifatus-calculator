@@ -58,6 +58,12 @@ workflows:
           cd $FLUTTER_APP_DIR
           xcode-project use-profiles --export-options-plist "$CM_BUILD_DIR/export_options.plist"
 
+      - name: Install CocoaPods and run pod install
+        script: |
+          gem install cocoapods --no-document
+          cd $FLUTTER_APP_DIR/ios
+          pod install --repo-update
+
       - name: Build Flutter IPA
         script: |
           cd $FLUTTER_APP_DIR
