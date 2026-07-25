@@ -29,7 +29,7 @@ Tablet outputs  (raw_tablet/p*.png + raw_tablet/s*.png):
   android_tablet/  1920 × 1200   Google Play 10"  (landscape)
 """
 
-from PIL import Image, ImageDraw, ImageFont
+from PIL import Image, ImageDraw, ImageFont, ImageFilter
 import os
 
 BASE = os.path.dirname(os.path.abspath(__file__))
@@ -167,6 +167,17 @@ def draw_gradient_overlay(canvas_rgba, x0, y0, x1, y1, color_rgb,
     return Image.alpha_composite(canvas_rgba, overlay)
 
 
+def draw_text_shadowed(img_rgba, text, xy, font, fill, blur=8, shadow_alpha=220):
+    """Draw text with a gaussian-blurred dark halo so it stays legible over any background."""
+    x, y = xy
+    shadow = Image.new("RGBA", img_rgba.size, (0, 0, 0, 0))
+    ImageDraw.Draw(shadow).text((x, y), text, font=font, fill=(0, 0, 0, shadow_alpha))
+    shadow = shadow.filter(ImageFilter.GaussianBlur(radius=blur))
+    result = Image.alpha_composite(img_rgba, shadow)
+    ImageDraw.Draw(result).text((x, y), text, font=font, fill=fill)
+    return result
+
+
 def wrap_text(text: str, font, max_width: int):
     """Wrap a single line of text to fit max_width pixels."""
     dummy = ImageDraw.Draw(Image.new("RGB", (1, 1)))
@@ -202,46 +213,34 @@ def make_screenshot(cfg, raw_dir, status_bar, nav_bar,
     BLEND_H  = int(canvas_h * 0.06)   # gradient transition
 
     # ── Source ─────────────────────────────────────────────────────────────
-    src     = Image.open(src_path).convert("RGB")
-    content = src.crop((0, status_bar, src.width, src.height - nav_bar))
-    src_w, src_h = content.size
+    src = Image.open(src_path).convert("RGB")
+    sw, sh = src.size
 
-    # ── Scaling strategy ──────────────────────────────────────────────────
-    portrait_canvas  = canvas_h > canvas_w
-    landscape_source = src_w > src_h
-
-    if portrait_canvas and landscape_source:
-        scale  = APP_H / src_h
-        new_w  = int(src_w * scale)
-        scaled = content.resize((new_w, APP_H), Image.LANCZOS)
-        app_img = scaled.crop((0, 0, canvas_w, APP_H))
+    # ── Compose: full screenshot (status bar + nav bar included) fills the
+    #    canvas height so both UI chrome elements show through the overlays.
+    #    Scale to fit height; letterbox or crop horizontally as needed.
+    scale_h = canvas_h / sh
+    new_w   = int(sw * scale_h)
+    scaled  = src.resize((new_w, canvas_h), Image.LANCZOS)
+    full    = Image.new("RGB", (canvas_w, canvas_h), BRAND_DARK)
+    if new_w <= canvas_w:
+        full.paste(scaled, ((canvas_w - new_w) // 2, 0))
     else:
-        scale   = canvas_w / src_w
-        new_h   = int(src_h * scale)
-        scaled  = content.resize((canvas_w, new_h), Image.LANCZOS)
-        crop_h  = min(new_h, APP_H)
-        app_img = scaled.crop((0, 0, canvas_w, crop_h))
-        if crop_h < APP_H:
-            padded = Image.new("RGB", (canvas_w, APP_H), (245, 245, 250))
-            padded.paste(app_img, (0, 0))
-            app_img = padded
-
-    # ── Compose: app screenshot fills the content zone, bleeds under overlays
-    full = Image.new("RGB", (canvas_w, canvas_h), BRAND_DARK)
-    full.paste(app_img, (0, APP_Y))
+        crop_x = (new_w - canvas_w) // 2
+        full.paste(scaled.crop((crop_x, 0, crop_x + canvas_w, canvas_h)), (0, 0))
     canvas = full.convert("RGBA")
 
     # ── Header overlay: solid at top, fades into app content ──────────────
     solid_end = HEADER_H - BLEND_H
-    canvas = draw_overlay(canvas, 0, 0, canvas_w, solid_end, BRAND_DARK, 215)
+    canvas = draw_overlay(canvas, 0, 0, canvas_w, solid_end, BRAND_DARK, 120)
     canvas = draw_gradient_overlay(canvas, 0, solid_end, canvas_w, HEADER_H,
-                                   BRAND_DARK, 215, 0)
+                                   BRAND_DARK, 120, 0)
 
     # ── Footer overlay: fades from app content, solid at bottom ───────────
     canvas = draw_gradient_overlay(canvas, 0, FOOTER_Y, canvas_w, FOOTER_Y + BLEND_H,
-                                   BRAND_DARK, 0, 215)
+                                   BRAND_DARK, 0, 120)
     canvas = draw_overlay(canvas, 0, FOOTER_Y + BLEND_H, canvas_w, canvas_h,
-                          BRAND_DARK, 215)
+                          BRAND_DARK, 120)
 
     img = canvas.convert("RGB")
     draw = ImageDraw.Draw(img)
@@ -283,13 +282,15 @@ def make_screenshot(cfg, raw_dir, status_bar, nav_bar,
     zone_h    = solid_end - solid_top
     y_h       = solid_top + max(0, (zone_h - total_h) // 2)
 
+    img_rgba = img.convert("RGBA")
     for line in h_lines:
         bb = draw.textbbox((0, 0), line, font=font_h)
         tw = bb[2] - bb[0]
         x  = (canvas_w - tw) // 2
-        draw.text((x + 2, y_h + 2), line, font=font_h, fill=(0, 0, 20))
-        draw.text((x, y_h), line, font=font_h, fill=WHITE)
+        img_rgba = draw_text_shadowed(img_rgba, line, (x, y_h), font_h, WHITE, blur=10, shadow_alpha=230)
         y_h += lh_h
+    img  = img_rgba.convert("RGB")
+    draw = ImageDraw.Draw(img)
 
     # ── Subline ───────────────────────────────────────────────────────────
     S_SZ    = int(canvas_w * 0.029)
@@ -300,11 +301,14 @@ def make_screenshot(cfg, raw_dir, status_bar, nav_bar,
     solid_start = FOOTER_Y + BLEND_H
     y_s = solid_start + max(0, (canvas_h - solid_start - total_s) // 2)
 
+    img_rgba = img.convert("RGBA")
     for line in s_lines:
         bb = draw.textbbox((0, 0), line, font=font_s)
         tw = bb[2] - bb[0]
-        draw.text(((canvas_w - tw) // 2, y_s), line, font=font_s, fill=LIGHT_GREY)
+        img_rgba = draw_text_shadowed(img_rgba, line, ((canvas_w - tw) // 2, y_s),
+                                      font_s, WHITE, blur=8, shadow_alpha=220)
         y_s += lh_s
+    img = img_rgba.convert("RGB")
 
     img.save(out_path, "PNG", optimize=True)
     print(f"  {os.path.basename(out_path)}  {canvas_w}×{canvas_h}")
