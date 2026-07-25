@@ -491,6 +491,10 @@
   "@childrenGradesCount": {
     "placeholders": { "count": { "type": "int" } }
   },
+  "childrenUnsettledCount": "{count, plural, =0{all settled} =1{1 unsettled} other{{count} unsettled}}",
+  "@childrenUnsettledCount": {
+    "placeholders": { "count": { "type": "int" } }
+  },
   "childrenView": "View",
   "childrenPtsPending": "{pts} pts pending",
   "@childrenPtsPending": {

@@ -423,6 +423,7 @@
   "calculatorSubjectsLabel": "{count, plural, =1{{count} materia} other{{count} materie}}",
   "calculatorGradeHint": "es. {example}",
   "childrenGradesCount": "{count, plural, =1{{count} voto} other{{count} voti}}",
+  "childrenUnsettledCount": "{count, plural, =0{tutto saldato} =1{1 non saldato} other{{count} non saldati}}",
   "childrenView": "Visualizza",
   "childrenPtsPending": "{pts} pts in sospeso",
   "rewardsSummarySubtitle": "{count} voti · {pts} pts totali",

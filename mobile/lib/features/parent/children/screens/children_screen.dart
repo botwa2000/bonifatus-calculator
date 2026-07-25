@@ -382,9 +382,6 @@ class _ChildCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final tier = child.latestTier;
-    final tierColor = AppColors.tierColor(tier);
-    final tierColorLight = AppColors.tierColorLight(tier);
     final pendingPts = child.totalPendingPoints;
 
     final cs = Theme.of(context).colorScheme;
@@ -433,22 +430,22 @@ class _ChildCard extends StatelessWidget {
                     const SizedBox(height: 6),
                     Row(
                       children: [
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 8, vertical: 3),
-                          decoration: BoxDecoration(
-                            color: tierColorLight,
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: Text(
-                            l10n.childrenGradesCount(child.grades.where((g) => g.gradeSource == 'notes').length),
-                            style: TextStyle(
-                              fontSize: 11,
-                              fontWeight: FontWeight.w600,
-                              color: tierColor,
+                        Builder(builder: (context) {
+                          final unsettled = child.grades.where((g) => g.settlementStatus == 'unsettled').length;
+                          final badgeBg = unsettled == 0 ? AppColors.tierBestLight : AppColors.tierThirdLight;
+                          final badgeFg = unsettled == 0 ? AppColors.tierBest : AppColors.tierThird;
+                          return Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                            decoration: BoxDecoration(
+                              color: badgeBg,
+                              borderRadius: BorderRadius.circular(8),
                             ),
-                          ),
-                        ),
+                            child: Text(
+                              l10n.childrenUnsettledCount(unsettled),
+                              style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: badgeFg),
+                            ),
+                          );
+                        }),
                         const SizedBox(width: 8),
                         Text(
                           l10n.childrenPtsPending(ptsPrecise(pendingPts)),

@@ -12,6 +12,7 @@ import '../../../../models/term_result.dart';
 import '../../providers/calculator_config_provider.dart';
 import '../../providers/term_results_provider.dart';
 import '../../../../utils/term_type_utils.dart';
+import '../../../../utils/format_utils.dart';
 
 class CalculatorScreen extends ConsumerStatefulWidget {
   final TermResult? editingTerm;
@@ -1043,11 +1044,11 @@ class _CalculatorScreenState extends ConsumerState<CalculatorScreen> {
 
               // Bonus
               Text(
-                '+${bonus.toStringAsFixed(1)} ${l10n.ptsAbbr}',
-                style: const TextStyle(
+                fmtBonusText(bonus, l10n.ptsAbbr),
+                style: TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w700,
-                  color: AppColors.tierBest,
+                  color: bonusColor(bonus),
                 ),
               ),
               const SizedBox(width: 4),

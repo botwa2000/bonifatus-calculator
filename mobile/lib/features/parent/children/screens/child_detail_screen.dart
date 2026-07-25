@@ -443,8 +443,8 @@ class _TermResultCard extends StatelessWidget {
         style: TextStyle(fontSize: 11, color: Theme.of(context).colorScheme.onSurfaceVariant),
       ),
       trailing: Text(
-        '+${fmtPts(pts)} ${l10n.ptsAbbr}',
-        style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: AppColors.tierBest),
+        fmtBonusText(pts, l10n.ptsAbbr),
+        style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: bonusColor(pts)),
       ),
       children: [
         ...term.subjects.map((s) {
@@ -470,8 +470,8 @@ class _TermResultCard extends StatelessWidget {
                     style: TextStyle(fontSize: 13, color: Theme.of(context).colorScheme.onSurfaceVariant),
                   ),
                 ),
-                Text('+${fmtPts(s.bonusPoints)} ${l10n.ptsAbbr}',
-                    style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.tierBest)),
+                Text(fmtBonusText(s.bonusPoints, l10n.ptsAbbr),
+                    style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: bonusColor(s.bonusPoints))),
               ],
             ),
           );
@@ -484,8 +484,8 @@ class _TermResultCard extends StatelessWidget {
             children: [
               Text('${l10n.calculatorSubjectsLabel(term.subjects.length)}  ·  ${l10n.termDetailAverage}: $primary${secondary != null ? ' ($secondary)' : ''}',
                   style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.onSurfaceVariant)),
-              Text('+${fmtPts(pts)} ${l10n.ptsAbbr}',
-                  style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: AppColors.tierBest)),
+              Text(fmtBonusText(pts, l10n.ptsAbbr),
+                  style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: bonusColor(pts))),
             ],
           ),
         ],
@@ -531,7 +531,7 @@ class _GradeCard extends StatelessWidget {
           ]),
           const SizedBox(height: 20),
           Row(children: [
-            Expanded(child: _DetailChip(label: l10n.childDetailBonus, value: '+${fmtPts(grade.bonusPoints)} ${l10n.ptsAbbr}', color: AppColors.tierBest, bg: AppColors.tierBestLight)),
+            Expanded(child: _DetailChip(label: l10n.childDetailBonus, value: fmtBonusText(grade.bonusPoints, l10n.ptsAbbr), color: bonusColor(grade.bonusPoints), bg: AppColors.tierBestLight)),
             const SizedBox(width: 10),
             Expanded(child: _DetailChip(label: l10n.childDetailStatus,
               value: grade.settlementStatus == 'settled' ? l10n.childDetailSettled : l10n.childDetailPending,
@@ -615,11 +615,11 @@ class _GradeCard extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
               Text(
-                '+${fmtPts(grade.bonusPoints)} ${AppLocalizations.of(context)!.ptsAbbr}',
-                style: const TextStyle(
+                fmtBonusText(grade.bonusPoints, AppLocalizations.of(context)!.ptsAbbr),
+                style: TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w700,
-                  color: AppColors.tierBest,
+                  color: bonusColor(grade.bonusPoints),
                 ),
               ),
               Container(

@@ -30,7 +30,6 @@ class _StudentSettingsScreenState extends ConsumerState<StudentSettingsScreen> {
   // School profile state
   String? _schoolName;
   String? _schoolTown;
-  int _semesterCount = 2;
   int _programLength = 13;
 
   @override
@@ -48,7 +47,6 @@ class _StudentSettingsScreenState extends ConsumerState<StudentSettingsScreen> {
       setState(() {
         _schoolName = profile['schoolName'] as String?;
         _schoolTown = profile['schoolTown'] as String?;
-        _semesterCount = (profile['semesterCount'] as int?) ?? 2;
         _programLength = (profile['programLength'] as int?) ?? 13;
       });
     } catch (_) {}
@@ -244,7 +242,6 @@ class _StudentSettingsScreenState extends ConsumerState<StudentSettingsScreen> {
     final l10n = AppLocalizations.of(context)!;
     final townCtrl = TextEditingController(text: _schoolTown ?? '');
     final nameCtrl = TextEditingController(text: _schoolName ?? '');
-    int semesterCount = _semesterCount;
     int programLength = _programLength;
     bool saving = false;
 
@@ -288,19 +285,6 @@ class _StudentSettingsScreenState extends ConsumerState<StudentSettingsScreen> {
                   textInputAction: TextInputAction.done,
                 ),
                 const SizedBox(height: 16),
-                Text(l10n.profileSemesterSystem, style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: cs.onSurfaceVariant)),
-                const SizedBox(height: 8),
-                SegmentedButton<int>(
-                  segments: [
-                    ButtonSegment(value: 2, label: Text('2×', style: const TextStyle(fontSize: 12))),
-                    ButtonSegment(value: 3, label: Text('3×', style: const TextStyle(fontSize: 12))),
-                    ButtonSegment(value: 4, label: Text('4×', style: const TextStyle(fontSize: 12))),
-                  ],
-                  selected: {semesterCount},
-                  onSelectionChanged: (s) => setSheetState(() => semesterCount = s.first),
-                  style: const ButtonStyle(visualDensity: VisualDensity.compact),
-                ),
-                const SizedBox(height: 16),
                 Text(l10n.profileProgramLength, style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: cs.onSurfaceVariant)),
                 const SizedBox(height: 8),
                 InputDecorator(
@@ -329,14 +313,12 @@ class _StudentSettingsScreenState extends ConsumerState<StudentSettingsScreen> {
                         await ref.read(profileServiceProvider).updateProfile(
                           schoolName: nameCtrl.text.trim().isEmpty ? null : nameCtrl.text.trim(),
                           schoolTown: townCtrl.text.trim().isEmpty ? null : townCtrl.text.trim(),
-                          semesterCount: semesterCount,
                           programLength: programLength,
                         );
                         if (mounted) {
                           setState(() {
                             _schoolName = nameCtrl.text.trim().isEmpty ? null : nameCtrl.text.trim();
                             _schoolTown = townCtrl.text.trim().isEmpty ? null : townCtrl.text.trim();
-                            _semesterCount = semesterCount;
                             _programLength = programLength;
                           });
                         }

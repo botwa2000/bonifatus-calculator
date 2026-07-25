@@ -423,6 +423,7 @@
   "calculatorSubjectsLabel": "{count, plural, =1{{count} Fach} other{{count} Fächer}}",
   "calculatorGradeHint": "z.B. {example}",
   "childrenGradesCount": "{count, plural, =1{{count} Note} other{{count} Noten}}",
+  "childrenUnsettledCount": "{count, plural, =0{alles bezahlt} =1{1 offen} other{{count} offen}}",
   "childrenView": "Ansehen",
   "childrenPtsPending": "{pts} Pkt. ausstehend",
   "rewardsSummarySubtitle": "{count} Noten · {pts} Pkt. gesamt",

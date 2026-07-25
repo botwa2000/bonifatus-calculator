@@ -6,6 +6,7 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../models/term_result.dart';
 import '../../providers/term_results_provider.dart';
 import '../../../../utils/term_type_utils.dart';
+import '../../../../utils/format_utils.dart';
 import '../../calculator/screens/calculator_screen.dart';
 
 class TermDetailScreen extends ConsumerWidget {
@@ -176,51 +177,6 @@ class TermDetailScreen extends ConsumerWidget {
     );
   }
 
-  void _showEditLabelSheet(BuildContext context, WidgetRef ref, AppLocalizations l10n, String currentLabel) {
-    final ctrl = TextEditingController(text: currentLabel);
-    showModalBottomSheet<void>(
-      context: context,
-      isScrollControlled: true,
-      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
-      builder: (ctx) => Padding(
-        padding: EdgeInsets.only(
-          bottom: MediaQuery.of(ctx).viewInsets.bottom,
-          left: 24, right: 24, top: 24,
-        ),
-        child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Text(l10n.termDetailEditLabel, style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w700)),
-          const SizedBox(height: 20),
-          TextField(
-            controller: ctrl,
-            decoration: InputDecoration(
-              labelText: l10n.termDetailEditLabel,
-              border: const OutlineInputBorder(),
-            ),
-            autofocus: true,
-            textCapitalization: TextCapitalization.sentences,
-          ),
-          const SizedBox(height: 20),
-          SizedBox(
-            width: double.infinity,
-            child: ElevatedButton(
-              onPressed: () async {
-                Navigator.of(ctx).pop();
-                await ref.read(termResultsProvider.notifier).updateTermName(termId, ctrl.text.trim());
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.primary,
-                foregroundColor: AppColors.white,
-                padding: const EdgeInsets.symmetric(vertical: 14),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-              ),
-              child: Text(l10n.settingsSave, style: const TextStyle(fontWeight: FontWeight.w700)),
-            ),
-          ),
-          const SizedBox(height: 24),
-        ]),
-      ),
-    );
-  }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -278,18 +234,13 @@ class TermDetailScreen extends ConsumerWidget {
             actions: isUnsettled
                 ? [
                     IconButton(
-                      icon: const Icon(Icons.edit_note_rounded),
+                      icon: const Icon(Icons.edit_rounded),
                       tooltip: l10n.termDetailEditFull,
                       onPressed: () => Navigator.of(context).push(
                         MaterialPageRoute(
                           builder: (_) => CalculatorScreen(editingTerm: term),
                         ),
                       ),
-                    ),
-                    IconButton(
-                      icon: const Icon(Icons.edit_outlined),
-                      tooltip: l10n.termDetailEditLabel,
-                      onPressed: () => _showEditLabelSheet(context, ref, l10n, term.termName ?? ''),
                     ),
                     IconButton(
                       icon: const Icon(Icons.delete_outline, color: AppColors.error),
@@ -343,8 +294,8 @@ class TermDetailScreen extends ConsumerWidget {
                             const SizedBox(width: 24),
                             _Stat(
                               label: l10n.termDetailBonus,
-                              value: '${term.totalBonusPoints % 1 == 0 ? term.totalBonusPoints.toInt() : term.totalBonusPoints.toStringAsFixed(1)} ${l10n.ptsAbbr}',
-                              color: AppColors.success,
+                              value: fmtBonusText(term.totalBonusPoints, l10n.ptsAbbr),
+                              color: bonusColor(term.totalBonusPoints),
                             ),
                             const SizedBox(width: 24),
                             _Stat(
@@ -400,10 +351,10 @@ class TermDetailScreen extends ConsumerWidget {
                                 ),
                                 const SizedBox(width: 8),
                                 Text(
-                                  '+${subject.bonusPoints % 1 == 0 ? subject.bonusPoints.toInt() : subject.bonusPoints.toStringAsFixed(1)} ${l10n.ptsAbbr}',
-                                  style: const TextStyle(
+                                  fmtBonusText(subject.bonusPoints, l10n.ptsAbbr),
+                                  style: TextStyle(
                                     fontSize: 12,
-                                    color: AppColors.success,
+                                    color: bonusColor(subject.bonusPoints),
                                     fontWeight: FontWeight.w600,
                                   ),
                                 ),

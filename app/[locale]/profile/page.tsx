@@ -28,7 +28,6 @@ export default async function ProfilePage({ params }: { params: Promise<{ locale
       role={(profile?.role as 'parent' | 'child') || 'parent'}
       schoolName={profile?.schoolName || null}
       schoolTown={profile?.schoolTown || null}
-      semesterCount={profile?.semesterCount ?? null}
       programLength={profile?.programLength ?? null}
       avatarUrl={profile?.avatarUrl || null}
       defaultGradingSystemId={profile?.defaultGradingSystemId || null}

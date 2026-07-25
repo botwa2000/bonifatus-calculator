@@ -1187,6 +1187,18 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
+  String childrenUnsettledCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count pendientes',
+      one: '1 pendiente',
+      zero: 'todo liquidado',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get childrenView => 'Ver';
 
   @override

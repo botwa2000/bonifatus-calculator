@@ -2,10 +2,16 @@
 Store screenshot generator — Bonifatus.
 
 Three-zone layout (all formats):
-  Top  15 %  — purple brand header  → headline text
-  Mid  70 %  — app screenshot        (fit-width or cover-scale, see below)
-  Bot  15 %  — purple brand footer  → subline text
-  8 % gradient blend at each zone boundary
+  Top  18 %  — semi-transparent brand header  → headline text
+  Mid  64 %  — app screenshot (full bleed, slight darkened edges)
+  Bot  18 %  — semi-transparent brand footer  → subline text
+  Smooth gradient blend from/into app content at each zone boundary
+
+Design goals:
+  - App content is the hero; text doesn't dominate
+  - Dark semi-transparent overlay (not solid purple) so app shows through
+  - Clean white headline, light grey subline
+  - Role badge ("For parents" / "For students") bottom-left of header
 
 Scaling strategy:
   • Phone sources (portrait 1080×2400) in portrait canvas  → fit-width, top-clip
@@ -48,8 +54,14 @@ PHONE_NAV_BAR    = 203
 TABLET_STATUS_BAR = 48
 TABLET_NAV_BAR    = 55
 
-PURPLE_MID  = (72, 56, 180)
+# Brand palette
+BRAND_DARK  = (20, 14, 60)    # very dark indigo — overlay colour
 WHITE       = (255, 255, 255)
+LIGHT_GREY  = (210, 208, 228) # subline text
+
+# Role badge colours
+BADGE_PARENT_BG  = (99, 80, 220)   # indigo
+BADGE_STUDENT_BG = (16, 185, 129)  # emerald
 
 # ─── Copy ────────────────────────────────────────────────────────────────────
 # Parent: "your child / your children" → unambiguously the parent's view.
@@ -57,80 +69,63 @@ WHITE       = (255, 255, 255)
 
 PHONE_SCREENS = [
     # PARENT (5)
-    dict(raw="p01_home.png",
+    dict(raw="p01_home.png",       role="parent",
          headline="See what your child\nearned this week.",
-         subline=["Pending bonus points and grades —",
-                  "your family's week at a glance."]),
-    dict(raw="p02_children.png",
+         subline="Pending bonus points and grades — your family's week at a glance."),
+    dict(raw="p02_children.png",   role="parent",
          headline="Every child.\nEvery pending point.",
-         subline=["Grade counts and unsettled bonus points,",
-                  "per child — always up to date."]),
-    dict(raw="p03_child_detail.png",
+         subline="Grade counts and unsettled bonus points, per child — always up to date."),
+    dict(raw="p03_child_detail.png", role="parent",
          headline="54 bonus points.\nOne term.",
-         subline=["Calculator grades totalled automatically,",
-                  "broken down by semester."]),
-    dict(raw="p04_test_reports.png",
+         subline="Calculator grades totalled automatically, broken down by semester."),
+    dict(raw="p04_test_reports.png", role="parent",
          headline="Each test graded.\nEach point counted.",
-         subline=["Grades logged by your child",
-                  "appear here instantly."]),
-    dict(raw="p05_settle.png",
+         subline="Grades logged by your child appear here instantly."),
+    dict(raw="p05_settle.png",     role="parent",
          headline="Settle the reward\nwhen you're ready.",
-         subline=["Review what was earned and pay it out",
-                  "in one tap."]),
+         subline="Review what was earned and pay it out in one tap."),
     # STUDENT (5)
-    dict(raw="s01_home.png",
+    dict(raw="s01_home.png",       role="student",
          headline="Log a grade.\nEarn bonus points.",
-         subline=["See this week's total at a glance.",
-                  "Your parent gets notified too."]),
-    dict(raw="s02_notes.png",
+         subline="See this week's total at a glance. Your parent gets notified too."),
+    dict(raw="s02_notes.png",      role="student",
          headline="Tap in your grade\nafter the test.",
-         subline=["Your parent sees the bonus points",
-                  "straight away."]),
-    dict(raw="s03_calculator.png",
+         subline="Your parent sees the bonus points straight away."),
+    dict(raw="s03_calculator.png", role="student",
          headline="Know what you'll earn\nbefore the test.",
-         subline=["Run the grade calculator.",
-                  "No surprises on reward day."]),
-    dict(raw="s04_insights.png",
+         subline="Run the grade calculator. No surprises on reward day."),
+    dict(raw="s04_insights.png",   role="student",
          headline="Watch your points\ngrow over time.",
-         subline=["Grade history and bonus point trend,",
-                  "all in one place."]),
-    dict(raw="s05_settings.png",
+         subline="Grade history and bonus point trend, all in one place."),
+    dict(raw="s05_settings.png",   role="student",
          headline="Your account,\nlinked to your parent.",
-         subline=["One family account — what you log,",
-                  "they see."]),
+         subline="One family account — what you log, they see."),
 ]
 
 TABLET_SCREENS = [
     # PARENT (4)
-    dict(raw="p01_home.png",
+    dict(raw="p01_home.png",       role="parent",
          headline="See what your child\nearned this week.",
-         subline=["Pending bonus points and grades —",
-                  "your family's week at a glance."]),
-    dict(raw="p02_children.png",
+         subline="Pending bonus points and grades — your family's week at a glance."),
+    dict(raw="p02_children.png",   role="parent",
          headline="Every child.\nEvery pending point.",
-         subline=["Grade counts and unsettled bonus points,",
-                  "per child — always up to date."]),
-    dict(raw="p03_child_detail.png",
+         subline="Grade counts and unsettled bonus points, per child — always up to date."),
+    dict(raw="p03_child_detail.png", role="parent",
          headline="54 bonus points.\nOne term.",
-         subline=["Calculator grades totalled automatically,",
-                  "broken down by semester."]),
-    dict(raw="p05_settle.png",
+         subline="Calculator grades totalled automatically, broken down by semester."),
+    dict(raw="p05_settle.png",     role="parent",
          headline="Settle the reward\nwhen you're ready.",
-         subline=["Review what was earned and pay it out",
-                  "in one tap."]),
+         subline="Review what was earned and pay it out in one tap."),
     # STUDENT (3)
-    dict(raw="s01_home.png",
+    dict(raw="s01_home.png",       role="student",
          headline="Log a grade.\nEarn bonus points.",
-         subline=["See this week's total at a glance.",
-                  "Your parent gets notified too."]),
-    dict(raw="s02_notes.png",
+         subline="See this week's total at a glance. Your parent gets notified too."),
+    dict(raw="s02_notes.png",      role="student",
          headline="Tap in your grade\nafter the test.",
-         subline=["Your parent sees the bonus points",
-                  "straight away."]),
-    dict(raw="s03_calculator.png",
+         subline="Your parent sees the bonus points straight away."),
+    dict(raw="s03_calculator.png", role="student",
          headline="Know what you'll earn\nbefore the test.",
-         subline=["Run the grade calculator.",
-                  "No surprises on reward day."]),
+         subline="Run the grade calculator. No surprises on reward day."),
 ]
 
 
@@ -151,16 +146,44 @@ def load_font(size: int, bold: bool = False) -> ImageFont.FreeTypeFont:
     return ImageFont.load_default()
 
 
-def purple_blend(canvas_w, canvas_h, y_start, blend_h, fade_in, max_alpha=235):
-    img  = Image.new("RGBA", (canvas_w, canvas_h), (0, 0, 0, 0))
-    draw = ImageDraw.Draw(img)
-    r, g, b = PURPLE_MID
-    for i in range(blend_h):
-        t = i / max(blend_h - 1, 1)
-        alpha = int(max_alpha * t) if fade_in else int(max_alpha * (1 - t))
-        draw.line([(0, y_start + i), (canvas_w - 1, y_start + i)],
-                  fill=(r, g, b, alpha))
-    return img
+def draw_overlay(canvas_rgba, x0, y0, x1, y1, color_rgb, alpha):
+    """Flat semi-transparent rectangle."""
+    overlay = Image.new("RGBA", canvas_rgba.size, (0, 0, 0, 0))
+    draw = ImageDraw.Draw(overlay)
+    draw.rectangle([x0, y0, x1, y1], fill=(*color_rgb, alpha))
+    return Image.alpha_composite(canvas_rgba, overlay)
+
+
+def draw_gradient_overlay(canvas_rgba, x0, y0, x1, y1, color_rgb,
+                           alpha_start, alpha_end):
+    """Vertical gradient overlay."""
+    overlay = Image.new("RGBA", canvas_rgba.size, (0, 0, 0, 0))
+    draw = ImageDraw.Draw(overlay)
+    h = y1 - y0
+    for i in range(h):
+        t = i / max(h - 1, 1)
+        a = int(alpha_start + (alpha_end - alpha_start) * t)
+        draw.line([(x0, y0 + i), (x1, y0 + i)], fill=(*color_rgb, a))
+    return Image.alpha_composite(canvas_rgba, overlay)
+
+
+def wrap_text(text: str, font, max_width: int):
+    """Wrap a single line of text to fit max_width pixels."""
+    dummy = ImageDraw.Draw(Image.new("RGB", (1, 1)))
+    words = text.split()
+    lines, current = [], ""
+    for word in words:
+        test = f"{current} {word}".strip()
+        bb = dummy.textbbox((0, 0), test, font=font)
+        if bb[2] - bb[0] <= max_width:
+            current = test
+        else:
+            if current:
+                lines.append(current)
+            current = word
+    if current:
+        lines.append(current)
+    return lines
 
 
 def make_screenshot(cfg, raw_dir, status_bar, nav_bar,
@@ -171,12 +194,12 @@ def make_screenshot(cfg, raw_dir, status_bar, nav_bar,
         return
 
     # ── Zones ─────────────────────────────────────────────────────────────
-    HEADER_H = int(canvas_h * 0.15)
-    FOOTER_H = int(canvas_h * 0.15)
+    HEADER_H = int(canvas_h * 0.18)
+    FOOTER_H = int(canvas_h * 0.18)
     APP_H    = canvas_h - HEADER_H - FOOTER_H
     APP_Y    = HEADER_H
     FOOTER_Y = APP_Y + APP_H
-    BLEND_H  = int(canvas_h * 0.08)
+    BLEND_H  = int(canvas_h * 0.09)   # gradient transition
 
     # ── Source ─────────────────────────────────────────────────────────────
     src     = Image.open(src_path).convert("RGB")
@@ -184,72 +207,106 @@ def make_screenshot(cfg, raw_dir, status_bar, nav_bar,
     src_w, src_h = content.size
 
     # ── Scaling strategy ──────────────────────────────────────────────────
-    # Portrait canvas + landscape source → cover-scale by height, left-crop
-    # Everything else                    → fit-width, top-clip
     portrait_canvas  = canvas_h > canvas_w
     landscape_source = src_w > src_h
 
     if portrait_canvas and landscape_source:
-        # Cover height: source fills APP_H exactly
         scale  = APP_H / src_h
         new_w  = int(src_w * scale)
         scaled = content.resize((new_w, APP_H), Image.LANCZOS)
-        # Left-align: keep nav rail and primary content, drop empty right edge
         app_img = scaled.crop((0, 0, canvas_w, APP_H))
     else:
-        # Fit width
         scale   = canvas_w / src_w
         new_h   = int(src_h * scale)
         scaled  = content.resize((canvas_w, new_h), Image.LANCZOS)
         crop_h  = min(new_h, APP_H)
         app_img = scaled.crop((0, 0, canvas_w, crop_h))
         if crop_h < APP_H:
-            padded = Image.new("RGB", (canvas_w, APP_H), WHITE)
+            padded = Image.new("RGB", (canvas_w, APP_H), (245, 245, 250))
             padded.paste(app_img, (0, 0))
             app_img = padded
 
-    # ── Compose ───────────────────────────────────────────────────────────
-    canvas = Image.new("RGB", (canvas_w, canvas_h), PURPLE_MID)
-    canvas.paste(app_img, (0, APP_Y))
+    # ── Compose: app screenshot fills the content zone, bleeds under overlays
+    full = Image.new("RGB", (canvas_w, canvas_h), BRAND_DARK)
+    full.paste(app_img, (0, APP_Y))
+    canvas = full.convert("RGBA")
 
-    t_blend = purple_blend(canvas_w, canvas_h, APP_Y, BLEND_H, fade_in=False)
-    canvas  = Image.alpha_composite(canvas.convert("RGBA"), t_blend).convert("RGB")
+    # ── Header overlay: solid at top, fades into app content ──────────────
+    solid_end = HEADER_H - BLEND_H
+    canvas = draw_overlay(canvas, 0, 0, canvas_w, solid_end, BRAND_DARK, 215)
+    canvas = draw_gradient_overlay(canvas, 0, solid_end, canvas_w, HEADER_H,
+                                   BRAND_DARK, 215, 0)
 
-    b_blend = purple_blend(canvas_w, canvas_h, FOOTER_Y - BLEND_H, BLEND_H, fade_in=True)
-    canvas  = Image.alpha_composite(canvas.convert("RGBA"), b_blend).convert("RGB")
+    # ── Footer overlay: fades from app content, solid at bottom ───────────
+    canvas = draw_gradient_overlay(canvas, 0, FOOTER_Y, canvas_w, FOOTER_Y + BLEND_H,
+                                   BRAND_DARK, 0, 215)
+    canvas = draw_overlay(canvas, 0, FOOTER_Y + BLEND_H, canvas_w, canvas_h,
+                          BRAND_DARK, 215)
 
-    draw = ImageDraw.Draw(canvas)
+    img = canvas.convert("RGB")
+    draw = ImageDraw.Draw(img)
+
+    MARGIN = int(canvas_w * 0.07)
+    TEXT_W = canvas_w - 2 * MARGIN
+
+    # ── Role badge ────────────────────────────────────────────────────────
+    role      = cfg.get("role", "")
+    badge_txt = "For parents" if role == "parent" else "For students"
+    badge_rgb = BADGE_PARENT_BG if role == "parent" else BADGE_STUDENT_BG
+    BADGE_SZ  = int(canvas_w * 0.028)
+    font_badge = load_font(BADGE_SZ, bold=True)
+    bb_b       = draw.textbbox((0, 0), badge_txt, font=font_badge)
+    bw, bh     = bb_b[2] - bb_b[0], bb_b[3] - bb_b[1]
+    PAD_X, PAD_Y = int(canvas_w * 0.022), int(canvas_w * 0.011)
+    badge_x    = MARGIN
+    badge_y    = int(canvas_h * 0.025)
+    badge_r    = [badge_x, badge_y,
+                  badge_x + bw + 2 * PAD_X, badge_y + bh + 2 * PAD_Y]
+    # Rounded badge via RGBA layer
+    badge_layer = Image.new("RGBA", img.size, (0, 0, 0, 0))
+    bd = ImageDraw.Draw(badge_layer)
+    radius = (badge_r[3] - badge_r[1]) // 2
+    bd.rounded_rectangle(badge_r, radius=radius, fill=(*badge_rgb, 230))
+    img = Image.alpha_composite(img.convert("RGBA"), badge_layer).convert("RGB")
+    draw = ImageDraw.Draw(img)
+    draw.text((badge_x + PAD_X, badge_y + PAD_Y), badge_txt,
+              font=font_badge, fill=WHITE)
 
     # ── Headline ──────────────────────────────────────────────────────────
-    H_SZ    = int(canvas_w * 0.058)
+    H_SZ    = int(canvas_w * 0.056)
     font_h  = load_font(H_SZ, bold=True)
     h_lines = cfg["headline"].split("\n")[:2]
-    lh_h    = int(H_SZ * 1.28)
+    lh_h    = int(H_SZ * 1.22)
     total_h = len(h_lines) * lh_h
-    y_h     = (HEADER_H - total_h) // 2
+    # Centre in solid header zone, below badge
+    solid_top = badge_r[3] + int(canvas_h * 0.010)
+    zone_h    = solid_end - solid_top
+    y_h       = solid_top + max(0, (zone_h - total_h) // 2)
 
     for line in h_lines:
         bb = draw.textbbox((0, 0), line, font=font_h)
-        x  = (canvas_w - (bb[2] - bb[0])) // 2
-        draw.text((x + 2, y_h + 2), line, font=font_h, fill=(38, 28, 115))
+        tw = bb[2] - bb[0]
+        x  = (canvas_w - tw) // 2
+        draw.text((x + 2, y_h + 2), line, font=font_h, fill=(0, 0, 20))
         draw.text((x, y_h), line, font=font_h, fill=WHITE)
         y_h += lh_h
 
     # ── Subline ───────────────────────────────────────────────────────────
-    S_SZ    = int(canvas_w * 0.034)
+    S_SZ    = int(canvas_w * 0.029)
     font_s  = load_font(S_SZ, bold=False)
-    s_lines = cfg["subline"][:3]
-    lh_s    = int(S_SZ * 1.44)
+    s_lines = wrap_text(cfg["subline"], font_s, TEXT_W)
+    lh_s    = int(S_SZ * 1.50)
     total_s = len(s_lines) * lh_s
-    y_s     = FOOTER_Y + (FOOTER_H - total_s) // 2
+    solid_start = FOOTER_Y + BLEND_H
+    y_s = solid_start + max(0, (canvas_h - solid_start - total_s) // 2)
 
     for line in s_lines:
         bb = draw.textbbox((0, 0), line, font=font_s)
-        draw.text(((canvas_w - (bb[2] - bb[0])) // 2, y_s), line,
-                  font=font_s, fill=WHITE)
+        tw = bb[2] - bb[0]
+        draw.text(((canvas_w - tw) // 2, y_s), line, font=font_s, fill=LIGHT_GREY)
         y_s += lh_s
 
-    canvas.save(out_path, "PNG", optimize=True)
+    img.save(out_path, "PNG", optimize=True)
     print(f"  {os.path.basename(out_path)}  {canvas_w}×{canvas_h}")
 
 

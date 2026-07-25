@@ -423,6 +423,7 @@
   "calculatorSubjectsLabel": "{count, plural, =1{{count} asignatura} other{{count} asignaturas}}",
   "calculatorGradeHint": "ej. {example}",
   "childrenGradesCount": "{count, plural, =1{{count} nota} other{{count} notas}}",
+  "childrenUnsettledCount": "{count, plural, =0{todo liquidado} =1{1 pendiente} other{{count} pendientes}}",
   "childrenView": "Ver",
   "childrenPtsPending": "{pts} pts pendientes",
   "rewardsSummarySubtitle": "{count} notas · {pts} pts total",

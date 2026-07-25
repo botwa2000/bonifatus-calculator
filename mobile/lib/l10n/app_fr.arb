@@ -423,6 +423,7 @@
   "calculatorSubjectsLabel": "{count, plural, =1{{count} matière} other{{count} matières}}",
   "calculatorGradeHint": "ex. {example}",
   "childrenGradesCount": "{count, plural, =1{{count} note} other{{count} notes}}",
+  "childrenUnsettledCount": "{count, plural, =0{tout réglé} =1{1 en attente} other{{count} en attente}}",
   "childrenView": "Voir",
   "childrenPtsPending": "{pts} pts en attente",
   "rewardsSummarySubtitle": "{count} notes · {pts} pts au total",

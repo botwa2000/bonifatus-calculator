@@ -2260,6 +2260,12 @@ abstract class AppLocalizations {
   /// **'{count, plural, =1{{count} grade} other{{count} grades}}'**
   String childrenGradesCount(int count);
 
+  /// No description provided for @childrenUnsettledCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{all settled} =1{1 unsettled} other{{count} unsettled}}'**
+  String childrenUnsettledCount(int count);
+
   /// No description provided for @childrenView.
   ///
   /// In en, this message translates to:
