@@ -194,12 +194,12 @@ def make_screenshot(cfg, raw_dir, status_bar, nav_bar,
         return
 
     # ── Zones ─────────────────────────────────────────────────────────────
-    HEADER_H = int(canvas_h * 0.18)
-    FOOTER_H = int(canvas_h * 0.18)
+    HEADER_H = int(canvas_h * 0.14)
+    FOOTER_H = int(canvas_h * 0.10)
     APP_H    = canvas_h - HEADER_H - FOOTER_H
     APP_Y    = HEADER_H
     FOOTER_Y = APP_Y + APP_H
-    BLEND_H  = int(canvas_h * 0.09)   # gradient transition
+    BLEND_H  = int(canvas_h * 0.06)   # gradient transition
 
     # ── Source ─────────────────────────────────────────────────────────────
     src     = Image.open(src_path).convert("RGB")
@@ -253,13 +253,13 @@ def make_screenshot(cfg, raw_dir, status_bar, nav_bar,
     role      = cfg.get("role", "")
     badge_txt = "For parents" if role == "parent" else "For students"
     badge_rgb = BADGE_PARENT_BG if role == "parent" else BADGE_STUDENT_BG
-    BADGE_SZ  = int(canvas_w * 0.028)
+    BADGE_SZ  = int(canvas_w * 0.022)
     font_badge = load_font(BADGE_SZ, bold=True)
     bb_b       = draw.textbbox((0, 0), badge_txt, font=font_badge)
     bw, bh     = bb_b[2] - bb_b[0], bb_b[3] - bb_b[1]
-    PAD_X, PAD_Y = int(canvas_w * 0.022), int(canvas_w * 0.011)
+    PAD_X, PAD_Y = int(canvas_w * 0.016), int(canvas_w * 0.008)
     badge_x    = MARGIN
-    badge_y    = int(canvas_h * 0.025)
+    badge_y    = int(canvas_h * 0.016)
     badge_r    = [badge_x, badge_y,
                   badge_x + bw + 2 * PAD_X, badge_y + bh + 2 * PAD_Y]
     # Rounded badge via RGBA layer
@@ -273,13 +273,13 @@ def make_screenshot(cfg, raw_dir, status_bar, nav_bar,
               font=font_badge, fill=WHITE)
 
     # ── Headline ──────────────────────────────────────────────────────────
-    H_SZ    = int(canvas_w * 0.056)
+    H_SZ    = int(canvas_w * 0.046)
     font_h  = load_font(H_SZ, bold=True)
     h_lines = cfg["headline"].split("\n")[:2]
-    lh_h    = int(H_SZ * 1.22)
+    lh_h    = int(H_SZ * 1.20)
     total_h = len(h_lines) * lh_h
     # Centre in solid header zone, below badge
-    solid_top = badge_r[3] + int(canvas_h * 0.010)
+    solid_top = badge_r[3] + int(canvas_h * 0.007)
     zone_h    = solid_end - solid_top
     y_h       = solid_top + max(0, (zone_h - total_h) // 2)
 
