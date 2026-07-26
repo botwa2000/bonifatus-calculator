@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:bonifatus_mobile/l10n/app_localizations.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../utils/format_utils.dart';
 import '../../providers/quick_grades_provider.dart';
 import '../../../../models/quick_grade.dart';
 
@@ -338,7 +339,7 @@ class _CycleNoteCard extends StatelessWidget {
             ),
           ),
           Text(
-            '+${grade.bonusPoints % 1 == 0 ? grade.bonusPoints.toInt() : grade.bonusPoints.toStringAsFixed(1)} ${AppLocalizations.of(context)!.ptsAbbr}',
+            fmtBonusText(grade.bonusPoints, AppLocalizations.of(context)!.ptsAbbr),
             style: const TextStyle(
               fontSize: 14,
               fontWeight: FontWeight.w700,

@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:bonifatus_mobile/l10n/app_localizations.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../utils/format_utils.dart';
 import '../../providers/quick_grades_provider.dart';
 import '../../../../models/quick_grade.dart';
 
@@ -332,7 +333,7 @@ class _SummaryChipRow extends StatelessWidget {
               ),
               const SizedBox(width: 8),
               _Chip(
-                label: '+${totalBonusPts % 1 == 0 ? totalBonusPts.toInt() : totalBonusPts.toStringAsFixed(1)} ${l10n.ptsAbbr}',
+                label: fmtBonusText(totalBonusPts, l10n.ptsAbbr),
                 icon: Icons.star_outline_rounded,
                 color: AppColors.tierBest,
               ),
@@ -500,7 +501,7 @@ class _NoteCard extends StatelessWidget {
                         ),
                         const SizedBox(height: 6),
                         Text(
-                          '+${grade.bonusPoints % 1 == 0 ? grade.bonusPoints.toInt() : grade.bonusPoints.toStringAsFixed(1)} ${l10n.ptsAbbr}',
+                          fmtBonusText(grade.bonusPoints, l10n.ptsAbbr),
                           style: const TextStyle(
                             fontSize: 13,
                             fontWeight: FontWeight.w600,

@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:bonifatus_mobile/l10n/app_localizations.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../utils/format_utils.dart';
 import '../../providers/quick_grades_provider.dart';
 
 class NoteDetailScreen extends ConsumerWidget {
@@ -159,7 +160,7 @@ class NoteDetailScreen extends ConsumerWidget {
                                         BorderRadius.circular(20),
                                   ),
                                   child: Text(
-                                    '+${grade.bonusPoints % 1 == 0 ? grade.bonusPoints.toInt() : grade.bonusPoints.toStringAsFixed(1)} ${l10n.bonusPtsLabel}',
+                                    fmtBonusText(grade.bonusPoints, l10n.ptsAbbr),
                                     style: const TextStyle(
                                       fontSize: 12,
                                       fontWeight: FontWeight.w600,

@@ -414,7 +414,7 @@ class _ActivityRow extends StatelessWidget {
           Column(
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
-              Text('+${fmtPts(grade.bonusPoints)} ${l10n.ptsAbbr}',
+              Text(fmtBonusText(grade.bonusPoints, l10n.ptsAbbr),
                   style: const TextStyle(
                       fontSize: 13, fontWeight: FontWeight.w700, color: AppColors.tierBest)),
               if (isSettled)

@@ -4,6 +4,7 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:intl/intl.dart';
 import 'package:bonifatus_mobile/l10n/app_localizations.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../utils/format_utils.dart';
 import '../providers/quick_grades_provider.dart';
 import '../providers/term_results_provider.dart';
 import '../../../models/quick_grade.dart';
@@ -487,7 +488,7 @@ class _InsightsBodyState extends State<_InsightsBody> {
                             overflow: TextOverflow.ellipsis,
                           ),
                           Text(
-                            '${bestGrade.gradeValue}  +${bestGrade.bonusPoints.toInt()} ${l10n.ptsAbbr}',
+                            '${bestGrade.gradeValue}  ${fmtBonusText(bestGrade.bonusPoints, l10n.ptsAbbr)}',
                             style: const TextStyle(
                                 fontSize: 12,
                                 color: AppColors.tierBest,
@@ -513,7 +514,7 @@ class _InsightsBodyState extends State<_InsightsBody> {
                             overflow: TextOverflow.ellipsis,
                           ),
                           Text(
-                            '${worstGrade.gradeValue}  +${worstGrade.bonusPoints.toInt()} ${l10n.ptsAbbr}',
+                            '${worstGrade.gradeValue}  ${fmtBonusText(worstGrade.bonusPoints, l10n.ptsAbbr)}',
                             style: TextStyle(
                                 fontSize: 12,
                                 color: AppColors.tierColor(worstGrade.gradeQualityTier),

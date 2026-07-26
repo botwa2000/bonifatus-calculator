@@ -829,7 +829,8 @@ class _CalculatorScreenState extends ConsumerState<CalculatorScreen> {
                                 value: t.code,
                                 child: Text(
                                     t.name.isEmpty ? localizeTermType(l10n, t.code) : t.name,
-                                    style: const TextStyle(fontSize: 14)),
+                                    style: const TextStyle(fontSize: 14),
+                                    overflow: TextOverflow.ellipsis),
                               ))
                           .toList(),
                       onChanged: (v) {
