@@ -555,5 +555,13 @@
 ,
   "settingsSectionSchool": "Shkolnaya informatsiya",
   "settingsSchoolInfo": "Shkola i sistema otsenok",
-  "settingsSchoolInfoDesc": "Nastroyte shkolnye dannye dlya tochnogo raschyota bonusov"
+  "settingsSchoolInfoDesc": "Nastroyte shkolnye dannye dlya tochnogo raschyota bonusov",
+
+  "filterAll": "Vse",
+  "filterNotes": "Otsenki",
+  "filterTestReports": "Otchyoty",
+  "filterSettled": "Oplacheno",
+  "filterUnsettled": "Ozhidaet",
+  "filterGradeType": "Tip otsenki",
+  "filterStatusLabel": "Status"
 }

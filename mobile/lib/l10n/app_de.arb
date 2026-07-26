@@ -555,5 +555,13 @@
 ,
   "settingsSectionSchool": "Schuldaten",
   "settingsSchoolInfo": "Schule & Notensystem",
-  "settingsSchoolInfoDesc": "Schuldaten fuer genaue Bonusberechnungen konfigurieren"
+  "settingsSchoolInfoDesc": "Schuldaten fuer genaue Bonusberechnungen konfigurieren",
+
+  "filterAll": "Alle",
+  "filterNotes": "Notizen",
+  "filterTestReports": "Zeugnisse",
+  "filterSettled": "Abgerechnet",
+  "filterUnsettled": "Offen",
+  "filterGradeType": "Notentyp",
+  "filterStatusLabel": "Status"
 }

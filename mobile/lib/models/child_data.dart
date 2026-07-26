@@ -276,11 +276,15 @@ class ChildTermResult {
 class ChildWithGrades {
   final String childId;
   final String childName;
+  final String? schoolName;
+  final String? schoolTown;
   final List<ChildQuickGrade> grades;
 
   const ChildWithGrades({
     required this.childId,
     required this.childName,
+    this.schoolName,
+    this.schoolTown,
     required this.grades,
   });
 
@@ -288,6 +292,8 @@ class ChildWithGrades {
     return ChildWithGrades(
       childId: json['childId'] as String,
       childName: json['childName'] as String,
+      schoolName: json['schoolName'] as String?,
+      schoolTown: json['schoolTown'] as String?,
       grades: (json['grades'] as List<dynamic>? ?? [])
           .map((g) => ChildQuickGrade.fromJson(g as Map<String, dynamic>))
           .toList(),

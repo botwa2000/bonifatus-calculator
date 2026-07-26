@@ -6,7 +6,7 @@ import { useTranslations } from 'next-intl'
 import { useStudentData } from '@/hooks/useStudentData'
 import { QuickGradeForm } from '@/components/quick-grade-form'
 import { GradeTrendChart } from '@/components/charts'
-import { formatDate } from '@/lib/utils/grade-helpers'
+import { formatDate, bonusColorClass } from '@/lib/utils/grade-helpers'
 import { formatTermType } from '@/lib/format-term-type'
 import { BonusIcon } from '@/components/ui'
 
@@ -213,8 +213,10 @@ export default function StudentDashboardPage() {
                 <p className="text-xs text-neutral-500">
                   {t('subjectCount', { count: term.subject_grades.length })}
                 </p>
-                <p className="mt-2 text-lg font-bold text-primary-600 dark:text-primary-300 flex items-center gap-1">
-                  <BonusIcon className="w-4 h-4 text-primary-500" />
+                <p
+                  className={`mt-2 text-lg font-bold flex items-center gap-1 ${bonusColorClass(Number(term.total_bonus_points ?? 0), true)}`}
+                >
+                  <BonusIcon className="w-4 h-4" />
                   {Number(term.total_bonus_points ?? 0).toFixed(2)} {tc('pts')}
                 </p>
                 <p className="text-xs text-neutral-400">{formatDate(term.created_at)}</p>

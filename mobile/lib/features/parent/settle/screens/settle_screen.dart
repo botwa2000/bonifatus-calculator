@@ -451,11 +451,11 @@ class _PackageCardState extends ConsumerState<_PackageCard> {
                       ],
                       const Spacer(),
                       Text(
-                        '+${fmtPts(pkg.totalPoints)} ${l10n.ptsAbbr}',
-                        style: const TextStyle(
+                        fmtBonusText(pkg.totalPoints, l10n.ptsAbbr),
+                        style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.w800,
-                          color: AppColors.tierBest,
+                          color: pkg.totalPoints > 0 ? AppColors.success : AppColors.warning,
                         ),
                       ),
                       const SizedBox(width: 8),
@@ -619,11 +619,11 @@ class _PackageCardState extends ConsumerState<_PackageCard> {
                             color: cs.onSurface, fontWeight: FontWeight.w500),
                       ),
                       Text(
-                        '+${fmtPts(pkg.totalPoints)} ${l10n.ptsAbbr}',
-                        style: const TextStyle(
+                        fmtBonusText(pkg.totalPoints, l10n.ptsAbbr),
+                        style: TextStyle(
                           fontSize: 20,
                           fontWeight: FontWeight.w800,
-                          color: AppColors.tierBest,
+                          color: pkg.totalPoints > 0 ? AppColors.success : AppColors.warning,
                         ),
                       ),
                     ],
@@ -763,11 +763,11 @@ class _ItemRow extends StatelessWidget {
             const SizedBox(width: 8),
           ],
           Text(
-            '+${fmtPts(item.bonusPoints)} ${l10n.ptsAbbr}',
-            style: const TextStyle(
+            fmtBonusText(item.bonusPoints, l10n.ptsAbbr),
+            style: TextStyle(
               fontSize: 13,
               fontWeight: FontWeight.w700,
-              color: AppColors.tierBest,
+              color: bonusColor(item.bonusPoints),
             ),
           ),
         ],

@@ -669,5 +669,13 @@
   "insightsPeriodMonth": "1 Month",
   "insightsPeriod3Months": "3 Months",
   "insightsPeriodYear": "1 Year",
-  "insightsPeriodAll": "All Time"
+  "insightsPeriodAll": "All Time",
+
+  "filterAll": "All",
+  "filterNotes": "Notes",
+  "filterTestReports": "Test Reports",
+  "filterSettled": "Settled",
+  "filterUnsettled": "Unsettled",
+  "filterGradeType": "Grade type",
+  "filterStatusLabel": "Status"
 }

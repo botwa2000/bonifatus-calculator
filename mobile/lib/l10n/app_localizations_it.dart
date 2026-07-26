@@ -1567,4 +1567,25 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get insightsPeriodAll => 'Sempre';
+
+  @override
+  String get filterAll => 'Tutti';
+
+  @override
+  String get filterNotes => 'Appunti';
+
+  @override
+  String get filterTestReports => 'Rapporti';
+
+  @override
+  String get filterSettled => 'Liquidato';
+
+  @override
+  String get filterUnsettled => 'In attesa';
+
+  @override
+  String get filterGradeType => 'Tipo di voto';
+
+  @override
+  String get filterStatusLabel => 'Stato';
 }

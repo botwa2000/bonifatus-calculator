@@ -1575,4 +1575,25 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get insightsPeriodAll => 'Za vsyo vremya';
+
+  @override
+  String get filterAll => 'Vse';
+
+  @override
+  String get filterNotes => 'Otsenki';
+
+  @override
+  String get filterTestReports => 'Otchyoty';
+
+  @override
+  String get filterSettled => 'Oplacheno';
+
+  @override
+  String get filterUnsettled => 'Ozhidaet';
+
+  @override
+  String get filterGradeType => 'Tip otsenki';
+
+  @override
+  String get filterStatusLabel => 'Status';
 }

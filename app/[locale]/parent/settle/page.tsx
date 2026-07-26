@@ -362,7 +362,9 @@ export default function SettlePage() {
                         </p>
                         <div className="flex flex-wrap gap-3 text-xs text-neutral-500 dark:text-neutral-400">
                           <span>{t('gradeCount', { count: pkg.itemCount })}</span>
-                          <span className="font-semibold text-primary-600 dark:text-primary-300">
+                          <span
+                            className={`font-semibold ${pkg.totalPoints > 0 ? 'text-green-600 dark:text-green-400' : 'text-amber-600 dark:text-amber-400'}`}
+                          >
                             {t('totalPts', { pts: pkg.totalPoints })}
                           </span>
                           {pkg.periodStart && (
@@ -409,8 +411,11 @@ export default function SettlePage() {
                                 </span>
                               )}
                             </div>
-                            <span className="text-xs font-semibold text-primary-600 dark:text-primary-300 shrink-0">
-                              +{item.bonusPoints} {tc('pts')}
+                            <span
+                              className={`text-xs font-semibold shrink-0 ${item.bonusPoints > 0 ? 'text-green-600 dark:text-green-400' : item.bonusPoints < 0 ? 'text-red-600 dark:text-red-400' : 'text-amber-600 dark:text-amber-400'}`}
+                            >
+                              {item.bonusPoints > 0 ? '+' : ''}
+                              {item.bonusPoints} {tc('pts')}
                             </span>
                           </div>
                         ))}

@@ -2931,6 +2931,48 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'All Time'**
   String get insightsPeriodAll;
+
+  /// No description provided for @filterAll.
+  ///
+  /// In en, this message translates to:
+  /// **'All'**
+  String get filterAll;
+
+  /// No description provided for @filterNotes.
+  ///
+  /// In en, this message translates to:
+  /// **'Notes'**
+  String get filterNotes;
+
+  /// No description provided for @filterTestReports.
+  ///
+  /// In en, this message translates to:
+  /// **'Test Reports'**
+  String get filterTestReports;
+
+  /// No description provided for @filterSettled.
+  ///
+  /// In en, this message translates to:
+  /// **'Settled'**
+  String get filterSettled;
+
+  /// No description provided for @filterUnsettled.
+  ///
+  /// In en, this message translates to:
+  /// **'Unsettled'**
+  String get filterUnsettled;
+
+  /// No description provided for @filterGradeType.
+  ///
+  /// In en, this message translates to:
+  /// **'Grade type'**
+  String get filterGradeType;
+
+  /// No description provided for @filterStatusLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Status'**
+  String get filterStatusLabel;
 }
 
 class _AppLocalizationsDelegate

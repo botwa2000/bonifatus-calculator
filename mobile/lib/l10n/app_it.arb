@@ -555,5 +555,13 @@
 ,
   "settingsSectionSchool": "Informazioni scolastiche",
   "settingsSchoolInfo": "Scuola e sistema di valutazione",
-  "settingsSchoolInfoDesc": "Configura i dati scolastici per calcoli bonus accurati"
+  "settingsSchoolInfoDesc": "Configura i dati scolastici per calcoli bonus accurati",
+
+  "filterAll": "Tutti",
+  "filterNotes": "Appunti",
+  "filterTestReports": "Rapporti",
+  "filterSettled": "Liquidato",
+  "filterUnsettled": "In attesa",
+  "filterGradeType": "Tipo di voto",
+  "filterStatusLabel": "Stato"
 }

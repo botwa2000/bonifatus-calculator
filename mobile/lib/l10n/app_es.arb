@@ -555,5 +555,13 @@
 ,
   "settingsSectionSchool": "Informacion escolar",
   "settingsSchoolInfo": "Colegio y sistema de calificacion",
-  "settingsSchoolInfoDesc": "Configura los datos del colegio para calculos de bonificacion precisos"
+  "settingsSchoolInfoDesc": "Configura los datos del colegio para calculos de bonificacion precisos",
+
+  "filterAll": "Todos",
+  "filterNotes": "Notas",
+  "filterTestReports": "Informes",
+  "filterSettled": "Liquidado",
+  "filterUnsettled": "Pendiente",
+  "filterGradeType": "Tipo de nota",
+  "filterStatusLabel": "Estado"
 }

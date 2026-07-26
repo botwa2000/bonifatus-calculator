@@ -476,8 +476,7 @@ class _ChildCardState extends State<_ChildCard> {
     final theme = Theme.of(context);
     final now = DateTime.now();
     final filteredAll = _filtered(now);
-    final filtered = filteredAll.where((g) => g.gradeSource == 'notes').toList();
-    final totalPts = filtered.fold<double>(0.0, (s, g) => s + g.bonusPoints);
+    final totalPts = filteredAll.fold<double>(0.0, (s, g) => s + g.bonusPoints);
 
     return Container(
       padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
@@ -536,22 +535,34 @@ class _ChildCardState extends State<_ChildCard> {
             onSelectionChanged: (sel) => setState(() => _period = sel.first),
           ),
           const SizedBox(height: 8),
+          if (child.schoolName != null || child.schoolTown != null) ...[
+            Text(
+              [child.schoolName, child.schoolTown].where((s) => s != null && s.isNotEmpty).join(' · '),
+              style: TextStyle(fontSize: 11, color: theme.colorScheme.onSurfaceVariant),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+            const SizedBox(height: 6),
+          ],
           Row(
             children: [
               const Icon(Icons.school_outlined, size: 14, color: AppColors.primary),
               const SizedBox(width: 4),
               Text(
-                l10n.homeChildGrades(filtered.length),
+                l10n.homeChildGrades(filteredAll.length),
                 style: const TextStyle(
                     fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.primary),
               ),
               const SizedBox(width: 14),
-              const Icon(Icons.star_outline_rounded, size: 14, color: AppColors.tierBest),
+              Icon(Icons.star_outline_rounded, size: 14,
+                  color: totalPts > 0 ? AppColors.success : AppColors.warning),
               const SizedBox(width: 4),
               Text(
                 l10n.homeChildPts(ptsPrecise(totalPts)),
-                style: const TextStyle(
-                    fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.tierBest),
+                style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: totalPts > 0 ? AppColors.success : AppColors.warning),
               ),
             ],
           ),

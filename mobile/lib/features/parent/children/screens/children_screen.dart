@@ -10,6 +10,9 @@ import '../../../../models/child_data.dart';
 import '../../providers/children_provider.dart';
 import '../../../../utils/format_utils.dart';
 
+enum _TypeFilter { all, notes, reports }
+enum _StatusFilter { all, unsettled, settled }
+
 class ChildrenScreen extends ConsumerStatefulWidget {
   const ChildrenScreen({super.key});
 
@@ -20,6 +23,8 @@ class ChildrenScreen extends ConsumerStatefulWidget {
 class _ChildrenScreenState extends ConsumerState<ChildrenScreen> {
   final _searchCtrl = TextEditingController();
   String _query = '';
+  _TypeFilter _typeFilter = _TypeFilter.all;
+  _StatusFilter _statusFilter = _StatusFilter.all;
 
   @override
   void dispose() {
@@ -84,6 +89,13 @@ class _ChildrenScreenState extends ConsumerState<ChildrenScreen> {
                   border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
                 ),
               ),
+            ),
+            _FilterBar(
+              typeFilter: _typeFilter,
+              statusFilter: _statusFilter,
+              onTypeChanged: (v) => setState(() => _typeFilter = v),
+              onStatusChanged: (v) => setState(() => _statusFilter = v),
+              l10n: l10n,
             ),
             Expanded(
               child: childrenAsync.when(
@@ -199,6 +211,8 @@ class _ChildrenScreenState extends ConsumerState<ChildrenScreen> {
           child: _ChildCard(
             child: child,
             l10n: l10n,
+            typeFilter: _typeFilter,
+            statusFilter: _statusFilter,
             onView: () => context.push('/parent/children/${child.childId}'),
           ),
         );
@@ -377,14 +391,54 @@ class _ChildCard extends StatelessWidget {
   final ChildWithGrades child;
   final VoidCallback onView;
   final AppLocalizations l10n;
+  final _TypeFilter typeFilter;
+  final _StatusFilter statusFilter;
 
-  const _ChildCard({required this.child, required this.onView, required this.l10n});
+  const _ChildCard({
+    required this.child,
+    required this.onView,
+    required this.l10n,
+    required this.typeFilter,
+    required this.statusFilter,
+  });
 
   @override
   Widget build(BuildContext context) {
-    final pendingPts = child.totalPendingPoints;
+    var grades = child.grades.toList();
+    if (typeFilter == _TypeFilter.notes) grades = grades.where((g) => g.gradeSource == 'notes').toList();
+    if (typeFilter == _TypeFilter.reports) grades = grades.where((g) => g.gradeSource == 'calculator').toList();
+    if (statusFilter == _StatusFilter.unsettled) grades = grades.where((g) => g.settlementStatus == 'unsettled').toList();
+    if (statusFilter == _StatusFilter.settled) grades = grades.where((g) => g.settlementStatus == 'settled').toList();
+
+    final filteredPts = grades.fold(0.0, (s, g) => s + g.bonusPoints);
+
+    final String badgeText;
+    final Color badgeBg, badgeFg;
+    if (typeFilter == _TypeFilter.all && statusFilter == _StatusFilter.all) {
+      final unsettled = child.grades.where((g) => g.settlementStatus == 'unsettled').length;
+      badgeText = l10n.childrenUnsettledCount(unsettled);
+      badgeBg = unsettled == 0 ? AppColors.tierBestLight : AppColors.tierThirdLight;
+      badgeFg = unsettled == 0 ? AppColors.tierBest : AppColors.tierThird;
+    } else if (statusFilter == _StatusFilter.settled) {
+      badgeText = '${grades.length} ${l10n.filterSettled.toLowerCase()}';
+      badgeBg = AppColors.tierBestLight;
+      badgeFg = AppColors.tierBest;
+    } else if (statusFilter == _StatusFilter.unsettled) {
+      badgeText = l10n.childrenUnsettledCount(grades.length);
+      badgeBg = grades.isEmpty ? AppColors.tierBestLight : AppColors.tierThirdLight;
+      badgeFg = grades.isEmpty ? AppColors.tierBest : AppColors.tierThird;
+    } else {
+      badgeText = '${grades.length} ${l10n.filterAll.toLowerCase()}';
+      badgeBg = Theme.of(context).colorScheme.surfaceContainerHighest;
+      badgeFg = Theme.of(context).colorScheme.onSurfaceVariant;
+    }
 
     final cs = Theme.of(context).colorScheme;
+    final schoolLine = [child.schoolName, child.schoolTown]
+        .whereType<String>()
+        .where((s) => s.isNotEmpty)
+        .join(' · ');
+
     return Material(
       color: cs.surface,
       borderRadius: BorderRadius.circular(16),
@@ -427,32 +481,33 @@ class _ChildCard extends StatelessWidget {
                         color: cs.onSurface,
                       ),
                     ),
+                    if (schoolLine.isNotEmpty) ...[
+                      const SizedBox(height: 2),
+                      Text(
+                        schoolLine,
+                        style: TextStyle(fontSize: 11, color: cs.onSurfaceVariant),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
                     const SizedBox(height: 6),
                     Row(
                       children: [
-                        Builder(builder: (context) {
-                          final unsettled = child.grades.where((g) => g.settlementStatus == 'unsettled').length;
-                          final badgeBg = unsettled == 0 ? AppColors.tierBestLight : AppColors.tierThirdLight;
-                          final badgeFg = unsettled == 0 ? AppColors.tierBest : AppColors.tierThird;
-                          return Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                            decoration: BoxDecoration(
-                              color: badgeBg,
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: Text(
-                              l10n.childrenUnsettledCount(unsettled),
-                              style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: badgeFg),
-                            ),
-                          );
-                        }),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                          decoration: BoxDecoration(
+                            color: badgeBg,
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Text(
+                            badgeText,
+                            style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: badgeFg),
+                          ),
+                        ),
                         const SizedBox(width: 8),
                         Text(
-                          l10n.childrenPtsPending(ptsPrecise(pendingPts)),
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: cs.onSurfaceVariant,
-                          ),
+                          l10n.childrenPtsPending(ptsPrecise(filteredPts)),
+                          style: TextStyle(fontSize: 12, color: cs.onSurfaceVariant),
                         ),
                       ],
                     ),
@@ -479,6 +534,87 @@ class _ChildCard extends StatelessWidget {
                 ),
               ),
             ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _FilterBar extends StatelessWidget {
+  final _TypeFilter typeFilter;
+  final _StatusFilter statusFilter;
+  final ValueChanged<_TypeFilter> onTypeChanged;
+  final ValueChanged<_StatusFilter> onStatusChanged;
+  final AppLocalizations l10n;
+
+  const _FilterBar({
+    required this.typeFilter,
+    required this.statusFilter,
+    required this.onTypeChanged,
+    required this.onStatusChanged,
+    required this.l10n,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(children: [
+              Text(l10n.filterGradeType,
+                  style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: cs.onSurfaceVariant)),
+              const SizedBox(width: 8),
+              _chip(l10n.filterAll, typeFilter == _TypeFilter.all, () => onTypeChanged(_TypeFilter.all)),
+              const SizedBox(width: 6),
+              _chip(l10n.filterNotes, typeFilter == _TypeFilter.notes, () => onTypeChanged(_TypeFilter.notes)),
+              const SizedBox(width: 6),
+              _chip(l10n.filterTestReports, typeFilter == _TypeFilter.reports, () => onTypeChanged(_TypeFilter.reports)),
+            ]),
+          ),
+          const SizedBox(height: 6),
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(children: [
+              Text(l10n.filterStatusLabel,
+                  style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: cs.onSurfaceVariant)),
+              const SizedBox(width: 8),
+              _chip(l10n.filterAll, statusFilter == _StatusFilter.all, () => onStatusChanged(_StatusFilter.all)),
+              const SizedBox(width: 6),
+              _chip(l10n.filterUnsettled, statusFilter == _StatusFilter.unsettled, () => onStatusChanged(_StatusFilter.unsettled)),
+              const SizedBox(width: 6),
+              _chip(l10n.filterSettled, statusFilter == _StatusFilter.settled, () => onStatusChanged(_StatusFilter.settled)),
+            ]),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _chip(String label, bool selected, VoidCallback onTap) {
+    return GestureDetector(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 150),
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+        decoration: BoxDecoration(
+          color: selected ? AppColors.primary : Colors.transparent,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: selected ? AppColors.primary : AppColors.primary.withValues(alpha: 0.3),
+          ),
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            fontSize: 11,
+            fontWeight: FontWeight.w600,
+            color: selected ? AppColors.white : AppColors.primary,
           ),
         ),
       ),

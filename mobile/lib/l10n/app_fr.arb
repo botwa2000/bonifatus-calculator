@@ -555,5 +555,13 @@
 ,
   "settingsSectionSchool": "Informations scolaires",
   "settingsSchoolInfo": "Ecole et systeme de notation",
-  "settingsSchoolInfoDesc": "Configurez vos donnees scolaires pour des calculs de bonus precis"
+  "settingsSchoolInfoDesc": "Configurez vos donnees scolaires pour des calculs de bonus precis",
+
+  "filterAll": "Tous",
+  "filterNotes": "Notes",
+  "filterTestReports": "Bulletins",
+  "filterSettled": "Réglé",
+  "filterUnsettled": "En attente",
+  "filterGradeType": "Type de note",
+  "filterStatusLabel": "Statut"
 }

@@ -161,10 +161,10 @@ class NoteDetailScreen extends ConsumerWidget {
                                   ),
                                   child: Text(
                                     fmtBonusText(grade.bonusPoints, l10n.ptsAbbr),
-                                    style: const TextStyle(
+                                    style: TextStyle(
                                       fontSize: 12,
                                       fontWeight: FontWeight.w600,
-                                      color: AppColors.tierBest,
+                                      color: bonusColor(grade.bonusPoints),
                                     ),
                                   ),
                                 ),

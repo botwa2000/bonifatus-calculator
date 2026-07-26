@@ -1580,4 +1580,25 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get insightsPeriodAll => 'Alle Zeit';
+
+  @override
+  String get filterAll => 'Alle';
+
+  @override
+  String get filterNotes => 'Notizen';
+
+  @override
+  String get filterTestReports => 'Zeugnisse';
+
+  @override
+  String get filterSettled => 'Abgerechnet';
+
+  @override
+  String get filterUnsettled => 'Offen';
+
+  @override
+  String get filterGradeType => 'Notentyp';
+
+  @override
+  String get filterStatusLabel => 'Status';
 }

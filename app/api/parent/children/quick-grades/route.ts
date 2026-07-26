@@ -39,6 +39,8 @@ export async function GET() {
         return {
           childId: rel.childId,
           childName: child?.fullName ?? 'Child',
+          schoolName: child?.schoolName ?? null,
+          schoolTown: child?.schoolTown ?? null,
           grades,
         }
       })

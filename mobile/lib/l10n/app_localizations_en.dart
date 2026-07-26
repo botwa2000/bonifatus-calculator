@@ -1564,4 +1564,25 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get insightsPeriodAll => 'All Time';
+
+  @override
+  String get filterAll => 'All';
+
+  @override
+  String get filterNotes => 'Notes';
+
+  @override
+  String get filterTestReports => 'Test Reports';
+
+  @override
+  String get filterSettled => 'Settled';
+
+  @override
+  String get filterUnsettled => 'Unsettled';
+
+  @override
+  String get filterGradeType => 'Grade type';
+
+  @override
+  String get filterStatusLabel => 'Status';
 }

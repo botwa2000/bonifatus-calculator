@@ -6,6 +6,7 @@ import { useTranslations } from 'next-intl'
 import { useLocale } from 'next-intl'
 import { resolveLocalized } from '@/lib/i18n'
 import { formatTermType } from '@/lib/format-term-type'
+import { bonusColorClass } from '@/lib/utils/grade-helpers'
 
 const QRCode = dynamic(() => import('qrcode.react').then((mod) => mod.QRCodeSVG), { ssr: false })
 
@@ -412,7 +413,9 @@ export default function ParentChildrenPage() {
                                 <span className="rounded-full bg-primary-50 text-primary-700 dark:bg-primary-900/40 dark:text-primary-200 px-2 py-1">
                                   {t('savedResultsCount', { count: savedTerms })}
                                 </span>
-                                <span className="rounded-full bg-amber-50 text-amber-700 dark:bg-amber-900/40 dark:text-amber-200 px-2 py-1">
+                                <span
+                                  className={`rounded-full px-2 py-1 ${(pendingPoints[connection.childId] ?? 0) > 0 ? 'bg-green-50 text-green-700 dark:bg-green-900/40 dark:text-green-200' : 'bg-amber-50 text-amber-700 dark:bg-amber-900/40 dark:text-amber-200'}`}
+                                >
                                   {t('pendingBonus', { value: pendingBonus })}
                                 </span>
                                 <span className="rounded-full bg-neutral-100 text-neutral-700 dark:bg-neutral-800 dark:text-neutral-200 px-2 py-1">

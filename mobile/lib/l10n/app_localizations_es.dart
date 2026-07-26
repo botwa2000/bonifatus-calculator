@@ -1573,4 +1573,25 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get insightsPeriodAll => 'Todo el tiempo';
+
+  @override
+  String get filterAll => 'Todos';
+
+  @override
+  String get filterNotes => 'Notas';
+
+  @override
+  String get filterTestReports => 'Informes';
+
+  @override
+  String get filterSettled => 'Liquidado';
+
+  @override
+  String get filterUnsettled => 'Pendiente';
+
+  @override
+  String get filterGradeType => 'Tipo de nota';
+
+  @override
+  String get filterStatusLabel => 'Estado';
 }

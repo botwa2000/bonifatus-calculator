@@ -93,3 +93,11 @@ export function tierColor(tier: string): string {
       return '#6b7280'
   }
 }
+
+/** Tailwind class for a bonus point value.
+ *  isTotal=true → never red (aggregate totals are net, not punishments) */
+export function bonusColorClass(bonus: number, isTotal = false): string {
+  if (bonus > 0) return 'text-green-600 dark:text-green-400'
+  if (bonus < 0 && !isTotal) return 'text-red-600 dark:text-red-400'
+  return 'text-amber-600 dark:text-amber-400'
+}
