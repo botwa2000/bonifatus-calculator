@@ -1,6 +1,7 @@
 import type { MetadataRoute } from 'next'
 import { routing } from '@/i18n/routing'
-import { buildUrl, buildLanguages } from '@/lib/seo/alternates'
+import { buildUrl, buildLanguages, buildLanguagesFor } from '@/lib/seo/alternates'
+import { getAllSlugs, getLocalesForSlug } from '@/content/blog/registry'
 
 const routes: Array<{
   path: string
@@ -28,18 +29,32 @@ const routes: Array<{
   { path: '/compare/apps-that-reward-good-grades', priority: 0.7, changeFrequency: 'monthly' },
 ]
 
-export default function sitemap(): MetadataRoute.Sitemap {
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const now = new Date()
   const entries: MetadataRoute.Sitemap = []
+  const blogSlugs = getAllSlugs()
+
+  // Pre-compute which locales have real translations for each blog slug
+  const blogLocaleMap = new Map<string, string[]>()
+  for (const slug of blogSlugs) {
+    blogLocaleMap.set(slug, await getLocalesForSlug(slug))
+  }
 
   for (const { path, priority, changeFrequency } of routes) {
-    for (const locale of routing.locales) {
+    const blogSlugMatch =
+      path.startsWith('/blog/') && path !== '/blog' ? path.slice('/blog/'.length) : null
+
+    const locales = blogSlugMatch ? (blogLocaleMap.get(blogSlugMatch) ?? []) : routing.locales
+
+    for (const locale of locales) {
       entries.push({
         url: buildUrl(locale, path),
         lastModified: now,
         changeFrequency,
         priority,
-        alternates: { languages: buildLanguages(path) },
+        alternates: {
+          languages: blogSlugMatch ? buildLanguagesFor(path, locales) : buildLanguages(path),
+        },
       })
     }
   }

@@ -410,30 +410,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settingsGradingConfig => 'Grading Config';
 
   @override
-  String get settingsGradingConfigSubtitle =>
-      'Tier multipliers · notes cycle · bonus ratio';
+  String get settingsGradingConfigSubtitle => 'Grade tier multipliers';
 
   @override
   String get settingsGradeTierMultipliers => 'Grade Tier Multipliers';
 
   @override
-  String get settingsOngoingNotesCycle => 'Ongoing Notes Cycle';
-
-  @override
   String settingsEditMultiplier(String label) {
     return 'Edit Multiplier: $label';
   }
-
-  @override
-  String settingsConfigFor(String childName) {
-    return 'Config for $childName';
-  }
-
-  @override
-  String get settingsCycleType => 'Cycle Type';
-
-  @override
-  String get settingsBonusRatio => 'Bonus Ratio';
 
   @override
   String get settingsTierBestLabel => 'Best (Grade 1–2)';
@@ -1220,15 +1205,6 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get cycleTypeDaily => 'Daily';
-
-  @override
-  String get cycleTypeWeekly => 'Weekly';
-
-  @override
-  String get cycleTypeMonthly => 'Monthly';
-
-  @override
   String notesNetPointsLabel(String pts) {
     return 'Net: $pts pts';
   }
@@ -1249,9 +1225,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get classLabel => 'Class';
-
-  @override
-  String get ratioLabel => 'ratio';
 
   @override
   String get genericRequestFailed => 'Request failed';

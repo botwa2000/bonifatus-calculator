@@ -159,23 +159,14 @@
   "settingsAboutLegalese": "Grade rewards tracker for students",
   "settingsAboutAppName": "Bonifatus",
   "settingsGradingConfig": "Grading Config",
-  "settingsGradingConfigSubtitle": "Tier multipliers · notes cycle · bonus ratio",
+  "settingsGradingConfigSubtitle": "Grade tier multipliers",
   "settingsGradeTierMultipliers": "Grade Tier Multipliers",
-  "settingsOngoingNotesCycle": "Ongoing Notes Cycle",
   "settingsEditMultiplier": "Edit Multiplier: {label}",
   "@settingsEditMultiplier": {
     "placeholders": {
       "label": { "type": "String" }
     }
   },
-  "settingsConfigFor": "Config for {childName}",
-  "@settingsConfigFor": {
-    "placeholders": {
-      "childName": { "type": "String" }
-    }
-  },
-  "settingsCycleType": "Cycle Type",
-  "settingsBonusRatio": "Bonus Ratio",
   "settingsTierBestLabel": "Best (Grade 1–2)",
   "settingsTierSecondLabel": "Second (Grade 3)",
   "settingsTierThirdLabel": "Third (Grade 4)",
@@ -517,9 +508,6 @@
   "@forgotPasswordCooldownMessage": {
     "placeholders": { "seconds": { "type": "int" } }
   },
-  "cycleTypeDaily": "Daily",
-  "cycleTypeWeekly": "Weekly",
-  "cycleTypeMonthly": "Monthly",
   "notesNetPointsLabel": "Net: {pts} pts",
   "@notesNetPointsLabel": {
     "placeholders": { "pts": { "type": "String" } }
@@ -532,7 +520,6 @@
   "bonusPtsLabel": "bonus pts",
   "totalGradesLabel": "total grades",
   "classLabel": "Class",
-  "ratioLabel": "ratio",
   "genericRequestFailed": "Request failed",
   "parentFallback": "Parent",
   "calculatorSchoolYearHint": "2024/25",

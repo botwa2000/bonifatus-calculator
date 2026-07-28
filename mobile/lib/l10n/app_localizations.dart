@@ -865,7 +865,7 @@ abstract class AppLocalizations {
   /// No description provided for @settingsGradingConfigSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'Tier multipliers · notes cycle · bonus ratio'**
+  /// **'Grade tier multipliers'**
   String get settingsGradingConfigSubtitle;
 
   /// No description provided for @settingsGradeTierMultipliers.
@@ -874,35 +874,11 @@ abstract class AppLocalizations {
   /// **'Grade Tier Multipliers'**
   String get settingsGradeTierMultipliers;
 
-  /// No description provided for @settingsOngoingNotesCycle.
-  ///
-  /// In en, this message translates to:
-  /// **'Ongoing Notes Cycle'**
-  String get settingsOngoingNotesCycle;
-
   /// No description provided for @settingsEditMultiplier.
   ///
   /// In en, this message translates to:
   /// **'Edit Multiplier: {label}'**
   String settingsEditMultiplier(String label);
-
-  /// No description provided for @settingsConfigFor.
-  ///
-  /// In en, this message translates to:
-  /// **'Config for {childName}'**
-  String settingsConfigFor(String childName);
-
-  /// No description provided for @settingsCycleType.
-  ///
-  /// In en, this message translates to:
-  /// **'Cycle Type'**
-  String get settingsCycleType;
-
-  /// No description provided for @settingsBonusRatio.
-  ///
-  /// In en, this message translates to:
-  /// **'Bonus Ratio'**
-  String get settingsBonusRatio;
 
   /// No description provided for @settingsTierBestLabel.
   ///
@@ -2308,24 +2284,6 @@ abstract class AppLocalizations {
   /// **'Please wait {seconds} seconds before requesting another code.'**
   String forgotPasswordCooldownMessage(int seconds);
 
-  /// No description provided for @cycleTypeDaily.
-  ///
-  /// In en, this message translates to:
-  /// **'Daily'**
-  String get cycleTypeDaily;
-
-  /// No description provided for @cycleTypeWeekly.
-  ///
-  /// In en, this message translates to:
-  /// **'Weekly'**
-  String get cycleTypeWeekly;
-
-  /// No description provided for @cycleTypeMonthly.
-  ///
-  /// In en, this message translates to:
-  /// **'Monthly'**
-  String get cycleTypeMonthly;
-
   /// No description provided for @notesNetPointsLabel.
   ///
   /// In en, this message translates to:
@@ -2361,12 +2319,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Class'**
   String get classLabel;
-
-  /// No description provided for @ratioLabel.
-  ///
-  /// In en, this message translates to:
-  /// **'ratio'**
-  String get ratioLabel;
 
   /// No description provided for @genericRequestFailed.
   ///

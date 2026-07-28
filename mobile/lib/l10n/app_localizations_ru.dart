@@ -411,30 +411,15 @@ class AppLocalizationsRu extends AppLocalizations {
   String get settingsGradingConfig => 'Настройка оценок';
 
   @override
-  String get settingsGradingConfigSubtitle =>
-      'Множители уровней · цикл оценок · коэффициент бонуса';
+  String get settingsGradingConfigSubtitle => 'Множители уровня оценки';
 
   @override
   String get settingsGradeTierMultipliers => 'Множители уровня оценки';
 
   @override
-  String get settingsOngoingNotesCycle => 'Текущий цикл оценок';
-
-  @override
   String settingsEditMultiplier(String label) {
     return 'Изменить множитель: $label';
   }
-
-  @override
-  String settingsConfigFor(String childName) {
-    return 'Настройка для $childName';
-  }
-
-  @override
-  String get settingsCycleType => 'Тип цикла';
-
-  @override
-  String get settingsBonusRatio => 'Коэффициент бонуса';
 
   @override
   String get settingsTierBestLabel => 'Отлично (Оценка 1–2)';
@@ -1228,15 +1213,6 @@ class AppLocalizationsRu extends AppLocalizations {
   }
 
   @override
-  String get cycleTypeDaily => 'Ежедневно';
-
-  @override
-  String get cycleTypeWeekly => 'Еженедельно';
-
-  @override
-  String get cycleTypeMonthly => 'Ежемесячно';
-
-  @override
   String notesNetPointsLabel(String pts) {
     return 'Нетто: $pts балл.';
   }
@@ -1257,9 +1233,6 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get classLabel => 'Класс';
-
-  @override
-  String get ratioLabel => 'доля';
 
   @override
   String get genericRequestFailed => 'Запрос не выполнен';

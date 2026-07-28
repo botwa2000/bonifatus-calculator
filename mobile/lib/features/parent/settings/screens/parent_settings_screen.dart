@@ -29,20 +29,6 @@ class _TierFactor {
   });
 }
 
-class _ChildCycleConfig {
-  final String childId;
-  final String childName;
-  final String cycleType;
-  final double ratio;
-
-  const _ChildCycleConfig({
-    required this.childId,
-    required this.childName,
-    required this.cycleType,
-    required this.ratio,
-  });
-}
-
 class ParentSettingsScreen extends ConsumerStatefulWidget {
   const ParentSettingsScreen({super.key});
 
@@ -57,7 +43,6 @@ class _ParentSettingsScreenState extends ConsumerState<ParentSettingsScreen> {
     _TierFactor(tier: 'second', multiplier: 1.5, color: AppColors.tierSecond),
     _TierFactor(tier: 'third', multiplier: 1.0, color: AppColors.tierThird),
   ];
-  final Map<String, _ChildCycleConfig> _cycleOverrides = {};
   bool _biometricAvailable = false;
   bool _biometricEnabled = false;
 
@@ -262,7 +247,6 @@ class _ParentSettingsScreenState extends ConsumerState<ParentSettingsScreen> {
       builder: (ctx) => StatefulBuilder(
         builder: (ctx, setSheetState) {
           final cs = Theme.of(ctx).colorScheme;
-          final childrenAsync = ref.watch(childrenQuickGradesProvider);
           return DraggableScrollableSheet(
             initialChildSize: 0.72,
             minChildSize: 0.4,
@@ -304,60 +288,6 @@ class _ParentSettingsScreenState extends ConsumerState<ParentSettingsScreen> {
                           Divider(height: 1, indent: 16, endIndent: 16, color: cs.outlineVariant),
                       ]);
                     })),
-                    const SizedBox(height: 20),
-                    // ── Ongoing Notes Cycle Config ──────────────────────
-                    Padding(padding: const EdgeInsets.only(left: 4, bottom: 6),
-                        child: Text(l10n.settingsOngoingNotesCycle, style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: cs.onSurfaceVariant, letterSpacing: 0.3))),
-                    childrenAsync.when(
-                      loading: () => _Card(children: [
-                        const Padding(padding: EdgeInsets.all(24),
-                            child: Center(child: CircularProgressIndicator(color: AppColors.primary, strokeWidth: 2))),
-                      ]),
-                      error: (_, __) => _Card(children: [
-                        Padding(padding: const EdgeInsets.all(16),
-                            child: Text(l10n.settingsFailedToLoadChildren, style: TextStyle(color: cs.onSurfaceVariant))),
-                      ]),
-                      data: (children) {
-                        if (children.isEmpty) {
-                          return _Card(children: [
-                            Padding(padding: const EdgeInsets.all(16),
-                                child: Text(l10n.settingsNoChildrenConnected, style: TextStyle(color: cs.onSurfaceVariant))),
-                          ]);
-                        }
-                        return _Card(children: List.generate(children.length, (i) {
-                          final child = children[i];
-                          final override = _cycleOverrides[child.childId];
-                          final cycleType = override?.cycleType ?? 'weekly';
-                          final ratio = override?.ratio ?? 0.25;
-                          final config = _ChildCycleConfig(childId: child.childId, childName: child.childName, cycleType: cycleType, ratio: ratio);
-                          final cycleLabel = {
-                            'daily': l10n.cycleTypeDaily,
-                            'weekly': l10n.cycleTypeWeekly,
-                            'monthly': l10n.cycleTypeMonthly,
-                          }[config.cycleType] ?? config.cycleType;
-                          return Column(children: [
-                            ListTile(
-                              leading: Container(width: 36, height: 36,
-                                  decoration: const BoxDecoration(color: AppColors.primaryLight, shape: BoxShape.circle),
-                                  alignment: Alignment.center,
-                                  child: Text(config.childName.substring(0, 1).toUpperCase(),
-                                      style: const TextStyle(fontWeight: FontWeight.w700, color: AppColors.primary, fontSize: 14))),
-                              title: Text(config.childName, style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: cs.onSurface)),
-                              subtitle: Text('$cycleLabel · ${(config.ratio * 100).round()}% ${l10n.ratioLabel}',
-                                  style: TextStyle(fontSize: 12, color: cs.onSurfaceVariant)),
-                              trailing: InkWell(
-                                onTap: () => _showCycleConfigSheet(config, l10n, onSaved: () => setSheetState(() {})),
-                                borderRadius: BorderRadius.circular(8),
-                                child: Padding(padding: const EdgeInsets.all(4),
-                                    child: Icon(Icons.tune_rounded, size: 20, color: cs.onSurfaceVariant)),
-                              ),
-                            ),
-                            if (i < children.length - 1)
-                              Divider(height: 1, indent: 16, endIndent: 16, color: cs.outlineVariant),
-                          ]);
-                        }));
-                      },
-                    ),
                   ],
                 ),
               ),
@@ -511,89 +441,6 @@ class _ParentSettingsScreenState extends ConsumerState<ParentSettingsScreen> {
               ),
             ),
             const SizedBox(height: 16),
-          ]),
-        ),
-      ),
-    );
-  }
-
-  void _showCycleConfigSheet(_ChildCycleConfig config, AppLocalizations l10n, {VoidCallback? onSaved}) {
-    String currentCycleType = config.cycleType;
-    double currentRatio = config.ratio;
-    const cycleTypes = ['daily', 'weekly', 'monthly'];
-    final cycleTypeLabels = {
-      'daily': l10n.cycleTypeDaily,
-      'weekly': l10n.cycleTypeWeekly,
-      'monthly': l10n.cycleTypeMonthly,
-    };
-
-    showModalBottomSheet<void>(
-      context: context,
-      isScrollControlled: true,
-      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
-      builder: (ctx) => StatefulBuilder(
-        builder: (ctx, setSheetState) => Padding(
-          padding: EdgeInsets.only(bottom: MediaQuery.of(ctx).viewInsets.bottom, left: 24, right: 24, top: 24),
-          child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Text(l10n.settingsConfigFor(config.childName),
-                style: TextStyle(fontSize: 17, fontWeight: FontWeight.w700, color: Theme.of(ctx).colorScheme.onSurface)),
-            const SizedBox(height: 20),
-            Text(l10n.settingsCycleType, style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: Theme.of(ctx).colorScheme.onSurfaceVariant)),
-            const SizedBox(height: 10),
-            Row(children: cycleTypes.map((type) {
-              final selected = type == currentCycleType;
-              return Expanded(child: GestureDetector(
-                onTap: () => setSheetState(() => currentCycleType = type),
-                child: Container(
-                  margin: const EdgeInsets.symmetric(horizontal: 4),
-                  padding: const EdgeInsets.symmetric(vertical: 12),
-                  decoration: BoxDecoration(
-                    color: selected ? AppColors.primary : Theme.of(ctx).colorScheme.surfaceContainerHighest,
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  alignment: Alignment.center,
-                  child: Text(cycleTypeLabels[type] ?? type, style: TextStyle(
-                    color: selected ? Colors.white : Theme.of(ctx).colorScheme.onSurface,
-                    fontWeight: FontWeight.w600, fontSize: 13,
-                  )),
-                ),
-              ));
-            }).toList()),
-            const SizedBox(height: 20),
-            Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-              Text(l10n.settingsBonusRatio, style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: Theme.of(ctx).colorScheme.onSurfaceVariant)),
-              Text('${(currentRatio * 100).round()}%',
-                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: AppColors.primary)),
-            ]),
-            Slider(value: currentRatio, min: 0.05, max: 1.0, divisions: 19, activeColor: AppColors.primary,
-                onChanged: (v) => setSheetState(() => currentRatio = v)),
-            Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-              Text('5%', style: TextStyle(fontSize: 12, color: Theme.of(ctx).colorScheme.onSurfaceVariant)),
-              Text('100%', style: TextStyle(fontSize: 12, color: Theme.of(ctx).colorScheme.onSurfaceVariant)),
-            ]),
-            const SizedBox(height: 20),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: () {
-                  setState(() {
-                    _cycleOverrides[config.childId] = _ChildCycleConfig(
-                      childId: config.childId, childName: config.childName,
-                      cycleType: currentCycleType, ratio: currentRatio,
-                    );
-                  });
-                  Navigator.of(ctx).pop();
-                  onSaved?.call();
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primary, foregroundColor: AppColors.white,
-                  padding: const EdgeInsets.symmetric(vertical: 14),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                ),
-                child: Text(l10n.settingsSave, style: const TextStyle(fontWeight: FontWeight.w700)),
-              ),
-            ),
-            const SizedBox(height: 24),
           ]),
         ),
       ),

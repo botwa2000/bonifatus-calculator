@@ -414,30 +414,15 @@ class AppLocalizationsDe extends AppLocalizations {
   String get settingsGradingConfig => 'Notenkonfiguration';
 
   @override
-  String get settingsGradingConfigSubtitle =>
-      'Tier-Multiplikatoren · Notenzyklus · Bonusverhältnis';
+  String get settingsGradingConfigSubtitle => 'Noten-Tier-Multiplikatoren';
 
   @override
   String get settingsGradeTierMultipliers => 'Noten-Tier-Multiplikatoren';
 
   @override
-  String get settingsOngoingNotesCycle => 'Laufender Notenzyklus';
-
-  @override
   String settingsEditMultiplier(String label) {
     return 'Multiplikator bearbeiten: $label';
   }
-
-  @override
-  String settingsConfigFor(String childName) {
-    return 'Konfiguration für $childName';
-  }
-
-  @override
-  String get settingsCycleType => 'Zyklustyp';
-
-  @override
-  String get settingsBonusRatio => 'Bonusverhältnis';
 
   @override
   String get settingsTierBestLabel => 'Sehr gut (Note 1–2)';
@@ -1235,15 +1220,6 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
-  String get cycleTypeDaily => 'Täglich';
-
-  @override
-  String get cycleTypeWeekly => 'Wöchentlich';
-
-  @override
-  String get cycleTypeMonthly => 'Monatlich';
-
-  @override
   String notesNetPointsLabel(String pts) {
     return 'Netto: $pts Pkt.';
   }
@@ -1264,9 +1240,6 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get classLabel => 'Klasse';
-
-  @override
-  String get ratioLabel => 'Anteil';
 
   @override
   String get genericRequestFailed => 'Anfrage fehlgeschlagen';

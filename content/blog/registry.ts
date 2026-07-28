@@ -15,19 +15,22 @@ const ALL_SLUGS = ['should-you-pay-kids-for-good-grades'] as const
 export type PostSlug = (typeof ALL_SLUGS)[number]
 
 export async function getPost(locale: string, slug: string): Promise<BlogPost | null> {
-  const post = await loadPost(locale, slug)
-  if (post) return post
-  return loadPost('en', slug)
+  return loadPost(locale, slug)
 }
 
 export async function getAllPosts(locale: string): Promise<BlogPost[]> {
-  const results = await Promise.all(
-    ALL_SLUGS.map(async (slug) => {
+  const results = await Promise.all(ALL_SLUGS.map((slug) => loadPost(locale, slug)))
+  return results.filter((p): p is BlogPost => p !== null)
+}
+
+export async function getLocalesForSlug(slug: string): Promise<string[]> {
+  const results: (string | null)[] = await Promise.all(
+    SUPPORTED_LOCALES.map(async (locale): Promise<string | null> => {
       const post = await loadPost(locale, slug)
-      return post ?? loadPost('en', slug)
+      return post ? locale : null
     })
   )
-  return results.filter((p): p is BlogPost => p !== null)
+  return results.filter((l): l is string => l !== null)
 }
 
 export function getAllSlugs(): string[] {

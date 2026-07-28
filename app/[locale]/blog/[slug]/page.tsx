@@ -2,18 +2,18 @@ import { setRequestLocale, getTranslations } from 'next-intl/server'
 import { Link } from '@/i18n/navigation'
 import { AppHeader } from '@/components/layout/AppHeader'
 import { JsonLd, blogPostJsonLd, faqPageJsonLd } from '@/components/seo/JsonLd'
-import { getPost, getAllSlugs } from '@/content/blog/registry'
+import { getPost, getAllSlugs, getLocalesForSlug } from '@/content/blog/registry'
 import { auth } from '@/auth'
 import { notFound } from 'next/navigation'
 import type { Metadata } from 'next'
-import { buildAlternates } from '@/lib/seo/alternates'
-import { routing } from '@/i18n/routing'
+import { buildAlternatesFor } from '@/lib/seo/alternates'
 
 export async function generateStaticParams() {
   const slugs = getAllSlugs()
   const params: Array<{ locale: string; slug: string }> = []
-  for (const locale of routing.locales) {
-    for (const slug of slugs) {
+  for (const slug of slugs) {
+    const locales = await getLocalesForSlug(slug)
+    for (const locale of locales) {
       params.push({ locale, slug })
     }
   }
@@ -28,10 +28,11 @@ export async function generateMetadata({
   const { locale, slug } = await params
   const post = await getPost(locale, slug)
   if (!post) return {}
+  const availableLocales = await getLocalesForSlug(slug)
   return {
     title: post.title,
     description: post.description,
-    alternates: buildAlternates(locale, `/blog/${slug}`),
+    alternates: buildAlternatesFor(locale, `/blog/${slug}`, availableLocales),
     openGraph: {
       type: 'article',
       publishedTime: post.publishedAt,
