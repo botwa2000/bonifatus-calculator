@@ -1487,14 +1487,14 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
-  String get settingsSectionSchool => 'Informacion escolar';
+  String get settingsSectionSchool => 'Información escolar';
 
   @override
-  String get settingsSchoolInfo => 'Colegio y sistema de calificacion';
+  String get settingsSchoolInfo => 'Colegio y sistema de calificación';
 
   @override
   String get settingsSchoolInfoDesc =>
-      'Configura los datos del colegio para calculos de bonificacion precisos';
+      'Configura los datos del colegio para cálculos de bonificación precisos';
 
   @override
   String get profileSchoolTown => 'Ciudad del colegio';
@@ -1512,38 +1512,38 @@ class AppLocalizationsEs extends AppLocalizations {
   String get profileSemesterSystem => 'Sistema de semestres';
 
   @override
-  String get profileSemesterCount2 => '2 semestres por ao';
+  String get profileSemesterCount2 => '2 semestres por año';
 
   @override
-  String get profileSemesterCount3 => '3 trimestres por ao';
+  String get profileSemesterCount3 => '3 trimestres por año';
 
   @override
-  String get profileSemesterCount4 => '4 cuatrimestres por ao';
+  String get profileSemesterCount4 => '4 cuatrimestres por año';
 
   @override
-  String get profileProgramLength => 'Duracion del programa escolar';
+  String get profileProgramLength => 'Duración del programa escolar';
 
   @override
-  String get profileProgramLengthYears => 'anos';
+  String get profileProgramLengthYears => 'años';
 
   @override
-  String get profileProgramLengthDefault => 'estandar';
+  String get profileProgramLengthDefault => 'estándar';
 
   @override
   String get profileProgramLengthHint =>
-      'Para calcular equitativamente los puntos de bonificacion entre diferentes programas escolares';
+      'Para calcular equitativamente los puntos de bonificación entre diferentes programas escolares';
 
   @override
   String get profileSaved => 'Perfil guardado';
 
   @override
-  String get insightsPeriodMonth => '1 Mes';
+  String get insightsPeriodMonth => '1 mes';
 
   @override
-  String get insightsPeriod3Months => '3 Meses';
+  String get insightsPeriod3Months => '3 meses';
 
   @override
-  String get insightsPeriodYear => '1 Ano';
+  String get insightsPeriodYear => '1 año';
 
   @override
   String get insightsPeriodAll => 'Todo el tiempo';

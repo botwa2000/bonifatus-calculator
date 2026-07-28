@@ -759,7 +759,19 @@
     "hideGrades": "Скрыть оценки",
     "loadPackagesError": "Ошибка загрузки пакетов",
     "loadHistoryError": "Ошибка загрузки истории",
-    "createSettlementError": "Ошибка создания расчёта"
+    "createSettlementError": "Ошибка создания расчёта",
+    "errorLoadAccounts": "Не удалось загрузить счета",
+    "errorAddAccount": "Не удалось добавить счёт",
+    "errorSetDefaultAccount": "Не удалось установить счёт по умолчанию",
+    "errorDeleteAccount": "Не удалось удалить счёт",
+    "errorLoadTransactions": "Не удалось загрузить транзакции",
+    "errorUpdateTransaction": "Не удалось обновить транзакцию",
+    "loadingMarketData": "Загрузка рыночных данных...",
+    "noMarketData": "Данные недоступны",
+    "statusPending": "Ожидает",
+    "statusCompleted": "Завершено",
+    "statusFailed": "Ошибка",
+    "statusCancelled": "Отменено"
   },
   "admin": {
     "dashboardTitle": "Панель администратора",
@@ -1026,7 +1038,6 @@
     "useResults": "Использовать результаты",
     "retry": "Повторить",
     "cancel": "Отмена",
-    "behavioralGrades": "Оценки поведения (исключены)",
     "confidence": "Уверенность",
     "matchSubject": "Сопоставить предмет...",
     "schoolYear": "Учебный год",
@@ -1127,7 +1138,17 @@
     "programLengthYears": "лет",
     "semesterCount3": "3 триместра в год",
     "semesterCount2": "2 семестра в год",
-    "programLengthDefault": "стандарт"
+    "programLengthDefault": "стандарт",
+    "customized": "Настроено",
+    "errorSaving": "Ошибка сохранения",
+    "customOverride": "Пользовательское переопределение",
+    "termSemester1": "Семестр 1",
+    "termSemester2": "Семестр 2",
+    "termMidterm": "Промежуточная оценка",
+    "termFinal": "Итоговая оценка",
+    "termQuarterly": "Четвертная оценка",
+    "termTrimester": "Триместр",
+    "classLabel": "Класс {num}"
   },
   "about": {
     "title": "О Bonifatus",

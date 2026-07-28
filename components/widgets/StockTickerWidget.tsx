@@ -44,9 +44,9 @@ export function StockTickerWidget() {
       </div>
 
       {loading ? (
-        <p className="text-xs text-neutral-500">Loading market data...</p>
+        <p className="text-xs text-neutral-500">{t('loadingMarketData')}</p>
       ) : stocks.length === 0 ? (
-        <p className="text-xs text-neutral-500">No data available</p>
+        <p className="text-xs text-neutral-500">{t('noMarketData')}</p>
       ) : (
         <div className="space-y-1.5 max-h-80 overflow-y-auto">
           {stocks.slice(0, 10).map((stock) => (

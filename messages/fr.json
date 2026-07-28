@@ -759,7 +759,19 @@
     "hideGrades": "Masquer les notes",
     "loadPackagesError": "Chargement des forfaits échoué",
     "loadHistoryError": "Chargement de l'historique échoué",
-    "createSettlementError": "Création de l'accord échouée"
+    "createSettlementError": "Création de l'accord échouée",
+    "errorLoadAccounts": "Impossible de charger les comptes",
+    "errorAddAccount": "Impossible d'ajouter le compte",
+    "errorSetDefaultAccount": "Impossible de définir le compte par défaut",
+    "errorDeleteAccount": "Impossible de supprimer le compte",
+    "errorLoadTransactions": "Impossible de charger les transactions",
+    "errorUpdateTransaction": "Impossible de mettre à jour la transaction",
+    "loadingMarketData": "Chargement des données de marché...",
+    "noMarketData": "Aucune donnée disponible",
+    "statusPending": "En attente",
+    "statusCompleted": "Terminé",
+    "statusFailed": "Échoué",
+    "statusCancelled": "Annulé"
   },
   "admin": {
     "dashboardTitle": "Tableau de bord admin",
@@ -1026,7 +1038,6 @@
     "useResults": "Utiliser ces résultats",
     "retry": "Réessayer",
     "cancel": "Annuler",
-    "behavioralGrades": "Notes de comportement (exclues)",
     "confidence": "Confiance",
     "matchSubject": "Associer une matière...",
     "schoolYear": "Année scolaire",
@@ -1127,7 +1138,17 @@
     "programLengthYears": "ans",
     "semesterCount3": "3 trimestres par an",
     "semesterCount2": "2 semestres par an",
-    "programLengthDefault": "standard"
+    "programLengthDefault": "standard",
+    "customized": "Personnalisé",
+    "errorSaving": "Erreur lors de l'enregistrement",
+    "customOverride": "Remplacement personnalisé",
+    "termSemester1": "Semestre 1",
+    "termSemester2": "Semestre 2",
+    "termMidterm": "Contrôle intermédiaire",
+    "termFinal": "Examen final",
+    "termQuarterly": "Bulletin trimestriel",
+    "termTrimester": "Trimestre",
+    "classLabel": "Classe {num}"
   },
   "about": {
     "title": "À propos de Bonifatus",

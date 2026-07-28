@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useRef, useEffect, useMemo, useCallback } from 'react'
+import { useTranslations } from 'next-intl'
 import { resolveLocalized } from '@/lib/i18n'
 
 type SubjectItem = {
@@ -40,6 +41,7 @@ export function SubjectCombobox({
   compact = false,
   className = '',
 }: SubjectComboboxProps) {
+  const t = useTranslations('common')
   const [filter, setFilter] = useState('')
   const [open, setOpen] = useState(false)
   const [highlightIndex, setHighlightIndex] = useState(-1)
@@ -196,7 +198,7 @@ export function SubjectCombobox({
           className={`absolute z-50 w-full mt-1 rounded-lg border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 shadow-lg max-h-72 overflow-y-auto ${dropdownPadding}`}
         >
           {grouped.length === 0 && (
-            <div className="text-xs text-neutral-500 px-2 py-1">No matches</div>
+            <div className="text-xs text-neutral-500 px-2 py-1">{t('noMatches')}</div>
           )}
           {grouped.map((group) => (
             <div key={group.categoryId} className="mb-2 last:mb-0">

@@ -82,19 +82,19 @@ export default function BonusFactorReadonly({ parentName }: { parentName?: strin
       return labels[key]?.() ?? key
     }
     if (factorType === 'term_type') {
-      const labels: Record<string, string> = {
-        semester_1: 'Semester 1',
-        semester_2: 'Semester 2',
-        midterm: 'Midterm',
-        final: 'Final',
-        quarterly: 'Quarterly',
-        trimester: 'Trimester',
+      const labels: Record<string, () => string> = {
+        semester_1: () => t('termSemester1'),
+        semester_2: () => t('termSemester2'),
+        midterm: () => t('termMidterm'),
+        final: () => t('termFinal'),
+        quarterly: () => t('termQuarterly'),
+        trimester: () => t('termTrimester'),
       }
-      return labels[key] ?? key
+      return labels[key]?.() ?? key
     }
     if (factorType === 'class_level') {
       const num = key.replace('class_', '')
-      return `Class ${num}`
+      return t('classLabel', { num })
     }
     return key
   }
@@ -206,6 +206,7 @@ function FactorTable({
   isOverridden: (type: string, key: string) => boolean
   getLabel: (type: string, key: string) => string
 }) {
+  const t = useTranslations('settings')
   return (
     <div className="space-y-1.5">
       {keys.map((key) => {
@@ -220,7 +221,7 @@ function FactorTable({
               {customized && (
                 <span
                   className="inline-block w-1.5 h-1.5 rounded-full bg-primary-500 flex-shrink-0"
-                  title="Customized"
+                  title={t('customized')}
                 />
               )}
             </div>

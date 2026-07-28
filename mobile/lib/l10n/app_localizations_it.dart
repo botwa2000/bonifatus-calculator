@@ -1490,7 +1490,7 @@ class AppLocalizationsIt extends AppLocalizations {
       'Configura i dati scolastici per calcoli bonus accurati';
 
   @override
-  String get profileSchoolTown => 'Citta della scuola';
+  String get profileSchoolTown => 'Città della scuola';
 
   @override
   String get profileSchoolTownPlaceholder => 'es. Monaco';
@@ -1545,7 +1545,7 @@ class AppLocalizationsIt extends AppLocalizations {
   String get filterAll => 'Tutti';
 
   @override
-  String get filterNotes => 'Appunti';
+  String get filterNotes => 'Note';
 
   @override
   String get filterTestReports => 'Rapporti';

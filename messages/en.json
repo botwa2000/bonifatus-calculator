@@ -759,7 +759,19 @@
     "hideGrades": "Hide grades",
     "loadPackagesError": "Failed to load packages",
     "loadHistoryError": "Failed to load history",
-    "createSettlementError": "Failed to create settlement"
+    "createSettlementError": "Failed to create settlement",
+    "errorLoadAccounts": "Failed to load accounts",
+    "errorAddAccount": "Failed to add account",
+    "errorSetDefaultAccount": "Failed to set default account",
+    "errorDeleteAccount": "Failed to delete account",
+    "errorLoadTransactions": "Failed to load transactions",
+    "errorUpdateTransaction": "Failed to update transaction",
+    "loadingMarketData": "Loading market data...",
+    "noMarketData": "No data available",
+    "statusPending": "Pending",
+    "statusCompleted": "Completed",
+    "statusFailed": "Failed",
+    "statusCancelled": "Cancelled"
   },
   "admin": {
     "dashboardTitle": "Admin Dashboard",
@@ -1126,7 +1138,17 @@
     "semesterCount4": "4 quarters per year",
     "schoolTown": "School Town / City",
     "semesterSystem": "Semester System",
-    "schoolTownPlaceholder": "e.g. Munich"
+    "schoolTownPlaceholder": "e.g. Munich",
+    "customized": "Customized",
+    "errorSaving": "Error saving",
+    "customOverride": "Custom override",
+    "termSemester1": "Semester 1",
+    "termSemester2": "Semester 2",
+    "termMidterm": "Midterm",
+    "termFinal": "Final",
+    "termQuarterly": "Quarterly",
+    "termTrimester": "Trimester",
+    "classLabel": "Class {num}"
   },
   "about": {
     "title": "About Bonifatus",

@@ -759,7 +759,19 @@
     "hideGrades": "Noten ausblenden",
     "loadPackagesError": "Pakete konnten nicht geladen werden",
     "loadHistoryError": "Verlauf konnte nicht geladen werden",
-    "createSettlementError": "Abrechnung konnte nicht erstellt werden"
+    "createSettlementError": "Abrechnung konnte nicht erstellt werden",
+    "errorLoadAccounts": "Konten konnten nicht geladen werden",
+    "errorAddAccount": "Konto konnte nicht hinzugefügt werden",
+    "errorSetDefaultAccount": "Standardkonto konnte nicht festgelegt werden",
+    "errorDeleteAccount": "Konto konnte nicht gelöscht werden",
+    "errorLoadTransactions": "Transaktionen konnten nicht geladen werden",
+    "errorUpdateTransaction": "Transaktion konnte nicht aktualisiert werden",
+    "loadingMarketData": "Marktdaten werden geladen...",
+    "noMarketData": "Keine Daten verfügbar",
+    "statusPending": "Ausstehend",
+    "statusCompleted": "Abgeschlossen",
+    "statusFailed": "Fehlgeschlagen",
+    "statusCancelled": "Storniert"
   },
   "admin": {
     "dashboardTitle": "Admin-Dashboard",
@@ -1126,7 +1138,17 @@
     "programLengthYears": "Jahre",
     "semesterCount3": "3 Trimester pro Jahr",
     "semesterCount2": "2 Halbjahre pro Jahr",
-    "programLengthDefault": "Standard"
+    "programLengthDefault": "Standard",
+    "customized": "Angepasst",
+    "errorSaving": "Fehler beim Speichern",
+    "customOverride": "Benutzerdefinierte Überschreibung",
+    "termSemester1": "Semester 1",
+    "termSemester2": "Semester 2",
+    "termMidterm": "Zwischenzeugnis",
+    "termFinal": "Abschlusszeugnis",
+    "termQuarterly": "Quartalszeugnis",
+    "termTrimester": "Trimesterzeugnis",
+    "classLabel": "Klasse {num}"
   },
   "about": {
     "title": "Über Bonifatus",

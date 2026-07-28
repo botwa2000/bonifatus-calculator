@@ -131,7 +131,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   Future<void> _loginWithBiometrics() async {
     setState(() { _error = null; _isSubmitting = true; });
     final svc = ref.read(biometricServiceProvider);
-    final authed = await svc.authenticate();
+    final l10n = AppLocalizations.of(context)!;
+    final authed = await svc.authenticate(reason: l10n.settingsBiometricLogin);
     if (!authed || !mounted) {
       setState(() => _isSubmitting = false);
       return;

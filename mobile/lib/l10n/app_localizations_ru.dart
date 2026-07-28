@@ -1488,85 +1488,85 @@ class AppLocalizationsRu extends AppLocalizations {
   }
 
   @override
-  String get settingsSectionSchool => 'Shkolnaya informatsiya';
+  String get settingsSectionSchool => 'Школьная информация';
 
   @override
-  String get settingsSchoolInfo => 'Shkola i sistema otsenok';
+  String get settingsSchoolInfo => 'Школа и система оценок';
 
   @override
   String get settingsSchoolInfoDesc =>
-      'Nastroyte shkolnye dannye dlya tochnogo raschyota bonusov';
+      'Настройте школьные данные для точного расчёта бонусов';
 
   @override
-  String get profileSchoolTown => 'Gorod shkoly';
+  String get profileSchoolTown => 'Город школы';
 
   @override
-  String get profileSchoolTownPlaceholder => 'napr., Myunkhen';
+  String get profileSchoolTownPlaceholder => 'напр., Мюнхен';
 
   @override
-  String get profileSchoolName => 'Nazvanie shkoly';
+  String get profileSchoolName => 'Название школы';
 
   @override
-  String get profileSchoolNamePlaceholder => 'napr., Maximilians-Gymnasium';
+  String get profileSchoolNamePlaceholder => 'напр., Maximilians-Gymnasium';
 
   @override
-  String get profileSemesterSystem => 'Sistema semestrov';
+  String get profileSemesterSystem => 'Система семестров';
 
   @override
-  String get profileSemesterCount2 => '2 semestra v god';
+  String get profileSemesterCount2 => '2 семестра в год';
 
   @override
-  String get profileSemesterCount3 => '3 trimestra v god';
+  String get profileSemesterCount3 => '3 триместра в год';
 
   @override
-  String get profileSemesterCount4 => '4 chetverti v god';
+  String get profileSemesterCount4 => '4 четверти в год';
 
   @override
-  String get profileProgramLength => 'Dlina shkolnoy programmy';
+  String get profileProgramLength => 'Длина школьной программы';
 
   @override
-  String get profileProgramLengthYears => 'let';
+  String get profileProgramLengthYears => 'лет';
 
   @override
-  String get profileProgramLengthDefault => 'standart';
+  String get profileProgramLengthDefault => 'стандарт';
 
   @override
   String get profileProgramLengthHint =>
-      'Dlya spravedlivogo raschyota bonusov mezhdu raznymi shkolnymi programmami';
+      'Для справедливого расчёта бонусов между разными школьными программами';
 
   @override
-  String get profileSaved => 'Profil sokhranyyon';
+  String get profileSaved => 'Профиль сохранён';
 
   @override
-  String get insightsPeriodMonth => '1 Mesyats';
+  String get insightsPeriodMonth => '1 месяц';
 
   @override
-  String get insightsPeriod3Months => '3 Mesyatsa';
+  String get insightsPeriod3Months => '3 месяца';
 
   @override
-  String get insightsPeriodYear => '1 God';
+  String get insightsPeriodYear => '1 год';
 
   @override
-  String get insightsPeriodAll => 'Za vsyo vremya';
+  String get insightsPeriodAll => 'За всё время';
 
   @override
-  String get filterAll => 'Vse';
+  String get filterAll => 'Все';
 
   @override
-  String get filterNotes => 'Otsenki';
+  String get filterNotes => 'Оценки';
 
   @override
-  String get filterTestReports => 'Otchyoty';
+  String get filterTestReports => 'Отчёты';
 
   @override
-  String get filterSettled => 'Oplacheno';
+  String get filterSettled => 'Оплачено';
 
   @override
-  String get filterUnsettled => 'Ozhidaet';
+  String get filterUnsettled => 'Ожидает';
 
   @override
-  String get filterGradeType => 'Tip otsenki';
+  String get filterGradeType => 'Тип оценки';
 
   @override
-  String get filterStatusLabel => 'Status';
+  String get filterStatusLabel => 'Статус';
 }

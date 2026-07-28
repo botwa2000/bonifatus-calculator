@@ -184,7 +184,7 @@
   "notesTitle": "Noten",
   "notesNoNotesYet": "Noch keine Noten",
   "notesTapToCaptureFirst": "Tippe + um deine erste Note aufzunehmen",
-  "notesFailedToLoad": "Notizen konnten nicht geladen werden",
+  "notesFailedToLoad": "Noten konnten nicht geladen werden",
   "genericRetry": "Wiederholen",
   "notesRetry": "Wiederholen",
   "notesViewCycleSummary": "Zyklusbericht anzeigen",
@@ -327,7 +327,7 @@
   "rewardsConfirmSettle": "Abrechnung bestätigen",
   "rewardsSettled": "Abgerechnet!",
   "rewardsSectionTermGrades": "Zeugnisse",
-  "rewardsSectionNotesWeek": "Notizen — {weekRange}",
+  "rewardsSectionNotesWeek": "Noten — {weekRange}",
   "@rewardsSectionNotesWeek": {
     "placeholders": {
       "weekRange": { "type": "String" }
@@ -550,7 +550,7 @@
   "settingsSchoolInfoDesc": "Schuldaten fuer genaue Bonusberechnungen konfigurieren",
 
   "filterAll": "Alle",
-  "filterNotes": "Notizen",
+  "filterNotes": "Noten",
   "filterTestReports": "Zeugnisse",
   "filterSettled": "Abgerechnet",
   "filterUnsettled": "Offen",

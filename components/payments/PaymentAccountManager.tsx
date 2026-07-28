@@ -141,10 +141,10 @@ export function PaymentAccountManager() {
       if (data.success) {
         setAccounts(data.accounts)
       } else {
-        setError(data.error || 'Failed to load accounts')
+        setError(data.error || t('errorLoadAccounts'))
       }
     } catch {
-      setError('Failed to load accounts')
+      setError(t('errorLoadAccounts'))
     } finally {
       setLoading(false)
     }
@@ -201,10 +201,10 @@ export function PaymentAccountManager() {
         resetForm()
         fetchAccounts()
       } else {
-        setError(data.error || 'Failed to add account')
+        setError(data.error || t('errorAddAccount'))
       }
     } catch {
-      setError('Failed to add account')
+      setError(t('errorAddAccount'))
     } finally {
       setSaving(false)
     }
@@ -247,7 +247,7 @@ export function PaymentAccountManager() {
 
       fetchAccounts()
     } catch {
-      setError('Failed to set default account')
+      setError(t('errorSetDefaultAccount'))
     }
   }
 
@@ -263,10 +263,10 @@ export function PaymentAccountManager() {
       if (data.success) {
         setAccounts((prev) => prev.filter((a) => a.id !== accountId))
       } else {
-        setError(data.error || 'Failed to delete account')
+        setError(data.error || t('errorDeleteAccount'))
       }
     } catch {
-      setError('Failed to delete account')
+      setError(t('errorDeleteAccount'))
     }
   }
 

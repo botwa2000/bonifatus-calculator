@@ -284,19 +284,19 @@ export default function BonusFactorEditor() {
         return labels[key]?.() ?? key
       }
       if (factorType === 'term_type') {
-        const labels: Record<string, string> = {
-          semester_1: 'Semester 1',
-          semester_2: 'Semester 2',
-          midterm: 'Midterm',
-          final: 'Final',
-          quarterly: 'Quarterly',
-          trimester: 'Trimester',
+        const labels: Record<string, () => string> = {
+          semester_1: () => t('termSemester1'),
+          semester_2: () => t('termSemester2'),
+          midterm: () => t('termMidterm'),
+          final: () => t('termFinal'),
+          quarterly: () => t('termQuarterly'),
+          trimester: () => t('termTrimester'),
         }
-        return labels[key] ?? key
+        return labels[key]?.() ?? key
       }
       if (factorType === 'class_level') {
         const num = key.replace('class_', '')
-        return `Class ${num}`
+        return t('classLabel', { num })
       }
       return key
     },
@@ -339,7 +339,7 @@ export default function BonusFactorEditor() {
         )}
         {saveStatus === 'error' && (
           <span className="text-xs text-error-600 dark:text-error-400 font-medium">
-            Error saving
+            {t('errorSaving')}
           </span>
         )}
       </div>
@@ -507,6 +507,7 @@ function FactorInput({
   min?: number
   max?: number
 }) {
+  const t = useTranslations('settings')
   return (
     <div className="flex items-center justify-between gap-3">
       <div className="flex items-center gap-2 min-w-0">
@@ -514,7 +515,7 @@ function FactorInput({
         {isOverridden && (
           <span
             className="inline-block w-1.5 h-1.5 rounded-full bg-primary-500 flex-shrink-0"
-            title="Custom override"
+            title={t('customOverride')}
           />
         )}
       </div>

@@ -527,7 +527,7 @@
   "@homeChildGrades": { "placeholders": { "count": { "type": "int" } } }
 ,
 
-  "profileSchoolTown": "Citta della scuola",
+  "profileSchoolTown": "Città della scuola",
   "profileSchoolTownPlaceholder": "es. Monaco",
   "profileSchoolName": "Nome della scuola",
   "profileSchoolNamePlaceholder": "es. Maximilians-Gymnasium",
@@ -550,7 +550,7 @@
   "settingsSchoolInfoDesc": "Configura i dati scolastici per calcoli bonus accurati",
 
   "filterAll": "Tutti",
-  "filterNotes": "Appunti",
+  "filterNotes": "Note",
   "filterTestReports": "Rapporti",
   "filterSettled": "Liquidato",
   "filterUnsettled": "In attesa",

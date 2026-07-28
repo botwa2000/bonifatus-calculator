@@ -565,7 +565,7 @@ class AppLocalizationsDe extends AppLocalizations {
       'Tippe + um deine erste Note aufzunehmen';
 
   @override
-  String get notesFailedToLoad => 'Notizen konnten nicht geladen werden';
+  String get notesFailedToLoad => 'Noten konnten nicht geladen werden';
 
   @override
   String get genericRetry => 'Wiederholen';
@@ -984,7 +984,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String rewardsSectionNotesWeek(String weekRange) {
-    return 'Notizen — $weekRange';
+    return 'Noten — $weekRange';
   }
 
   @override
@@ -1558,7 +1558,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get filterAll => 'Alle';
 
   @override
-  String get filterNotes => 'Notizen';
+  String get filterNotes => 'Noten';
 
   @override
   String get filterTestReports => 'Zeugnisse';

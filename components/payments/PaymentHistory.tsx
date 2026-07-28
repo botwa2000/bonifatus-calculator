@@ -34,12 +34,17 @@ const STATUS_BADGE_CLASSES: Record<string, string> = {
 }
 
 function StatusBadge({ status }: { status: string }) {
+  const t = useTranslations('parent')
   const classes = STATUS_BADGE_CLASSES[status] || STATUS_BADGE_CLASSES.cancelled
+  const labels: Record<string, string> = {
+    pending: t('statusPending'),
+    completed: t('statusCompleted'),
+    failed: t('statusFailed'),
+    cancelled: t('statusCancelled'),
+  }
   return (
-    <span
-      className={`inline-block rounded-full px-2.5 py-0.5 text-xs font-medium capitalize ${classes}`}
-    >
-      {status}
+    <span className={`inline-block rounded-full px-2.5 py-0.5 text-xs font-medium ${classes}`}>
+      {labels[status] ?? status}
     </span>
   )
 }
@@ -149,10 +154,10 @@ export function PaymentHistory() {
       if (data.success) {
         setTransactions(data.transactions)
       } else {
-        setError(data.error || 'Failed to load transactions')
+        setError(data.error || t('errorLoadTransactions'))
       }
     } catch {
-      setError('Failed to load transactions')
+      setError(t('errorLoadTransactions'))
     } finally {
       setLoading(false)
     }
@@ -186,10 +191,10 @@ export function PaymentHistory() {
           )
         )
       } else {
-        setError(data.error || 'Failed to update transaction')
+        setError(data.error || t('errorUpdateTransaction'))
       }
     } catch {
-      setError('Failed to update transaction')
+      setError(t('errorUpdateTransaction'))
     } finally {
       setUpdatingId(null)
     }
