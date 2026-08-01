@@ -97,7 +97,7 @@ jobs:
           serviceAccountJsonPlainText: ${{ secrets.GCLOUD_SERVICE_ACCOUNT_CREDENTIALS }}
           packageName: com.bonifatus.app
           releaseFiles: mobile/build/app/outputs/bundle/release/app-release.aab
-          track: ${{ inputs.track }}
+          tracks: ${{ inputs.track }}
           status: completed
           changesNotSentForReview: false
 
