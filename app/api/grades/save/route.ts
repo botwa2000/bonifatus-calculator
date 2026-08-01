@@ -3,7 +3,7 @@ import { z } from 'zod'
 import { db } from '@/lib/db/client'
 import { termGrades, subjectGrades, gradingSystems, subjects } from '@/drizzle/schema/grades'
 import { requireAuthApi } from '@/lib/auth/session'
-import { getBonusFactors } from '@/lib/db/queries/config'
+import { getEffectiveBonusFactors } from '@/lib/db/queries/config'
 import {
   calculateBonus,
   type CalculatorInput,
@@ -82,7 +82,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const { defaults, overrides } = await getBonusFactors(user.id, normalizedChildId)
+    const { defaults, overrides } = await getEffectiveBonusFactors(user.id, normalizedChildId)
 
     const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
     const subjectIds = payload.subjects.map((s) => s.subjectId).filter((id) => uuidPattern.test(id))

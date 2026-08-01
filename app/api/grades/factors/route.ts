@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { requireAuthApi } from '@/lib/auth/session'
-import { getBonusFactors } from '@/lib/db/queries/config'
+import { getEffectiveBonusFactors } from '@/lib/db/queries/config'
 
 export async function GET(request: NextRequest) {
   try {
@@ -13,7 +13,7 @@ export async function GET(request: NextRequest) {
     const childIdParam = searchParams.get('childId')
     const childId = childIdParam && childIdParam !== 'null' ? childIdParam : null
 
-    const { defaults, overrides } = await getBonusFactors(user.id, childId)
+    const { defaults, overrides } = await getEffectiveBonusFactors(user.id, childId)
 
     return NextResponse.json({ success: true, defaults, overrides }, { status: 200 })
   } catch (error) {

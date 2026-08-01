@@ -218,6 +218,23 @@ class CalculatorConfig {
       }
     }
 
+    final defaults = (json['bonusFactorDefaults'] as List<dynamic>? ?? [])
+        .map((f) => BonusFactor.fromJson(f as Map<String, dynamic>))
+        .toList();
+
+    // Merge parent-specific overrides on top of global defaults so local
+    // bonus preview reflects the parent's configured multipliers.
+    final overrides = (json['bonusFactorOverrides'] as List<dynamic>? ?? [])
+        .map((f) => BonusFactor.fromJson(f as Map<String, dynamic>))
+        .toList();
+    final overrideKeys = {for (final o in overrides) '${o.factorType}:${o.factorKey}': o};
+    final mergedFactors = [
+      ...defaults.map((d) => overrideKeys['${d.factorType}:${d.factorKey}'] ?? d),
+      ...overrides.where((o) => !defaults.any(
+            (d) => d.factorType == o.factorType && d.factorKey == o.factorKey,
+          )),
+    ];
+
     return CalculatorConfig(
       gradingSystems: (json['gradingSystems'] as List<dynamic>? ?? [])
           .map((g) => GradingSystem.fromJson(g as Map<String, dynamic>, locale: locale))
@@ -228,9 +245,7 @@ class CalculatorConfig {
       categories: (json['categories'] as List<dynamic>? ?? [])
           .map((c) => CategoryItem.fromJson(c as Map<String, dynamic>, locale: locale))
           .toList(),
-      bonusFactors: (json['bonusFactorDefaults'] as List<dynamic>? ?? [])
-          .map((f) => BonusFactor.fromJson(f as Map<String, dynamic>))
-          .toList(),
+      bonusFactors: mergedFactors,
       termTypes: termTypes,
     );
   }

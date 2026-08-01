@@ -4,7 +4,7 @@ import { db } from '@/lib/db/client'
 import { quickGrades } from '@/drizzle/schema/quickGrades'
 import { gradingSystems, subjects } from '@/drizzle/schema/grades'
 import { requireAuthApi } from '@/lib/auth/session'
-import { getBonusFactors } from '@/lib/db/queries/config'
+import { getEffectiveBonusFactors } from '@/lib/db/queries/config'
 import { calculateSingleGradeBonus } from '@/lib/calculator/engine'
 import type { CalculatorInput } from '@/lib/calculator/engine'
 import { eq, and } from 'drizzle-orm'
@@ -60,7 +60,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: false, error: 'Subject not found' }, { status: 404 })
     }
 
-    const { defaults, overrides } = await getBonusFactors(user.id, null)
+    const { defaults, overrides } = await getEffectiveBonusFactors(user.id, null)
 
     const result = calculateSingleGradeBonus({
       gradingSystem: gradingSystem as CalculatorInput['gradingSystem'],
