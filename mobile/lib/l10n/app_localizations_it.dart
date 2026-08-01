@@ -431,6 +431,9 @@ class AppLocalizationsIt extends AppLocalizations {
   String get settingsTierThirdLabel => 'Sufficiente (Voto 4)';
 
   @override
+  String get settingsTierBelowLabel => 'Insufficiente (Voto 5–6)';
+
+  @override
   String get settingsFailedToLoadChildren => 'Impossibile caricare i bambini';
 
   @override

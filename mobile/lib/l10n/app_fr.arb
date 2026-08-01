@@ -140,6 +140,7 @@
   "settingsTierBestLabel": "Excellent (Note 1–2)",
   "settingsTierSecondLabel": "Bien (Note 3)",
   "settingsTierThirdLabel": "Satisfaisant (Note 4)",
+  "settingsTierBelowLabel": "Insuffisant (Note 5–6)",
   "settingsFailedToLoadChildren": "Impossible de charger les enfants",
   "settingsNoChildrenConnected": "Aucun enfant connecté",
 

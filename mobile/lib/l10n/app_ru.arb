@@ -140,6 +140,7 @@
   "settingsTierBestLabel": "Отлично (Оценка 1–2)",
   "settingsTierSecondLabel": "Хорошо (Оценка 3)",
   "settingsTierThirdLabel": "Удовлетворительно (Оценка 4)",
+  "settingsTierBelowLabel": "Неудовлетворительно (Оценка 5–6)",
   "settingsFailedToLoadChildren": "Не удалось загрузить детей",
   "settingsNoChildrenConnected": "Дети не подключены",
 

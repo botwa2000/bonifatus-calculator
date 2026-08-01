@@ -434,6 +434,9 @@ class AppLocalizationsDe extends AppLocalizations {
   String get settingsTierThirdLabel => 'Befriedigend (Note 4)';
 
   @override
+  String get settingsTierBelowLabel => 'Ungenügend (Note 5–6)';
+
+  @override
   String get settingsFailedToLoadChildren =>
       'Kinder konnten nicht geladen werden';
 

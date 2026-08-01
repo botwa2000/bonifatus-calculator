@@ -140,6 +140,7 @@
   "settingsTierBestLabel": "Sehr gut (Note 1–2)",
   "settingsTierSecondLabel": "Gut (Note 3)",
   "settingsTierThirdLabel": "Befriedigend (Note 4)",
+  "settingsTierBelowLabel": "Ungenügend (Note 5–6)",
   "settingsFailedToLoadChildren": "Kinder konnten nicht geladen werden",
   "settingsNoChildrenConnected": "Keine Kinder verbunden",
 

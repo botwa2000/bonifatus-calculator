@@ -430,6 +430,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settingsTierThirdLabel => 'Third (Grade 4)';
 
   @override
+  String get settingsTierBelowLabel => 'Below Average (Grade 5–6)';
+
+  @override
   String get settingsFailedToLoadChildren => 'Failed to load children';
 
   @override

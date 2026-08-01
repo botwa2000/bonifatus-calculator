@@ -17,7 +17,7 @@ export async function generateMetadata({
   return {
     title: t('gradeCalculatorTitle'),
     description: t('gradeCalculatorDescription'),
-    alternates: buildAlternates(locale, '/tools/grade-reward-calculator'),
+    alternates: await buildAlternates(locale, '/tools/grade-reward-calculator'),
   }
 }
 

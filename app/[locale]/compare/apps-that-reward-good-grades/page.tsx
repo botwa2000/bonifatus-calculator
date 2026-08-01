@@ -15,7 +15,7 @@ export async function generateMetadata({
   return {
     title: t('compareAppsTitle'),
     description: t('compareAppsDescription'),
-    alternates: buildAlternates(locale, '/compare/apps-that-reward-good-grades'),
+    alternates: await buildAlternates(locale, '/compare/apps-that-reward-good-grades'),
   }
 }
 

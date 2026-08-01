@@ -203,7 +203,11 @@ export default async function middleware(req: NextRequest) {
     const rewriteUrl = new URL(rewritePath, req.url)
     rewriteUrl.search = req.nextUrl.search
     dbg('mw', `rewrite: ${pathname} → ${rewritePath}`)
-    const res = NextResponse.rewrite(rewriteUrl)
+    // Forward the original (non-prefixed) pathname so pages can emit a self-referencing
+    // canonical that matches the URL the browser/crawler actually sees.
+    const reqHeaders = new Headers(req.headers)
+    reqHeaders.set('x-original-pathname', pathname)
+    const res = NextResponse.rewrite(rewriteUrl, { request: { headers: reqHeaders } })
     res.cookies.set('NEXT_LOCALE', locale, { path: '/', sameSite: 'lax' })
     return res
   }

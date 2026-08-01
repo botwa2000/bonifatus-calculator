@@ -170,6 +170,7 @@
   "settingsTierBestLabel": "Best (Grade 1–2)",
   "settingsTierSecondLabel": "Second (Grade 3)",
   "settingsTierThirdLabel": "Third (Grade 4)",
+  "settingsTierBelowLabel": "Below Average (Grade 5–6)",
   "settingsFailedToLoadChildren": "Failed to load children",
   "settingsNoChildrenConnected": "No children connected",
 

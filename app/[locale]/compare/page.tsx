@@ -15,7 +15,7 @@ export async function generateMetadata({
   return {
     title: t('compareTitle'),
     description: t('compareDescription'),
-    alternates: buildAlternates(locale, '/compare'),
+    alternates: await buildAlternates(locale, '/compare'),
   }
 }
 

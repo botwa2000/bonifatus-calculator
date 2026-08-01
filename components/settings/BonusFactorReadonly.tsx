@@ -26,6 +26,8 @@ const TERM_TYPE_KEYS = [
 ] as const
 const CLASS_LEVEL_KEYS = Array.from({ length: 13 }, (_, i) => `class_${i + 1}`) as string[]
 
+const GRADE_TIER_FALLBACKS: Record<string, number> = { best: 2, second: 1, third: 0, below: -1 }
+
 function getEffectiveValue(
   factorType: string,
   factorKey: string,
@@ -35,7 +37,9 @@ function getEffectiveValue(
   const override = overrides.find((f) => f.factorType === factorType && f.factorKey === factorKey)
   if (override !== undefined) return override.factorValue
   const def = defaults.find((f) => f.factorType === factorType && f.factorKey === factorKey)
-  return def?.factorValue ?? 0
+  if (def !== undefined) return def.factorValue
+  if (factorType === 'grade_tier') return GRADE_TIER_FALLBACKS[factorKey] ?? 0
+  return 0
 }
 
 export default function BonusFactorReadonly({ parentName }: { parentName?: string }) {

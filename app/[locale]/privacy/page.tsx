@@ -15,7 +15,7 @@ export async function generateMetadata({
   return {
     title: t('privacyTitle'),
     description: t('privacyDescription'),
-    alternates: buildAlternates(locale, '/privacy'),
+    alternates: await buildAlternates(locale, '/privacy'),
   }
 }
 

@@ -40,8 +40,9 @@ class ParentSettingsScreen extends ConsumerStatefulWidget {
 class _ParentSettingsScreenState extends ConsumerState<ParentSettingsScreen> {
   List<_TierFactor> _tierFactors = const [
     _TierFactor(tier: 'best', multiplier: 2.0, color: AppColors.tierBest),
-    _TierFactor(tier: 'second', multiplier: 1.5, color: AppColors.tierSecond),
-    _TierFactor(tier: 'third', multiplier: 1.0, color: AppColors.tierThird),
+    _TierFactor(tier: 'second', multiplier: 1.0, color: AppColors.tierSecond),
+    _TierFactor(tier: 'third', multiplier: 0.0, color: AppColors.tierThird),
+    _TierFactor(tier: 'below', multiplier: -1.0, color: AppColors.tierBelow),
   ];
   bool _biometricAvailable = false;
   bool _biometricEnabled = false;
@@ -96,6 +97,7 @@ class _ParentSettingsScreenState extends ConsumerState<ParentSettingsScreen> {
       case 'best': return l10n.settingsTierBestLabel;
       case 'second': return l10n.settingsTierSecondLabel;
       case 'third': return l10n.settingsTierThirdLabel;
+      case 'below': return l10n.settingsTierBelowLabel;
       default: return tier;
     }
   }
@@ -395,7 +397,11 @@ class _ParentSettingsScreenState extends ConsumerState<ParentSettingsScreen> {
   }
 
   void _showMultiplierSheet(int index, _TierFactor factor, AppLocalizations l10n, {VoidCallback? onSaved}) {
-    double currentValue = factor.multiplier.clamp(0.5, 3.0);
+    final bool isBelow = factor.tier == 'below';
+    final double sliderMin = isBelow ? -5.0 : 0.0;
+    final double sliderMax = isBelow ? 0.0 : 5.0;
+    final int divisions = isBelow ? 10 : 10;
+    double currentValue = factor.multiplier.clamp(sliderMin, sliderMax);
     final label = _tierLabel(l10n, factor.tier);
     showModalBottomSheet<void>(
       context: context,
@@ -409,12 +415,13 @@ class _ParentSettingsScreenState extends ConsumerState<ParentSettingsScreen> {
                 style: TextStyle(fontSize: 17, fontWeight: FontWeight.w700, color: Theme.of(ctx).colorScheme.onSurface)),
             const SizedBox(height: 20),
             Center(child: Text('${currentValue.toStringAsFixed(1)}x',
-                style: const TextStyle(fontSize: 36, fontWeight: FontWeight.w800, color: AppColors.primary))),
-            Slider(value: currentValue, min: 0.5, max: 3.0, divisions: 25, activeColor: AppColors.primary,
+                style: TextStyle(fontSize: 36, fontWeight: FontWeight.w800, color: factor.color))),
+            Slider(value: currentValue, min: sliderMin, max: sliderMax, divisions: divisions,
+                activeColor: factor.color,
                 onChanged: (v) => setSheetState(() => currentValue = v)),
             Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-              Text('0.5x', style: TextStyle(fontSize: 12, color: Theme.of(ctx).colorScheme.onSurfaceVariant)),
-              Text('3.0x', style: TextStyle(fontSize: 12, color: Theme.of(ctx).colorScheme.onSurfaceVariant)),
+              Text('${sliderMin.toStringAsFixed(1)}x', style: TextStyle(fontSize: 12, color: Theme.of(ctx).colorScheme.onSurfaceVariant)),
+              Text('${sliderMax.toStringAsFixed(1)}x', style: TextStyle(fontSize: 12, color: Theme.of(ctx).colorScheme.onSurfaceVariant)),
             ]),
             const SizedBox(height: 20),
             SizedBox(

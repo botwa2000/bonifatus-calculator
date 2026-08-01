@@ -140,6 +140,7 @@
   "settingsTierBestLabel": "Excelente (Nota 1–2)",
   "settingsTierSecondLabel": "Bueno (Nota 3)",
   "settingsTierThirdLabel": "Suficiente (Nota 4)",
+  "settingsTierBelowLabel": "Insuficiente (Nota 5–6)",
   "settingsFailedToLoadChildren": "No se pudieron cargar los hijos",
   "settingsNoChildrenConnected": "Sin hijos conectados",
 

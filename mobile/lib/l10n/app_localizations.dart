@@ -898,6 +898,12 @@ abstract class AppLocalizations {
   /// **'Third (Grade 4)'**
   String get settingsTierThirdLabel;
 
+  /// No description provided for @settingsTierBelowLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Below Average (Grade 5–6)'**
+  String get settingsTierBelowLabel;
+
   /// No description provided for @settingsFailedToLoadChildren.
   ///
   /// In en, this message translates to:

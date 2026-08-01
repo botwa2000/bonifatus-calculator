@@ -140,6 +140,7 @@
   "settingsTierBestLabel": "Ottimo (Voto 1–2)",
   "settingsTierSecondLabel": "Buono (Voto 3)",
   "settingsTierThirdLabel": "Sufficiente (Voto 4)",
+  "settingsTierBelowLabel": "Insufficiente (Voto 5–6)",
   "settingsFailedToLoadChildren": "Impossibile caricare i bambini",
   "settingsNoChildrenConnected": "Nessun bambino connesso",
 

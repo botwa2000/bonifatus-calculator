@@ -32,7 +32,7 @@ export async function generateMetadata({
   return {
     title: post.title,
     description: post.description,
-    alternates: buildAlternatesFor(locale, `/blog/${slug}`, availableLocales),
+    alternates: await buildAlternatesFor(locale, `/blog/${slug}`, availableLocales),
     openGraph: {
       type: 'article',
       publishedTime: post.publishedAt,

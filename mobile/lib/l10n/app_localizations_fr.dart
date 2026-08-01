@@ -440,6 +440,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get settingsTierThirdLabel => 'Satisfaisant (Note 4)';
 
   @override
+  String get settingsTierBelowLabel => 'Insuffisant (Note 5–6)';
+
+  @override
   String get settingsFailedToLoadChildren =>
       'Impossible de charger les enfants';
 

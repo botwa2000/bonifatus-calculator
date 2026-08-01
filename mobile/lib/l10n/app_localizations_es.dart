@@ -432,6 +432,9 @@ class AppLocalizationsEs extends AppLocalizations {
   String get settingsTierThirdLabel => 'Suficiente (Nota 4)';
 
   @override
+  String get settingsTierBelowLabel => 'Insuficiente (Nota 5–6)';
+
+  @override
   String get settingsFailedToLoadChildren => 'No se pudieron cargar los hijos';
 
   @override

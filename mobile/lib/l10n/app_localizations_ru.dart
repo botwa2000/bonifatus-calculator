@@ -431,6 +431,9 @@ class AppLocalizationsRu extends AppLocalizations {
   String get settingsTierThirdLabel => 'Удовлетворительно (Оценка 4)';
 
   @override
+  String get settingsTierBelowLabel => 'Неудовлетворительно (Оценка 5–6)';
+
+  @override
   String get settingsFailedToLoadChildren => 'Не удалось загрузить детей';
 
   @override
