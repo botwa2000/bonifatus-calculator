@@ -1324,6 +1324,9 @@ class AppLocalizationsRu extends AppLocalizations {
   String get loginContinueWithGoogle => 'Войти через Google';
 
   @override
+  String get loginContinueWithApple => 'Войти через Apple';
+
+  @override
   String get googleProfileTitle => 'Заполните профиль';
 
   @override

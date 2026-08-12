@@ -1323,6 +1323,9 @@ class AppLocalizationsEs extends AppLocalizations {
   String get loginContinueWithGoogle => 'Continuar con Google';
 
   @override
+  String get loginContinueWithApple => 'Continuar con Apple';
+
+  @override
   String get googleProfileTitle => 'Completa tu perfil';
 
   @override

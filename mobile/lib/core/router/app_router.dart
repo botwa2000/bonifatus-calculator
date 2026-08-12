@@ -91,6 +91,19 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           );
         },
       ),
+      GoRoute(
+        path: '/auth/apple-profile',
+        builder: (_, state) {
+          final data = state.extra as Map<String, String>;
+          return GoogleProfileScreen(
+            idToken: '',
+            isApple: true,
+            identityToken: data['identityToken']!,
+            name: data['name']!,
+            email: data['email']!,
+          );
+        },
+      ),
       GoRoute(path: '/auth/register', builder: (_, __) => const RegisterScreen()),
       GoRoute(path: '/auth/forgot-password', builder: (_, __) => const ForgotPasswordScreen()),
       GoRoute(

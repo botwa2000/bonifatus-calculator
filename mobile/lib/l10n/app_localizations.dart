@@ -2470,6 +2470,12 @@ abstract class AppLocalizations {
   /// **'Continue with Google'**
   String get loginContinueWithGoogle;
 
+  /// No description provided for @loginContinueWithApple.
+  ///
+  /// In en, this message translates to:
+  /// **'Continue with Apple'**
+  String get loginContinueWithApple;
+
   /// No description provided for @googleProfileTitle.
   ///
   /// In en, this message translates to:

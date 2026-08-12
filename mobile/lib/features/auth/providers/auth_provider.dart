@@ -2,7 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../api/services/auth_service.dart';
 
-export '../../../api/services/auth_service.dart' show GoogleSignInResult, GoogleSignInAuthenticated, GoogleSignInNeedsProfile;
+export '../../../api/services/auth_service.dart' show GoogleSignInResult, GoogleSignInAuthenticated, GoogleSignInNeedsProfile, AppleSignInResult, AppleSignInAuthenticated, AppleSignInNeedsProfile;
 
 // Re-export AuthSessionState under the shorter name used throughout the app
 typedef AuthState = AuthSessionState;
@@ -61,6 +61,25 @@ class AuthStateNotifier extends AsyncNotifier<AuthState> {
       dateOfBirth: dateOfBirth,
     );
     if (result is GoogleSignInAuthenticated) {
+      state = AsyncValue.data(result.session);
+    }
+    return result;
+  }
+
+  Future<AppleSignInResult> loginWithApple({
+    required String identityToken,
+    String? role,
+    String? fullName,
+    String? dateOfBirth,
+  }) async {
+    final service = ref.read(authServiceProvider);
+    final result = await service.loginWithApple(
+      identityToken: identityToken,
+      role: role,
+      fullName: fullName,
+      dateOfBirth: dateOfBirth,
+    );
+    if (result is AppleSignInAuthenticated) {
       state = AsyncValue.data(result.session);
     }
     return result;

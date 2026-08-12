@@ -557,6 +557,7 @@
 
   "loginOrDivider": "or",
   "loginContinueWithGoogle": "Continue with Google",
+  "loginContinueWithApple": "Continue with Apple",
   "googleProfileTitle": "Complete Your Profile",
   "googleProfileSubtitle": "Just a few more details to get started.",
   "googleProfileRoleRequired": "Please select your role",

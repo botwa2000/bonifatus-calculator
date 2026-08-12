@@ -470,6 +470,7 @@
 
   "loginOrDivider": "или",
   "loginContinueWithGoogle": "Войти через Google",
+  "loginContinueWithApple": "Войти через Apple",
   "googleProfileTitle": "Заполните профиль",
   "googleProfileSubtitle": "Ещё несколько деталей для начала.",
   "googleProfileRoleRequired": "Пожалуйста, выберите роль",

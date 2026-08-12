@@ -19,6 +19,20 @@ class GoogleSignInNeedsProfile extends GoogleSignInResult {
   GoogleSignInNeedsProfile({required this.name, required this.email, required this.idToken});
 }
 
+sealed class AppleSignInResult {}
+
+class AppleSignInAuthenticated extends AppleSignInResult {
+  final AuthSessionState session;
+  AppleSignInAuthenticated(this.session);
+}
+
+class AppleSignInNeedsProfile extends AppleSignInResult {
+  final String name;
+  final String email;
+  final String identityToken;
+  AppleSignInNeedsProfile({required this.name, required this.email, required this.identityToken});
+}
+
 String _serverError(DioException e, String fallback) {
   final data = e.response?.data;
   if (data is Map) return (data['error'] ?? data['message'] ?? fallback).toString();
@@ -226,6 +240,45 @@ class AuthService {
       ));
     } on DioException catch (e) {
       throw Exception(_serverError(e, 'Google sign-in failed'));
+    }
+  }
+
+  Future<AppleSignInResult> loginWithApple({
+    required String identityToken,
+    String? role,
+    String? fullName,
+    String? dateOfBirth,
+  }) async {
+    try {
+      final data = <String, dynamic>{'identityToken': identityToken};
+      if (role != null) data['role'] = role;
+      if (fullName != null) data['fullName'] = fullName;
+      if (dateOfBirth != null) data['dateOfBirth'] = dateOfBirth;
+
+      final resp = await _client.post('/api/mobile/auth/apple', data: data);
+
+      if (resp.data['status'] == 'needs_profile') {
+        return AppleSignInNeedsProfile(
+          name: (resp.data['name'] as String?) ?? '',
+          email: (resp.data['email'] as String?) ?? '',
+          identityToken: identityToken,
+        );
+      }
+
+      final token = resp.data['accessToken'] as String?;
+      if (token == null) throw Exception('No access token in response');
+
+      await _storage.write(key: AppConstants.keyAccessToken, value: token);
+
+      return AppleSignInAuthenticated(AuthSessionState(
+        isAuthenticated: true,
+        userId: resp.data['user']?['id'] as String?,
+        role: resp.data['user']?['role'] as String?,
+        name: resp.data['user']?['name'] as String?,
+        email: resp.data['user']?['email'] as String?,
+      ));
+    } on DioException catch (e) {
+      throw Exception(_serverError(e, 'Apple sign-in failed'));
     }
   }
 

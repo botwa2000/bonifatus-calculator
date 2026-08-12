@@ -34,6 +34,9 @@ dependencies:
   # Google Sign-In
   google_sign_in: ^7.2.0
 
+  # Sign in with Apple (required by App Store Guideline 4.8 when offering third-party login)
+  sign_in_with_apple: ^7.0.0
+
   # Image
   image_picker: ^1.1.2
   flutter_image_compress: ^2.5.0

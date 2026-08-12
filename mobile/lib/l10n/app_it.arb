@@ -470,6 +470,7 @@
 
   "loginOrDivider": "o",
   "loginContinueWithGoogle": "Continua con Google",
+  "loginContinueWithApple": "Continua con Apple",
   "googleProfileTitle": "Completa il tuo profilo",
   "googleProfileSubtitle": "Solo ancora qualche dettaglio per iniziare.",
   "googleProfileRoleRequired": "Per favore seleziona il tuo ruolo",

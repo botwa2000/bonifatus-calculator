@@ -1,4 +1,5 @@
-import 'package:flutter/foundation.dart' show kDebugMode;
+import 'package:flutter/foundation.dart' show kDebugMode, defaultTargetPlatform;
+import 'package:sign_in_with_apple/sign_in_with_apple.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -121,6 +122,45 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         }
         setState(() => _error = msg);
       }
+    } catch (e) {
+      if (mounted) setState(() => _error = e.toString().replaceFirst('Exception: ', ''));
+    } finally {
+      if (mounted) setState(() => _isSubmitting = false);
+    }
+  }
+
+  Future<void> _loginWithApple() async {
+    setState(() { _error = null; _isSubmitting = true; });
+    try {
+      final credential = await SignInWithApple.getAppleIDCredential(
+        scopes: [
+          AppleIDAuthorizationScopes.email,
+          AppleIDAuthorizationScopes.fullName,
+        ],
+      );
+      final identityToken = credential.identityToken;
+      if (identityToken == null || !mounted) {
+        setState(() { _error = 'Could not get Apple token. Please try again.'; _isSubmitting = false; });
+        return;
+      }
+      final givenName = credential.givenName ?? '';
+      final familyName = credential.familyName ?? '';
+      final name = [givenName, familyName].where((s) => s.isNotEmpty).join(' ');
+
+      final result = await ref.read(authStateNotifierProvider.notifier).loginWithApple(
+        identityToken: identityToken,
+      );
+      if (!mounted) return;
+      if (result is AppleSignInNeedsProfile) {
+        context.push('/auth/apple-profile', extra: {
+          'identityToken': identityToken,
+          'name': name,
+          'email': result.email,
+        });
+      }
+    } on SignInWithAppleAuthorizationException catch (e) {
+      if (e.code == AuthorizationErrorCode.canceled) return;
+      if (mounted) setState(() => _error = e.message);
     } catch (e) {
       if (mounted) setState(() => _error = e.toString().replaceFirst('Exception: ', ''));
     } finally {
@@ -305,6 +345,26 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     backgroundColor: theme.colorScheme.surface,
                   ),
                 ),
+                if (defaultTargetPlatform == TargetPlatform.iOS) ...[
+                  const SizedBox(height: 12),
+                  OutlinedButton.icon(
+                    onPressed: _isSubmitting ? null : _loginWithApple,
+                    icon: const Icon(Icons.apple, size: 22),
+                    label: Text(l10n.loginContinueWithApple,
+                      style: theme.textTheme.labelLarge?.copyWith(
+                        color: theme.colorScheme.onSurface,
+                        fontWeight: FontWeight.w600,
+                      )),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: theme.colorScheme.onSurface,
+                      side: BorderSide(color: theme.colorScheme.outline),
+                      minimumSize: const Size(double.infinity, 56),
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      backgroundColor: theme.colorScheme.surface,
+                    ),
+                  ),
+                ],
                 const SizedBox(height: 24),
                 Row(mainAxisAlignment: MainAxisAlignment.center, children: [
                   Text(l10n.loginNoAccountPrompt, style: theme.textTheme.bodyMedium),

@@ -71,6 +71,8 @@ workflows:
           echo ">>> building IPA with CFBundleVersion (--build-number) = ${BUILD_CODE}"
           flutter build ipa --release --verbose \
             --build-number="${BUILD_CODE}" \
+            --dart-define=GOOGLE_WEB_CLIENT_ID="${GOOGLE_WEB_CLIENT_ID}" \
+            --dart-define=MOBILE_APP_SECRET="${MOBILE_APP_SECRET}" \
             --export-options-plist="$CM_BUILD_DIR/export_options.plist" 2>&1 | tee "$CM_BUILD_DIR/flutter_build_ipa.log"
 
     artifacts:

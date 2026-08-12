@@ -470,6 +470,7 @@
 
   "loginOrDivider": "oder",
   "loginContinueWithGoogle": "Mit Google fortfahren",
+  "loginContinueWithApple": "Mit Apple fortfahren",
   "googleProfileTitle": "Profil vervollständigen",
   "googleProfileSubtitle": "Noch ein paar Details zum Einstieg.",
   "googleProfileRoleRequired": "Bitte wähle deine Rolle",

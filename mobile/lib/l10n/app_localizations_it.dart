@@ -1315,6 +1315,9 @@ class AppLocalizationsIt extends AppLocalizations {
   String get loginContinueWithGoogle => 'Continua con Google';
 
   @override
+  String get loginContinueWithApple => 'Continua con Apple';
+
+  @override
   String get googleProfileTitle => 'Completa il tuo profilo';
 
   @override

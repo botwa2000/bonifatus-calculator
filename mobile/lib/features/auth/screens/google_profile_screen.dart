@@ -8,12 +8,16 @@ class GoogleProfileScreen extends ConsumerStatefulWidget {
   final String idToken;
   final String name;
   final String email;
+  final bool isApple;
+  final String? identityToken;
 
   const GoogleProfileScreen({
     super.key,
     required this.idToken,
     required this.name,
     required this.email,
+    this.isApple = false,
+    this.identityToken,
   });
 
   @override
@@ -65,17 +69,28 @@ class _GoogleProfileScreenState extends ConsumerState<GoogleProfileScreen> {
     }
     setState(() { _error = null; _isSubmitting = true; });
     try {
-      final result = await ref.read(authStateNotifierProvider.notifier).loginWithGoogle(
-        idToken: widget.idToken,
-        role: _role,
-        fullName: _nameCtrl.text.trim(),
-        dateOfBirth: _formatDob(_dob!),
-      );
-      if (!mounted) return;
-      if (result is GoogleSignInAuthenticated) {
-        // Router will navigate to home automatically via state change
+      if (widget.isApple) {
+        final result = await ref.read(authStateNotifierProvider.notifier).loginWithApple(
+          identityToken: widget.identityToken!,
+          role: _role,
+          fullName: _nameCtrl.text.trim(),
+          dateOfBirth: _formatDob(_dob!),
+        );
+        if (!mounted) return;
+        if (result is! AppleSignInAuthenticated) {
+          setState(() => _error = 'Account creation failed. Please try again.');
+        }
       } else {
-        setState(() => _error = 'Account creation failed. Please try again.');
+        final result = await ref.read(authStateNotifierProvider.notifier).loginWithGoogle(
+          idToken: widget.idToken,
+          role: _role,
+          fullName: _nameCtrl.text.trim(),
+          dateOfBirth: _formatDob(_dob!),
+        );
+        if (!mounted) return;
+        if (result is! GoogleSignInAuthenticated) {
+          setState(() => _error = 'Account creation failed. Please try again.');
+        }
       }
     } catch (e) {
       if (mounted) setState(() => _error = e.toString().replaceFirst('Exception: ', ''));
