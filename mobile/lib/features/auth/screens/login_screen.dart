@@ -32,6 +32,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   void initState() {
     super.initState();
     _initBiometric();
+    if (kDebugMode) {
+      _emailCtrl.text = 'alexander.perel+maxim@gmail.com';
+      _passCtrl.text = 'TestMaxim2026';
+    }
   }
 
   Future<void> _initBiometric() async {
@@ -288,7 +292,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     )),
                     const SizedBox(width: 8),
                     Expanded(child: OutlinedButton(
-                      onPressed: () { _emailCtrl.text = 'alexander.perel+maxima@gmail.com'; _passCtrl.text = 'TestMaxim2026'; },
+                      onPressed: () { _emailCtrl.text = 'alexander.perel+maxima@gmail.com'; _passCtrl.text = 'TestParent2026'; },
                       child: const Text('[Dev] Maxima'),
                     )),
                   ]),
@@ -345,7 +349,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     backgroundColor: theme.colorScheme.surface,
                   ),
                 ),
-                if (defaultTargetPlatform == TargetPlatform.iOS) ...[
+                if (defaultTargetPlatform == TargetPlatform.iOS ||
+                    const bool.fromEnvironment('SCREENSHOT_MODE')) ...[
                   const SizedBox(height: 12),
                   OutlinedButton.icon(
                     onPressed: _isSubmitting ? null : _loginWithApple,

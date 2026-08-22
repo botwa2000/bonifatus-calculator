@@ -122,12 +122,20 @@ jobs:
           CM_TOKEN: ${{ secrets.CODEMAGIC_API_TOKEN }}
           CM_APP_ID: ${{ secrets.BONIFATUS_CODEMAGIC_APP_ID }}
           CM_CERT_KEY: ${{ secrets.CM_CERTIFICATE_PRIVATE_KEY }}
+          MOBILE_APP_SECRET: ${{ secrets.MOBILE_APP_SECRET }}
+          GOOGLE_WEB_CLIENT_ID: ${{ secrets.GOOGLE_WEB_CLIENT_ID }}
         run: |
           payload=$(jq -n \
             --arg appId "$CM_APP_ID" \
             --arg certKey "$CM_CERT_KEY" \
+            --arg mobileSecret "$MOBILE_APP_SECRET" \
+            --arg googleClientId "$GOOGLE_WEB_CLIENT_ID" \
             '{appId: $appId, workflowId: "flutter-release", branch: "main",
-              environment: {variables: {CM_CERTIFICATE_PRIVATE_KEY: $certKey}}}')
+              environment: {variables: {
+                CM_CERTIFICATE_PRIVATE_KEY: $certKey,
+                MOBILE_APP_SECRET: $mobileSecret,
+                GOOGLE_WEB_CLIENT_ID: $googleClientId
+              }}}')
           resp=$(curl -s -w "\n%{http_code}" -X POST \
             -H "x-auth-token: $CM_TOKEN" \
             -H "Content-Type: application/json" \

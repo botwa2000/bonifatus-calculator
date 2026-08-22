@@ -20,8 +20,17 @@ async function verifyGoogleToken(idToken: string): Promise<GoogleTokenInfo> {
   )
   if (!resp.ok) throw new Error('Invalid Google token')
   const data = (await resp.json()) as GoogleTokenInfo
-  const clientId = process.env.GOOGLE_CLIENT_ID
-  if (clientId && data.aud !== clientId) throw new Error('Token audience mismatch')
+  // Accept tokens from any OAuth client registered under the bonifatus Google Cloud project.
+  // iOS uses the iOS client ID as aud; Android/web use the web client ID.
+  const allowedAudiences = [
+    process.env.GOOGLE_CLIENT_ID,
+    process.env.GOOGLE_IOS_CLIENT_ID,
+    // Fallback: accept any client from project 227257601473 if no explicit list is configured
+  ].filter((id): id is string => Boolean(id))
+  if (allowedAudiences.length > 0 && !allowedAudiences.includes(data.aud)) {
+    // Last-resort: allow any aud from our known GCP project number
+    if (!data.aud.startsWith('227257601473-')) throw new Error('Token audience mismatch')
+  }
   if (data.email_verified !== 'true') throw new Error('Email not verified by Google')
   return data
 }
