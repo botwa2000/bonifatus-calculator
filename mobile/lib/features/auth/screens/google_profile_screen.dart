@@ -138,16 +138,21 @@ class _GoogleProfileScreenState extends ConsumerState<GoogleProfileScreen> {
                 const SizedBox(height: 16),
               ],
 
-              TextFormField(
-                controller: _nameCtrl,
-                decoration: InputDecoration(
-                  labelText: l10n.registerStep1Title,
-                  prefixIcon: const Icon(Icons.person_outline),
-                  filled: true,
-                  fillColor: theme.colorScheme.surfaceContainerHighest,
+              // For Apple sign-in, the name is already provided by the
+              // Authentication Services framework — showing a name field would
+              // violate App Store Guideline 4.0 (Design: Preamble).
+              if (!widget.isApple) ...[
+                TextFormField(
+                  controller: _nameCtrl,
+                  decoration: InputDecoration(
+                    labelText: l10n.registerStep1Title,
+                    prefixIcon: const Icon(Icons.person_outline),
+                    filled: true,
+                    fillColor: theme.colorScheme.surfaceContainerHighest,
+                  ),
                 ),
-              ),
-              const SizedBox(height: 24),
+                const SizedBox(height: 24),
+              ],
 
               Text(l10n.registerStep2Title, style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600)),
               const SizedBox(height: 12),
