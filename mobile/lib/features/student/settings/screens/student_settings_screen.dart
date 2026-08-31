@@ -11,6 +11,7 @@ import '../../../auth/providers/auth_provider.dart';
 import '../../../../api/services/connection_service.dart';
 import '../../../../api/services/biometric_service.dart';
 import '../../../../api/services/profile_service.dart';
+import '../../providers/calculator_config_provider.dart';
 import '../../../../core/constants/app_constants.dart';
 import '../../../../l10n/app_localizations.dart';
 
@@ -31,6 +32,7 @@ class _StudentSettingsScreenState extends ConsumerState<StudentSettingsScreen> {
   String? _schoolName;
   String? _schoolTown;
   int _programLength = 13;
+  String? _defaultGradingSystemId;
 
   @override
   void initState() {
@@ -48,6 +50,7 @@ class _StudentSettingsScreenState extends ConsumerState<StudentSettingsScreen> {
         _schoolName = profile['schoolName'] as String?;
         _schoolTown = profile['schoolTown'] as String?;
         _programLength = (profile['programLength'] as int?) ?? 13;
+        _defaultGradingSystemId = profile['defaultGradingSystemId'] as String?;
       });
     } catch (_) {}
   }
@@ -243,7 +246,9 @@ class _StudentSettingsScreenState extends ConsumerState<StudentSettingsScreen> {
     final townCtrl = TextEditingController(text: _schoolTown ?? '');
     final nameCtrl = TextEditingController(text: _schoolName ?? '');
     int programLength = _programLength;
+    String? selectedGradingSystemId = _defaultGradingSystemId;
     bool saving = false;
+    final gradingSystems = ref.read(calculatorConfigProvider).value?.gradingSystems ?? [];
 
     showModalBottomSheet<void>(
       context: context,
@@ -303,6 +308,28 @@ class _StudentSettingsScreenState extends ConsumerState<StudentSettingsScreen> {
                 ),
                 const SizedBox(height: 8),
                 Text(l10n.profileProgramLengthHint, style: TextStyle(fontSize: 11, color: cs.onSurfaceVariant)),
+                if (gradingSystems.isNotEmpty) ...[
+                  const SizedBox(height: 16),
+                  Text(l10n.settingsGradingSystem, style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: cs.onSurfaceVariant)),
+                  const SizedBox(height: 8),
+                  InputDecorator(
+                    decoration: const InputDecoration(border: OutlineInputBorder(), contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 4)),
+                    child: DropdownButtonHideUnderline(
+                      child: DropdownButton<String>(
+                        value: gradingSystems.any((g) => g.id == selectedGradingSystemId) ? selectedGradingSystemId : null,
+                        hint: Text(l10n.settingsGradingSystem, style: TextStyle(color: cs.onSurfaceVariant)),
+                        isExpanded: true,
+                        items: gradingSystems.map((g) => DropdownMenuItem(
+                          value: g.id,
+                          child: Text(g.name),
+                        )).toList(),
+                        onChanged: (v) => setSheetState(() => selectedGradingSystemId = v),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(l10n.settingsGradingSystemHint, style: TextStyle(fontSize: 11, color: cs.onSurfaceVariant)),
+                ],
                 const SizedBox(height: 24),
                 SizedBox(
                   width: double.infinity,
@@ -314,12 +341,14 @@ class _StudentSettingsScreenState extends ConsumerState<StudentSettingsScreen> {
                           schoolName: nameCtrl.text.trim().isEmpty ? null : nameCtrl.text.trim(),
                           schoolTown: townCtrl.text.trim().isEmpty ? null : townCtrl.text.trim(),
                           programLength: programLength,
+                          defaultGradingSystemId: selectedGradingSystemId,
                         );
                         if (mounted) {
                           setState(() {
                             _schoolName = nameCtrl.text.trim().isEmpty ? null : nameCtrl.text.trim();
                             _schoolTown = townCtrl.text.trim().isEmpty ? null : townCtrl.text.trim();
                             _programLength = programLength;
+                            _defaultGradingSystemId = selectedGradingSystemId;
                           });
                         }
                         if (ctx.mounted) {

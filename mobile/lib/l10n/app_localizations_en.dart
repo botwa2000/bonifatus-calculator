@@ -1564,4 +1564,21 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get filterStatusLabel => 'Status';
+
+  @override
+  String get profileCompleteBanner => 'Set up your profile';
+
+  @override
+  String get profileCompleteBannerBody =>
+      'Add your school and grading system for better tracking and pre-filled reports.';
+
+  @override
+  String get profileCompleteAction => 'Go to Settings';
+
+  @override
+  String get settingsGradingSystem => 'Grading System';
+
+  @override
+  String get settingsGradingSystemHint =>
+      'Sets the default for your grade calculator and reports.';
 }

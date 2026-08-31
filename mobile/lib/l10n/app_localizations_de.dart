@@ -1580,4 +1580,21 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get filterStatusLabel => 'Status';
+
+  @override
+  String get profileCompleteBanner => 'Profil einrichten';
+
+  @override
+  String get profileCompleteBannerBody =>
+      'Füge Schule und Benotungssystem hinzu – für besseres Tracking und vorausgefüllte Berichte.';
+
+  @override
+  String get profileCompleteAction => 'Zu Einstellungen';
+
+  @override
+  String get settingsGradingSystem => 'Benotungssystem';
+
+  @override
+  String get settingsGradingSystemHint =>
+      'Voreinstellung für den Notenrechner und Berichte.';
 }

@@ -1,0 +1,150 @@
+{
+  "project_info": {
+    "project_number": "227257601473",
+    "project_id": "bonifatus-calculator",
+    "storage_bucket": "bonifatus-calculator.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:227257601473:android:3ca68497ee3b414e26f340",
+        "android_client_info": {
+          "package_name": "com.bonifatus.app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "227257601473-bfeme6k6pvvqgt1d3mavl5l3orgpca8u.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA4pgKjZZpIApuLEG138NJ9lEVUz-9CQUU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "227257601473-0aaj0f34tej6pmftqs0fbc42ps4ujhb0.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "227257601473-a121gfc90kaq6ovno1jv5lej15ijcp7c.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.bonifatus.app"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:227257601473:android:08356bd1be6c3a8e26f340",
+        "android_client_info": {
+          "package_name": "dev.bonifatus.gradecalc"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "227257601473-9e91hbr23kg7ohhatdtvga0a54l1u6vq.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "dev.bonifatus.gradecalc",
+            "certificate_hash": "c4eb28078eae653973f36ec6ebd01c5542e25bfd"
+          }
+        },
+        {
+          "client_id": "227257601473-9gst4fmvsapo8hnkm1tiu7d958hr21mt.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "dev.bonifatus.gradecalc",
+            "certificate_hash": "72655480b1eb62e78cc7b0aa19534185baeaea07"
+          }
+        },
+        {
+          "client_id": "227257601473-bfeme6k6pvvqgt1d3mavl5l3orgpca8u.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA4pgKjZZpIApuLEG138NJ9lEVUz-9CQUU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "227257601473-0aaj0f34tej6pmftqs0fbc42ps4ujhb0.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "227257601473-a121gfc90kaq6ovno1jv5lej15ijcp7c.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.bonifatus.app"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:227257601473:android:2d679ac4d274c45e26f340",
+        "android_client_info": {
+          "package_name": "dev.bonifatus.gradecalc.dev"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "227257601473-ju8i14d9j115uc647aq7sdr4garhlv11.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "dev.bonifatus.gradecalc.dev",
+            "certificate_hash": "c4eb28078eae653973f36ec6ebd01c5542e25bfd"
+          }
+        },
+        {
+          "client_id": "227257601473-ugtfqkm9usojd6hvljibsurikkfsd44b.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "dev.bonifatus.gradecalc.dev",
+            "certificate_hash": "732a37c3fd6f0f9363b4ec28c1b33eda9ebeaf79"
+          }
+        },
+        {
+          "client_id": "227257601473-bfeme6k6pvvqgt1d3mavl5l3orgpca8u.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA4pgKjZZpIApuLEG138NJ9lEVUz-9CQUU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "227257601473-0aaj0f34tej6pmftqs0fbc42ps4ujhb0.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "227257601473-a121gfc90kaq6ovno1jv5lej15ijcp7c.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.bonifatus.app"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

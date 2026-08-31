@@ -556,5 +556,11 @@
   "filterSettled": "Оплачено",
   "filterUnsettled": "Ожидает",
   "filterGradeType": "Тип оценки",
-  "filterStatusLabel": "Статус"
+  "filterStatusLabel": "Статус",
+
+  "profileCompleteBanner": "Настройте профиль",
+  "profileCompleteBannerBody": "Добавьте школу и систему оценок для лучшего отслеживания и предзаполненных отчётов.",
+  "profileCompleteAction": "В Настройки",
+  "settingsGradingSystem": "Система оценок",
+  "settingsGradingSystemHint": "Используется по умолчанию в калькуляторе и отчётах."
 }

@@ -556,5 +556,11 @@
   "filterSettled": "Liquidado",
   "filterUnsettled": "Pendiente",
   "filterGradeType": "Tipo de nota",
-  "filterStatusLabel": "Estado"
+  "filterStatusLabel": "Estado",
+
+  "profileCompleteBanner": "Configura tu perfil",
+  "profileCompleteBannerBody": "Añade tu escuela y sistema de calificación para mejor seguimiento e informes prellenados.",
+  "profileCompleteAction": "Ir a Ajustes",
+  "settingsGradingSystem": "Sistema de calificación",
+  "settingsGradingSystemHint": "Predeterminado para la calculadora de notas e informes."
 }

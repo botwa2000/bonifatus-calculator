@@ -1,3 +1,4 @@
+import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -35,6 +36,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
   return GoRouter(
     initialLocation: '/splash',
     refreshListenable: listenable,
+    observers: [FirebaseAnalyticsObserver(analytics: FirebaseAnalytics.instance)],
     redirect: (context, state) {
       final authState = ref.read(authStateNotifierProvider);
       final loc = state.matchedLocation;

@@ -666,5 +666,11 @@
   "filterSettled": "Settled",
   "filterUnsettled": "Unsettled",
   "filterGradeType": "Grade type",
-  "filterStatusLabel": "Status"
+  "filterStatusLabel": "Status",
+
+  "profileCompleteBanner": "Set up your profile",
+  "profileCompleteBannerBody": "Add your school and grading system for better tracking and pre-filled reports.",
+  "profileCompleteAction": "Go to Settings",
+  "settingsGradingSystem": "Grading System",
+  "settingsGradingSystemHint": "Sets the default for your grade calculator and reports."
 }

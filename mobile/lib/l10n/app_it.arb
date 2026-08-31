@@ -557,5 +557,11 @@
   "filterSettled": "Liquidato",
   "filterUnsettled": "In attesa",
   "filterGradeType": "Tipo di voto",
-  "filterStatusLabel": "Stato"
+  "filterStatusLabel": "Stato",
+
+  "profileCompleteBanner": "Configura il tuo profilo",
+  "profileCompleteBannerBody": "Aggiungi scuola e sistema di valutazione per un monitoraggio migliore e report precompilati.",
+  "profileCompleteAction": "Vai alle Impostazioni",
+  "settingsGradingSystem": "Sistema di valutazione",
+  "settingsGradingSystemHint": "Predefinito per il calcolatore di voti e i report."
 }

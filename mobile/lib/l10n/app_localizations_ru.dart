@@ -1575,4 +1575,21 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get filterStatusLabel => 'Статус';
+
+  @override
+  String get profileCompleteBanner => 'Настройте профиль';
+
+  @override
+  String get profileCompleteBannerBody =>
+      'Добавьте школу и систему оценок для лучшего отслеживания и предзаполненных отчётов.';
+
+  @override
+  String get profileCompleteAction => 'В Настройки';
+
+  @override
+  String get settingsGradingSystem => 'Система оценок';
+
+  @override
+  String get settingsGradingSystemHint =>
+      'Используется по умолчанию в калькуляторе и отчётах.';
 }

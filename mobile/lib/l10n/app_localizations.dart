@@ -2937,6 +2937,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Status'**
   String get filterStatusLabel;
+
+  /// No description provided for @profileCompleteBanner.
+  ///
+  /// In en, this message translates to:
+  /// **'Set up your profile'**
+  String get profileCompleteBanner;
+
+  /// No description provided for @profileCompleteBannerBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Add your school and grading system for better tracking and pre-filled reports.'**
+  String get profileCompleteBannerBody;
+
+  /// No description provided for @profileCompleteAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Go to Settings'**
+  String get profileCompleteAction;
+
+  /// No description provided for @settingsGradingSystem.
+  ///
+  /// In en, this message translates to:
+  /// **'Grading System'**
+  String get settingsGradingSystem;
+
+  /// No description provided for @settingsGradingSystemHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Sets the default for your grade calculator and reports.'**
+  String get settingsGradingSystemHint;
 }
 
 class _AppLocalizationsDelegate

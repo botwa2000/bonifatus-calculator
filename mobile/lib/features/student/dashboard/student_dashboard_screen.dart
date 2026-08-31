@@ -8,6 +8,7 @@ import '../../../core/theme/app_colors.dart';
 import '../../auth/providers/auth_provider.dart';
 import '../providers/quick_grades_provider.dart';
 import '../providers/term_results_provider.dart';
+import 'profile_completion_banner.dart';
 import '../../../../models/quick_grade.dart';
 import '../../../../models/term_result.dart';
 import '../../../../utils/term_type_utils.dart';
@@ -46,6 +47,7 @@ class StudentDashboardScreen extends ConsumerWidget {
                   child: _buildHeader(context, l10n, userName),
                 ),
               ),
+              const SliverToBoxAdapter(child: ProfileCompletionBanner()),
               SliverToBoxAdapter(
                 child: Padding(
                   padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),

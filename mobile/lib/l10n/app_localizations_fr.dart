@@ -1586,4 +1586,21 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get filterStatusLabel => 'Statut';
+
+  @override
+  String get profileCompleteBanner => 'Configurer votre profil';
+
+  @override
+  String get profileCompleteBannerBody =>
+      'Ajoutez votre école et système de notation pour un meilleur suivi et des rapports préremplis.';
+
+  @override
+  String get profileCompleteAction => 'Aller aux Paramètres';
+
+  @override
+  String get settingsGradingSystem => 'Système de notation';
+
+  @override
+  String get settingsGradingSystemHint =>
+      'Définit la valeur par défaut pour la calculatrice et les rapports.';
 }

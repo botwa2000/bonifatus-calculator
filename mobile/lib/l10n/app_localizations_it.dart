@@ -1567,4 +1567,21 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get filterStatusLabel => 'Stato';
+
+  @override
+  String get profileCompleteBanner => 'Configura il tuo profilo';
+
+  @override
+  String get profileCompleteBannerBody =>
+      'Aggiungi scuola e sistema di valutazione per un monitoraggio migliore e report precompilati.';
+
+  @override
+  String get profileCompleteAction => 'Vai alle Impostazioni';
+
+  @override
+  String get settingsGradingSystem => 'Sistema di valutazione';
+
+  @override
+  String get settingsGradingSystemHint =>
+      'Predefinito per il calcolatore di voti e i report.';
 }

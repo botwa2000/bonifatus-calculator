@@ -557,5 +557,11 @@
   "filterSettled": "Abgerechnet",
   "filterUnsettled": "Offen",
   "filterGradeType": "Notentyp",
-  "filterStatusLabel": "Status"
+  "filterStatusLabel": "Status",
+
+  "profileCompleteBanner": "Profil einrichten",
+  "profileCompleteBannerBody": "Füge Schule und Benotungssystem hinzu – für besseres Tracking und vorausgefüllte Berichte.",
+  "profileCompleteAction": "Zu Einstellungen",
+  "settingsGradingSystem": "Benotungssystem",
+  "settingsGradingSystemHint": "Voreinstellung für den Notenrechner und Berichte."
 }

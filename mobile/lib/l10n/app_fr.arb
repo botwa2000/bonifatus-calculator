@@ -556,5 +556,11 @@
   "filterSettled": "Réglé",
   "filterUnsettled": "En attente",
   "filterGradeType": "Type de note",
-  "filterStatusLabel": "Statut"
+  "filterStatusLabel": "Statut",
+
+  "profileCompleteBanner": "Configurer votre profil",
+  "profileCompleteBannerBody": "Ajoutez votre école et système de notation pour un meilleur suivi et des rapports préremplis.",
+  "profileCompleteAction": "Aller aux Paramètres",
+  "settingsGradingSystem": "Système de notation",
+  "settingsGradingSystemHint": "Définit la valeur par défaut pour la calculatrice et les rapports."
 }
