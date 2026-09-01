@@ -2967,6 +2967,66 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Sets the default for your grade calculator and reports.'**
   String get settingsGradingSystemHint;
+
+  /// No description provided for @registerTermsHint.
+  ///
+  /// In en, this message translates to:
+  /// **'By creating an account you agree to our Terms of Service.'**
+  String get registerTermsHint;
+
+  /// No description provided for @profileSetupCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{completed} of {total} complete'**
+  String profileSetupCount(int completed, int total);
+
+  /// No description provided for @profileSetupItemName.
+  ///
+  /// In en, this message translates to:
+  /// **'Your name'**
+  String get profileSetupItemName;
+
+  /// No description provided for @profileSetupItemBirthday.
+  ///
+  /// In en, this message translates to:
+  /// **'Birthday'**
+  String get profileSetupItemBirthday;
+
+  /// No description provided for @profileSetupItemSchool.
+  ///
+  /// In en, this message translates to:
+  /// **'School'**
+  String get profileSetupItemSchool;
+
+  /// No description provided for @profileSetupItemGrading.
+  ///
+  /// In en, this message translates to:
+  /// **'Grading system'**
+  String get profileSetupItemGrading;
+
+  /// No description provided for @parentNamePromptTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Add your name'**
+  String get parentNamePromptTitle;
+
+  /// No description provided for @parentNamePromptBody.
+  ///
+  /// In en, this message translates to:
+  /// **'So your children can find you'**
+  String get parentNamePromptBody;
+
+  /// No description provided for @settingsValueNotSet.
+  ///
+  /// In en, this message translates to:
+  /// **'Not set'**
+  String get settingsValueNotSet;
+
+  /// No description provided for @settingsBirthdayLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Birthday'**
+  String get settingsBirthdayLabel;
 }
 
 class _AppLocalizationsDelegate

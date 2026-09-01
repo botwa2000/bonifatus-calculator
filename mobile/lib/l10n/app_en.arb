@@ -672,5 +672,25 @@
   "profileCompleteBannerBody": "Add your school and grading system for better tracking and pre-filled reports.",
   "profileCompleteAction": "Go to Settings",
   "settingsGradingSystem": "Grading System",
-  "settingsGradingSystemHint": "Sets the default for your grade calculator and reports."
+  "settingsGradingSystemHint": "Sets the default for your grade calculator and reports.",
+
+  "registerTermsHint": "By creating an account you agree to our Terms of Service.",
+
+  "profileSetupCount": "{completed} of {total} complete",
+  "@profileSetupCount": {
+    "placeholders": {
+      "completed": {"type": "int"},
+      "total": {"type": "int"}
+    }
+  },
+  "profileSetupItemName": "Your name",
+  "profileSetupItemBirthday": "Birthday",
+  "profileSetupItemSchool": "School",
+  "profileSetupItemGrading": "Grading system",
+
+  "parentNamePromptTitle": "Add your name",
+  "parentNamePromptBody": "So your children can find you",
+
+  "settingsValueNotSet": "Not set",
+  "settingsBirthdayLabel": "Birthday"
 }

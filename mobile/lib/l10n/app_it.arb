@@ -563,5 +563,25 @@
   "profileCompleteBannerBody": "Aggiungi scuola e sistema di valutazione per un monitoraggio migliore e report precompilati.",
   "profileCompleteAction": "Vai alle Impostazioni",
   "settingsGradingSystem": "Sistema di valutazione",
-  "settingsGradingSystemHint": "Predefinito per il calcolatore di voti e i report."
+  "settingsGradingSystemHint": "Predefinito per il calcolatore di voti e i report.",
+
+  "registerTermsHint": "Creando un account accetti i nostri Termini di Servizio.",
+
+  "profileSetupCount": "{completed} di {total} completati",
+  "@profileSetupCount": {
+    "placeholders": {
+      "completed": {"type": "int"},
+      "total": {"type": "int"}
+    }
+  },
+  "profileSetupItemName": "Il tuo nome",
+  "profileSetupItemBirthday": "Compleanno",
+  "profileSetupItemSchool": "Scuola",
+  "profileSetupItemGrading": "Sistema di valutazione",
+
+  "parentNamePromptTitle": "Aggiungi il tuo nome",
+  "parentNamePromptBody": "Così i tuoi figli possono trovarti",
+
+  "settingsValueNotSet": "Non impostato",
+  "settingsBirthdayLabel": "Compleanno"
 }

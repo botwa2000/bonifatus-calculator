@@ -33,6 +33,8 @@ class _StudentSettingsScreenState extends ConsumerState<StudentSettingsScreen> {
   String? _schoolTown;
   int _programLength = 13;
   String? _defaultGradingSystemId;
+  String? _dateOfBirth;
+  String? _profileFullName;
 
   @override
   void initState() {
@@ -51,6 +53,8 @@ class _StudentSettingsScreenState extends ConsumerState<StudentSettingsScreen> {
         _schoolTown = profile['schoolTown'] as String?;
         _programLength = (profile['programLength'] as int?) ?? 13;
         _defaultGradingSystemId = profile['defaultGradingSystemId'] as String?;
+        _dateOfBirth = profile['dateOfBirth'] as String?;
+        _profileFullName = profile['fullName'] as String?;
       });
     } catch (_) {}
   }
@@ -113,7 +117,7 @@ class _StudentSettingsScreenState extends ConsumerState<StudentSettingsScreen> {
           const SizedBox(height: 20),
           _SectionHeader(title: l10n.settingsSectionAccount),
           const SizedBox(height: 8),
-          _buildAccountCard(context),
+          _buildAccountCard(context, l10n),
           const SizedBox(height: 20),
           _SectionHeader(title: l10n.settingsSectionSchool),
           const SizedBox(height: 8),
@@ -176,14 +180,36 @@ class _StudentSettingsScreenState extends ConsumerState<StudentSettingsScreen> {
     ]);
   }
 
-  Widget _buildAccountCard(BuildContext context) {
+  Widget _buildAccountCard(BuildContext context, AppLocalizations l10n) {
     final cs = Theme.of(context).colorScheme;
-    final l10n = AppLocalizations.of(context)!;
+    final hasName = (_profileFullName ?? '').isNotEmpty;
+    final hasBirthday = (_dateOfBirth ?? '').isNotEmpty;
+
+    String? birthdayDisplay;
+    if (hasBirthday) {
+      try {
+        final d = DateTime.parse(_dateOfBirth!);
+        birthdayDisplay = '${d.day.toString().padLeft(2, '0')}.${d.month.toString().padLeft(2, '0')}.${d.year}';
+      } catch (_) {}
+    }
+
     return _Card(children: [
-      _SettingsTile(
+      // Name row — highlighted if empty
+      _AttentionTile(
         icon: Icons.person_outline_rounded,
         label: l10n.settingsEditProfile,
+        subtitle: hasName ? _profileFullName : l10n.settingsValueNotSet,
+        needsAttention: !hasName,
         onTap: () => _showEditProfileSheet(context),
+      ),
+      Divider(height: 1, indent: 56, color: cs.outlineVariant),
+      // Birthday row — highlighted if empty
+      _AttentionTile(
+        icon: Icons.cake_outlined,
+        label: l10n.settingsBirthdayLabel,
+        subtitle: hasBirthday ? birthdayDisplay : l10n.settingsValueNotSet,
+        needsAttention: !hasBirthday,
+        onTap: () => _showBirthdaySheet(context),
       ),
       Divider(height: 1, indent: 56, color: cs.outlineVariant),
       _SettingsTile(
@@ -749,7 +775,9 @@ class _StudentSettingsScreenState extends ConsumerState<StudentSettingsScreen> {
               if (!formKey.currentState!.validate()) return;
               Navigator.of(ctx).pop();
               try {
-                await ref.read(profileServiceProvider).updateProfile(fullName: nameCtrl.text.trim());
+                final newName = nameCtrl.text.trim();
+                await ref.read(profileServiceProvider).updateProfile(fullName: newName);
+                if (mounted) setState(() => _profileFullName = newName);
                 if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l10n.settingsProfileUpdated)));
               } catch (e) {
                 if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(AppLocalizations.of(context)!.genericFailedError(e.toString())), backgroundColor: AppColors.error));
@@ -979,6 +1007,86 @@ class _StudentSettingsScreenState extends ConsumerState<StudentSettingsScreen> {
     );
   }
 
+  void _showBirthdaySheet(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    DateTime? picked = _dateOfBirth != null ? DateTime.tryParse(_dateOfBirth!) : null;
+    bool saving = false;
+
+    showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setSheetState) {
+          final cs = Theme.of(ctx).colorScheme;
+          return Padding(
+            padding: EdgeInsets.only(left: 24, right: 24, top: 24, bottom: MediaQuery.of(ctx).viewInsets.bottom + 24),
+            child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Center(child: Container(width: 40, height: 4, margin: const EdgeInsets.only(bottom: 16),
+                  decoration: BoxDecoration(color: cs.outlineVariant, borderRadius: BorderRadius.circular(2)))),
+              Text(l10n.settingsBirthdayLabel, style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w700)),
+              const SizedBox(height: 20),
+              InkWell(
+                onTap: () async {
+                  final now = DateTime.now();
+                  final initial = picked ?? DateTime(now.year - 15);
+                  final d = await showDatePicker(
+                    context: ctx,
+                    initialDate: initial,
+                    firstDate: DateTime(1940),
+                    lastDate: DateTime(now.year - 4),
+                  );
+                  if (d != null) setSheetState(() => picked = d);
+                },
+                borderRadius: BorderRadius.circular(12),
+                child: InputDecorator(
+                  decoration: InputDecoration(
+                    labelText: l10n.settingsBirthdayLabel,
+                    border: const OutlineInputBorder(),
+                    prefixIcon: const Icon(Icons.cake_outlined),
+                  ),
+                  child: Text(
+                    picked != null
+                        ? '${picked!.day.toString().padLeft(2, '0')}.${picked!.month.toString().padLeft(2, '0')}.${picked!.year}'
+                        : l10n.settingsValueNotSet,
+                    style: TextStyle(
+                      fontSize: 15,
+                      color: picked != null ? cs.onSurface : cs.onSurfaceVariant,
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 24),
+              SizedBox(
+                width: double.infinity,
+                child: FilledButton(
+                  onPressed: (saving || picked == null) ? null : () async {
+                    setSheetState(() => saving = true);
+                    try {
+                      final iso = '${picked!.year.toString().padLeft(4, '0')}-${picked!.month.toString().padLeft(2, '0')}-${picked!.day.toString().padLeft(2, '0')}';
+                      await ref.read(profileServiceProvider).updateProfile(dateOfBirth: iso);
+                      if (mounted) setState(() => _dateOfBirth = iso);
+                      if (ctx.mounted) {
+                        Navigator.of(ctx).pop();
+                        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l10n.profileSaved), backgroundColor: AppColors.tierBest));
+                      }
+                    } catch (e) {
+                      setSheetState(() => saving = false);
+                      if (ctx.mounted) ScaffoldMessenger.of(ctx).showSnackBar(SnackBar(content: Text(e.toString()), backgroundColor: AppColors.error));
+                    }
+                  },
+                  child: saving
+                      ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                      : Text(l10n.settingsSave),
+                ),
+              ),
+            ]),
+          );
+        },
+      ),
+    );
+  }
+
   Future<void> _logout(BuildContext context) async {
     await ref.read(authStateNotifierProvider.notifier).logout();
     // GoRouter's redirect guard handles navigation to login once auth state is cleared
@@ -1050,6 +1158,69 @@ class _SettingsTile extends StatelessWidget {
       leading: Icon(icon, color: c ?? cs.onSurfaceVariant, size: 22),
       title: Text(label, style: TextStyle(fontSize: 15, color: c ?? cs.onSurface, fontWeight: FontWeight.w500)),
       trailing: trailing ?? Icon(Icons.chevron_right_rounded, color: cs.outlineVariant),
+      onTap: onTap,
+    );
+  }
+}
+
+class _AttentionTile extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final String? subtitle;
+  final bool needsAttention;
+  final VoidCallback? onTap;
+
+  const _AttentionTile({
+    required this.icon,
+    required this.label,
+    this.subtitle,
+    this.needsAttention = false,
+    this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    return ListTile(
+      tileColor: needsAttention ? const Color(0xFFFFFBEB) : null,
+      shape: needsAttention
+          ? RoundedRectangleBorder(
+              side: const BorderSide(color: Color(0xFFFDE68A)),
+              borderRadius: BorderRadius.circular(10),
+            )
+          : null,
+      leading: Icon(
+        icon,
+        color: needsAttention ? const Color(0xFFD97706) : cs.onSurfaceVariant,
+        size: 22,
+      ),
+      title: Text(
+        label,
+        style: TextStyle(fontSize: 15, color: cs.onSurface, fontWeight: FontWeight.w500),
+      ),
+      subtitle: subtitle != null
+          ? Text(
+              subtitle!,
+              style: TextStyle(
+                fontSize: 12,
+                color: needsAttention ? const Color(0xFFD97706) : cs.onSurfaceVariant,
+                fontWeight: needsAttention ? FontWeight.w600 : FontWeight.normal,
+              ),
+            )
+          : null,
+      trailing: needsAttention
+          ? Container(
+              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+              decoration: BoxDecoration(
+                color: const Color(0xFFD97706),
+                borderRadius: BorderRadius.circular(5),
+              ),
+              child: const Text(
+                'Required',
+                style: TextStyle(color: Colors.white, fontSize: 9, fontWeight: FontWeight.w700),
+              ),
+            )
+          : Icon(Icons.chevron_right_rounded, color: cs.outlineVariant),
       onTap: onTap,
     );
   }

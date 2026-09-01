@@ -1603,4 +1603,38 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get settingsGradingSystemHint =>
       'Définit la valeur par défaut pour la calculatrice et les rapports.';
+
+  @override
+  String get registerTermsHint =>
+      'En créant un compte, vous acceptez nos Conditions d\'utilisation.';
+
+  @override
+  String profileSetupCount(int completed, int total) {
+    return '$completed sur $total complétés';
+  }
+
+  @override
+  String get profileSetupItemName => 'Votre nom';
+
+  @override
+  String get profileSetupItemBirthday => 'Anniversaire';
+
+  @override
+  String get profileSetupItemSchool => 'École';
+
+  @override
+  String get profileSetupItemGrading => 'Système de notation';
+
+  @override
+  String get parentNamePromptTitle => 'Ajoutez votre nom';
+
+  @override
+  String get parentNamePromptBody =>
+      'Pour que vos enfants puissent vous trouver';
+
+  @override
+  String get settingsValueNotSet => 'Non renseigné';
+
+  @override
+  String get settingsBirthdayLabel => 'Anniversaire';
 }

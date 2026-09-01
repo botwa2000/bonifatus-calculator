@@ -203,8 +203,16 @@ class _ParentSettingsScreenState extends ConsumerState<ParentSettingsScreen> {
   Widget _buildAccountCard(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
     final l10n = AppLocalizations.of(context)!;
+    final authName = ref.read(authStateNotifierProvider).value?.name ?? '';
+    final hasName = authName.isNotEmpty;
     return _Card(children: [
-      _SettingsTile(icon: Icons.person_outline_rounded, label: l10n.settingsEditProfile, onTap: () => _showEditProfileSheet(context)),
+      _AttentionTile(
+        icon: Icons.person_outline_rounded,
+        label: l10n.settingsEditProfile,
+        subtitle: hasName ? authName : l10n.settingsValueNotSet,
+        needsAttention: !hasName,
+        onTap: () => _showEditProfileSheet(context),
+      ),
       Divider(height: 1, indent: 56, color: cs.outlineVariant),
       _SettingsTile(icon: Icons.lock_outline_rounded, label: l10n.settingsChangePassword, onTap: () => _showChangePasswordSheet(context)),
       Divider(height: 1, indent: 56, color: cs.outlineVariant),
@@ -983,6 +991,69 @@ class _SettingsTile extends StatelessWidget {
       leading: Icon(icon, color: iconColor ?? cs.onSurfaceVariant, size: 22),
       title: Text(label, style: TextStyle(fontSize: 15, color: labelColor ?? cs.onSurface, fontWeight: FontWeight.w500)),
       trailing: Icon(Icons.chevron_right_rounded, color: cs.outlineVariant),
+      onTap: onTap,
+    );
+  }
+}
+
+class _AttentionTile extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final String? subtitle;
+  final bool needsAttention;
+  final VoidCallback? onTap;
+
+  const _AttentionTile({
+    required this.icon,
+    required this.label,
+    this.subtitle,
+    this.needsAttention = false,
+    this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    return ListTile(
+      tileColor: needsAttention ? const Color(0xFFFFFBEB) : null,
+      shape: needsAttention
+          ? RoundedRectangleBorder(
+              side: const BorderSide(color: Color(0xFFFDE68A)),
+              borderRadius: BorderRadius.circular(10),
+            )
+          : null,
+      leading: Icon(
+        icon,
+        color: needsAttention ? const Color(0xFFD97706) : cs.onSurfaceVariant,
+        size: 22,
+      ),
+      title: Text(
+        label,
+        style: TextStyle(fontSize: 15, color: cs.onSurface, fontWeight: FontWeight.w500),
+      ),
+      subtitle: subtitle != null
+          ? Text(
+              subtitle!,
+              style: TextStyle(
+                fontSize: 12,
+                color: needsAttention ? const Color(0xFFD97706) : cs.onSurfaceVariant,
+                fontWeight: needsAttention ? FontWeight.w600 : FontWeight.normal,
+              ),
+            )
+          : null,
+      trailing: needsAttention
+          ? Container(
+              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+              decoration: BoxDecoration(
+                color: const Color(0xFFD97706),
+                borderRadius: BorderRadius.circular(5),
+              ),
+              child: const Text(
+                'Required',
+                style: TextStyle(color: Colors.white, fontSize: 9, fontWeight: FontWeight.w700),
+              ),
+            )
+          : Icon(Icons.chevron_right_rounded, color: cs.outlineVariant),
       onTap: onTap,
     );
   }

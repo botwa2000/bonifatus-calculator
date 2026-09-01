@@ -562,5 +562,25 @@
   "profileCompleteBannerBody": "Добавьте школу и систему оценок для лучшего отслеживания и предзаполненных отчётов.",
   "profileCompleteAction": "В Настройки",
   "settingsGradingSystem": "Система оценок",
-  "settingsGradingSystemHint": "Используется по умолчанию в калькуляторе и отчётах."
+  "settingsGradingSystemHint": "Используется по умолчанию в калькуляторе и отчётах.",
+
+  "registerTermsHint": "Создавая аккаунт, вы принимаете наши Условия использования.",
+
+  "profileSetupCount": "{completed} из {total} заполнено",
+  "@profileSetupCount": {
+    "placeholders": {
+      "completed": {"type": "int"},
+      "total": {"type": "int"}
+    }
+  },
+  "profileSetupItemName": "Ваше имя",
+  "profileSetupItemBirthday": "День рождения",
+  "profileSetupItemSchool": "Школа",
+  "profileSetupItemGrading": "Система оценок",
+
+  "parentNamePromptTitle": "Добавьте ваше имя",
+  "parentNamePromptBody": "Чтобы дети могли вас найти",
+
+  "settingsValueNotSet": "Не указано",
+  "settingsBirthdayLabel": "День рождения"
 }

@@ -562,5 +562,25 @@
   "profileCompleteBannerBody": "Ajoutez votre école et système de notation pour un meilleur suivi et des rapports préremplis.",
   "profileCompleteAction": "Aller aux Paramètres",
   "settingsGradingSystem": "Système de notation",
-  "settingsGradingSystemHint": "Définit la valeur par défaut pour la calculatrice et les rapports."
+  "settingsGradingSystemHint": "Définit la valeur par défaut pour la calculatrice et les rapports.",
+
+  "registerTermsHint": "En créant un compte, vous acceptez nos Conditions d'utilisation.",
+
+  "profileSetupCount": "{completed} sur {total} complétés",
+  "@profileSetupCount": {
+    "placeholders": {
+      "completed": {"type": "int"},
+      "total": {"type": "int"}
+    }
+  },
+  "profileSetupItemName": "Votre nom",
+  "profileSetupItemBirthday": "Anniversaire",
+  "profileSetupItemSchool": "École",
+  "profileSetupItemGrading": "Système de notation",
+
+  "parentNamePromptTitle": "Ajoutez votre nom",
+  "parentNamePromptBody": "Pour que vos enfants puissent vous trouver",
+
+  "settingsValueNotSet": "Non renseigné",
+  "settingsBirthdayLabel": "Anniversaire"
 }

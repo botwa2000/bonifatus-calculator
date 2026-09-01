@@ -1584,4 +1584,37 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String get settingsGradingSystemHint =>
       'Predefinito per il calcolatore di voti e i report.';
+
+  @override
+  String get registerTermsHint =>
+      'Creando un account accetti i nostri Termini di Servizio.';
+
+  @override
+  String profileSetupCount(int completed, int total) {
+    return '$completed di $total completati';
+  }
+
+  @override
+  String get profileSetupItemName => 'Il tuo nome';
+
+  @override
+  String get profileSetupItemBirthday => 'Compleanno';
+
+  @override
+  String get profileSetupItemSchool => 'Scuola';
+
+  @override
+  String get profileSetupItemGrading => 'Sistema di valutazione';
+
+  @override
+  String get parentNamePromptTitle => 'Aggiungi il tuo nome';
+
+  @override
+  String get parentNamePromptBody => 'Così i tuoi figli possono trovarti';
+
+  @override
+  String get settingsValueNotSet => 'Non impostato';
+
+  @override
+  String get settingsBirthdayLabel => 'Compleanno';
 }

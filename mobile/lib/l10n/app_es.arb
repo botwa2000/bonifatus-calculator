@@ -562,5 +562,25 @@
   "profileCompleteBannerBody": "Añade tu escuela y sistema de calificación para mejor seguimiento e informes prellenados.",
   "profileCompleteAction": "Ir a Ajustes",
   "settingsGradingSystem": "Sistema de calificación",
-  "settingsGradingSystemHint": "Predeterminado para la calculadora de notas e informes."
+  "settingsGradingSystemHint": "Predeterminado para la calculadora de notas e informes.",
+
+  "registerTermsHint": "Al crear una cuenta aceptas nuestros Términos de Servicio.",
+
+  "profileSetupCount": "{completed} de {total} completados",
+  "@profileSetupCount": {
+    "placeholders": {
+      "completed": {"type": "int"},
+      "total": {"type": "int"}
+    }
+  },
+  "profileSetupItemName": "Tu nombre",
+  "profileSetupItemBirthday": "Cumpleaños",
+  "profileSetupItemSchool": "Escuela",
+  "profileSetupItemGrading": "Sistema de calificación",
+
+  "parentNamePromptTitle": "Añade tu nombre",
+  "parentNamePromptBody": "Para que tus hijos puedan encontrarte",
+
+  "settingsValueNotSet": "No establecido",
+  "settingsBirthdayLabel": "Cumpleaños"
 }

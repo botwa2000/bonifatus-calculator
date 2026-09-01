@@ -16,6 +16,7 @@ class ProfileService {
 
   Future<void> updateProfile({
     String? fullName,
+    String? dateOfBirth,
     String? schoolName,
     String? schoolTown,
     int? semesterCount,
@@ -25,6 +26,7 @@ class ProfileService {
   }) async {
     final data = <String, dynamic>{};
     if (fullName != null) data['fullName'] = fullName;
+    if (dateOfBirth != null) data['dateOfBirth'] = dateOfBirth;
     if (schoolName != null) data['schoolName'] = schoolName;
     if (schoolTown != null) data['schoolTown'] = schoolTown;
     if (semesterCount != null) data['semesterCount'] = semesterCount;

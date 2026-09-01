@@ -1597,4 +1597,37 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get settingsGradingSystemHint =>
       'Voreinstellung für den Notenrechner und Berichte.';
+
+  @override
+  String get registerTermsHint =>
+      'Mit der Registrierung stimmst du unseren Nutzungsbedingungen zu.';
+
+  @override
+  String profileSetupCount(int completed, int total) {
+    return '$completed von $total abgeschlossen';
+  }
+
+  @override
+  String get profileSetupItemName => 'Dein Name';
+
+  @override
+  String get profileSetupItemBirthday => 'Geburtstag';
+
+  @override
+  String get profileSetupItemSchool => 'Schule';
+
+  @override
+  String get profileSetupItemGrading => 'Benotungssystem';
+
+  @override
+  String get parentNamePromptTitle => 'Deinen Namen hinzufügen';
+
+  @override
+  String get parentNamePromptBody => 'Damit deine Kinder dich finden können';
+
+  @override
+  String get settingsValueNotSet => 'Nicht angegeben';
+
+  @override
+  String get settingsBirthdayLabel => 'Geburtstag';
 }

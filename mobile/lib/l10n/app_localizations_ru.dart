@@ -1592,4 +1592,37 @@ class AppLocalizationsRu extends AppLocalizations {
   @override
   String get settingsGradingSystemHint =>
       'Используется по умолчанию в калькуляторе и отчётах.';
+
+  @override
+  String get registerTermsHint =>
+      'Создавая аккаунт, вы принимаете наши Условия использования.';
+
+  @override
+  String profileSetupCount(int completed, int total) {
+    return '$completed из $total заполнено';
+  }
+
+  @override
+  String get profileSetupItemName => 'Ваше имя';
+
+  @override
+  String get profileSetupItemBirthday => 'День рождения';
+
+  @override
+  String get profileSetupItemSchool => 'Школа';
+
+  @override
+  String get profileSetupItemGrading => 'Система оценок';
+
+  @override
+  String get parentNamePromptTitle => 'Добавьте ваше имя';
+
+  @override
+  String get parentNamePromptBody => 'Чтобы дети могли вас найти';
+
+  @override
+  String get settingsValueNotSet => 'Не указано';
+
+  @override
+  String get settingsBirthdayLabel => 'День рождения';
 }

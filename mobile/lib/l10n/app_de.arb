@@ -563,5 +563,25 @@
   "profileCompleteBannerBody": "Füge Schule und Benotungssystem hinzu – für besseres Tracking und vorausgefüllte Berichte.",
   "profileCompleteAction": "Zu Einstellungen",
   "settingsGradingSystem": "Benotungssystem",
-  "settingsGradingSystemHint": "Voreinstellung für den Notenrechner und Berichte."
+  "settingsGradingSystemHint": "Voreinstellung für den Notenrechner und Berichte.",
+
+  "registerTermsHint": "Mit der Registrierung stimmst du unseren Nutzungsbedingungen zu.",
+
+  "profileSetupCount": "{completed} von {total} abgeschlossen",
+  "@profileSetupCount": {
+    "placeholders": {
+      "completed": {"type": "int"},
+      "total": {"type": "int"}
+    }
+  },
+  "profileSetupItemName": "Dein Name",
+  "profileSetupItemBirthday": "Geburtstag",
+  "profileSetupItemSchool": "Schule",
+  "profileSetupItemGrading": "Benotungssystem",
+
+  "parentNamePromptTitle": "Deinen Namen hinzufügen",
+  "parentNamePromptBody": "Damit deine Kinder dich finden können",
+
+  "settingsValueNotSet": "Nicht angegeben",
+  "settingsBirthdayLabel": "Geburtstag"
 }

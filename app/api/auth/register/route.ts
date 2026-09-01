@@ -58,19 +58,7 @@ export async function POST(request: NextRequest) {
     } = validationResult.data
 
     const fullName = (fullNameField || nameField || '').trim()
-    if (fullName.length < 2) {
-      return NextResponse.json(
-        { success: false, error: 'Name must be at least 2 characters' },
-        { status: 400 }
-      )
-    }
     const dateOfBirth = dateOfBirthField ?? ''
-    if (!dateOfBirth) {
-      return NextResponse.json(
-        { success: false, error: 'Date of birth is required' },
-        { status: 400 }
-      )
-    }
     const email = rawEmail.toLowerCase()
 
     const clientIp = getClientIp(request.headers)
@@ -104,11 +92,16 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const dob = new Date(dateOfBirth)
-    const today = new Date()
-    const age = today.getFullYear() - dob.getFullYear()
-    if (age < 5 || age > 150 || dob > today) {
-      return NextResponse.json({ success: false, error: 'Invalid date of birth' }, { status: 400 })
+    if (dateOfBirth) {
+      const dob = new Date(dateOfBirth)
+      const today = new Date()
+      const age = today.getFullYear() - dob.getFullYear()
+      if (age < 5 || age > 150 || dob > today) {
+        return NextResponse.json(
+          { success: false, error: 'Invalid date of birth' },
+          { status: 400 }
+        )
+      }
     }
 
     // Check if email already exists
@@ -144,7 +137,7 @@ export async function POST(request: NextRequest) {
         id: userId,
         role,
         fullName,
-        dateOfBirth,
+        ...(dateOfBirth && { dateOfBirth }),
         ...(role === 'child' && {
           schoolTown: schoolTown ?? null,
           schoolName: schoolName ?? null,
@@ -170,7 +163,7 @@ export async function POST(request: NextRequest) {
     })
 
     // Send verification email
-    const emailTemplate = getVerificationCodeEmail(code, fullName, 15)
+    const emailTemplate = getVerificationCodeEmail(code, fullName || email, 15)
     const emailSent = await sendEmail({
       to: email,
       subject: emailTemplate.subject,

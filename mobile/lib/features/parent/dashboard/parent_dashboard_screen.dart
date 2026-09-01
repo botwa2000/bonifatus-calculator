@@ -18,7 +18,9 @@ class ParentDashboardScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context)!;
     final authAsync = ref.watch(authStateNotifierProvider);
-    final userName = authAsync.value?.name ?? l10n.parentFallback;
+    final rawName = authAsync.value?.name ?? '';
+    final userName = rawName.isNotEmpty ? rawName : l10n.parentFallback;
+    final hasName = rawName.isNotEmpty;
     final childrenAsync = ref.watch(childrenQuickGradesProvider);
 
     return Scaffold(
@@ -34,6 +36,10 @@ class ParentDashboardScreen extends ConsumerWidget {
                   child: _Header(userName: userName, l10n: l10n),
                 ),
               ),
+              if (!hasName)
+                SliverToBoxAdapter(
+                  child: _ParentNamePromptCard(l10n: l10n),
+                ),
               SliverToBoxAdapter(
                 child: childrenAsync.when(
                   loading: () => const Padding(
@@ -67,6 +73,64 @@ class ParentDashboardScreen extends ConsumerWidget {
           ),
         ),
       ),
+    );
+  }
+}
+
+// ── name prompt ───────────────────────────────────────────────────────────────
+
+class _ParentNamePromptCard extends StatelessWidget {
+  final AppLocalizations l10n;
+  const _ParentNamePromptCard({required this.l10n});
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    return Container(
+      margin: const EdgeInsets.fromLTRB(20, 16, 20, 0),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: const Color(0xFFFFFBEB),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color(0xFFFDE68A)),
+        boxShadow: [
+          BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 8, offset: const Offset(0, 2)),
+        ],
+      ),
+      child: Row(children: [
+        Container(
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: const Color(0xFFD97706).withValues(alpha: 0.15),
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: const Icon(Icons.person_outline_rounded, color: Color(0xFFD97706), size: 20),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Text(
+              l10n.parentNamePromptTitle,
+              style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: Color(0xFF92400E)),
+            ),
+            const SizedBox(height: 2),
+            Text(
+              l10n.parentNamePromptBody,
+              style: TextStyle(fontSize: 12, color: cs.onSurfaceVariant),
+            ),
+          ]),
+        ),
+        const SizedBox(width: 8),
+        FilledButton(
+          onPressed: () => context.push('/parent/settings'),
+          style: FilledButton.styleFrom(
+            backgroundColor: const Color(0xFFD97706),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+          ),
+          child: Text(l10n.profileCompleteAction, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700)),
+        ),
+      ]),
     );
   }
 }

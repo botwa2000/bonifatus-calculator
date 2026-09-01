@@ -1581,4 +1581,37 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get settingsGradingSystemHint =>
       'Sets the default for your grade calculator and reports.';
+
+  @override
+  String get registerTermsHint =>
+      'By creating an account you agree to our Terms of Service.';
+
+  @override
+  String profileSetupCount(int completed, int total) {
+    return '$completed of $total complete';
+  }
+
+  @override
+  String get profileSetupItemName => 'Your name';
+
+  @override
+  String get profileSetupItemBirthday => 'Birthday';
+
+  @override
+  String get profileSetupItemSchool => 'School';
+
+  @override
+  String get profileSetupItemGrading => 'Grading system';
+
+  @override
+  String get parentNamePromptTitle => 'Add your name';
+
+  @override
+  String get parentNamePromptBody => 'So your children can find you';
+
+  @override
+  String get settingsValueNotSet => 'Not set';
+
+  @override
+  String get settingsBirthdayLabel => 'Birthday';
 }
