@@ -133,18 +133,20 @@ export async function POST(request: NextRequest) {
         password: hashedPassword,
       })
 
-      await tx.insert(userProfiles).values({
-        id: userId,
-        role,
-        fullName,
-        dateOfBirth,
-        ...(role === 'child' && {
-          schoolTown: schoolTown ?? null,
-          schoolName: schoolName ?? null,
-          semesterCount: semesterCount ?? 2,
-          programLength: programLength ?? 13,
-        }),
-      })
+      const profileBase = { id: userId, role, fullName }
+      const profileExtra = {
+        ...(dateOfBirth ? { dateOfBirth } : {}),
+        ...(role === 'child'
+          ? {
+              schoolTown: schoolTown ?? null,
+              schoolName: schoolName ?? null,
+              semesterCount: semesterCount ?? 2,
+              programLength: programLength ?? 13,
+            }
+          : {}),
+      }
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      await tx.insert(userProfiles).values({ ...profileBase, ...profileExtra } as any)
     })
 
     // Generate verification code
