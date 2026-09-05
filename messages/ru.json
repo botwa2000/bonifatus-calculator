@@ -492,6 +492,15 @@
     "insightsPeriodAll": "За всё время",
     "insightsPeriod3Months": "3 Месяца"
   },
+  "profileCompletion": {
+    "title": "Заполните профиль",
+    "subtitle": "Несколько данных помогут Bonifatus работать лучше",
+    "dismiss": "Закрыть",
+    "itemName": "Добавьте ваше имя",
+    "itemBirthday": "Дата рождения",
+    "itemSchool": "Информация о школе",
+    "itemGrading": "Система оценок"
+  },
   "studentProfile": {
     "header": "Профиль ученика",
     "title": "Управление связями",

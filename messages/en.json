@@ -492,6 +492,15 @@
     "insightsPeriodYear": "1 Year",
     "insightsPeriodMonth": "1 Month"
   },
+  "profileCompletion": {
+    "title": "Complete your profile",
+    "subtitle": "A few details help Bonifatus work better for you",
+    "dismiss": "Dismiss",
+    "itemName": "Add your name",
+    "itemBirthday": "Date of birth",
+    "itemSchool": "School information",
+    "itemGrading": "Grading system"
+  },
   "studentProfile": {
     "header": "Student profile",
     "title": "Manage connections",

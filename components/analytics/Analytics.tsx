@@ -21,7 +21,11 @@ export function Analytics() {
     }
     check()
     window.addEventListener('storage', check)
-    return () => window.removeEventListener('storage', check)
+    window.addEventListener('bonifatus-consent-updated', check)
+    return () => {
+      window.removeEventListener('storage', check)
+      window.removeEventListener('bonifatus-consent-updated', check)
+    }
   }, [])
 
   if (!GA_ID || !gaEnabled) return null

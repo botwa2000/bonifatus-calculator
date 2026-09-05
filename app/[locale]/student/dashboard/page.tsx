@@ -9,6 +9,7 @@ import { GradeTrendChart } from '@/components/charts'
 import { formatDate, bonusColorClass } from '@/lib/utils/grade-helpers'
 import { formatTermType } from '@/lib/format-term-type'
 import { BonusIcon } from '@/components/ui'
+import { ProfileCompletionBanner } from '@/components/profile/ProfileCompletionBanner'
 
 type ChildSettlement = {
   id: string
@@ -108,6 +109,8 @@ export default function StudentDashboardPage() {
           </div>
         </div>
       </div>
+
+      <ProfileCompletionBanner role="student" />
 
       {/* Quick Stats */}
       {stats && (

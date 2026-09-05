@@ -492,6 +492,15 @@
     "insightsPeriodAll": "Tout le temps",
     "insightsPeriod3Months": "3 Mois"
   },
+  "profileCompletion": {
+    "title": "Complétez votre profil",
+    "subtitle": "Quelques informations aident Bonifatus à mieux fonctionner",
+    "dismiss": "Fermer",
+    "itemName": "Ajouter votre nom",
+    "itemBirthday": "Date de naissance",
+    "itemSchool": "Informations scolaires",
+    "itemGrading": "Système de notation"
+  },
   "studentProfile": {
     "header": "Profil élève",
     "title": "Gérer les connexions",

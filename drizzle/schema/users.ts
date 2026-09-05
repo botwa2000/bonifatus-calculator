@@ -31,7 +31,7 @@ export const userProfiles = pgTable('user_profiles', {
     .references(() => users.id, { onDelete: 'cascade' }),
   role: userRoleEnum('role').notNull(),
   fullName: text('full_name').notNull(),
-  dateOfBirth: date('date_of_birth').notNull(),
+  dateOfBirth: date('date_of_birth'),
   avatarUrl: text('avatar_url'),
   schoolName: text('school_name'),
   defaultGradingSystemId: text('default_grading_system_id'),

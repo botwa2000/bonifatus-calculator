@@ -7,6 +7,7 @@ import { formatDate, bonusColorClass } from '@/lib/utils/grade-helpers'
 import { GradeTrendChart } from '@/components/charts'
 import { InvestmentPreviewCard } from '@/components/widgets/InvestmentPreviewCard'
 import { BonusIcon } from '@/components/ui'
+import { ProfileCompletionBanner } from '@/components/profile/ProfileCompletionBanner'
 
 export default function ParentDashboardPage() {
   const t = useTranslations('parent')
@@ -50,6 +51,8 @@ export default function ParentDashboardPage() {
           </div>
         </div>
       </div>
+
+      <ProfileCompletionBanner role="parent" />
 
       {error && (
         <div className="rounded-xl border border-error-200 bg-error-50 text-error-700 px-4 py-3">

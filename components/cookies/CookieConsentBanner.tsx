@@ -26,6 +26,7 @@ function getStoredConsent(): CookieConsent | null {
 function storeConsent(consent: CookieConsent) {
   try {
     localStorage.setItem(CONSENT_KEY, JSON.stringify(consent))
+    window.dispatchEvent(new CustomEvent('bonifatus-consent-updated'))
   } catch {
     // storage unavailable
   }

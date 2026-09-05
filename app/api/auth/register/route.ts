@@ -58,7 +58,7 @@ export async function POST(request: NextRequest) {
     } = validationResult.data
 
     const fullName = (fullNameField || nameField || '').trim()
-    const dateOfBirth = dateOfBirthField ?? ''
+    const dateOfBirth = dateOfBirthField || null
     const email = rawEmail.toLowerCase()
 
     const clientIp = getClientIp(request.headers)
@@ -96,7 +96,7 @@ export async function POST(request: NextRequest) {
       const dob = new Date(dateOfBirth)
       const today = new Date()
       const age = today.getFullYear() - dob.getFullYear()
-      if (age < 5 || age > 150 || dob > today) {
+      if (Number.isNaN(dob.getTime()) || age < 5 || age > 150 || dob > today) {
         return NextResponse.json(
           { success: false, error: 'Invalid date of birth' },
           { status: 400 }
@@ -137,7 +137,7 @@ export async function POST(request: NextRequest) {
         id: userId,
         role,
         fullName,
-        ...(dateOfBirth && { dateOfBirth }),
+        dateOfBirth,
         ...(role === 'child' && {
           schoolTown: schoolTown ?? null,
           schoolName: schoolName ?? null,

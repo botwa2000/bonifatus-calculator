@@ -78,13 +78,7 @@ export default function RegisterPage() {
     email: '',
     password: '',
     confirmPassword: '',
-    fullName: '',
-    dateOfBirth: '',
     role: 'parent' as 'parent' | 'child',
-    schoolTown: '',
-    schoolName: '',
-    semesterCount: 2,
-    programLength: 13,
   })
   const [verificationData, setVerificationData] = useState({ userId: '', code: '' })
   const [error, setError] = useState('')
@@ -121,28 +115,9 @@ export default function RegisterPage() {
     return true
   }
 
-  const calculateAge = (dob: string) => {
-    const parsed = new Date(dob)
-    if (Number.isNaN(parsed.getTime())) return 0
-    const today = new Date()
-    let age = today.getFullYear() - parsed.getFullYear()
-    const m = today.getMonth() - parsed.getMonth()
-    if (m < 0 || (m === 0 && today.getDate() < parsed.getDate())) age -= 1
-    return age
-  }
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
-    if (!formData.dateOfBirth) {
-      setError(t('dobRequired'))
-      return
-    }
-    const age = calculateAge(formData.dateOfBirth)
-    if (age < 5 || age > 150) {
-      setError(t('dobInvalid'))
-      return
-    }
     if (formData.password !== formData.confirmPassword) {
       setError(t('passwordsNoMatch'))
       return
@@ -163,16 +138,8 @@ export default function RegisterPage() {
         body: JSON.stringify({
           email: formData.email,
           password: formData.password,
-          fullName: formData.fullName,
-          dateOfBirth: formData.dateOfBirth,
           role: formData.role,
           turnstileToken,
-          ...(formData.role === 'child' && {
-            schoolTown: formData.schoolTown || undefined,
-            schoolName: formData.schoolName || undefined,
-            semesterCount: formData.semesterCount,
-            programLength: formData.programLength,
-          }),
         }),
       })
       const data = await response.json()
@@ -213,7 +180,6 @@ export default function RegisterPage() {
         setLoading(false)
         return
       }
-      // Auto-login after successful email verification
       try {
         const { signIn } = await import('next-auth/react')
         const result = await signIn('credentials', {
@@ -447,116 +413,6 @@ export default function RegisterPage() {
                   ))}
                 </div>
               </div>
-              <div>
-                <label
-                  htmlFor="fullName"
-                  className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2"
-                >
-                  {t('fullName')}
-                </label>
-                <input
-                  id="fullName"
-                  type="text"
-                  required
-                  minLength={2}
-                  maxLength={100}
-                  value={formData.fullName}
-                  onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
-                  className="w-full px-4 py-3 rounded-lg border-2 border-neutral-300 dark:border-neutral-600 bg-white dark:bg-neutral-700 text-neutral-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-normal outline-none"
-                  placeholder={t('namePlaceholder')}
-                />
-              </div>
-              <div>
-                <label
-                  htmlFor="dateOfBirth"
-                  className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2"
-                >
-                  {t('dateOfBirth')}
-                </label>
-                <input
-                  id="dateOfBirth"
-                  type="date"
-                  required
-                  max={new Date().toISOString().split('T')[0]}
-                  value={formData.dateOfBirth}
-                  onChange={(e) => setFormData({ ...formData, dateOfBirth: e.target.value })}
-                  className="w-full px-4 py-3 rounded-lg border-2 border-neutral-300 dark:border-neutral-600 bg-white dark:bg-neutral-700 text-neutral-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-normal outline-none"
-                />
-                {formData.dateOfBirth && (
-                  <p className="mt-1 text-xs text-neutral-500 dark:text-neutral-400">
-                    {t('ageYears', { age: calculateAge(formData.dateOfBirth) })}
-                  </p>
-                )}
-              </div>
-              {formData.role === 'child' && (
-                <div className="space-y-4 rounded-xl border border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800/50 p-4">
-                  <p className="text-sm font-semibold text-neutral-700 dark:text-neutral-300">
-                    {t('schoolInfoTitle')}
-                  </p>
-                  <div className="grid grid-cols-2 gap-3">
-                    <div>
-                      <label className="block text-xs font-medium text-neutral-600 dark:text-neutral-400 mb-1">
-                        {t('schoolTownLabel')}
-                      </label>
-                      <input
-                        type="text"
-                        value={formData.schoolTown}
-                        onChange={(e) => setFormData({ ...formData, schoolTown: e.target.value })}
-                        placeholder={t('schoolTownPlaceholder')}
-                        className="w-full px-3 py-2 rounded-lg border border-neutral-300 dark:border-neutral-600 bg-white dark:bg-neutral-700 text-neutral-900 dark:text-white text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-xs font-medium text-neutral-600 dark:text-neutral-400 mb-1">
-                        {t('schoolNameLabel')}
-                      </label>
-                      <input
-                        type="text"
-                        value={formData.schoolName}
-                        onChange={(e) => setFormData({ ...formData, schoolName: e.target.value })}
-                        placeholder={t('schoolNamePlaceholder')}
-                        className="w-full px-3 py-2 rounded-lg border border-neutral-300 dark:border-neutral-600 bg-white dark:bg-neutral-700 text-neutral-900 dark:text-white text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none"
-                      />
-                    </div>
-                  </div>
-                  <div>
-                    <label className="block text-xs font-medium text-neutral-600 dark:text-neutral-400 mb-2">
-                      {t('semesterSystemLabel')}
-                    </label>
-                    <div className="flex gap-2">
-                      {[2, 3, 4].map((n) => (
-                        <button
-                          key={n}
-                          type="button"
-                          onClick={() => setFormData({ ...formData, semesterCount: n })}
-                          className={`flex-1 py-1.5 rounded-lg text-sm font-semibold border-2 transition-all ${formData.semesterCount === n ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300' : 'border-neutral-300 dark:border-neutral-600 text-neutral-600 dark:text-neutral-400'}`}
-                        >
-                          {n}×
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                  <div>
-                    <label className="block text-xs font-medium text-neutral-600 dark:text-neutral-400 mb-1">
-                      {t('programLengthLabel')}
-                    </label>
-                    <select
-                      value={formData.programLength}
-                      onChange={(e) =>
-                        setFormData({ ...formData, programLength: Number(e.target.value) })
-                      }
-                      className="w-full px-3 py-2 rounded-lg border border-neutral-300 dark:border-neutral-600 bg-white dark:bg-neutral-700 text-neutral-900 dark:text-white text-sm focus:ring-2 focus:ring-primary-500 outline-none"
-                    >
-                      {Array.from({ length: 20 }, (_, i) => i + 1).map((n) => (
-                        <option key={n} value={n}>
-                          {n} {t('yearsLabel')}
-                          {n === 13 ? ` (${t('standardLabel')})` : ''}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                </div>
-              )}
               <div>
                 <label
                   htmlFor="email"
