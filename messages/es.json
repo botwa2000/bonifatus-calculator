@@ -497,9 +497,13 @@
     "subtitle": "Algunos datos ayudan a Bonifatus a funcionar mejor",
     "dismiss": "Cerrar",
     "itemName": "Añade tu nombre",
+    "itemNameHint": "→ Perfil",
     "itemBirthday": "Fecha de nacimiento",
+    "itemBirthdayHint": "→ Perfil",
     "itemSchool": "Información escolar",
-    "itemGrading": "Sistema de calificación"
+    "itemSchoolHint": "→ Perfil › Escuela",
+    "itemGrading": "Sistema de calificación",
+    "itemGradingHint": "→ Perfil › Escuela"
   },
   "studentProfile": {
     "header": "Perfil del estudiante",

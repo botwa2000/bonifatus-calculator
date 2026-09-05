@@ -11,6 +11,14 @@ type ProfileStatus = {
   hasGrading: boolean
 }
 
+type Item = {
+  key: string
+  done: boolean
+  label: string
+  hint: string
+  href: string
+}
+
 type Props = {
   role: 'student' | 'parent'
 }
@@ -56,15 +64,47 @@ export function ProfileCompletionBanner({ role }: Props) {
 
   if (dismissed || !status) return null
 
-  const items =
+  const items: Item[] =
     role === 'student'
       ? [
-          { key: 'name', done: status.hasName, label: t('itemName'), href: '/profile' },
-          { key: 'birthday', done: status.hasBirthday, label: t('itemBirthday'), href: '/profile' },
-          { key: 'school', done: status.hasSchool, label: t('itemSchool'), href: '/settings' },
-          { key: 'grading', done: status.hasGrading, label: t('itemGrading'), href: '/settings' },
+          {
+            key: 'name',
+            done: status.hasName,
+            label: t('itemName'),
+            hint: t('itemNameHint'),
+            href: '/profile',
+          },
+          {
+            key: 'birthday',
+            done: status.hasBirthday,
+            label: t('itemBirthday'),
+            hint: t('itemBirthdayHint'),
+            href: '/profile',
+          },
+          {
+            key: 'school',
+            done: status.hasSchool,
+            label: t('itemSchool'),
+            hint: t('itemSchoolHint'),
+            href: '/profile?tab=school',
+          },
+          {
+            key: 'grading',
+            done: status.hasGrading,
+            label: t('itemGrading'),
+            hint: t('itemGradingHint'),
+            href: '/profile?tab=school',
+          },
         ]
-      : [{ key: 'name', done: status.hasName, label: t('itemName'), href: '/profile' }]
+      : [
+          {
+            key: 'name',
+            done: status.hasName,
+            label: t('itemName'),
+            hint: t('itemNameHint'),
+            href: '/profile',
+          },
+        ]
 
   const incomplete = items.filter((i) => !i.done)
   if (incomplete.length === 0) return null
@@ -135,11 +175,13 @@ export function ProfileCompletionBanner({ role }: Props) {
                 {item.label}
               </span>
             ) : (
-              <Link
-                href={item.href}
-                className="text-sm font-medium text-amber-800 dark:text-amber-200 hover:underline"
-              >
-                {item.label}
+              <Link href={item.href} className="group flex items-baseline gap-1.5 hover:underline">
+                <span className="text-sm font-medium text-amber-800 dark:text-amber-200">
+                  {item.label}
+                </span>
+                <span className="text-xs text-amber-600 dark:text-amber-400 opacity-70 group-hover:opacity-100 transition-opacity">
+                  {item.hint}
+                </span>
               </Link>
             )}
           </div>

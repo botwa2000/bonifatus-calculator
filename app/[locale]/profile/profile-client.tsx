@@ -38,6 +38,17 @@ interface ProfileClientProps {
     name: string | Record<string, string>
     code: string | null
   }>
+  initialTab?: string
+}
+
+const VALID_TABS: Tab[] = ['personal', 'security', 'school', 'connections', 'danger']
+
+function resolveInitialTab(initialTab: string | undefined, role: 'parent' | 'child'): Tab {
+  if (!initialTab) return 'personal'
+  const t = initialTab as Tab
+  if (!VALID_TABS.includes(t)) return 'personal'
+  if (t === 'school' && role !== 'child') return 'personal'
+  return t
 }
 
 export default function ProfileClient({
@@ -53,6 +64,7 @@ export default function ProfileClient({
   defaultGradingSystemId: initialGradingSystemId,
   defaultClassLevel: initialClassLevel,
   gradingSystems,
+  initialTab,
 }: ProfileClientProps) {
   const router = useRouter()
   const locale = useLocale()
@@ -70,7 +82,7 @@ export default function ProfileClient({
     { key: 'danger', label: t('tabDanger') },
   ]
 
-  const [activeTab, setActiveTab] = useState<Tab>('personal')
+  const [activeTab, setActiveTab] = useState<Tab>(() => resolveInitialTab(initialTab, role))
   const [name, setName] = useState(fullName)
   const [schoolNameVal, setSchoolNameVal] = useState(initialSchoolName || '')
   const [dob, setDob] = useState(dateOfBirth || '')

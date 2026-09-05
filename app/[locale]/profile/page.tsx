@@ -7,8 +7,14 @@ import ProfileClient from './profile-client'
 
 export const dynamic = 'force-dynamic'
 
-export default async function ProfilePage({ params }: { params: Promise<{ locale: string }> }) {
-  const { locale } = await params
+export default async function ProfilePage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ locale: string }>
+  searchParams: Promise<{ tab?: string }>
+}) {
+  const [{ locale }, { tab }] = await Promise.all([params, searchParams])
   setRequestLocale(locale)
   const user = await requireAuth()
   const profile = await getUserProfile()
@@ -37,6 +43,7 @@ export default async function ProfilePage({ params }: { params: Promise<{ locale
         name: g.name as string | Record<string, string>,
         code: g.code,
       }))}
+      initialTab={tab}
     />
   )
 }

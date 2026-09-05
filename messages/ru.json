@@ -497,9 +497,13 @@
     "subtitle": "Несколько данных помогут Bonifatus работать лучше",
     "dismiss": "Закрыть",
     "itemName": "Добавьте ваше имя",
+    "itemNameHint": "→ Профиль",
     "itemBirthday": "Дата рождения",
+    "itemBirthdayHint": "→ Профиль",
     "itemSchool": "Информация о школе",
-    "itemGrading": "Система оценок"
+    "itemSchoolHint": "→ Профиль › Школа",
+    "itemGrading": "Система оценок",
+    "itemGradingHint": "→ Профиль › Школа"
   },
   "studentProfile": {
     "header": "Профиль ученика",
