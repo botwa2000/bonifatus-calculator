@@ -105,13 +105,29 @@ class _ChecklistCard extends StatelessWidget {
             const SizedBox(height: 12),
             _ChecklistItem(done: status.hasName, label: l10n.profileSetupItemName),
             _ChecklistItem(done: status.hasBirthday, label: l10n.profileSetupItemBirthday),
-            _ChecklistItem(done: status.hasSchool, label: l10n.profileSetupItemSchool),
-            _ChecklistItem(done: status.hasGrading, label: l10n.profileSetupItemGrading, isLast: true),
+            _ChecklistItem(
+              done: status.hasSchool,
+              label: l10n.profileSetupItemSchool,
+              onTap: !status.hasSchool
+                  ? () => context.push('/student/settings', extra: {'open': 'school'})
+                  : null,
+            ),
+            _ChecklistItem(
+              done: status.hasGrading,
+              label: l10n.profileSetupItemGrading,
+              isLast: true,
+              onTap: !status.hasGrading
+                  ? () => context.push('/student/settings', extra: {'open': 'school'})
+                  : null,
+            ),
             const SizedBox(height: 12),
             SizedBox(
               width: double.infinity,
               child: FilledButton(
-                onPressed: () => context.push('/student/settings'),
+                onPressed: () => context.push(
+                  '/student/settings',
+                  extra: (!status.hasSchool || !status.hasGrading) ? {'open': 'school'} : null,
+                ),
                 style: FilledButton.styleFrom(
                   backgroundColor: AppColors.primary,
                   padding: const EdgeInsets.symmetric(vertical: 10),
@@ -132,49 +148,59 @@ class _ChecklistItem extends StatelessWidget {
   final bool done;
   final String label;
   final bool isLast;
+  final VoidCallback? onTap;
 
-  const _ChecklistItem({required this.done, required this.label, this.isLast = false});
+  const _ChecklistItem({required this.done, required this.label, this.isLast = false, this.onTap});
 
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
+    final tappable = !done && onTap != null;
+    final row = Padding(
+      padding: const EdgeInsets.symmetric(vertical: 7),
+      child: Row(children: [
+        AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          width: 18,
+          height: 18,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: done ? AppColors.tierBest : Colors.transparent,
+            border: Border.all(
+              color: done ? AppColors.tierBest : const Color(0xFFD97706),
+              width: 1.5,
+            ),
+          ),
+          child: done
+              ? const Icon(Icons.check, size: 11, color: Colors.white)
+              : null,
+        ),
+        const SizedBox(width: 10),
+        Expanded(
+          child: Text(
+            label,
+            style: TextStyle(
+              fontSize: 13,
+              color: done ? cs.onSurfaceVariant : cs.onSurface,
+              decoration: done ? TextDecoration.lineThrough : null,
+              decorationColor: cs.onSurfaceVariant,
+            ),
+          ),
+        ),
+        if (!done)
+          Icon(Icons.chevron_right_rounded, size: 18,
+              color: tappable ? AppColors.primary : cs.outlineVariant),
+      ]),
+    );
     return Column(
       children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(vertical: 7),
-          child: Row(children: [
-            AnimatedContainer(
-              duration: const Duration(milliseconds: 200),
-              width: 18,
-              height: 18,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: done ? AppColors.tierBest : Colors.transparent,
-                border: Border.all(
-                  color: done ? AppColors.tierBest : const Color(0xFFD97706),
-                  width: 1.5,
-                ),
-              ),
-              child: done
-                  ? const Icon(Icons.check, size: 11, color: Colors.white)
-                  : null,
-            ),
-            const SizedBox(width: 10),
-            Expanded(
-              child: Text(
-                label,
-                style: TextStyle(
-                  fontSize: 13,
-                  color: done ? cs.onSurfaceVariant : cs.onSurface,
-                  decoration: done ? TextDecoration.lineThrough : null,
-                  decorationColor: cs.onSurfaceVariant,
-                ),
-              ),
-            ),
-            if (!done)
-              Icon(Icons.chevron_right_rounded, size: 18, color: cs.outlineVariant),
-          ]),
-        ),
+        tappable
+            ? InkWell(
+                onTap: onTap,
+                borderRadius: BorderRadius.circular(8),
+                child: row,
+              )
+            : row,
         if (!isLast)
           Divider(height: 1, color: cs.outlineVariant),
       ],

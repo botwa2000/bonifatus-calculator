@@ -16,7 +16,8 @@ import '../../../../core/constants/app_constants.dart';
 import '../../../../l10n/app_localizations.dart';
 
 class StudentSettingsScreen extends ConsumerStatefulWidget {
-  const StudentSettingsScreen({super.key});
+  final bool autoOpenSchool;
+  const StudentSettingsScreen({super.key, this.autoOpenSchool = false});
 
   @override
   ConsumerState<StudentSettingsScreen> createState() => _StudentSettingsScreenState();
@@ -42,6 +43,11 @@ class _StudentSettingsScreenState extends ConsumerState<StudentSettingsScreen> {
     _loadConnections();
     _checkBiometric();
     _loadProfile();
+    if (widget.autoOpenSchool) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) _showSchoolInfoSheet(context);
+      });
+    }
   }
 
   Future<void> _loadProfile() async {

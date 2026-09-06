@@ -150,7 +150,11 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             ],
           ),
           GoRoute(path: '/student/insights', builder: (_, __) => const StudentInsightsScreen()),
-          GoRoute(path: '/student/settings', builder: (_, __) => const StudentSettingsScreen()),
+          GoRoute(path: '/student/settings', builder: (_, state) {
+            final extra = state.extra;
+            final openSchool = extra is Map && extra['open'] == 'school';
+            return StudentSettingsScreen(autoOpenSchool: openSchool);
+          }),
         ],
       ),
 
