@@ -68,20 +68,21 @@ class AuthService {
 
   AuthService(this._client, this._storage);
 
-  static const int _sessionInactivityDays = 7;
+  static const int _sessionInactivityMinutes = 15;
 
   Future<AuthSessionState> restoreSession() async {
     try {
       final token = await _storage.read(key: AppConstants.keyAccessToken);
       if (token == null) return AuthSessionState.unauthenticated();
 
-      // Force logout if app hasn't been opened in _sessionInactivityDays days.
+      // Force logout if app hasn't been used for _sessionInactivityMinutes minutes.
+      // Biometric JWT is intentionally preserved so user can re-auth with biometric.
       final lastActiveStr = await _storage.read(key: AppConstants.keyLastActiveAt);
       if (lastActiveStr != null) {
         final lastActive = DateTime.tryParse(lastActiveStr);
         if (lastActive != null &&
-            DateTime.now().difference(lastActive).inDays >= _sessionInactivityDays) {
-          await _clearExpiredToken();
+            DateTime.now().difference(lastActive).inMinutes >= _sessionInactivityMinutes) {
+          await _clearForInactivity();
           return AuthSessionState.unauthenticated();
         }
       }
@@ -308,6 +309,15 @@ class AuthService {
   Future<void> deleteAccount({required String password}) async {
     await _client.post('/api/profile/delete', data: {'password': password});
     await _storage.deleteAll();
+  }
+
+  // Called on inactivity timeout — clears access token and timestamp but keeps
+  // biometric JWT so user can re-authenticate with fingerprint from the login screen.
+  Future<void> _clearForInactivity() async {
+    await Future.wait([
+      _storage.delete(key: AppConstants.keyAccessToken),
+      _storage.delete(key: AppConstants.keyLastActiveAt),
+    ]);
   }
 
   // Called when a token is confirmed invalid (401 on /me, or session restore fails).
