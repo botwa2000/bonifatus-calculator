@@ -100,8 +100,18 @@ class AuthService {
           name: resp.data['name'] as String?,
           email: resp.data['email'] as String?,
         );
+      } on DioException catch (e) {
+        if (e.response?.statusCode == 401) {
+          // Token is genuinely invalid — clear everything including biometric JWT.
+          await _clearExpiredToken();
+        } else {
+          // Network error / 5xx — token may still be valid; preserve biometric JWT
+          // so the button stays visible and the user can re-auth when connectivity returns.
+          await _clearForInactivity();
+        }
+        return AuthSessionState.unauthenticated();
       } catch (_) {
-        await _clearExpiredToken();
+        await _clearForInactivity();
         return AuthSessionState.unauthenticated();
       }
     } on PlatformException catch (_) {
