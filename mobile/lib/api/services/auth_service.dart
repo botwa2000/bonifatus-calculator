@@ -68,13 +68,30 @@ class AuthService {
 
   AuthService(this._client, this._storage);
 
+  static const int _sessionInactivityDays = 7;
+
   Future<AuthSessionState> restoreSession() async {
     try {
       final token = await _storage.read(key: AppConstants.keyAccessToken);
       if (token == null) return AuthSessionState.unauthenticated();
 
+      // Force logout if app hasn't been opened in _sessionInactivityDays days.
+      final lastActiveStr = await _storage.read(key: AppConstants.keyLastActiveAt);
+      if (lastActiveStr != null) {
+        final lastActive = DateTime.tryParse(lastActiveStr);
+        if (lastActive != null &&
+            DateTime.now().difference(lastActive).inDays >= _sessionInactivityDays) {
+          await _clearExpiredToken();
+          return AuthSessionState.unauthenticated();
+        }
+      }
+
       try {
         final resp = await _client.get('/api/mobile/auth/me');
+        await _storage.write(
+          key: AppConstants.keyLastActiveAt,
+          value: DateTime.now().toIso8601String(),
+        );
         return AuthSessionState(
           isAuthenticated: true,
           userId: resp.data['id'] as String?,
@@ -107,6 +124,10 @@ class AuthService {
       if (token == null) throw Exception('No access token in response');
 
       await _storage.write(key: AppConstants.keyAccessToken, value: token);
+      await _storage.write(
+        key: AppConstants.keyLastActiveAt,
+        value: DateTime.now().toIso8601String(),
+      );
 
       return AuthSessionState(
         isAuthenticated: true,
@@ -230,6 +251,7 @@ class AuthService {
       if (token == null) throw Exception('No access token in response');
 
       await _storage.write(key: AppConstants.keyAccessToken, value: token);
+      await _storage.write(key: AppConstants.keyLastActiveAt, value: DateTime.now().toIso8601String());
 
       return GoogleSignInAuthenticated(AuthSessionState(
         isAuthenticated: true,
@@ -269,6 +291,7 @@ class AuthService {
       if (token == null) throw Exception('No access token in response');
 
       await _storage.write(key: AppConstants.keyAccessToken, value: token);
+      await _storage.write(key: AppConstants.keyLastActiveAt, value: DateTime.now().toIso8601String());
 
       return AppleSignInAuthenticated(AuthSessionState(
         isAuthenticated: true,
@@ -294,6 +317,7 @@ class AuthService {
     await Future.wait([
       _storage.delete(key: AppConstants.keyAccessToken),
       _storage.delete(key: AppConstants.keyBiometricJwt),
+      _storage.delete(key: AppConstants.keyLastActiveAt),
     ]);
   }
 }
