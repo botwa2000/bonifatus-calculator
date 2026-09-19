@@ -220,5 +220,9 @@ export default async function middleware(req: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)'],
+  // `social` is excluded so /social/index.html stays publicly reachable — Pinterest's
+  // Save-from-URL scraper and Instagram's media cURL must fetch it without a login redirect.
+  matcher: [
+    '/((?!_next/static|_next/image|favicon.ico|social|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
+  ],
 }
