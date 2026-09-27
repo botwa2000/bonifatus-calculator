@@ -168,7 +168,12 @@ function calculateBonus(
     return getFactorValue(factors, 'grade_tier', tier) ?? 0
   }
 
-  const breakdown = subjects.map((subject) => {
+  // A row without a grade is not part of the report card yet. Scoring it would
+  // count it as the worst tier (negative bonus) and drag the average to the
+  // bottom of the scale.
+  const graded = subjects.filter((s) => cleanGradeInput(s.grade ?? '') !== '')
+
+  const breakdown = graded.map((subject) => {
     const normalized = normalizeGrade(system, subject.grade)
     const tier = deriveTierFromDefinitions(system, subject.grade)
     const gradeFactor = getGradeFactor(tier)
@@ -181,7 +186,7 @@ function calculateBonus(
     totalWeight += weight
 
     return {
-      subject: subject.subjectName || 'Subject',
+      subject: subject.subjectName,
       normalized,
       tier,
       bonus,
@@ -195,25 +200,30 @@ function calculateBonus(
   return {
     total,
     averageNormalized,
-    subjectCount: subjects.length,
+    subjectCount: graded.length,
     breakdown,
   }
 }
 
 function getSampleData(
   config: CalculatorConfig,
-  locale: string = 'en'
+  locale: string,
+  currentSystem: GradingSystem | null,
+  fallbackSubjectName: (n: number) => string
 ): {
   systemId?: string
   classLevel: number
   termType: string
   subjects: SubjectEntry[]
 } {
-  const systemPool = config.gradingSystems
-  const subjectPool = config.subjects
   const pickRandom = <T,>(arr: T[]): T | undefined =>
     arr.length ? arr[Math.floor(Math.random() * arr.length)] : undefined
-  const sampleSystem = pickRandom(systemPool)
+  // Keep the visitor's grading system (already defaulted from their locale):
+  // a German visitor must not get a 1–7 scale. Prefer core subjects, which are
+  // the ones every report card has.
+  const sampleSystem = currentSystem ?? pickRandom(config.gradingSystems)
+  const core = config.subjects.filter((s) => s.isCoreSubject)
+  const subjectPool = core.length >= 3 ? core : config.subjects
   const shuffled = [...subjectPool].sort(() => Math.random() - 0.5)
   const sampleSubjects = shuffled.slice(0, Math.min(5, shuffled.length))
 
@@ -222,21 +232,25 @@ function getSampleData(
     if (system.scaleType === 'percentage') {
       return Math.floor(60 + Math.random() * 40).toString()
     }
-    const defs = system.gradeDefinitions || []
+    // Draw from the better half of the scale so the example looks like a
+    // typical report card rather than a string of failing grades.
+    const defs = [...(system.gradeDefinitions || [])].sort(
+      (a, b) => Number(b.normalized_100 ?? 0) - Number(a.normalized_100 ?? 0)
+    )
     if (defs.length) {
-      return pickRandom(defs)?.grade || ''
+      return pickRandom(defs.slice(0, Math.max(1, Math.ceil(defs.length / 2))))?.grade || ''
     }
     return ''
   }
 
   return {
     systemId: sampleSystem?.id,
-    classLevel: Math.floor(1 + Math.random() * 12),
+    classLevel: Math.floor(3 + Math.random() * 8),
     termType: 'semester_2',
     subjects: sampleSubjects.map((s, idx) => ({
       id: `${idx}`,
       subjectId: s.id,
-      subjectName: resolveLocalized(s.name, locale) || `Subject ${idx + 1}`,
+      subjectName: resolveLocalized(s.name, locale) || fallbackSubjectName(idx + 1),
       grade: randomGrade(sampleSystem),
       weight: 1, // Always 1 for demo
       isCoreSubject: s.isCoreSubject ?? false,
@@ -282,6 +296,19 @@ export function DemoCalculator({
   const locale = useLocale()
   const t = useTranslations('calculator')
   const tc = useTranslations('common')
+  // grade_tier keys from the DB (best/second/third/below) → localized labels
+  const tierLabel = (tier: string) => {
+    switch (tier) {
+      case 'best':
+        return t('tierBest')
+      case 'second':
+        return t('tierSecond')
+      case 'third':
+        return t('tierThird')
+      default:
+        return t('tierBelow')
+    }
+  }
   const currentYear = new Date().getFullYear()
   const defaultSchoolYear = `${currentYear}-${currentYear + 1}`
 
@@ -395,7 +422,8 @@ export function DemoCalculator({
           setSelectedSystemId(resolvedSystemId)
         }
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to load calculator config')
+        console.error('[calculator] config load failed', err)
+        setError('load-failed')
       } finally {
         setLoading(false)
       }
@@ -552,17 +580,26 @@ export function DemoCalculator({
   }
 
   const applySample = () => {
-    const sample = getSampleData(config, locale)
+    const sample = getSampleData(config, locale, selectedSystem ?? null, (n) =>
+      t('subjectN', { n })
+    )
     setSelectedSystemId(sample.systemId)
     setClassLevel(sample.classLevel)
     setTermType(sample.termType)
     setSubjectRows(sample.subjects.map((s) => ({ ...s, subjectId: s.subjectId })))
   }
 
+  // Unused rows (no subject, no grade) are ignored on save, so they must not
+  // disable the button either.
+  const isEmptyRow = (row: SubjectEntry) =>
+    !row.subjectId && !row.subjectName && cleanGradeInput(row.grade ?? '') === ''
   const canSave =
     !!userEmail &&
     !!selectedSystem &&
-    subjectRows.every((row) => row.subjectId || resolveSubjectId(row.subjectName))
+    subjectRows.some((row) => !isEmptyRow(row)) &&
+    subjectRows.every(
+      (row) => isEmptyRow(row) || row.subjectId || resolveSubjectId(row.subjectName)
+    )
 
   const handleSetDefaultSystem = () => {
     if (!selectedSystem) return
@@ -586,7 +623,13 @@ export function DemoCalculator({
       setSaveError(t('selectSystemFirst'))
       return
     }
-    const subjectPayload = subjectRows.map((row) => {
+    // A row with neither subject nor grade is just an unused slot — skip it.
+    const filledRows = subjectRows.filter((row) => !isEmptyRow(row))
+    if (filledRows.some((row) => cleanGradeInput(row.grade ?? '') === '')) {
+      setSaveError(t('gradeMissing'))
+      return
+    }
+    const subjectPayload = filledRows.map((row) => {
       const sid = row.subjectId || resolveSubjectId(row.subjectName || '')
       return {
         subjectId: sid || '',
@@ -617,7 +660,7 @@ export function DemoCalculator({
       })
       const data = await res.json()
       if (!res.ok || !data.success) {
-        setSaveError(data.error || 'Failed to save')
+        setSaveError(t('saveFailed'))
         return
       }
       setSaveMessage(t('saved'))
@@ -637,7 +680,8 @@ export function DemoCalculator({
         termName: termName || undefined,
       })
     } catch (err) {
-      setSaveError(err instanceof Error ? err.message : 'Failed to save')
+      console.error('[calculator] save failed', err)
+      setSaveError(t('saveFailed'))
     } finally {
       setSaving(false)
     }
@@ -689,7 +733,7 @@ export function DemoCalculator({
       </div>
 
       {loading && <p className="text-neutral-600 dark:text-neutral-300">{t('loadingSettings')}</p>}
-      {error && <p className="text-sm text-red-600 dark:text-red-400 mb-4">Error: {error}</p>}
+      {error && <p className="text-sm text-red-600 dark:text-red-400 mb-4">{t('loadFailed')}</p>}
 
       {!loading && !error && selectedSystem && (
         <div className="space-y-4">
@@ -946,20 +990,21 @@ export function DemoCalculator({
                     {calcResult.total.toFixed(2)} {tc('pts')}
                   </p>
                   <p className="text-xs text-neutral-500 dark:text-neutral-400">
-                    {(() => {
-                      const avgRaw = convertNormalizedToScale(
-                        selectedSystem,
-                        calcResult.averageNormalized
-                      )
-                      const max = selectedSystem?.maxValue
-                      const scaleLabel = max ? ` / ${Number(max)}` : ''
-                      const secondary = formatSecondaryAverage(selectedSystem?.code, avgRaw)
-                      return t('subjectsAvg', {
-                        count: calcResult.subjectCount,
-                        avg: avgRaw.toFixed(2),
-                        scale: scaleLabel + (secondary ? ` ${secondary}` : ''),
-                      })
-                    })()}
+                    {calcResult.subjectCount > 0 &&
+                      (() => {
+                        const avgRaw = convertNormalizedToScale(
+                          selectedSystem,
+                          calcResult.averageNormalized
+                        )
+                        const max = selectedSystem?.maxValue
+                        const scaleLabel = max ? ` / ${Number(max)}` : ''
+                        const secondary = formatSecondaryAverage(selectedSystem?.code, avgRaw)
+                        return t('subjectsAvg', {
+                          count: calcResult.subjectCount,
+                          avg: avgRaw.toFixed(2),
+                          scale: scaleLabel + (secondary ? ` ${secondary}` : ''),
+                        })
+                      })()}
                   </p>
                 </div>
                 {userEmail ? (
@@ -975,7 +1020,12 @@ export function DemoCalculator({
               <div className="mt-3 space-y-2 text-sm text-neutral-700 dark:text-neutral-300">
                 {calcResult.breakdown.map((item, idx) => (
                   <div key={`${item.subject}-${idx}`} className="flex justify-between">
-                    <span>{t('tier', { subject: item.subject, tier: item.tier })}</span>
+                    <span>
+                      {t('tier', {
+                        subject: item.subject || t('subject'),
+                        tier: tierLabel(item.tier),
+                      })}
+                    </span>
                     <span className="font-semibold">
                       {item.bonus.toFixed(2)} {tc('pts')}
                     </span>

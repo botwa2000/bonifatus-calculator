@@ -67,12 +67,22 @@ export default function StudentDashboardPage() {
     loadSettlements()
   }, [])
 
+  // Settlements can be in money (EUR, …) or in points ('pts', used by the
+  // mobile app), so totals are kept per currency instead of summed together.
   const rewardStats = useMemo(() => {
     if (settlements.length === 0) return null
-    const totalEarned = settlements.reduce((s, r) => s + r.amount, 0)
-    const currency = settlements[0]?.currency || 'EUR'
-    return { totalEarned, count: settlements.length, currency }
+    const byCurrency = new Map<string, number>()
+    for (const s of settlements) {
+      const c = s.currency || 'EUR'
+      byCurrency.set(c, (byCurrency.get(c) ?? 0) + s.amount)
+    }
+    return { totals: [...byCurrency.entries()], count: settlements.length }
   }, [settlements])
+
+  const formatAmount = (amount: number, currency: string) =>
+    currency === 'pts'
+      ? `${amount.toFixed(2)} ${tc('pts')}`
+      : `${currencySymbol(currency)}${amount.toFixed(2)}`
 
   const recentTerms = terms
     .slice()
@@ -239,33 +249,29 @@ export default function StudentDashboardPage() {
         </div>
       )}
 
-      {/* My Rewards Card */}
-      {stats && (
+      {/* My Rewards Card — independent of saved terms: payouts can come from
+          quick grades alone (the mobile app's Notes feature). */}
+      {settlementsLoaded && (
         <div className="rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-5 shadow-sm space-y-4">
           <h2 className="text-lg font-semibold text-neutral-900 dark:text-white">
             {t('myRewards')}
           </h2>
 
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-            <div className="rounded-xl bg-gradient-to-br from-primary-50 to-secondary-50 dark:from-primary-900/20 dark:to-secondary-900/20 border border-primary-100 dark:border-primary-800 p-3">
-              <p className="text-xs text-primary-600 dark:text-primary-400 font-medium">
-                {t('totalBonusPoints')}
-              </p>
-              <p className="text-xl font-bold text-primary-700 dark:text-primary-200 flex items-center gap-1">
-                <BonusIcon className="w-4 h-4 text-primary-500" />
-                {stats.total.toFixed(1)}
-              </p>
-            </div>
+          <div className="grid grid-cols-2 gap-3">
             {rewardStats && (
               <>
                 <div className="rounded-xl bg-success-50 dark:bg-success-900/20 border border-success-100 dark:border-success-800 p-3">
                   <p className="text-xs text-success-600 dark:text-success-400 font-medium">
                     {t('paidOut')}
                   </p>
-                  <p className="text-xl font-bold text-success-700 dark:text-success-200">
-                    {currencySymbol(rewardStats.currency)}
-                    {rewardStats.totalEarned.toFixed(2)}
-                  </p>
+                  {rewardStats.totals.map(([currency, amount]) => (
+                    <p
+                      key={currency}
+                      className="text-xl font-bold text-success-700 dark:text-success-200"
+                    >
+                      {formatAmount(amount, currency)}
+                    </p>
+                  ))}
                 </div>
                 <div className="rounded-xl bg-amber-50 dark:bg-amber-900/20 border border-amber-100 dark:border-amber-800 p-3">
                   <p className="text-xs text-amber-600 dark:text-amber-400 font-medium">
@@ -295,8 +301,7 @@ export default function StudentDashboardPage() {
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-semibold text-success-600 dark:text-success-300">
-                      +{currencySymbol(s.currency)}
-                      {s.amount.toFixed(2)}
+                      +{formatAmount(s.amount, s.currency)}
                     </p>
                     <p className="text-xs text-neutral-500 truncate">
                       {formatDate(s.createdAt)}

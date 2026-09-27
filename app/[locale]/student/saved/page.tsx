@@ -234,7 +234,16 @@ function ViewTermModal({
 /* ------------------------------------------------------------------ */
 
 function TierBadge({ tier }: { tier: string | null }) {
+  const tCalc = useTranslations('calculator')
   if (!tier) return <span className="text-neutral-400">-</span>
+
+  // grade_quality_tier is a DB key (best/second/third/below), not display text.
+  const labels: Record<string, string> = {
+    best: tCalc('tierBest'),
+    second: tCalc('tierSecond'),
+    third: tCalc('tierThird'),
+    below: tCalc('tierBelow'),
+  }
 
   const styles: Record<string, string> = {
     best: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400',
@@ -247,7 +256,7 @@ function TierBadge({ tier }: { tier: string | null }) {
     <span
       className={`inline-block rounded-full px-2.5 py-0.5 text-xs font-semibold ${styles[tier] || 'bg-neutral-100 text-neutral-600 dark:bg-neutral-800 dark:text-neutral-400'}`}
     >
-      {tier}
+      {labels[tier] ?? tier}
     </span>
   )
 }
