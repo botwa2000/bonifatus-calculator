@@ -187,6 +187,44 @@ const SOCIAL_REPORT_CARD: [subject: string, grade: string][] = [
   ['Biologie', '3'],
 ]
 
+// Invented dashboard data for the student stat grid (served in place of
+// /api/grades/list). Six terms; the dashboard shows the sum of
+// total_bonus_points (52.50) and the weight-averaged grade_normalized_100
+// (88.2). Every term has five weight-1 grades from the same set, so the
+// average is exactly (92 + 88 + 85 + 90 + 86) / 5 = 88.2.
+const SOCIAL_DEMO = { total: '52.50', avg: '88.2', count: 6 }
+const SOCIAL_DEMO_TERMS = (
+  [
+    ['2023-2024', 'semester_1', 7.25, '2023-12-15'],
+    ['2023-2024', 'semester_2', 8.75, '2024-07-10'],
+    ['2024-2025', 'semester_1', 6.5, '2024-12-20'],
+    ['2024-2025', 'semester_2', 9.5, '2025-07-11'],
+    ['2025-2026', 'semester_1', 8.5, '2025-12-19'],
+    ['2025-2026', 'semester_2', 12.0, '2026-07-09'],
+  ] as const
+).map(([schoolYear, termType, bonus, date], i) => ({
+  id: `demo-term-${i + 1}`,
+  school_year: schoolYear,
+  term_type: termType,
+  term_name: null,
+  class_level: 5 + Math.floor(i / 2),
+  grading_system_id: 'demo-de-1-6',
+  total_bonus_points: bonus,
+  created_at: `${date}T12:00:00.000Z`,
+  subject_grades: [92, 88, 85, 90, 86].map((norm, j) => ({
+    id: `demo-grade-${i + 1}-${j + 1}`,
+    subject_id: null,
+    grade_value: null,
+    grade_numeric: null,
+    grade_normalized_100: norm,
+    subject_weight: 1,
+    bonus_points: null,
+    grade_quality_tier: null,
+    subjects: null,
+  })),
+  grading_systems: null,
+}))
+
 // Site chrome that would otherwise land inside element screenshots: the sticky
 // header (stamped over elements taller than the viewport) and the floating
 // cookie-settings button (fixed bottom-left).
@@ -277,6 +315,11 @@ test.describe('social', () => {
 
     test('social-student-points', async ({ page }) => {
       await login(page, STUDENT_EMAIL, STUDENT_PASSWORD)
+      // The login only satisfies the auth middleware; the stat grid is fed
+      // invented demo terms so no real account's figures reach marketing.
+      await page.route('**/api/grades/list', (route) =>
+        route.fulfill({ json: { success: true, terms: SOCIAL_DEMO_TERMS } })
+      )
       await page.goto('/de/student/dashboard')
       await page.waitForLoadState('networkidle')
       await dismissCookieBanner(page)
@@ -289,6 +332,10 @@ test.describe('social', () => {
         .filter({ has: page.getByText('Bonuspunkte gesamt') })
         .filter({ has: page.getByText('Bester Zeitraum') })
         .last()
+      // Refuse to write the file unless the grid shows the seeded values.
+      await expect(grid).toContainText(SOCIAL_DEMO.total)
+      await expect(grid).toContainText(SOCIAL_DEMO.avg)
+      await expect(grid).toContainText(`${SOCIAL_DEMO.count} Zeiträume gespeichert`)
       await grid.screenshot({ path: path.join(SOCIAL_SOURCE_DIR, 'student-points.png') })
     })
   })

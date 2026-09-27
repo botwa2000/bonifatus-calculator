@@ -363,12 +363,12 @@ async function calloutSize(text: string, maxTextWidth = 560, step?: number) {
 //   calc-results.png   "28.00 Pkt." ink box x 37–314, y 166–236
 //   calc-subjects.png  "Fach hinzufügen" x 909–1111, y 131–157;
 //                      rows: labels 186–222, Mathematik 244–380, Deutsch 402–538
-//   student-points.png "40.75" x 53–230, y 186–237; label x 136–339, y 63–145
+//   student-points.png "52.50" x 56–233, y 186–237; label x 136–340, y 63–145
 const ANCHOR = {
   resultsTotal: { x: 342, y: 196 }, // empty space just right of "Pkt."
   addSubject: { x: 1010, y: 126 }, // just above the "Fach hinzufügen" link
-  pointsTotal: { x: 250, y: 204 }, // just right of "40.75"
-  // "Bonuspunkte gesamt" label ink is x 136–339, y 63–145: an arrow into
+  pointsTotal: { x: 253, y: 204 }, // just right of "52.50"
+  // "Bonuspunkte gesamt" label ink is x 136–340, y 63–145: an arrow into
   // pointsTotal from above clears it only if it starts at x ≥ ~580.
   pointsArrowFromX: 600,
 }
