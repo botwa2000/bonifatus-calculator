@@ -1,7 +1,8 @@
 import Image from 'next/image'
 import { Link } from '@/i18n/navigation'
 import { AppStoreBadges } from '@/components/app-store-badges'
-import { useTranslations } from 'next-intl'
+import { useLocale, useTranslations } from 'next-intl'
+import { getRatgeberIndex } from '@/content/ratgeber/index'
 
 export function Footer() {
   const t = useTranslations('home')
@@ -9,6 +10,8 @@ export function Footer() {
   const tTools = useTranslations('tools')
   const tBlog = useTranslations('blog')
   const tCommon = useTranslations('common')
+  const tRatgeber = useTranslations('ratgeber')
+  const hasRatgeber = getRatgeberIndex(useLocale()).length > 0
 
   return (
     <footer className="border-t bg-white dark:bg-neutral-900 mt-20">
@@ -87,6 +90,16 @@ export function Footer() {
                   {tBlog('indexTitle')}
                 </Link>
               </li>
+              {hasRatgeber && (
+                <li>
+                  <Link
+                    href="/ratgeber"
+                    className="hover:text-primary-600 dark:hover:text-blue-400 transition-colors"
+                  >
+                    {tRatgeber('breadcrumbHub')}
+                  </Link>
+                </li>
+              )}
             </ul>
           </div>
 

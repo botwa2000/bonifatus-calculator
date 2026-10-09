@@ -167,6 +167,22 @@ async function checkRouting() {
     fail(`/en/faq with German browser → ${en.status}, expected 200 (no forced redirect)`)
 }
 
+// A page that exists only in some locales (e.g. German-only Ratgeber) must be a real 404
+// in the others — never a soft 404 or a page in the wrong language.
+async function checkMissingLocales(entries) {
+  const checked = new Set()
+  for (const entry of entries) {
+    const path = entry.loc.slice(site.length).replace(/^\/[a-z]{2}(?=\/|$)/, '') || '/'
+    if (checked.has(path)) continue
+    checked.add(path)
+    const missing = LOCALES.find((l) => !entry.alternates[l])
+    if (!missing) continue
+    const url = `/${missing}${path === '/' ? '' : path}`
+    const { res } = await get(url)
+    if (res.status !== 404) fail(`${url} → ${res.status}, expected 404 (page not in ${missing})`)
+  }
+}
+
 async function checkStructuredData(heads) {
   for (const path of [
     '/en',
@@ -206,6 +222,7 @@ const heads = new Map(
   (await pool(entries, 6, (e) => checkPage(e, locs))).map(([e, head]) => [e.loc, head])
 )
 await checkRouting()
+await checkMissingLocales(entries)
 await checkStructuredData(heads)
 
 console.log(`Checked ${entries.length} sitemap URLs on ${base} (site ${site}).`)

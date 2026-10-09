@@ -1247,7 +1247,7 @@
     "gradeCalculatorTitle": "Calcolatore di premi per i voti",
     "gradeCalculatorDescription": "Calcola quanto premiare tuo figlio in base ai suoi voti. Supporta i sistemi di voto tedesco, americano, francese, svizzero e austriaco.",
     "allowanceCalculatorTitle": "Calcolatore di paghetta",
-    "allowanceCalculatorDescription": "Trova l'importo giusto della paghetta in base all'età di tuo figlio.",
+    "allowanceCalculatorDescription": "Scopri la paghetta settimanale o mensile consigliata per l’età di tuo figlio, secondo le raccomandazioni 2025 del Deutsches Jugendinstitut (DJI).",
     "investmentCalculatorTitle": "Calcolatore di risparmio per bambini",
     "investmentCalculatorDescription": "Mostra a tuo figlio come i piccoli risparmi crescono nel tempo grazie all'interesse composto.",
     "blogTitle": "Blog Bonifatus — Genitorialità e denaro",
@@ -1291,11 +1291,9 @@
     "calcCtaDesc": "Imposta premi automatici collegati alla vera pagella di tuo figlio — senza calcoli manuali.",
     "calcCtaButton": "Inizia gratis",
     "allowanceTitle": "Calcolatore di paghetta",
-    "allowanceSubtitle": "Basato sulle raccomandazioni della DJI Taschengeldtabelle per la Germania.",
+    "allowanceSubtitle": "Basato sulle raccomandazioni 2025 del Deutsches Jugendinstitut (DJI) sulla paghetta.",
     "allowanceAgeLabel": "Età del bambino",
-    "allowanceResultMonthly": "Paghetta mensile consigliata",
-    "allowanceResultWeekly": "Equivalente a settimana",
-    "allowanceSource": "Fonte: Istituto tedesco per la gioventù (DJI) Taschengeldtabelle",
+    "allowanceSource": "Fonte: Deutsches Jugendinstitut (DJI), raccomandazioni sulla paghetta, settembre 2025",
     "allowanceCtaTitle": "Combina paghetta e premi scolastici",
     "allowanceCtaDesc": "Usa Bonifatus per aggiungere bonus basati sui voti a una paghetta fissa.",
     "allowanceCtaButton": "Prova Bonifatus gratis",
@@ -1312,7 +1310,16 @@
     "investChartTitle": "Crescita nel tempo",
     "investCtaTitle": "Premia l'abitudine, non solo i voti",
     "investCtaDesc": "Bonifatus ti consente di premiare gli obiettivi di risparmio insieme ai risultati scolastici.",
-    "investCtaButton": "Inizia gratis"
+    "investCtaButton": "Inizia gratis",
+    "allowanceRangePerWeek": "{min}–{max} € a settimana",
+    "allowanceRangePerMonth": "{min}–{max} € al mese",
+    "allowanceAgeUnder": "sotto i {age}",
+    "allowanceAgeFrom": "da {age}",
+    "allowanceResultLabel": "Raccomandazione DJI · età: {age}",
+    "allowanceEquivalent": "Corrisponde a circa {range}",
+    "allowanceTableRange": "Fascia consigliata",
+    "allowanceDependentNote": "* Dai 16 anni: per i ragazzi ancora economicamente dipendenti dai genitori (ad es. studenti).",
+    "allowanceKeepSeparate": "Il DJI sconsiglia di usare la paghetta come premio per i bei voti o di ridurla come punizione. Se vuoi premiare i voti, tieni quel bonus separato dalla paghetta."
   },
   "blog": {
     "indexTitle": "Blog",
@@ -1326,7 +1333,8 @@
     "ctaButton": "Prova Bonifatus gratis",
     "relatedTitle": "Altri articoli",
     "backLink": "Blog",
-    "faqHeading": "FAQ"
+    "faqHeading": "FAQ",
+    "sourcesTitle": "Fonti"
   },
   "compare": {
     "indexTitle": "Confronta le app per premi scolastici",
@@ -1365,5 +1373,21 @@
     "message": "Questa pagina è disponibile anche in italiano.",
     "switch": "Leggi in italiano",
     "dismiss": "Chiudi"
+  },
+  "ratgeber": {
+    "breadcrumbHome": "Home",
+    "breadcrumbHub": "Consigli",
+    "hubTitle": "Consigli per i genitori",
+    "hubMetaTitle": "Consigli per i genitori: paghetta, premi per la pagella e motivazione",
+    "hubDescription": "Tabella della paghetta 2025, premi equi per la pagella e se valga la pena premiare i voti – consigli per i genitori, con fonti.",
+    "hubIntro": "Risposte fondate alle domande di denaro legate alla scuola: quanta paghetta è adeguata, cosa è giusto per la pagella e se premiare davvero i voti. Con le fonti – e con le obiezioni.",
+    "readingTime": "{minutes} min di lettura",
+    "updatedOn": "Aggiornato il {date}",
+    "toc": "Indice",
+    "faqTitle": "Domande frequenti",
+    "sourcesTitle": "Fonti",
+    "readArticle": "Leggi l’articolo",
+    "relatedTitle": "Altri consigli",
+    "breadcrumbLabel": "Percorso di navigazione"
   }
 }

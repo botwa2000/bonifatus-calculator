@@ -1247,7 +1247,7 @@
     "gradeCalculatorTitle": "Calculateur de récompenses scolaires",
     "gradeCalculatorDescription": "Calculez la récompense de votre enfant selon ses notes. Supporte les systèmes français, allemand, américain, suisse et autrichien.",
     "allowanceCalculatorTitle": "Calculateur d'argent de poche",
-    "allowanceCalculatorDescription": "Trouvez le bon montant d'argent de poche selon l'âge de votre enfant.",
+    "allowanceCalculatorDescription": "Trouvez l’argent de poche hebdomadaire ou mensuel recommandé pour l’âge de votre enfant, d’après les recommandations 2025 du Deutsches Jugendinstitut (DJI).",
     "investmentCalculatorTitle": "Calculateur d'épargne pour enfants",
     "investmentCalculatorDescription": "Montrez à votre enfant comment de petites économies régulières croissent grâce aux intérêts composés.",
     "blogTitle": "Blog Bonifatus — Parentalité & Argent",
@@ -1291,11 +1291,9 @@
     "calcCtaDesc": "Configurez des récompenses automatiques liées au vrai bulletin de votre enfant — sans calcul manuel.",
     "calcCtaButton": "Commencer gratuitement",
     "allowanceTitle": "Calculateur d'argent de poche",
-    "allowanceSubtitle": "Basé sur les recommandations du DJI Taschengeldtabelle pour l'Allemagne.",
+    "allowanceSubtitle": "D’après les recommandations 2025 du Deutsches Jugendinstitut (DJI) sur l’argent de poche.",
     "allowanceAgeLabel": "Âge de l'enfant",
-    "allowanceResultMonthly": "Argent de poche mensuel recommandé",
-    "allowanceResultWeekly": "Équivalent par semaine",
-    "allowanceSource": "Source : Institut allemand de la jeunesse (DJI) Taschengeldtabelle",
+    "allowanceSource": "Source : Deutsches Jugendinstitut (DJI), recommandations sur l’argent de poche, septembre 2025",
     "allowanceCtaTitle": "Associez argent de poche et récompenses scolaires",
     "allowanceCtaDesc": "Utilisez Bonifatus pour ajouter des bonus selon les notes en complément d'une allocation fixe.",
     "allowanceCtaButton": "Essayer Bonifatus gratuitement",
@@ -1312,7 +1310,16 @@
     "investChartTitle": "Évolution dans le temps",
     "investCtaTitle": "Récompensez l'habitude, pas seulement les notes",
     "investCtaDesc": "Bonifatus vous permet de récompenser les objectifs d'épargne en plus des performances scolaires.",
-    "investCtaButton": "Commencer gratuitement"
+    "investCtaButton": "Commencer gratuitement",
+    "allowanceRangePerWeek": "{min}–{max} € par semaine",
+    "allowanceRangePerMonth": "{min}–{max} € par mois",
+    "allowanceAgeUnder": "moins de {age}",
+    "allowanceAgeFrom": "{age} et plus",
+    "allowanceResultLabel": "Recommandation du DJI · âge : {age}",
+    "allowanceEquivalent": "Soit environ {range}",
+    "allowanceTableRange": "Fourchette recommandée",
+    "allowanceDependentNote": "* À partir de 16 ans : pour les jeunes encore financièrement dépendants de leurs parents (p. ex. élèves).",
+    "allowanceKeepSeparate": "Le DJI déconseille d’utiliser l’argent de poche pour récompenser les bonnes notes ou de le réduire pour punir. Si vous souhaitez récompenser les notes, gardez ce bonus séparé de l’argent de poche."
   },
   "blog": {
     "indexTitle": "Blog",
@@ -1326,7 +1333,8 @@
     "ctaButton": "Essayer Bonifatus gratuitement",
     "relatedTitle": "Autres articles",
     "backLink": "Blog",
-    "faqHeading": "FAQ"
+    "faqHeading": "FAQ",
+    "sourcesTitle": "Sources"
   },
   "compare": {
     "indexTitle": "Comparer les applications de récompenses scolaires",
@@ -1365,5 +1373,21 @@
     "message": "Cette page est aussi disponible en français.",
     "switch": "Lire en français",
     "dismiss": "Fermer"
+  },
+  "ratgeber": {
+    "breadcrumbHome": "Accueil",
+    "breadcrumbHub": "Conseils",
+    "hubTitle": "Conseils aux parents",
+    "hubMetaTitle": "Conseils aux parents : argent de poche, récompenses et motivation",
+    "hubDescription": "Barème d’argent de poche 2025, récompenses équitables pour le bulletin et la question de savoir s’il faut récompenser les notes – des conseils sourcés pour les parents.",
+    "hubIntro": "Des réponses fondées aux questions d’argent liées à l’école : quel argent de poche est approprié, ce qui est juste pour un bulletin, et s’il faut vraiment récompenser les notes. Avec des sources – et avec les contre-arguments.",
+    "readingTime": "{minutes} min de lecture",
+    "updatedOn": "Mis à jour le {date}",
+    "toc": "Sommaire",
+    "faqTitle": "Questions fréquentes",
+    "sourcesTitle": "Sources",
+    "readArticle": "Lire l’article",
+    "relatedTitle": "Autres conseils",
+    "breadcrumbLabel": "Fil d’Ariane"
   }
 }

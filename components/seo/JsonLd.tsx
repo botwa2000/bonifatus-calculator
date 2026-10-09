@@ -81,6 +81,30 @@ export function faqPageJsonLd(faqs: Array<{ question: string; answer: string }>)
   }
 }
 
+export function articleJsonLd(article: {
+  title: string
+  description: string
+  locale: string
+  path: string
+  publishedAt: string
+  updatedAt?: string
+}) {
+  const url = localizedUrl(article.locale, article.path)
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'Article',
+    headline: article.title,
+    description: article.description,
+    url,
+    mainEntityOfPage: url,
+    inLanguage: article.locale,
+    datePublished: article.publishedAt,
+    dateModified: article.updatedAt ?? article.publishedAt,
+    author: { '@type': 'Organization', '@id': ORGANIZATION_ID, name: 'Bonifatus', url: SITE_URL },
+    publisher: organization(),
+  }
+}
+
 export function blogPostJsonLd(post: {
   title: string
   description: string
@@ -89,15 +113,19 @@ export function blogPostJsonLd(post: {
   updatedAt?: string
   locale: string
 }) {
+  return articleJsonLd({ ...post, path: `/blog/${post.slug}` })
+}
+
+/** Breadcrumb trail; `items` are ordered from the site root to the current page. */
+export function breadcrumbJsonLd(locale: string, items: Array<{ name: string; path: string }>) {
   return {
     '@context': 'https://schema.org',
-    '@type': 'Article',
-    headline: post.title,
-    description: post.description,
-    url: localizedUrl(post.locale, `/blog/${post.slug}`),
-    inLanguage: post.locale,
-    datePublished: post.publishedAt,
-    dateModified: post.updatedAt ?? post.publishedAt,
-    publisher: organization(),
+    '@type': 'BreadcrumbList',
+    itemListElement: items.map((item, i) => ({
+      '@type': 'ListItem',
+      position: i + 1,
+      name: item.name,
+      item: localizedUrl(locale, item.path),
+    })),
   }
 }

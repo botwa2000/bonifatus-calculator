@@ -9,6 +9,8 @@ export interface BlogPost {
   readingTimeMinutes: number
   sections: BlogSection[]
   faqs?: Array<{ question: string; answer: string }>
+  /** Works cited in the text, listed under the article. */
+  sources?: Array<{ text: string; url: string }>
 }
 
 export interface BlogSection {

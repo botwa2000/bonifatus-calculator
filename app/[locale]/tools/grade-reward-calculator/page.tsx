@@ -1,5 +1,6 @@
 import { setRequestLocale, getTranslations } from 'next-intl/server'
 import { Link } from '@/i18n/navigation'
+import { RelatedRatgeber } from '@/components/ratgeber/RelatedRatgeber'
 import { AppHeader } from '@/components/layout/AppHeader'
 import { JsonLd, webApplicationJsonLd } from '@/components/seo/JsonLd'
 import { auth } from '@/auth'
@@ -62,6 +63,8 @@ export default async function GradeRewardCalculatorPage({
         <div className="bg-white dark:bg-neutral-800/50 rounded-2xl p-8 shadow-card">
           <GradeRewardCalculatorClient />
         </div>
+
+        <RelatedRatgeber slug="zeugnisgeld" />
 
         {/* CTA */}
         <div className="mt-12 bg-gradient-to-r from-primary-600 to-secondary-600 rounded-2xl p-8 text-white text-center">

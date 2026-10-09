@@ -1,5 +1,6 @@
 import { setRequestLocale, getTranslations } from 'next-intl/server'
 import { Link } from '@/i18n/navigation'
+import { RelatedRatgeber } from '@/components/ratgeber/RelatedRatgeber'
 import { AppHeader } from '@/components/layout/AppHeader'
 import { auth } from '@/auth'
 import type { Metadata } from 'next'
@@ -52,6 +53,8 @@ export default async function AllowanceCalculatorPage({
         <div className="bg-white dark:bg-neutral-800/50 rounded-2xl p-8 shadow-card">
           <AllowanceCalculatorClient />
         </div>
+
+        <RelatedRatgeber slug="taschengeld-tabelle" />
 
         {/* CTA */}
         <div className="mt-12 bg-gradient-to-r from-success-600 to-primary-600 rounded-2xl p-8 text-white text-center">

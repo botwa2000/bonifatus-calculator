@@ -1247,7 +1247,7 @@
     "gradeCalculatorTitle": "Grade Reward Calculator",
     "gradeCalculatorDescription": "Calculate how much to reward your child based on their report card grades. Supports German, US, French, Swiss, and Austrian grading systems.",
     "allowanceCalculatorTitle": "Allowance Calculator",
-    "allowanceCalculatorDescription": "Find the right weekly or monthly allowance for your child's age using Jugendhilfe guidelines.",
+    "allowanceCalculatorDescription": "Find the recommended weekly or monthly pocket money for your child's age, based on the 2025 recommendations of the Deutsches Jugendinstitut (DJI).",
     "investmentCalculatorTitle": "Investment Calculator for Kids",
     "investmentCalculatorDescription": "Show your child how small regular savings grow over time with compound interest.",
     "blogTitle": "Bonifatus Blog — Parenting & Money Tips",
@@ -1291,11 +1291,9 @@
     "calcCtaDesc": "Set up automatic rewards linked to your child's real report card — no manual calculation needed.",
     "calcCtaButton": "Get Started Free",
     "allowanceTitle": "Allowance Calculator",
-    "allowanceSubtitle": "Based on DJI Taschengeldtabelle recommendations for Germany.",
+    "allowanceSubtitle": "Based on the 2025 pocket-money recommendations of the Deutsches Jugendinstitut (DJI).",
     "allowanceAgeLabel": "Child's Age",
-    "allowanceResultMonthly": "Recommended Monthly Allowance",
-    "allowanceResultWeekly": "Equivalent per Week",
-    "allowanceSource": "Source: German Youth Institute (DJI) Taschengeldtabelle",
+    "allowanceSource": "Source: Deutsches Jugendinstitut (DJI), pocket-money recommendations, September 2025",
     "allowanceCtaTitle": "Pair allowance with grade rewards",
     "allowanceCtaDesc": "Use Bonifatus to add grade-based bonuses on top of a fixed allowance.",
     "allowanceCtaButton": "Try Bonifatus Free",
@@ -1312,7 +1310,16 @@
     "investChartTitle": "Growth Over Time",
     "investCtaTitle": "Reward the habit, not just the grades",
     "investCtaDesc": "Bonifatus lets you reward savings milestones alongside academic performance.",
-    "investCtaButton": "Start for Free"
+    "investCtaButton": "Start for Free",
+    "allowanceRangePerWeek": "€{min}–{max} per week",
+    "allowanceRangePerMonth": "€{min}–{max} per month",
+    "allowanceAgeUnder": "under {age}",
+    "allowanceAgeFrom": "{age}+",
+    "allowanceResultLabel": "DJI recommendation · age {age}",
+    "allowanceEquivalent": "That is roughly {range}",
+    "allowanceTableRange": "Recommended range",
+    "allowanceDependentNote": "* From 16: for young people who still depend financially on their parents (e.g. school students).",
+    "allowanceKeepSeparate": "The DJI advises against using pocket money as a reward for good grades or cutting it as a punishment. If you want to reward grades, keep that bonus separate from pocket money."
   },
   "blog": {
     "indexTitle": "Blog",
@@ -1326,7 +1333,8 @@
     "ctaButton": "Try Bonifatus Free",
     "relatedTitle": "More Articles",
     "backLink": "Blog",
-    "faqHeading": "FAQ"
+    "faqHeading": "FAQ",
+    "sourcesTitle": "Sources"
   },
   "compare": {
     "indexTitle": "Compare Grade Reward Apps",
@@ -1365,5 +1373,21 @@
     "message": "This page is also available in English.",
     "switch": "Switch to English",
     "dismiss": "Dismiss"
+  },
+  "ratgeber": {
+    "breadcrumbHome": "Home",
+    "breadcrumbHub": "Advice",
+    "hubTitle": "Advice for parents",
+    "hubMetaTitle": "Advice for parents: pocket money, report-card rewards and motivation",
+    "hubDescription": "Pocket-money table 2025, fair report-card rewards and whether you should reward school grades at all – well-sourced advice for parents.",
+    "hubIntro": "Well-founded answers to the money questions around school: how much pocket money is appropriate, what is fair for a report card, and whether you should reward grades at all. With sources – and with the counter-arguments.",
+    "readingTime": "{minutes} min read",
+    "updatedOn": "Updated {date}",
+    "toc": "Contents",
+    "faqTitle": "Frequently asked questions",
+    "sourcesTitle": "Sources",
+    "readArticle": "Read article",
+    "relatedTitle": "More advice",
+    "breadcrumbLabel": "Breadcrumb"
   }
 }

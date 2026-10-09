@@ -148,6 +148,29 @@ export default async function BlogPostPage({
                 </div>
               </div>
             )}
+
+            {post.sources && post.sources.length > 0 && (
+              <div className="mt-12 border-t pt-8 border-neutral-200 dark:border-neutral-700">
+                <h2 className="text-xl font-bold text-neutral-900 dark:text-white mb-4">
+                  {t('sourcesTitle')}
+                </h2>
+                <ol className="space-y-3 text-sm text-neutral-600 dark:text-neutral-400 list-decimal pl-5">
+                  {post.sources.map((source) => (
+                    <li key={source.url}>
+                      {source.text}{' '}
+                      <a
+                        href={source.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="break-all text-primary-600 dark:text-primary-400 underline underline-offset-2"
+                      >
+                        {source.url.replace(/^https?:\/\//, '')}
+                      </a>
+                    </li>
+                  ))}
+                </ol>
+              </div>
+            )}
           </article>
 
           {/* Sidebar: TOC + CTA */}

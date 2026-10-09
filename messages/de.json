@@ -1247,7 +1247,7 @@
     "gradeCalculatorTitle": "Noten-Belohnungsrechner",
     "gradeCalculatorDescription": "Berechne, wie viel du dein Kind für seine Schulnoten belohnen kannst. Unterstützt deutsche, US-amerikanische, französische, Schweizer und österreichische Notensysteme.",
     "allowanceCalculatorTitle": "Taschengeldrechner",
-    "allowanceCalculatorDescription": "Finde den richtigen Taschengeld-Betrag für das Alter deines Kindes basierend auf der DJI Taschengeldtabelle.",
+    "allowanceCalculatorDescription": "Wie viel Taschengeld ist angemessen? Die empfohlenen Beträge nach Alter, basierend auf den Taschengeld-Empfehlungen 2025 des Deutschen Jugendinstituts (DJI).",
     "investmentCalculatorTitle": "Sparrechner für Kinder",
     "investmentCalculatorDescription": "Zeige deinem Kind, wie kleine regelmäßige Ersparnisse durch Zinseszinsen wachsen.",
     "blogTitle": "Bonifatus Blog — Erziehung & Finanztipps",
@@ -1291,11 +1291,9 @@
     "calcCtaDesc": "Richte automatische Belohnungen ein, die mit dem echten Zeugnis deines Kindes verknüpft sind – kein manuelles Rechnen nötig.",
     "calcCtaButton": "Kostenlos starten",
     "allowanceTitle": "Taschengeldrechner",
-    "allowanceSubtitle": "Basierend auf der DJI Taschengeldtabelle für Deutschland.",
+    "allowanceSubtitle": "Basierend auf den Taschengeld-Empfehlungen 2025 des Deutschen Jugendinstituts (DJI).",
     "allowanceAgeLabel": "Alter des Kindes",
-    "allowanceResultMonthly": "Empfohlenes monatliches Taschengeld",
-    "allowanceResultWeekly": "Entspricht pro Woche",
-    "allowanceSource": "Quelle: Deutsches Jugendinstitut (DJI) Taschengeldtabelle",
+    "allowanceSource": "Quelle: Deutsches Jugendinstitut (DJI), Taschengeld-Empfehlungen, September 2025",
     "allowanceCtaTitle": "Taschengeld und Notenbelohnungen kombinieren",
     "allowanceCtaDesc": "Nutze Bonifatus, um notenbasierte Boni zum festen Taschengeld hinzuzufügen.",
     "allowanceCtaButton": "Bonifatus kostenlos testen",
@@ -1312,7 +1310,16 @@
     "investChartTitle": "Wachstum über die Zeit",
     "investCtaTitle": "Belohne die Gewohnheit, nicht nur die Noten",
     "investCtaDesc": "Mit Bonifatus kannst du Sparziele gemeinsam mit schulischen Leistungen belohnen.",
-    "investCtaButton": "Kostenlos starten"
+    "investCtaButton": "Kostenlos starten",
+    "allowanceRangePerWeek": "{min}–{max} € pro Woche",
+    "allowanceRangePerMonth": "{min}–{max} € pro Monat",
+    "allowanceAgeUnder": "unter {age}",
+    "allowanceAgeFrom": "ab {age}",
+    "allowanceResultLabel": "DJI-Empfehlung · Alter: {age}",
+    "allowanceEquivalent": "Das entspricht etwa {range}",
+    "allowanceTableRange": "Empfohlene Spanne",
+    "allowanceDependentNote": "* Ab 16 Jahren für Jugendliche, die wirtschaftlich noch von den Eltern abhängig sind (z. B. Schülerinnen und Schüler).",
+    "allowanceKeepSeparate": "Das DJI rät davon ab, Taschengeld als Belohnung für gute Noten einzusetzen oder es zur Strafe zu kürzen. Wer Noten belohnen möchte, hält diesen Bonus getrennt vom Taschengeld."
   },
   "blog": {
     "indexTitle": "Blog",
@@ -1326,7 +1333,8 @@
     "ctaButton": "Bonifatus kostenlos testen",
     "relatedTitle": "Weitere Artikel",
     "backLink": "Blog",
-    "faqHeading": "FAQ"
+    "faqHeading": "FAQ",
+    "sourcesTitle": "Quellen"
   },
   "compare": {
     "indexTitle": "Noten-Belohnungs-Apps im Vergleich",
@@ -1365,5 +1373,21 @@
     "message": "Diese Seite gibt es auch auf Deutsch.",
     "switch": "Auf Deutsch lesen",
     "dismiss": "Schließen"
+  },
+  "ratgeber": {
+    "breadcrumbHome": "Startseite",
+    "breadcrumbHub": "Ratgeber",
+    "hubTitle": "Ratgeber für Eltern",
+    "hubMetaTitle": "Ratgeber für Eltern: Taschengeld, Zeugnisgeld und Motivation",
+    "hubDescription": "Taschengeld-Tabelle 2025, faires Zeugnisgeld und die Frage, ob man Schulnoten belohnen sollte – fundierte Ratgeber für Eltern, mit Quellen.",
+    "hubIntro": "Fundierte Antworten auf die Geldfragen rund um die Schule: wie viel Taschengeld angemessen ist, was beim Zeugnisgeld fair ist und ob man Noten überhaupt belohnen sollte. Mit Quellen – und mit den Gegenargumenten.",
+    "readingTime": "{minutes} Min. Lesezeit",
+    "updatedOn": "Aktualisiert am {date}",
+    "toc": "Inhalt",
+    "faqTitle": "Häufige Fragen",
+    "sourcesTitle": "Quellen",
+    "readArticle": "Weiterlesen",
+    "relatedTitle": "Weitere Ratgeber",
+    "breadcrumbLabel": "Navigationspfad"
   }
 }
