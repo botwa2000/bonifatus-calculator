@@ -66,7 +66,8 @@ const localePattern = new RegExp(`^/(${routing.locales.join('|')})(?=/|$)`)
 // (sitemap.xml, robots.txt, sw.js, manifest.json, images, …) and is never localized.
 const FILE_PATTERN = /\/[^/]+\.[a-z0-9]+$/i
 
-export default async function middleware(req: NextRequest) {
+// Next.js 16 proxy (formerly middleware): runs before every matched request.
+export default async function proxy(req: NextRequest) {
   const { pathname } = req.nextUrl
 
   if (pathname.startsWith('/_next') || FILE_PATTERN.test(pathname)) {

@@ -16,8 +16,8 @@ content.**
 | `/de/parent/…` signed out                      | `307` to `/de/login?redirectTo=…`.                                                                               |
 | `/sitemap.xml`, `/robots.txt`, `/sw.js`, files | Served as-is, never localized.                                                                                   |
 
-`i18n/routing.ts` sets `localePrefix: 'always'`; `middleware.ts` uses next-intl's own
-middleware for locale routing and adds only auth gating on top.
+`i18n/routing.ts` sets `localePrefix: 'always'`; `proxy.ts` (the Next.js 16 name for middleware) uses next-intl's
+own middleware for locale routing and adds only auth gating on top.
 
 ## Why not the alternatives
 
@@ -64,7 +64,7 @@ Blog posts register themselves in `content/blog/registry.ts`.
 
 ## Guardrails
 
-- `npx vitest run`: unit tests for the registry, alternates, sitemap, robots and middleware.
+- `npx vitest run`: unit tests for the registry, alternates, sitemap, robots and proxy routing.
 - `node scripts/seo-check.mjs <url>`: live crawl of robots, sitemap and every sitemap URL
   (status, canonical, reciprocal hreflang, `<html lang>`, JSON-LD), locale redirects,
   auth gating and 404s. Runs automatically after every production deploy.
