@@ -1389,5 +1389,17 @@
     "readArticle": "Lire l’article",
     "relatedTitle": "Autres conseils",
     "breadcrumbLabel": "Fil d’Ariane"
+  },
+  "invite": {
+    "metaTitle": "Invitation à se connecter",
+    "title": "Tu as été invité",
+    "description": "Un parent souhaite se connecter à ton compte élève sur Bonifatus. Connecte-toi ou inscris-toi – le code d’invitation sera ensuite rempli, il te suffira de le confirmer.",
+    "codeLabel": "Code d’invitation",
+    "loginButton": "Se connecter et relier",
+    "registerButton": "Créer un compte élève",
+    "appHint": "Tu utilises l’application ? Ouvre les Paramètres, touche « Scanner QR » et scanne le code de ton parent.",
+    "parentTitle": "Cette invitation est destinée à un élève",
+    "parentText": "Les codes d’invitation relient un compte élève à un parent. Montre ce code ou ce QR code à ton enfant pour qu’il le confirme dans son compte.",
+    "dashboardButton": "Aller au tableau de bord"
   }
 }

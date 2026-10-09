@@ -1389,5 +1389,17 @@
     "readArticle": "Read article",
     "relatedTitle": "More advice",
     "breadcrumbLabel": "Breadcrumb"
+  },
+  "invite": {
+    "metaTitle": "Invitation to connect",
+    "title": "You've been invited",
+    "description": "A parent wants to connect with your student account on Bonifatus. Log in or sign up – the invite code will then be filled in for you to confirm.",
+    "codeLabel": "Invite code",
+    "loginButton": "Log in and connect",
+    "registerButton": "Create a student account",
+    "appHint": "Using the app? Open Settings, tap “Scan QR” and scan your parent’s code.",
+    "parentTitle": "This invite is for a student",
+    "parentText": "Invite codes connect a student account to a parent. Show this code or QR code to your child so they can confirm it in their account.",
+    "dashboardButton": "Go to your dashboard"
   }
 }

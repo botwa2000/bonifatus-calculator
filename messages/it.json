@@ -1389,5 +1389,17 @@
     "readArticle": "Leggi l’articolo",
     "relatedTitle": "Altri consigli",
     "breadcrumbLabel": "Percorso di navigazione"
+  },
+  "invite": {
+    "metaTitle": "Invito a collegarsi",
+    "title": "Sei stato invitato",
+    "description": "Un genitore vuole collegarsi al tuo account studente su Bonifatus. Accedi o registrati: il codice d’invito verrà inserito e dovrai solo confermarlo.",
+    "codeLabel": "Codice d’invito",
+    "loginButton": "Accedi e collega",
+    "registerButton": "Crea un account studente",
+    "appHint": "Usi l’app? Apri le Impostazioni, tocca «Scansiona QR» e scansiona il codice del tuo genitore.",
+    "parentTitle": "Questo invito è per uno studente",
+    "parentText": "I codici d’invito collegano un account studente a un genitore. Mostra questo codice o QR code a tuo figlio perché lo confermi nel suo account.",
+    "dashboardButton": "Vai alla dashboard"
   }
 }

@@ -74,6 +74,19 @@ describe('auth gating', () => {
   })
 })
 
+describe('invite links from the mobile app QR code', () => {
+  it('sends the unprefixed invite URL to the visitor locale, keeping the code', async () => {
+    expect(location(await middleware(request('/invite?code=123456', { lang: 'de' })))).toBe(
+      '/de/invite?code=123456'
+    )
+  })
+
+  it('serves the invite page to anonymous visitors (no login redirect)', async () => {
+    const res = await middleware(request('/de/invite?code=123456'))
+    expect(res.headers.get('location')).toBeNull()
+  })
+})
+
 describe('non-page requests', () => {
   it.each(['/sitemap.xml', '/robots.txt', '/sw.js', '/manifest.json', '/images/logo-192.png'])(
     'does not localize %s',

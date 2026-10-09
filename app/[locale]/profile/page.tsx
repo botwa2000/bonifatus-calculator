@@ -12,9 +12,9 @@ export default async function ProfilePage({
   searchParams,
 }: {
   params: Promise<{ locale: string }>
-  searchParams: Promise<{ tab?: string }>
+  searchParams: Promise<{ tab?: string; code?: string }>
 }) {
-  const [{ locale }, { tab }] = await Promise.all([params, searchParams])
+  const [{ locale }, { tab, code }] = await Promise.all([params, searchParams])
   setRequestLocale(locale)
   const user = await requireAuth()
   const profile = await getUserProfile()
@@ -44,6 +44,7 @@ export default async function ProfilePage({
         code: g.code,
       }))}
       initialTab={tab}
+      initialConnectCode={code && /^\d{6}$/.test(code) ? code : undefined}
     />
   )
 }

@@ -1389,5 +1389,17 @@
     "readArticle": "Weiterlesen",
     "relatedTitle": "Weitere Ratgeber",
     "breadcrumbLabel": "Navigationspfad"
+  },
+  "invite": {
+    "metaTitle": "Einladung zum Verbinden",
+    "title": "Du wurdest eingeladen",
+    "description": "Ein Elternteil möchte sich mit deinem Schülerkonto auf Bonifatus verbinden. Melde dich an oder registriere dich – der Einladungscode wird danach eingetragen, du musst ihn nur noch bestätigen.",
+    "codeLabel": "Einladungscode",
+    "loginButton": "Anmelden und verbinden",
+    "registerButton": "Schülerkonto erstellen",
+    "appHint": "Du nutzt die App? Öffne die Einstellungen, tippe auf „QR scannen“ und scanne den Code deiner Eltern.",
+    "parentTitle": "Diese Einladung ist für ein Schülerkonto",
+    "parentText": "Mit Einladungscodes verbindet sich ein Schülerkonto mit einem Elternkonto. Zeige diesen Code oder QR-Code deinem Kind, damit es die Verbindung in seinem Konto bestätigt.",
+    "dashboardButton": "Zum Dashboard"
   }
 }

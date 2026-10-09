@@ -1389,5 +1389,17 @@
     "readArticle": "Leer artículo",
     "relatedTitle": "Más guías",
     "breadcrumbLabel": "Ruta de navegación"
+  },
+  "invite": {
+    "metaTitle": "Invitación para conectar",
+    "title": "Has recibido una invitación",
+    "description": "Uno de tus padres quiere conectarse con tu cuenta de estudiante en Bonifatus. Inicia sesión o regístrate: el código de invitación se rellenará y solo tendrás que confirmarlo.",
+    "codeLabel": "Código de invitación",
+    "loginButton": "Iniciar sesión y conectar",
+    "registerButton": "Crear cuenta de estudiante",
+    "appHint": "¿Usas la app? Abre Ajustes, toca «Escanear QR» y escanea el código de tu padre o madre.",
+    "parentTitle": "Esta invitación es para un estudiante",
+    "parentText": "Los códigos de invitación conectan una cuenta de estudiante con un padre o madre. Muestra este código o código QR a tu hijo para que lo confirme en su cuenta.",
+    "dashboardButton": "Ir al panel"
   }
 }

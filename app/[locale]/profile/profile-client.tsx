@@ -39,6 +39,8 @@ interface ProfileClientProps {
     code: string | null
   }>
   initialTab?: string
+  /** Invite code from an invite link (/invite?code=…), pre-filled for the child to confirm. */
+  initialConnectCode?: string
 }
 
 const VALID_TABS: Tab[] = ['personal', 'security', 'school', 'connections', 'danger']
@@ -65,6 +67,7 @@ export default function ProfileClient({
   defaultClassLevel: initialClassLevel,
   gradingSystems,
   initialTab,
+  initialConnectCode,
 }: ProfileClientProps) {
   const router = useRouter()
   const locale = useLocale()
@@ -123,7 +126,7 @@ export default function ProfileClient({
   // Connections
   const [connections, setConnections] = useState<ParentConnection[]>([])
   const [connectionsLoading, setConnectionsLoading] = useState(true)
-  const [connectCode, setConnectCode] = useState('')
+  const [connectCode, setConnectCode] = useState(initialConnectCode ?? '')
   const [redeeming, setRedeeming] = useState(false)
   const [removingId, setRemovingId] = useState<string | null>(null)
 
