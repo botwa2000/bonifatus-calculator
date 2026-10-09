@@ -1,4 +1,4 @@
-import { redirect } from 'next/navigation'
+import { redirect } from '@/i18n/navigation'
 import { AppHeader } from '@/components/layout/AppHeader'
 import { requireAuth, getUserProfile } from '@/lib/auth/session'
 import { setRequestLocale, getTranslations } from 'next-intl/server'
@@ -19,11 +19,11 @@ export default async function ParentLayout({
   const profile = await getUserProfile()
 
   if (profile?.role === 'child') {
-    redirect('/student/dashboard')
+    redirect({ href: '/student/dashboard', locale })
   }
 
   if (profile?.role === 'admin') {
-    redirect('/admin/dashboard')
+    redirect({ href: '/admin/dashboard', locale })
   }
 
   const navItems = [

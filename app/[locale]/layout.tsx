@@ -6,10 +6,15 @@ import { SessionProvider } from 'next-auth/react'
 import { ThemeProvider } from '@/components/providers/ThemeProvider'
 import { IdleLogoutGuard } from '@/components/auth/IdleLogoutGuard'
 import { CookieConsentBanner } from '@/components/cookies/CookieConsentBanner'
-import { routing } from '@/i18n/routing'
+import { routing, type Locale } from '@/i18n/routing'
 import { ServiceWorkerRegistrar } from '@/components/pwa/ServiceWorkerRegistrar'
 import { CapacitorInit } from '@/components/native/CapacitorInit'
 import { Analytics } from '@/components/analytics/Analytics'
+import {
+  LanguageSuggestion,
+  type LanguageSuggestionStrings,
+} from '@/components/i18n/LanguageSuggestion'
+import { SITE_URL, IS_INDEXABLE_DEPLOYMENT } from '@/lib/site'
 import { Geist, Geist_Mono } from 'next/font/google'
 import type { Metadata } from 'next'
 
@@ -27,7 +32,17 @@ export function generateStaticParams() {
   return routing.locales.map((locale) => ({ locale }))
 }
 
-const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL ?? 'https://bonifatus.com'
+// The language-suggestion bar is worded in the visitor's preferred language, not the
+// page's, so it needs that one namespace from every locale.
+async function loadLanguageSuggestionStrings() {
+  const entries = await Promise.all(
+    routing.locales.map(async (l) => {
+      const messages = (await import(`../../messages/${l}.json`)).default
+      return [l, messages.languageSuggestion as LanguageSuggestionStrings] as const
+    })
+  )
+  return Object.fromEntries(entries) as Record<Locale, LanguageSuggestionStrings>
+}
 
 export async function generateMetadata({
   params,
@@ -38,7 +53,7 @@ export async function generateMetadata({
   const t = await getTranslations({ locale, namespace: 'seo' })
 
   return {
-    metadataBase: new URL(BASE_URL),
+    metadataBase: new URL(SITE_URL),
     title: {
       template: '%s | Bonifatus',
       default: 'Bonifatus',
@@ -48,23 +63,17 @@ export async function generateMetadata({
       icon: '/favicon.png',
       apple: '/images/logo-192.png',
     },
+    // og:image comes from the opengraph-image.tsx file convention in this segment.
     openGraph: {
       type: 'website',
       siteName: 'Bonifatus',
       locale,
-      images: [
-        {
-          url: '/opengraph-image',
-          width: 1200,
-          height: 630,
-          alt: 'Bonifatus',
-        },
-      ],
     },
     twitter: {
       card: 'summary_large_image',
       site: '@bonifatus',
     },
+    ...(IS_INDEXABLE_DEPLOYMENT ? {} : { robots: { index: false, follow: false } }),
   }
 }
 
@@ -84,6 +93,7 @@ export default async function LocaleLayout({
   setRequestLocale(locale)
 
   const messages = (await import(`../../messages/${locale}.json`)).default
+  const languageSuggestionStrings = await loadLanguageSuggestionStrings()
 
   return (
     <html lang={locale} suppressHydrationWarning>
@@ -104,6 +114,7 @@ export default async function LocaleLayout({
           <NextIntlClientProvider locale={locale} messages={messages}>
             <ThemeProvider>
               <IdleLogoutGuard />
+              <LanguageSuggestion strings={languageSuggestionStrings} />
               {children}
               <CookieConsentBanner />
               <ServiceWorkerRegistrar />

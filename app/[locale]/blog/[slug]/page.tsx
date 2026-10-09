@@ -6,7 +6,7 @@ import { getPost, getAllSlugs, getLocalesForSlug } from '@/content/blog/registry
 import { auth } from '@/auth'
 import { notFound } from 'next/navigation'
 import type { Metadata } from 'next'
-import { buildAlternatesFor } from '@/lib/seo/alternates'
+import { buildAlternates } from '@/lib/seo/alternates'
 
 export async function generateStaticParams() {
   const slugs = getAllSlugs()
@@ -32,10 +32,11 @@ export async function generateMetadata({
   return {
     title: post.title,
     description: post.description,
-    alternates: await buildAlternatesFor(locale, `/blog/${slug}`, availableLocales),
+    alternates: buildAlternates(locale, `/blog/${slug}`, availableLocales),
     openGraph: {
       type: 'article',
       publishedTime: post.publishedAt,
+      ...(post.updatedAt ? { modifiedTime: post.updatedAt } : {}),
     },
   }
 }
@@ -64,6 +65,7 @@ export default async function BlogPostPage({
           description: post.description,
           slug: post.slug,
           publishedAt: post.publishedAt,
+          updatedAt: post.updatedAt,
           locale,
         })}
       />

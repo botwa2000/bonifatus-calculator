@@ -1354,5 +1354,16 @@
     "appsVerdictTitle": "Nuestro veredicto",
     "appsVerdictBonifatus": "Bonifatus está diseñado específicamente para recompensas por notas con soporte multi-país, control parental y un sistema de bonus transparente, todo gratis.",
     "appsBottomCta": "Prueba Bonifatus gratis — sin tarjeta de crédito."
+  },
+  "notFound": {
+    "title": "Página no encontrada",
+    "description": "La página que buscas no existe o se ha movido.",
+    "backHome": "Ir a la página de inicio",
+    "browseTools": "Ver herramientas gratuitas"
+  },
+  "languageSuggestion": {
+    "message": "Esta página también está disponible en español.",
+    "switch": "Leer en español",
+    "dismiss": "Cerrar"
   }
 }

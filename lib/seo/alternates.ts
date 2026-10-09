@@ -1,61 +1,40 @@
-import { headers } from 'next/headers'
+import type { Metadata } from 'next'
 import { routing } from '@/i18n/routing'
+import { SITE_URL } from '@/lib/site'
+import { getPublicPage, pageLocales } from '@/lib/seo/routes'
 
-const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL ?? 'https://bonifatus.com'
-const { locales, defaultLocale } = routing
-
-export function buildUrl(locale: string, path: string): string {
-  const prefix = locale === defaultLocale ? '' : `/${locale}`
-  const normalized = path === '/' ? '' : path
-  return `${BASE_URL}${prefix}${normalized || '/'}`
+/** Absolute URL of a page in one locale: localizedUrl('de', '/faq') → https://bonifatus.com/de/faq */
+export function localizedUrl(locale: string, path: string): string {
+  return `${SITE_URL}/${locale}${path === '/' ? '' : path}`
 }
 
-export function buildLanguages(path: string): Record<string, string> {
+/**
+ * hreflang map for a page that exists in `locales`. Every listed locale points at its own
+ * URL, so the set is identical (and therefore reciprocal) on each language version.
+ * x-default is the default-locale version when it exists, otherwise the first locale.
+ */
+export function buildLanguages(path: string, locales: readonly string[]): Record<string, string> {
   const languages: Record<string, string> = {}
   for (const locale of locales) {
-    languages[locale] = buildUrl(locale, path)
+    languages[locale] = localizedUrl(locale, path)
   }
-  languages['x-default'] = buildUrl(defaultLocale, path)
+  const fallback = locales.includes(routing.defaultLocale) ? routing.defaultLocale : locales[0]
+  if (fallback) languages['x-default'] = localizedUrl(fallback, path)
   return languages
 }
 
-export function buildLanguagesFor(
-  path: string,
-  availableLocales: readonly string[]
-): Record<string, string> {
-  const languages: Record<string, string> = {}
-  for (const locale of availableLocales) {
-    languages[locale] = buildUrl(locale, path)
-  }
-  if (availableLocales.includes(defaultLocale)) {
-    languages['x-default'] = buildUrl(defaultLocale, path)
-  }
-  return languages
-}
-
-// When the middleware rewrites a non-prefixed URL (e.g. /about) to a locale path
-// (e.g. /de/about) it forwards `x-original-pathname` so we can emit a canonical
-// that matches the actual URL the browser and crawler see.
-export async function buildAlternates(locale: string, path: string) {
-  const h = await headers()
-  const originalPath = h.get('x-original-pathname')
-  const canonical = originalPath ? `${BASE_URL}${originalPath}` : buildUrl(locale, path)
-  return {
-    canonical,
-    languages: buildLanguages(path),
-  }
-}
-
-export async function buildAlternatesFor(
+/**
+ * Self-referencing canonical + hreflang for a page. Locales come from the page registry
+ * (lib/seo/routes.ts) unless given explicitly (blog posts, which register their own).
+ */
+export function buildAlternates(
   locale: string,
   path: string,
-  availableLocales: readonly string[]
-) {
-  const h = await headers()
-  const originalPath = h.get('x-original-pathname')
-  const canonical = originalPath ? `${BASE_URL}${originalPath}` : buildUrl(locale, path)
+  locales?: readonly string[]
+): NonNullable<Metadata['alternates']> {
+  const available = locales ?? pageLocales(getPublicPage(path) ?? {})
   return {
-    canonical,
-    languages: buildLanguagesFor(path, availableLocales),
+    canonical: localizedUrl(locale, path),
+    languages: buildLanguages(path, available),
   }
 }

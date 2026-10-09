@@ -1354,5 +1354,16 @@
     "appsVerdictTitle": "Unser Fazit",
     "appsVerdictBonifatus": "Bonifatus wurde speziell für notenbasierte Belohnungen entwickelt – mit Unterstützung mehrerer Notensysteme, Elternkontrolle und einem transparenten Bonussystem – und das kostenlos.",
     "appsBottomCta": "Bonifatus kostenlos testen – keine Kreditkarte erforderlich."
+  },
+  "notFound": {
+    "title": "Seite nicht gefunden",
+    "description": "Die gesuchte Seite gibt es nicht oder sie ist umgezogen.",
+    "backHome": "Zur Startseite",
+    "browseTools": "Kostenlose Tools ansehen"
+  },
+  "languageSuggestion": {
+    "message": "Diese Seite gibt es auch auf Deutsch.",
+    "switch": "Auf Deutsch lesen",
+    "dismiss": "Schließen"
   }
 }

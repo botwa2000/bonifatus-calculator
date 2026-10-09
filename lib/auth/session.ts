@@ -3,9 +3,15 @@ import { db } from '@/lib/db/client'
 import { userProfiles } from '@/drizzle/schema/users'
 import { users } from '@/drizzle/schema/auth'
 import { eq } from 'drizzle-orm'
-import { redirect } from 'next/navigation'
+import { getLocale } from 'next-intl/server'
+import { redirect as localeRedirect } from '@/i18n/navigation'
 import { headers } from 'next/headers'
 import { verifyMobileToken } from '@/lib/auth/mobile-token'
+
+// Server-side redirect that keeps the visitor in the locale of the current request.
+async function redirect(href: string): Promise<never> {
+  return localeRedirect({ href, locale: await getLocale() })
+}
 
 export async function getSession() {
   return await auth()
@@ -14,7 +20,7 @@ export async function getSession() {
 export async function requireAuth() {
   const session = await auth()
   if (!session?.user) {
-    redirect('/login')
+    return redirect('/login')
   }
   return session.user
 }
@@ -35,10 +41,10 @@ export async function getUserProfile() {
 export async function requireRole(role: 'parent' | 'child') {
   const profile = await getUserProfile()
   if (!profile) {
-    redirect('/login')
+    return redirect('/login')
   }
   if (profile.role !== role) {
-    redirect(role === 'parent' ? '/student/dashboard' : '/parent/children')
+    return redirect(role === 'parent' ? '/student/dashboard' : '/parent/children')
   }
   return profile
 }
@@ -46,10 +52,10 @@ export async function requireRole(role: 'parent' | 'child') {
 export async function requireAdmin() {
   const profile = await getUserProfile()
   if (!profile) {
-    redirect('/login')
+    return redirect('/login')
   }
   if (profile.role !== 'admin') {
-    redirect('/dashboard')
+    return redirect('/dashboard')
   }
   return profile
 }

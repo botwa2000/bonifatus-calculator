@@ -1,7 +1,7 @@
 import { setRequestLocale, getTranslations } from 'next-intl/server'
 import { Link } from '@/i18n/navigation'
 import { AppHeader } from '@/components/layout/AppHeader'
-import { JsonLd, organizationJsonLd } from '@/components/seo/JsonLd'
+import { JsonLd, webApplicationJsonLd } from '@/components/seo/JsonLd'
 import { auth } from '@/auth'
 import type { Metadata } from 'next'
 import { buildAlternates } from '@/lib/seo/alternates'
@@ -17,7 +17,7 @@ export async function generateMetadata({
   return {
     title: t('gradeCalculatorTitle'),
     description: t('gradeCalculatorDescription'),
-    alternates: await buildAlternates(locale, '/tools/grade-reward-calculator'),
+    alternates: buildAlternates(locale, '/tools/grade-reward-calculator'),
   }
 }
 
@@ -31,10 +31,18 @@ export default async function GradeRewardCalculatorPage({
   const session = await auth()
   const isAuthed = Boolean(session?.user)
   const t = await getTranslations('tools')
+  const tSeo = await getTranslations('seo')
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary-50 via-white to-secondary-50 dark:from-neutral-900 dark:via-neutral-800 dark:to-neutral-900">
-      <JsonLd data={organizationJsonLd()} />
+      <JsonLd
+        data={webApplicationJsonLd({
+          locale,
+          path: '/tools/grade-reward-calculator',
+          name: tSeo('gradeCalculatorTitle'),
+          description: tSeo('gradeCalculatorDescription'),
+        })}
+      />
       <AppHeader variant="public" isAuthed={isAuthed} />
 
       <main className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-24">

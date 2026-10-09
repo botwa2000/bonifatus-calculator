@@ -15,7 +15,7 @@ export async function generateMetadata({
   return {
     title: t('cookiesTitle'),
     description: t('cookiesDescription'),
-    alternates: await buildAlternates(locale, '/cookies'),
+    alternates: buildAlternates(locale, '/cookies'),
   }
 }
 

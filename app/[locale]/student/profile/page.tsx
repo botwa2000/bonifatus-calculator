@@ -1,4 +1,4 @@
-import { redirect } from 'next/navigation'
+import { redirect } from '@/i18n/navigation'
 import { setRequestLocale } from 'next-intl/server'
 
 export default async function StudentProfileRedirect({
@@ -8,5 +8,5 @@ export default async function StudentProfileRedirect({
 }) {
   const { locale } = await params
   setRequestLocale(locale)
-  redirect('/profile')
+  redirect({ href: '/profile', locale })
 }

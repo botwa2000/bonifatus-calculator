@@ -1354,5 +1354,16 @@
     "appsVerdictTitle": "Il nostro giudizio",
     "appsVerdictBonifatus": "Bonifatus è progettato specificamente per i premi scolastici con supporto multi-paese, controllo genitoriale e un sistema di bonus trasparente — il tutto gratuitamente.",
     "appsBottomCta": "Prova Bonifatus gratis — nessuna carta di credito richiesta."
+  },
+  "notFound": {
+    "title": "Pagina non trovata",
+    "description": "La pagina che cerchi non esiste o è stata spostata.",
+    "backHome": "Vai alla home page",
+    "browseTools": "Scopri gli strumenti gratuiti"
+  },
+  "languageSuggestion": {
+    "message": "Questa pagina è disponibile anche in italiano.",
+    "switch": "Leggi in italiano",
+    "dismiss": "Chiudi"
   }
 }

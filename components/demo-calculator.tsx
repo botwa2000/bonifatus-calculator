@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useLocale, useTranslations } from 'next-intl'
 import { resolveLocalized } from '@/lib/i18n'
+import { useRouter } from '@/i18n/navigation'
 import { Button, Select, Accordion, FormField, Tooltip, SubjectCombobox } from '@/components/ui'
 import { formatSecondaryAverage } from '@/lib/utils/grade-helpers'
 
@@ -294,6 +295,7 @@ export function DemoCalculator({
   initialData,
 }: DemoCalculatorProps = {}) {
   const locale = useLocale()
+  const router = useRouter()
   const t = useTranslations('calculator')
   const tc = useTranslations('common')
   // grade_tier keys from the DB (best/second/third/below) → localized labels
@@ -616,7 +618,7 @@ export function DemoCalculator({
     setSaveMessage(null)
     setSaveError(null)
     if (!userEmail) {
-      window.location.href = `/register?redirect=${encodeURIComponent(window.location.pathname)}`
+      router.push('/register')
       return
     }
     if (!selectedSystem) {
@@ -1012,9 +1014,7 @@ export function DemoCalculator({
                     {t('saveTerm')}
                   </Button>
                 ) : (
-                  <Button onClick={() => (window.location.href = '/register')}>
-                    {t('saveAndTrack')}
-                  </Button>
+                  <Button onClick={() => router.push('/register')}>{t('saveAndTrack')}</Button>
                 )}
               </div>
               <div className="mt-3 space-y-2 text-sm text-neutral-700 dark:text-neutral-300">

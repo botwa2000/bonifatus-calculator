@@ -1,7 +1,6 @@
 import { setRequestLocale, getTranslations } from 'next-intl/server'
 import { Link } from '@/i18n/navigation'
 import { AppHeader } from '@/components/layout/AppHeader'
-import { JsonLd, webSiteJsonLd } from '@/components/seo/JsonLd'
 import { getAllPosts } from '@/content/blog/registry'
 import { auth } from '@/auth'
 import type { Metadata } from 'next'
@@ -17,7 +16,7 @@ export async function generateMetadata({
   return {
     title: t('blogTitle'),
     description: t('blogDescription'),
-    alternates: await buildAlternates(locale, '/blog'),
+    alternates: buildAlternates(locale, '/blog'),
   }
 }
 
@@ -31,7 +30,6 @@ export default async function BlogIndexPage({ params }: { params: Promise<{ loca
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary-50 via-white to-secondary-50 dark:from-neutral-900 dark:via-neutral-800 dark:to-neutral-900">
-      <JsonLd data={webSiteJsonLd()} />
       <AppHeader variant="public" isAuthed={isAuthed} />
 
       <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-24">

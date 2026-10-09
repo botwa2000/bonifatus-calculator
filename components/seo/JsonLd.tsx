@@ -1,4 +1,6 @@
 import React from 'react'
+import { SITE_URL } from '@/lib/site'
+import { localizedUrl } from '@/lib/seo/alternates'
 
 type JsonLdValue = string | number | boolean | null | JsonLdValue[] | { [key: string]: JsonLdValue }
 
@@ -12,61 +14,55 @@ export function JsonLd({ data }: JsonLdProps) {
   )
 }
 
-const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL ?? 'https://bonifatus.com'
+// Structured data must describe only what is true and visible. Never add ratings,
+// review counts or `aggregateRating` without real, on-page reviews — fabricated review
+// markup is a Google manual-action risk.
 
-export function organizationJsonLd() {
+const ORGANIZATION_ID = `${SITE_URL}/#organization`
+
+function organization() {
   return {
-    '@context': 'https://schema.org',
     '@type': 'Organization',
+    '@id': ORGANIZATION_ID,
     name: 'Bonifatus',
-    url: BASE_URL,
-    logo: `${BASE_URL}/images/logo-192.png`,
-    sameAs: [],
-    contactPoint: {
-      '@type': 'ContactPoint',
-      contactType: 'customer support',
-      url: `${BASE_URL}/contact`,
-    },
+    url: SITE_URL,
+    logo: `${SITE_URL}/images/logo-512.png`,
   }
 }
 
-export function softwareApplicationJsonLd() {
+/**
+ * Organization + the Bonifatus web app, for the homepage and the calculator.
+ * `description` must come from the localized `seo` messages of the rendering locale.
+ */
+export function webApplicationJsonLd({
+  locale,
+  path,
+  name,
+  description,
+}: {
+  locale: string
+  path: string
+  name: string
+  description: string
+}) {
   return {
     '@context': 'https://schema.org',
-    '@type': 'SoftwareApplication',
-    name: 'Bonifatus',
-    applicationCategory: 'EducationApplication',
-    operatingSystem: 'iOS, Android, Web',
-    url: BASE_URL,
-    description:
-      'Bonifatus helps parents motivate children with a transparent grade-based reward system.',
-    offers: {
-      '@type': 'Offer',
-      price: '0',
-      priceCurrency: 'EUR',
-    },
-    aggregateRating: {
-      '@type': 'AggregateRating',
-      ratingValue: '5',
-      ratingCount: '1',
-    },
-  }
-}
-
-export function webSiteJsonLd() {
-  return {
-    '@context': 'https://schema.org',
-    '@type': 'WebSite',
-    name: 'Bonifatus',
-    url: BASE_URL,
-    potentialAction: {
-      '@type': 'SearchAction',
-      target: {
-        '@type': 'EntryPoint',
-        urlTemplate: `${BASE_URL}/blog?q={search_term_string}`,
+    '@graph': [
+      organization(),
+      {
+        '@type': 'WebApplication',
+        name,
+        description,
+        url: localizedUrl(locale, path),
+        inLanguage: locale,
+        applicationCategory: 'EducationalApplication',
+        operatingSystem: 'Web, iOS, Android',
+        // Core features are free; a paid tier is planned but does not exist yet.
+        isAccessibleForFree: true,
+        offers: { '@type': 'Offer', price: '0', priceCurrency: 'EUR' },
+        publisher: { '@id': ORGANIZATION_ID },
       },
-      'query-input': 'required name=search_term_string',
-    },
+    ],
   }
 }
 
@@ -90,24 +86,18 @@ export function blogPostJsonLd(post: {
   description: string
   slug: string
   publishedAt: string
+  updatedAt?: string
   locale: string
 }) {
-  const localePrefix = post.locale === 'en' ? '' : `/${post.locale}`
-  const url = `${BASE_URL}${localePrefix}/blog/${post.slug}`
   return {
     '@context': 'https://schema.org',
     '@type': 'Article',
     headline: post.title,
     description: post.description,
-    url,
+    url: localizedUrl(post.locale, `/blog/${post.slug}`),
+    inLanguage: post.locale,
     datePublished: post.publishedAt,
-    publisher: {
-      '@type': 'Organization',
-      name: 'Bonifatus',
-      logo: {
-        '@type': 'ImageObject',
-        url: `${BASE_URL}/images/logo-192.png`,
-      },
-    },
+    dateModified: post.updatedAt ?? post.publishedAt,
+    publisher: organization(),
   }
 }

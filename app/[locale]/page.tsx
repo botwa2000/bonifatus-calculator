@@ -1,6 +1,7 @@
 import { setRequestLocale, getTranslations } from 'next-intl/server'
 import type { Metadata } from 'next'
 import { buildAlternates } from '@/lib/seo/alternates'
+import { JsonLd, webApplicationJsonLd } from '@/components/seo/JsonLd'
 import Image from 'next/image'
 import { DemoSection } from '@/components/demo-section'
 import { HeroCta } from '@/components/hero-cta'
@@ -23,7 +24,7 @@ export async function generateMetadata({
   return {
     title: t('homeTitle'),
     description: t('homeDescription'),
-    alternates: await buildAlternates(locale, '/'),
+    alternates: buildAlternates(locale, '/'),
   }
 }
 
@@ -36,9 +37,18 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
   const t = await getTranslations('home')
   const tNav = await getTranslations('nav')
   const tCommon = await getTranslations('common')
+  const tSeo = await getTranslations('seo')
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary-50 via-white to-secondary-50 dark:from-neutral-900 dark:via-neutral-800 dark:to-neutral-900">
+      <JsonLd
+        data={webApplicationJsonLd({
+          locale,
+          path: '/',
+          name: 'Bonifatus',
+          description: tSeo('homeDescription'),
+        })}
+      />
       <AppHeader variant="public" isAuthed={isAuthed} />
 
       {/* Hero Section */}

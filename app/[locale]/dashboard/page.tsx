@@ -1,4 +1,4 @@
-import { redirect } from 'next/navigation'
+import { redirect } from '@/i18n/navigation'
 import { setRequestLocale } from 'next-intl/server'
 import { requireAuth, getUserProfile, getSession } from '@/lib/auth/session'
 
@@ -14,18 +14,18 @@ export default async function DashboardRouterPage({
   // New Google users who haven't completed profile setup yet
   const session = await getSession()
   if (session?.user?.needsSetup) {
-    redirect('/auth/google-profile')
+    redirect({ href: '/auth/google-profile', locale })
   }
 
   const profile = await getUserProfile()
 
   if (profile?.role === 'admin') {
-    redirect('/admin/dashboard')
+    redirect({ href: '/admin/dashboard', locale })
   }
 
   if (profile?.role === 'parent') {
-    redirect('/parent/children')
+    redirect({ href: '/parent/children', locale })
   }
 
-  redirect('/student/dashboard')
+  redirect({ href: '/student/dashboard', locale })
 }

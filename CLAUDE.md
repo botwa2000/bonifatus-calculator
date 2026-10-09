@@ -120,3 +120,4 @@ Both jobs must succeed:
 - **Router guard**: `_AuthListenable` on `authStateNotifierProvider`; redirect to `/auth/login` when unauthenticated
 - **Inactivity**: `InactivityGuard` wraps both `student_shell.dart` and `parent_shell.dart`; 15-min timer, resets on any pointer event
 - **Parent dashboard grades**: `/api/parent/children/quick-grades` combines `quickGrades` (Notes feature) + `subjectGrades` from `termGrades` (Calculator feature) so children using either feature appear with correct counts
+- **Web URLs & SEO**: every page is locale-prefixed (`/en/…`, `/de/…`); unprefixed URLs only redirect. Indexable pages are registered in `lib/seo/routes.ts` (drives sitemap, hreflang, robots). Read `docs/i18n-seo.md` before adding a page or touching `middleware.ts`; verify with `npx vitest run` and `node scripts/seo-check.mjs <url>`

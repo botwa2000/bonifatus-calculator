@@ -173,3 +173,15 @@ jobs:
               docker service logs "${STACK}_app" --tail 30
               exit 1
             fi
+
+      # Crawl the live production site: robots.txt, sitemap.xml and every sitemap URL
+      # (status, canonical, hreflang reciprocity, <html lang>, JSON-LD), plus locale
+      # redirects, auth gating and real 404s. Fails the deploy if the SEO/i18n contract
+      # regresses. Dev is skipped: it is deliberately noindex.
+      - name: Checkout (SEO check script)
+        if: steps.env.outputs.name == 'prod'
+        uses: actions/checkout@v4
+
+      - name: Verify SEO and locale routing on production
+        if: steps.env.outputs.name == 'prod'
+        run: node scripts/seo-check.mjs "${{ steps.env.outputs.app_url }}"

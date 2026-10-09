@@ -1354,5 +1354,16 @@
     "appsVerdictTitle": "Our Verdict",
     "appsVerdictBonifatus": "Bonifatus is purpose-built for grade-based rewards with multi-country grading support, parent controls, and a transparent bonus system — all for free.",
     "appsBottomCta": "Try Bonifatus free — no credit card required."
+  },
+  "notFound": {
+    "title": "Page not found",
+    "description": "The page you are looking for does not exist or has moved.",
+    "backHome": "Go to the homepage",
+    "browseTools": "Browse free tools"
+  },
+  "languageSuggestion": {
+    "message": "This page is also available in English.",
+    "switch": "Switch to English",
+    "dismiss": "Dismiss"
   }
 }

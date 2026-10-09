@@ -16,7 +16,7 @@ export async function generateMetadata({
   return {
     title: t('investmentCalculatorTitle'),
     description: t('investmentCalculatorDescription'),
-    alternates: await buildAlternates(locale, '/tools/investment-calculator'),
+    alternates: buildAlternates(locale, '/tools/investment-calculator'),
   }
 }
 

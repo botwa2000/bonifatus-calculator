@@ -2,20 +2,20 @@
 
 import { useEffect, useRef, useState } from 'react'
 import Image from 'next/image'
-import { useRouter } from '@/i18n/navigation'
-import { Link } from '@/i18n/navigation'
+import { Link, getPathname, useRouter } from '@/i18n/navigation'
 import { Turnstile } from '@/components/ui/Turnstile'
 import { AppHeader } from '@/components/layout/AppHeader'
-import { useTranslations } from 'next-intl'
+import { useLocale, useTranslations } from 'next-intl'
 import { dbg, dbgWarn, dbgError } from '@/lib/debug'
 
 function GoogleSignInButton({ label }: { label: string }) {
+  const locale = useLocale()
   const [loading, setLoading] = useState(false)
   const handleClick = async () => {
     setLoading(true)
     try {
       const { signIn } = await import('next-auth/react')
-      await signIn('google', { callbackUrl: '/dashboard' })
+      await signIn('google', { callbackUrl: getPathname({ href: '/dashboard', locale }) })
     } finally {
       setLoading(false)
     }
