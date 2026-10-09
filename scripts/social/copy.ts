@@ -6,7 +6,26 @@
 // Write real characters (ä, ö, ü, ß, é, …), never transliterations — see
 // assertNoTransliteration() below and the diacritics fixture.
 
+import { DJI_ALLOWANCE_TABLE, type AllowanceEntry } from '../../lib/tools/allowance-table'
+
 export type Locale = 'de' | 'en' | 'fr' | 'it' | 'es' | 'ru'
+
+/** A numbered card on a "cards" pin (title + optional body). */
+export interface NumberedCard {
+  title: string
+  body: string
+}
+
+/** Pins that promote a Ratgeber article: header, optional table, numbered cards, source, CTA. */
+export interface RatgeberPin {
+  label: string
+  headline: string
+  subtext: string
+  table?: { head: [string, string]; rows: [string, string][] }
+  cards: NumberedCard[]
+  source: string
+  cta: string
+}
 
 export interface Step {
   label: string // pill above the headline, e.g. "Schritt 1"
@@ -75,6 +94,9 @@ export interface Copy {
       afterCaption: string
       callout: string
     }
+    ratgeberZeugnisgeld: RatgeberPin
+    ratgeberBudgetgeld: RatgeberPin
+    ratgeberNoten: RatgeberPin
     baMotivation: {
       label: string
       headline: string
@@ -90,21 +112,25 @@ export interface Copy {
   }
 }
 
-// Allowance guidance values from the Deutsches Jugendinstitut (DJI), as
-// verified for pin_taschengeldtabelle. Locale-independent; NEVER edit these
-// numbers without re-verifying against the DJI source.
-export const DJI_WEEKLY: readonly [ages: string, amount: string, upperEur: number][] = [
-  ['4–5', '0,50–1 €/Wo', 1],
-  ['6–7', '2–3 €/Wo', 3],
-  ['8–9', '3–4 €/Wo', 4],
-]
-export const DJI_MONTHLY: readonly [ages: string, amount: string, upperEur: number][] = [
-  ['10–11', '15–25 €/Mo', 25],
-  ['12–13', '20–30 €/Mo', 30],
-  ['14–15', '25–45 €/Mo', 45],
-  ['16–17', '40–60 €/Mo', 60],
-  ['ab 18', '55–75 €/Mo', 75],
-]
+// Allowance guidance values from the Deutsches Jugendinstitut (DJI), September 2025 —
+// derived from lib/tools/allowance-table.ts, the single verified source shared with the
+// website's calculator and Ratgeber. Never hard-code amounts here.
+const ageLabel = (e: AllowanceEntry) =>
+  e.ageMin === 0
+    ? `unter ${e.ageMax! + 1}`
+    : e.ageMax === null
+      ? `ab ${e.ageMin}`
+      : `${e.ageMin}–${e.ageMax}`
+const amountLabel = (e: AllowanceEntry) =>
+  `${e.minEur}–${e.maxEur} €/${e.period === 'week' ? 'Wo' : 'Mo'}${e.dependentOnly ? '*' : ''}`
+const djiRows = (period: AllowanceEntry['period']) =>
+  DJI_ALLOWANCE_TABLE.filter((e) => e.period === period).map(
+    (e) => [ageLabel(e), amountLabel(e), e.maxEur] as const
+  )
+export const DJI_WEEKLY: readonly (readonly [ages: string, amount: string, upperEur: number])[] =
+  djiRows('week')
+export const DJI_MONTHLY: readonly (readonly [ages: string, amount: string, upperEur: number])[] =
+  djiRows('month')
 
 const de: Copy = {
   url: 'bonifatus.com',
@@ -143,19 +169,22 @@ const de: Copy = {
   pins: {
     taschengeld: {
       label: 'Orientierung',
-      headline: 'Taschengeldtabelle 2026',
+      headline: 'Taschengeldtabelle 2025',
       subtext: 'Wie viel Taschengeld ist altersgerecht?',
-      weeklyHeader: 'Wöchentlich (4–9 J.)',
-      monthlyHeader: 'Monatlich (10+ J.)',
+      weeklyHeader: 'Wöchentlich (bis 9 J.)',
+      monthlyHeader: 'Monatlich (ab 10 J.)',
       valueHeader: 'Richtwert',
-      source: 'Quelle: Deutsches Jugendinstitut (DJI) — Richtwerte, keine Garantien',
+      source: 'Quelle: DJI 2025 · * ab 16, wenn noch von den Eltern abhängig',
       tipsTitle: 'Tipps zur Umsetzung',
       tips: [
         {
           title: 'Wöchentlich auszahlen',
           body: 'Kleine Beträge regelmäßig — schult Umgang mit Geld',
         },
-        { title: 'Noten mit einrechnen', body: 'Bonus fürs Zeugnis: z. B. 10 € pro Note 1' },
+        {
+          title: 'Unabhängig von Noten',
+          body: 'Laut DJI weder Belohnung noch Strafe — ein Zeugnisbonus ist ein eigener Topf',
+        },
         { title: 'Automatisch berechnen', body: 'Bonifatus übernimmt die Formel — kein Streit' },
       ],
       cta: 'Taschengeld & Noten fair belohnen',
@@ -240,6 +269,91 @@ const de: Copy = {
       afterCaption: 'Eine Formel. Alle Kinder. Keine Diskussion.',
       callout: 'Für alle gleich berechnet',
     },
+    ratgeberZeugnisgeld: {
+      label: 'Ratgeber',
+      headline: 'Zeugnisgeld: Wie viel ist fair?',
+      subtext: 'Was üblich ist – und wie eine faire Regel aussieht.',
+      cards: [
+        {
+          title: 'Nur 21 % geben Geld',
+          body: 'Knapp 60 % der Eltern belohnen das Zeugnis – meist nicht mit Geld.',
+        },
+        {
+          title: 'Am Taschengeld orientieren',
+          body: 'Der ganze Bonus: etwa ein halbes bis ein ganzes Monatstaschengeld.',
+        },
+        {
+          title: 'Regel vor dem Zeugnistag',
+          body: 'Kein „Das hatten wir anders besprochen“ am Küchentisch.',
+        },
+        {
+          title: 'Verbesserung zählt',
+          body: 'Von 4 auf 3 kann mehr Arbeit sein als eine gehaltene 1.',
+        },
+        {
+          title: 'Gleiche Regel für alle Kinder',
+          body: 'Ältere und jüngere Geschwister – nach denselben Prinzipien, ohne Abzüge.',
+        },
+      ],
+      source: 'Quelle: forsa-Umfrage im Auftrag von Studienkreis, 2018',
+      cta: 'Ganzer Ratgeber mit Rechenbeispiel',
+    },
+    ratgeberBudgetgeld: {
+      label: 'Neu 2025',
+      headline: 'Budgetgeld ab 12: die neuen DJI-Werte',
+      subtext: 'Zusätzlich zum Taschengeld – für feste Ausgaben.',
+      table: {
+        head: ['Bereich', 'pro Monat'],
+        rows: [
+          ['Kleidung & Schuhe', '45–65 €'],
+          ['Essen außer Haus', '25–40 €'],
+          ['Handy, Internet & Abos', '15–25 €'],
+          ['Schulmaterial', '5–15 €'],
+          ['Kosmetik & Pflege', '5–15 €'],
+        ],
+      },
+      cards: [
+        {
+          title: 'Selbst planen lernen',
+          body: 'Jugendliche verwalten das Geld selbst und sehen, wofür es reicht.',
+        },
+        {
+          title: 'Schrittweise starten',
+          body: 'Zum Beispiel erst mit dem Handyvertrag.',
+        },
+        {
+          title: 'Taschengeld bleibt unabhängig von Noten',
+          body: 'Laut DJI weder Belohnung noch Strafe.',
+        },
+      ],
+      source: 'Quelle: Deutsches Jugendinstitut (DJI), September 2025',
+      cta: 'Alle Werte in der Taschengeld-Tabelle 2025',
+    },
+    ratgeberNoten: {
+      label: 'Forschung',
+      headline: 'Noten belohnen – ja oder nein?',
+      subtext: 'Was Studien zeigen – auch die Argumente dagegen.',
+      cards: [
+        {
+          title: 'Geld allein hebt keine Noten',
+          body: 'Große US-Studie an 203 Schulen: kein messbarer Effekt auf Testergebnisse.',
+        },
+        {
+          title: 'Erwartete Belohnungen können bremsen',
+          body: 'In Laborstudien senkten sie das eigene Interesse – bei Kindern stärker.',
+        },
+        {
+          title: 'Ehrliches Lob wirkt',
+          body: 'Konkretes, positives Feedback steigert die Motivation.',
+        },
+        {
+          title: 'Wenn belohnen, dann so',
+          body: 'Klein, vorher vereinbart, Verbesserung zählt – unabhängig vom Taschengeld.',
+        },
+      ],
+      source: 'Quellen: Deci, Koestner & Ryan 1999 · Fryer 2011',
+      cta: 'Pro & Contra mit allen Quellen',
+    },
     baMotivation: {
       label: 'Motivation',
       headline: 'Vorher: schlechte Note. Nachher: mehr Punkte.',
@@ -264,7 +378,7 @@ export const COPY: Partial<Record<Locale, Copy>> = { de }
 // Transliterations that have shipped (or nearly shipped) on this project.
 // A renderer or an editor that ASCII-folds strings produces exactly these.
 const TRANSLITERATED =
-  /\b(Willkuer|Faecher|fuer|Praemie\w*|ueber|Waehl\w*|Schueler\w*|Fuell\w*|Blaett\w*|Aeltere|Ueber\w*|Taetig\w*|Maeppchen|Bloecke|Schultuete|pruefen|zaehlt|weiss|regelmaessig|Betraege|Woechentlich|uebernimmt|beruecksichtigt|Kuechentisch|koennen|muessen)\b/i
+  /\b(Willkuer|Faecher|fuer|Praemie\w*|ueber|Waehl\w*|Schueler\w*|Fuell\w*|Blaett\w*|Aeltere|Ueber\w*|Taetig\w*|Maeppchen|Bloecke|Schultuete|pruefen|zaehlt|weiss|regelmaessig|Betraege|Woechentlich|uebernimmt|beruecksichtigt|Kuechentisch|koennen|muessen|juengere?|unabhaengig\w*|wofuer|ausser|Abzuege|daempf\w*)\b/i
 
 /** Throws if any German string contains an ASCII-folded umlaut or ß. */
 export function assertNoTransliteration(locale: Locale, copy: Copy) {

@@ -52,6 +52,7 @@ import {
   assertNoTransliteration,
   type Copy,
   type Locale,
+  type RatgeberPin,
 } from './social/copy'
 
 const ROOT = path.join(__dirname, '..')
@@ -605,6 +606,22 @@ const pinTaschengeld: Builder = async (f, copy) => {
   )
   let y = y0 + 40
 
+  // Amount column starts after the widest age pill (e.g. "unter 6"), never on top of it.
+  const pillW = async (ages: string) =>
+    Math.max((await renderText(ages, FONTS.bold, 28, C.white)).width + 40, 104)
+  const widestPill = Math.max(
+    ...(await Promise.all([...DJI_WEEKLY, ...DJI_MONTHLY].map(([ages]) => pillW(ages))))
+  )
+  const amountX = M + 20 + widestPill + 22
+  const widestAmount = Math.max(
+    ...(await Promise.all(
+      [...DJI_WEEKLY, ...DJI_MONTHLY].map(
+        async ([, amount]) => (await renderText(amount, FONTS.bold, 32, C.neutral900)).width
+      )
+    ))
+  )
+  const barX = amountX + widestAmount + 30
+
   // Table
   f.add(await card(tw, tableH, { radius: 20 }), M - SHADOW_PAD, y - SHADOW_PAD)
   const section = async (
@@ -629,9 +646,8 @@ const pinTaschengeld: Builder = async (f, copy) => {
       f.add(await rect(pw, ph, pill, ph / 2), M + 20, y + (rowH - ph) / 2)
       f.text(a, M + 20 + (pw - a.width) / 2, y + (rowH - a.height) / 2, ages)
       const am = await renderText(amount, FONTS.bold, 32, C.neutral900)
-      f.text(am, M + 150, y + (rowH - am.height) / 2, amount)
-      const barX = M + 400
-      const barW = tw - 400 - 24
+      f.text(am, amountX, y + (rowH - am.height) / 2, amount)
+      const barW = M + tw - 24 - barX
       f.add(await rect(barW, 14, C.neutral200, 7), barX, y + rowH / 2 - 7)
       f.add(
         await rect(Math.max(14, Math.round((barW * upper) / max)), 14, pill, 7),
@@ -714,6 +730,125 @@ const pinZeugnisgeldRegeln: Builder = async (f, copy) => {
   }
   await footer(f, copy.url)
 }
+
+/**
+ * Pins that promote a Ratgeber article: header, optional two-column table, numbered cards
+ * (same card style as the "5 Regeln" pin), source line and a CTA bar.
+ */
+const pinRatgeber =
+  (pick: (c: Copy) => RatgeberPin, band: string): Builder =>
+  async (f, copy) => {
+    const k = pick(copy)
+    const y0 = await header(f, {
+      band,
+      label: k.label,
+      headline: k.headline,
+      subtext: k.subtext,
+      headlineMaxH: 170,
+    })
+    const W = f.W
+    const tw = W - 2 * M
+    const markerD = 56
+    const textX = 30 + markerD + 24
+    const textW = tw - textX - 30
+    const colors = [C.primary600, C.success600, C.warning500, C.secondary600, C.accent700]
+
+    const cards = await Promise.all(
+      k.cards.map(async (c) => ({
+        title: await renderText(c.title, FONTS.extrabold, 32, C.neutral900, { maxWidth: textW }),
+        body: await renderText(c.body, FONTS.regular, 28, C.neutral700, { maxWidth: textW }),
+      }))
+    )
+    const source = await renderText(k.source, FONTS.regular, 28, C.neutral600, {
+      maxWidth: tw,
+      align: 'center',
+    })
+    const cta = await renderTextFit(
+      `${k.cta}: ${copy.url}`,
+      FONTS.bold,
+      32,
+      28,
+      band,
+      tw - 60,
+      90,
+      {
+        align: 'center',
+      }
+    )
+    const ctaH = cta.height + 40
+
+    const rowH = f.size.key === 'ig' ? 44 : 50
+    const headH = f.size.key === 'ig' ? 50 : 56
+    const tableH = k.table ? headH + k.table.rows.length * rowH : 0
+
+    const cardH = (c: (typeof cards)[number], withBody: boolean, pad: number) =>
+      Math.max(markerD, c.title.height + (withBody ? 6 + c.body.height : 0)) + pad
+    const avail = f.size.contentBottom - y0 - 36
+    const measure = ([wb, pad, gap, withCta]: readonly [boolean, number, number, boolean]) =>
+      (k.table ? tableH + 26 : 0) +
+      cards.reduce((a, c) => a + cardH(c, wb, pad), 0) +
+      gap * (cards.length - 1) +
+      20 +
+      source.height +
+      (withCta ? 22 + ctaH : 0)
+    const [withBody, pad, gap, withCta] = await firstThatFits(
+      [
+        [true, 40, 16, true],
+        [true, 30, 12, true],
+        [true, 24, 10, true],
+        [true, 24, 10, false],
+        [false, 36, 14, false],
+        [false, 24, 10, false],
+      ] as const,
+      async (v) => measure(v),
+      avail,
+      `ratgeber ${k.headline}`
+    )
+    let y = y0 + 36
+
+    if (k.table) {
+      f.add(await card(tw, tableH, { radius: 20 }), M - SHADOW_PAD, y - SHADOW_PAD)
+      f.add(await rect(tw, headH, C.neutral900, 20), M, y)
+      f.add(await rect(tw, 20, C.neutral900), M, y + headH - 20)
+      const [h1, h2] = await Promise.all(
+        k.table.head.map((h) => renderText(h.toUpperCase(), FONTS.bold, 28, C.white))
+      )
+      f.text(h1, M + 24, y + (headH - h1.height) / 2, 'table head')
+      f.text(h2, W - M - 24 - h2.width, y + (headH - h2.height) / 2, 'table head value')
+      y += headH
+      for (const [i, [label, value]] of k.table.rows.entries()) {
+        if (i % 2) f.add(await rect(tw, rowH, C.neutral50), M, y)
+        const l = await renderText(label, FONTS.regular, 30, C.neutral900)
+        const v = await renderText(value, FONTS.bold, 30, C.neutral900)
+        f.text(l, M + 24, y + (rowH - l.height) / 2, label)
+        f.text(v, W - M - 24 - v.width, y + (rowH - v.height) / 2, value)
+        y += rowH
+      }
+      y += 26
+    }
+
+    for (const [i, c] of cards.entries()) {
+      const h = cardH(c, withBody, pad)
+      f.add(await card(tw, h, { radius: 20 }), M - SHADOW_PAD, y - SHADOW_PAD)
+      const m = await numberMarker(i + 1, markerD, colors[i % colors.length])
+      const textH = c.title.height + (withBody ? 6 + c.body.height : 0)
+      f.add(m.buffer, M + 30, y + (h - markerD) / 2)
+      f.text(c.title, M + textX, y + (h - textH) / 2, `card ${i + 1}`)
+      if (withBody)
+        f.text(c.body, M + textX, y + (h - textH) / 2 + c.title.height + 6, `card ${i + 1} body`)
+      y += h + gap
+    }
+    y += 20 - gap
+    f.text(source, M + (tw - source.width) / 2, y, 'source')
+    y += source.height
+
+    if (withCta) {
+      y += 22
+      f.add(await rect(tw, ctaH, C.primary100, 20), M, y)
+      f.text(cta, M + (tw - cta.width) / 2, y + 20, 'cta')
+    }
+    await footer(f, copy.url)
+  }
 
 const pinBelohnungstafel: Builder = async (f, copy) => {
   const k = copy.pins.belohnungstafel
@@ -1188,6 +1323,21 @@ function jobs(locale: Locale): Job[] {
     { name: 'pin einschulung', build: pinEinschulung, out: pin('pin_einschulung_checkliste') },
     { name: 'pin ba_diskussion', build: pinBaDiskussion, out: pin('pin_ba_diskussion') },
     { name: 'pin ba_motivation', build: pinBaMotivation, out: pin('pin_ba_motivation') },
+    {
+      name: 'pin ratgeber_zeugnisgeld',
+      build: pinRatgeber((c) => c.pins.ratgeberZeugnisgeld, C.primary700),
+      out: pin('pin_ratgeber_zeugnisgeld'),
+    },
+    {
+      name: 'pin ratgeber_budgetgeld',
+      build: pinRatgeber((c) => c.pins.ratgeberBudgetgeld, C.secondary700),
+      out: pin('pin_ratgeber_budgetgeld'),
+    },
+    {
+      name: 'pin ratgeber_noten_belohnen',
+      build: pinRatgeber((c) => c.pins.ratgeberNoten, C.accent700),
+      out: pin('pin_ratgeber_noten_belohnen'),
+    },
   ]
 }
 
