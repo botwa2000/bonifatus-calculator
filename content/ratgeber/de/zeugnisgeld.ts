@@ -12,7 +12,7 @@ const body: RatgeberBody = {
       blocks: [
         {
           type: 'p',
-          text: 'Belohnungen zum Zeugnis sind in Deutschland verbreitet, Geld ist dabei aber nicht die Regel. In einer repräsentativen forsa-Umfrage im Auftrag des Nachhilfeanbieters Studienkreis unter rund 1.000 Eltern schulpflichtiger Kinder gaben knapp 60 Prozent an, ihr Kind für das letzte Zeugnis belohnt zu haben – etwa mit einem gemeinsamen Ausflug, einem Geschenk oder Geld. **Geld gaben 21 Prozent.**[^1]',
+          text: 'Belohnungen zum Zeugnis sind in Deutschland verbreitet, Geld ist dabei aber nicht die Regel. In einer repräsentativen forsa-Umfrage im Auftrag des Nachhilfeanbieters Studienkreis unter rund 1.000 Eltern von Schulkindern zwischen 10 und 18 Jahren gaben knapp 60 Prozent an, ihr Kind für das letzte Zeugnis belohnt zu haben – etwa mit einem gemeinsamen Ausflug, einem Geschenk oder Geld. **Geld gaben 21 Prozent.**[^1]',
         },
         {
           type: 'p',
@@ -147,7 +147,7 @@ const body: RatgeberBody = {
   ],
   sources: [
     {
-      text: 'Studienkreis: „Belohnung zum Zeugnis“ – repräsentative forsa-Umfrage unter rund 1.000 Eltern schulpflichtiger Kinder, 2018.',
+      text: 'Studienkreis: „Belohnung zum Zeugnis“ – repräsentative forsa-Umfrage unter rund 1.000 Eltern von Schulkindern zwischen 10 und 18 Jahren, 2018.',
       url: 'https://www.studienkreis.de/infothek/journal/belohnung-zum-zeugnis/',
     },
     {

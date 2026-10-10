@@ -172,7 +172,7 @@ const body: RatgeberBody = {
       url: 'https://www.povertyactionlab.org/sites/default/files/research-paper/919_Financialincentives_and_student_Fryer_2011.pdf',
     },
     {
-      text: 'Studienkreis: „Belohnung zum Zeugnis“ – repräsentative forsa-Umfrage unter rund 1.000 Eltern schulpflichtiger Kinder, 2018.',
+      text: 'Studienkreis: „Belohnung zum Zeugnis“ – repräsentative forsa-Umfrage unter rund 1.000 Eltern von Schulkindern zwischen 10 und 18 Jahren, 2018.',
       url: 'https://www.studienkreis.de/infothek/journal/belohnung-zum-zeugnis/',
     },
     {

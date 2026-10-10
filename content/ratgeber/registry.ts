@@ -3,6 +3,9 @@ import { RATGEBER_INDEX, getRatgeberMeta } from './index'
 import zeugnisgeld from './de/zeugnisgeld'
 import taschengeldTabelle from './de/taschengeld-tabelle'
 import schulnotenBelohnen from './de/schulnoten-belohnen'
+import zeugnisgeldHoeheNachKlasse from './de/zeugnisgeld-hoehe-nach-klasse'
+import belohnenOhneGeld from './de/belohnen-ohne-geld'
+import geschwisterGerechtigkeit from './de/geschwister-gerechtigkeit'
 
 export type RatgeberBody = Omit<RatgeberArticle, keyof RatgeberMeta>
 
@@ -10,6 +13,9 @@ const BODIES: Record<string, RatgeberBody> = {
   'de/zeugnisgeld': zeugnisgeld,
   'de/taschengeld-tabelle': taschengeldTabelle,
   'de/schulnoten-belohnen': schulnotenBelohnen,
+  'de/zeugnisgeld-hoehe-nach-klasse': zeugnisgeldHoeheNachKlasse,
+  'de/belohnen-ohne-geld': belohnenOhneGeld,
+  'de/geschwister-gerechtigkeit': geschwisterGerechtigkeit,
 }
 
 export function getRatgeberArticle(locale: string, slug: string): RatgeberArticle | null {

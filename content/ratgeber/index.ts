@@ -12,7 +12,7 @@ export const RATGEBER_INDEX: readonly RatgeberMeta[] = [
     description:
       'Wie verbreitet Zeugnisgeld ist, welcher Betrag angemessen ist – und warum eine Regel, die vor dem Zeugnistag steht, besser funktioniert als jede Verhandlung danach. Mit Rechenbeispiel.',
     publishedAt: '2026-10-09',
-    updatedAt: '2026-10-09',
+    updatedAt: '2026-10-10',
     readingTimeMinutes: 6,
   },
   {
@@ -32,8 +32,38 @@ export const RATGEBER_INDEX: readonly RatgeberMeta[] = [
     description:
       'Geld für gute Noten: Was Studien zu Belohnungen und Motivation zeigen, warum die Einwände ernst zu nehmen sind – und wann ein transparentes System trotzdem hilft.',
     publishedAt: '2026-10-09',
-    updatedAt: '2026-10-09',
+    updatedAt: '2026-10-10',
     readingTimeMinutes: 7,
+  },
+  {
+    slug: 'zeugnisgeld-hoehe-nach-klasse',
+    locale: 'de',
+    title: 'Zeugnisgeld nach Klasse: Wie sich der Betrag mit dem Alter ändern sollte',
+    description:
+      'Grundschule, Mittelstufe, Oberstufe: Warum ein fester Betrag pro Note nicht mitwächst, was Kinder in welchem Alter motiviert und wie Sie eine Zeugnisregel mitwachsen lassen.',
+    publishedAt: '2026-10-10',
+    updatedAt: '2026-10-10',
+    readingTimeMinutes: 6,
+  },
+  {
+    slug: 'belohnen-ohne-geld',
+    locale: 'de',
+    title: 'Belohnen ohne Geld: Was statt Zeugnisgeld wirklich wirkt',
+    description:
+      'Die meisten Eltern geben zum Zeugnis kein Geld. Was stattdessen wirkt – Lob, gemeinsame Zeit, Mitbestimmung – und warum ein versprochenes Geschenk dem Zeugnisgeld ähnlicher ist, als es aussieht.',
+    publishedAt: '2026-10-10',
+    updatedAt: '2026-10-10',
+    readingTimeMinutes: 6,
+  },
+  {
+    slug: 'geschwister-gerechtigkeit',
+    locale: 'de',
+    title: 'Geschwister gerecht belohnen: Gleiche Regel oder gleicher Maßstab?',
+    description:
+      '„Warum bekommt sie mehr als ich?“ Was die Forschung über Gerechtigkeit zwischen Geschwistern zeigt, warum gleiche Beträge nicht automatisch fair sind – und wann eine Drei mehr wert ist als eine Eins.',
+    publishedAt: '2026-10-10',
+    updatedAt: '2026-10-10',
+    readingTimeMinutes: 6,
   },
 ]
 
