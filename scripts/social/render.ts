@@ -57,6 +57,7 @@ export const C = {
   error100: '#fee2e2',
   error600: '#dc2626',
   error700: '#b91c1c',
+  info700: '#1d4ed8',
   neutral50: '#f9fafb',
   neutral100: '#f3f4f6',
   neutral200: '#e5e7eb',

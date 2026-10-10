@@ -1338,6 +1338,21 @@ function jobs(locale: Locale): Job[] {
       build: pinRatgeber((c) => c.pins.ratgeberNoten, C.accent700),
       out: pin('pin_ratgeber_noten_belohnen'),
     },
+    {
+      name: 'pin ratgeber_klasse',
+      build: pinRatgeber((c) => c.pins.ratgeberKlasse, C.info700),
+      out: pin('pin_ratgeber_klasse'),
+    },
+    {
+      name: 'pin ratgeber_ohne_geld',
+      build: pinRatgeber((c) => c.pins.ratgeberOhneGeld, C.warning800),
+      out: pin('pin_ratgeber_ohne_geld'),
+    },
+    {
+      name: 'pin ratgeber_geschwister',
+      build: pinRatgeber((c) => c.pins.ratgeberGeschwister, C.error700),
+      out: pin('pin_ratgeber_geschwister'),
+    },
   ]
 }
 

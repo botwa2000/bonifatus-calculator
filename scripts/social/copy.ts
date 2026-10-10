@@ -97,6 +97,9 @@ export interface Copy {
     ratgeberZeugnisgeld: RatgeberPin
     ratgeberBudgetgeld: RatgeberPin
     ratgeberNoten: RatgeberPin
+    ratgeberKlasse: RatgeberPin
+    ratgeberOhneGeld: RatgeberPin
+    ratgeberGeschwister: RatgeberPin
     baMotivation: {
       label: string
       headline: string
@@ -131,6 +134,22 @@ export const DJI_WEEKLY: readonly (readonly [ages: string, amount: string, upper
   djiRows('week')
 export const DJI_MONTHLY: readonly (readonly [ages: string, amount: string, upperEur: number])[] =
   djiRows('month')
+
+/** One DJI range spanning several age bands of the same period, e.g. ages 10–15 → "15–45 €/Mo". */
+function djiSpan(fromAge: number, toAge: number): string {
+  const bands = DJI_ALLOWANCE_TABLE.filter(
+    (e) => e.ageMin >= fromAge && (toAge === Infinity || (e.ageMax ?? Infinity) <= toAge)
+  )
+  const periods = new Set(bands.map((e) => e.period))
+  if (bands.length === 0 || periods.size !== 1)
+    throw new Error(`DJI span ${fromAge}–${toAge} must cover bands of a single period`)
+  return amountLabel({
+    ...bands[0],
+    minEur: Math.min(...bands.map((e) => e.minEur)),
+    maxEur: Math.max(...bands.map((e) => e.maxEur)),
+    dependentOnly: bands.some((e) => e.dependentOnly),
+  })
+}
 
 const de: Copy = {
   url: 'bonifatus.com',
@@ -353,6 +372,94 @@ const de: Copy = {
       ],
       source: 'Quellen: Deci, Koestner & Ryan 1999 · Fryer 2011',
       cta: 'Pro & Contra mit allen Quellen',
+    },
+    ratgeberKlasse: {
+      label: 'Ratgeber',
+      headline: 'Zeugnisgeld nach Klasse: Was ändert sich?',
+      subtext: 'Warum 2 € pro Eins nicht ewig passen.',
+      table: {
+        head: ['Schulphase', 'DJI-Taschengeld'],
+        rows: [
+          ['Klasse 1–2', djiSpan(6, 7)],
+          ['Klasse 3–4', djiSpan(8, 9)],
+          ['Klasse 5–10', djiSpan(10, 15)],
+          ['Oberstufe', djiSpan(16, Infinity)],
+        ],
+      },
+      cards: [
+        {
+          title: 'Grundschule: klein und sofort',
+          body: 'Bei Jüngeren wirkte eine Trophäe ähnlich wie 20 $.',
+        },
+        {
+          title: 'Mittelstufe: eine echte Regel',
+          body: 'Bonus: ½–1 Monatstaschengeld, Verbesserung zählt.',
+        },
+        {
+          title: 'Oberstufe: Punkte und Ziele',
+          body: 'Halbjahre zählen fürs Abitur – eigene Ziele setzen.',
+        },
+      ],
+      source: 'Quellen: DJI 2025 · Levitt 2016 · KMK 2023 · * ab 16, wenn abhängig',
+      cta: 'Ganzer Ratgeber mit allen Quellen',
+    },
+    ratgeberOhneGeld: {
+      label: 'Ratgeber',
+      headline: 'Belohnen ohne Geld: Was wirklich wirkt',
+      subtext: 'Für Eltern, die kein Zeugnisgeld zahlen wollen.',
+      cards: [
+        {
+          title: 'Die Mehrheit zahlt nicht',
+          body: '36 % feiern das Zeugnis mit einem Ausflug, nur 21 % geben Geld.',
+        },
+        {
+          title: 'Anstrengung loben, nicht Talent',
+          body: '„Du hast dafür geübt“ statt „Du bist so klug“ – unabhängig von der Note.',
+        },
+        {
+          title: 'Zeit statt Sachen',
+          body: 'Ein Nachmittag am Zeugnistag, den das Kind selbst plant.',
+        },
+        {
+          title: 'Überraschen statt versprechen',
+          body: 'Ein vorher versprochenes Geschenk wirkt psychologisch wie Geld.',
+        },
+        {
+          title: 'Mitbestimmen lassen',
+          body: 'Das Kind entscheidet, wofür der Familientag genutzt wird.',
+        },
+      ],
+      source: 'Quellen: forsa 2018 · Deci u. a. 1999 · Mueller & Dweck 1998',
+      cta: 'Alle Ideen mit Quellen',
+    },
+    ratgeberGeschwister: {
+      label: 'Ratgeber',
+      headline: '„Warum bekommt sie mehr als ich?“',
+      subtext: 'Geschwister gerecht belohnen – ohne Streit am Zeugnistag.',
+      cards: [
+        {
+          title: 'Gerecht heißt nicht gleich',
+          body: 'Kinder verkraften Unterschiede, die sie als begründet erleben.',
+        },
+        {
+          title: 'Ältere bekommen mehr – mit Grund',
+          body: 'Wie beim Taschengeld: nach Alter gestaffelt und für alle nachvollziehbar.',
+        },
+        {
+          title: 'Verbesserung zählt',
+          body: 'Von 5 auf 3 kann mehr Leistung sein als eine gehaltene 1.',
+        },
+        {
+          title: 'Ablesbare Maßstäbe',
+          body: 'Anstrengung sieht man nicht – Verbesserungen und Ziele schon.',
+        },
+        {
+          title: 'Keine Vergleiche am Tisch',
+          body: 'Jedes Zeugnis für sich besprechen – das der jüngeren wie das der älteren.',
+        },
+      ],
+      source: 'Quellen: Kowal u. a. 2002 · Almås u. a. 2010 · DJI 2025',
+      cta: 'Ganzer Ratgeber mit Gesprächstipps',
     },
     baMotivation: {
       label: 'Motivation',
