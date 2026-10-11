@@ -1,0 +1,9 @@
+{
+  "_comment": "App Store 'What's New' per language prefix, used by scripts/asc/ios_release.py for every App Store version localization. Update before each iOS production release. 'en' is the fallback.",
+  "en": "Simpler sign-up: just choose your role, email and password. More reliable sign-in with Face ID and automatic logout after inactivity for extra privacy. You can now rate Bonifatus from Settings. Bug fixes and stability improvements.",
+  "de": "Einfachere Registrierung: Rolle, E-Mail und Passwort genügen. Zuverlässigere Anmeldung mit Face ID und automatische Abmeldung bei Inaktivität für mehr Privatsphäre. Bonifatus lässt sich jetzt in den Einstellungen bewerten. Fehlerbehebungen und mehr Stabilität.",
+  "es": "Registro más sencillo: solo elige tu rol, correo y contraseña. Inicio de sesión más fiable con Face ID y cierre de sesión automático por inactividad para más privacidad. Ahora puedes valorar Bonifatus desde Ajustes. Correcciones de errores y mejoras de estabilidad.",
+  "fr": "Inscription simplifiée : choisis ton rôle, ton e-mail et ton mot de passe. Connexion plus fiable avec Face ID et déconnexion automatique après inactivité pour plus de confidentialité. Tu peux désormais noter Bonifatus depuis les Réglages. Corrections de bugs et meilleure stabilité.",
+  "it": "Registrazione più semplice: bastano ruolo, e-mail e password. Accesso più affidabile con Face ID e disconnessione automatica dopo inattività per una maggiore privacy. Ora puoi valutare Bonifatus dalle Impostazioni. Correzioni di bug e maggiore stabilità.",
+  "ru": "Упрощённая регистрация: достаточно выбрать роль, указать e-mail и пароль. Более надёжный вход с Face ID и автоматический выход при бездействии для большей конфиденциальности. Теперь Bonifatus можно оценить в настройках. Исправления ошибок и повышение стабильности."
+}

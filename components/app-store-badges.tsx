@@ -1,4 +1,4 @@
-const APPLE_STORE_URL = 'https://apps.apple.com/app/id6761691648'
+const APPLE_STORE_URL = 'https://apps.apple.com/app/id6745130824'
 const GOOGLE_PLAY_URL = 'https://play.google.com/store/apps/details?id=com.bonifatus.app'
 
 function AppleStoreBadge({ className }: { className?: string }) {

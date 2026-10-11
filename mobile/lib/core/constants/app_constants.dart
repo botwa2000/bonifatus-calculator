@@ -6,7 +6,7 @@ class AppConstants {
   static const String googleWebClientId = String.fromEnvironment('GOOGLE_WEB_CLIENT_ID', defaultValue: '');
   static const String bundleId = 'com.bonifatus.app';
   static const String appName = 'Bonifatus';
-  static const String appStoreId = '6761691648';
+  static const String appStoreId = '6745130824';
 
   // First-launch flag (SharedPreferences, not secure storage)
   static const String keySeenOnboarding = 'seen_onboarding';

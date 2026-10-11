@@ -3,9 +3,13 @@ workflows:
   # Triggered by the GitHub Actions ios-trigger job via the Codemagic API.
   # CM_CERTIFICATE_PRIVATE_KEY is injected at trigger time from the GitHub
   # secret — not stored in Codemagic.
+  # Uploads the build and submits it for App Store review (released
+  # automatically after approval). The marketing version comes from App Store
+  # Connect, never from a pubspec bump — see scripts/asc/ios_release.py.
+  # Update mobile/store/whats_new.json before each release.
   flutter-release:
-    name: Bonifatus Flutter iOS — TestFlight
-    max_build_duration: 60
+    name: Bonifatus Flutter iOS — App Store
+    max_build_duration: 120
     instance_type: mac_mini_m2
 
     triggering:
@@ -31,6 +35,17 @@ workflows:
           if [ "$CODE" -le 1000 ]; then CODE=1001; fi
           echo "BUILD_CODE=$CODE" >> $CM_ENV
           echo ">>> latest TestFlight build=${LATEST}; will build CFBundleVersion=${CODE}"
+
+      - name: Compute marketing version and What's New (from App Store Connect)
+        script: |
+          set -e
+          # The interpreter codemagic-cli-tools runs on ships PyJWT + cryptography.
+          PY=$(head -1 "$(command -v app-store-connect)" | sed 's/^#!//')
+          $PY -c "import jwt" 2>/dev/null || { PY=python3; $PY -m pip install --quiet pyjwt cryptography; }
+          IOS_VERSION=$($PY scripts/asc/ios_release.py version)
+          echo "IOS_VERSION=$IOS_VERSION" >> $CM_ENV
+          $PY scripts/asc/ios_release.py localizations "$CM_BUILD_DIR/whats_new_localizations.json"
+          echo ">>> will build and submit iOS version ${IOS_VERSION}"
 
       - name: Get Flutter dependencies
         script: |
@@ -70,20 +85,28 @@ workflows:
         script: |
           cd $FLUTTER_APP_DIR
           set -o pipefail
-          echo ">>> building IPA with CFBundleVersion (--build-number) = ${BUILD_CODE}"
+          echo ">>> building IPA ${IOS_VERSION} (${BUILD_CODE})"
           flutter build ipa --release --verbose \
+            --build-name="${IOS_VERSION}" \
             --build-number="${BUILD_CODE}" \
             --dart-define=GOOGLE_WEB_CLIENT_ID="${GOOGLE_WEB_CLIENT_ID}" \
             --dart-define=MOBILE_APP_SECRET="${MOBILE_APP_SECRET}" \
             --export-options-plist="$CM_BUILD_DIR/export_options.plist" 2>&1 | tee "$CM_BUILD_DIR/flutter_build_ipa.log"
 
+      - name: Upload and submit for App Store review
+        script: |
+          set -o pipefail
+          app-store-connect publish \
+            --path "$FLUTTER_APP_DIR"/build/ios/ipa/*.ipa \
+            --app-store \
+            --version-string "${IOS_VERSION}" \
+            --release-type AFTER_APPROVAL \
+            --app-store-version-localizations @file:"$CM_BUILD_DIR/whats_new_localizations.json" \
+            --cancel-previous-submissions \
+            --max-build-processing-wait 60 2>&1 | tee "$CM_BUILD_DIR/asc_publish.log"
+
     artifacts:
       - mobile/build/ios/ipa/*.ipa
       - $CM_BUILD_DIR/flutter_build_ipa.log
       - /tmp/xcodebuild_logs/*.log
-
-    publishing:
-      app_store_connect:
-        auth: integration
-        submit_to_testflight: true
-        submit_to_app_store: false
+      - $CM_BUILD_DIR/asc_publish.log

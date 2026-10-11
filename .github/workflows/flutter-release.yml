@@ -145,4 +145,22 @@ jobs:
           body=$(echo "$resp" | sed '$d')
           echo "HTTP $code -- $body"
           [ "$code" -ge 200 ] && [ "$code" -lt 300 ] || { echo "::error::Codemagic trigger failed (HTTP $code)"; exit 1; }
-          echo "iOS build queued"
+          build_id=$(echo "$body" | jq -r '.buildId')
+          echo "BUILD_ID=$build_id" >> "$GITHUB_ENV"
+          echo "iOS build queued: https://codemagic.io/app/$CM_APP_ID/build/$build_id"
+      # The iOS build uploads and submits for App Store review inside Codemagic;
+      # wait for it so a failed upload turns this run red instead of passing silently.
+      - name: Wait for Codemagic build
+        timeout-minutes: 180
+        env:
+          CM_TOKEN: ${{ secrets.CODEMAGIC_API_TOKEN }}
+        run: |
+          while true; do
+            status=$(curl -s -H "x-auth-token: $CM_TOKEN" "https://api.codemagic.io/builds/$BUILD_ID" | jq -r '.build.status')
+            echo "$(date -u +%H:%M:%S) Codemagic build $BUILD_ID: $status"
+            case "$status" in
+              finished) echo "iOS build uploaded and submitted for App Store review"; exit 0 ;;
+              failed|canceled|timeout|skipped|warning) echo "::error::Codemagic iOS build $status"; exit 1 ;;
+            esac
+            sleep 60
+          done
