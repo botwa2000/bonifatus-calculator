@@ -151,7 +151,7 @@ jobs:
       # The iOS build uploads and submits for App Store review inside Codemagic;
       # wait for it so a failed upload turns this run red instead of passing silently.
       - name: Wait for Codemagic build
-        timeout-minutes: 180
+        timeout-minutes: 330  # the free Codemagic M2 queue alone can take 2h+
         env:
           CM_TOKEN: ${{ secrets.CODEMAGIC_API_TOKEN }}
         run: |

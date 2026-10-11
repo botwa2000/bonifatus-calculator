@@ -9,7 +9,7 @@ workflows:
   # Update mobile/store/whats_new.json before each release.
   flutter-release:
     name: Bonifatus Flutter iOS — App Store
-    max_build_duration: 60  # free plan never schedules longer caps (builds sit queued)
+    max_build_duration: 60
     instance_type: mac_mini_m2
 
     triggering:
