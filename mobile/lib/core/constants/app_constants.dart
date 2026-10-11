@@ -6,9 +6,17 @@ class AppConstants {
   static const String googleWebClientId = String.fromEnvironment('GOOGLE_WEB_CLIENT_ID', defaultValue: '');
   static const String bundleId = 'com.bonifatus.app';
   static const String appName = 'Bonifatus';
+  static const String appStoreId = '6761691648';
 
   // First-launch flag (SharedPreferences, not secure storage)
   static const String keySeenOnboarding = 'seen_onboarding';
+
+  // Store review prompt history (SharedPreferences)
+  static const String keyReviewFirstUseAt = 'review_first_use_at';
+  static const String keyReviewSuccessCount = 'review_success_count';
+  static const String keyReviewAskCount = 'review_ask_count';
+  static const String keyReviewLastAskAt = 'review_last_ask_at';
+  static const String keyReviewSuccessesAtLastAsk = 'review_successes_at_last_ask';
 
   // Secure storage keys
   static const String keyAccessToken = 'access_token';

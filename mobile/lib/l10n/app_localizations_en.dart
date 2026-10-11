@@ -275,6 +275,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settingsAbout => 'About';
 
   @override
+  String get settingsRateApp => 'Rate Bonifatus';
+
+  @override
   String get settingsLogOut => 'Log Out';
 
   @override

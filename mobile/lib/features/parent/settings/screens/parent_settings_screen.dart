@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import 'package:go_router/go_router.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
+import '../../../../core/review/review_prompt.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/providers/theme_mode_provider.dart';
 import '../../../../core/providers/locale_provider.dart';
@@ -140,6 +141,12 @@ class _ParentSettingsScreenState extends ConsumerState<ParentSettingsScreen> {
               title: Text(l10n.settingsAbout, style: TextStyle(fontSize: 15, color: Theme.of(context).colorScheme.onSurface, fontWeight: FontWeight.w500)),
               trailing: Icon(Icons.chevron_right_rounded, color: Theme.of(context).colorScheme.outlineVariant),
               onTap: () => _showAboutSheet(context),
+            ),
+            Divider(height: 1, indent: 56, color: Theme.of(context).colorScheme.outlineVariant),
+            _SettingsTile(
+              icon: Icons.star_outline_rounded,
+              label: l10n.settingsRateApp,
+              onTap: () => ref.read(reviewPromptServiceProvider).openStoreListing(),
             ),
           ]),
           const SizedBox(height: 32),

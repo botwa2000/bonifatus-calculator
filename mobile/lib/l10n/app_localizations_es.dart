@@ -275,6 +275,9 @@ class AppLocalizationsEs extends AppLocalizations {
   String get settingsAbout => 'Acerca de';
 
   @override
+  String get settingsRateApp => 'Valorar Bonifatus';
+
+  @override
   String get settingsLogOut => 'Cerrar sesión';
 
   @override

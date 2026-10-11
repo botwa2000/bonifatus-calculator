@@ -610,6 +610,12 @@ abstract class AppLocalizations {
   /// **'About'**
   String get settingsAbout;
 
+  /// No description provided for @settingsRateApp.
+  ///
+  /// In en, this message translates to:
+  /// **'Rate Bonifatus'**
+  String get settingsRateApp;
+
   /// No description provided for @settingsLogOut.
   ///
   /// In en, this message translates to:

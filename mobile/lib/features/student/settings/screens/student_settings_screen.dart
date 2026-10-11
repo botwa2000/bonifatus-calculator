@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
+import '../../../../core/review/review_prompt.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/providers/theme_mode_provider.dart';
 import '../../../../core/providers/locale_provider.dart';
@@ -472,6 +473,12 @@ class _StudentSettingsScreenState extends ConsumerState<StudentSettingsScreen> {
         icon: Icons.info_outline_rounded,
         label: l10n.settingsAbout,
         onTap: () => _showAboutSheet(context),
+      ),
+      Divider(height: 1, indent: 56, color: Theme.of(context).colorScheme.outlineVariant),
+      _SettingsTile(
+        icon: Icons.star_outline_rounded,
+        label: l10n.settingsRateApp,
+        onTap: () => ref.read(reviewPromptServiceProvider).openStoreListing(),
       ),
     ]);
   }

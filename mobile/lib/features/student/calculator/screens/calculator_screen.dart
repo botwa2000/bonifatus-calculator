@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../api/services/grade_service.dart';
+import '../../../../core/review/review_prompt.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../../models/calculator_config.dart';
@@ -552,6 +553,7 @@ class _CalculatorScreenState extends ConsumerState<CalculatorScreen> {
   Future<void> _saveResult(CalculatorConfig config) async {
     if (_subjects.isEmpty) return;
     setState(() => _saving = true);
+    final review = ref.read(reviewPromptServiceProvider);
 
     try {
       final system = _resolveSystem(config);
@@ -604,7 +606,9 @@ class _CalculatorScreenState extends ConsumerState<CalculatorScreen> {
           context.go('/student/results');
         }
       }
+      unawaited(review.recordSuccess());
     } catch (e) {
+      review.recordFailure();
       if (mounted) {
         final l10n = AppLocalizations.of(context)!;
         ScaffoldMessenger.of(context).showSnackBar(

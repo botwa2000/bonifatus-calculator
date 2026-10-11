@@ -1,7 +1,10 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:bonifatus_mobile/l10n/app_localizations.dart';
+import '../../../../core/review/review_prompt.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../providers/children_provider.dart';
 import '../../../../models/settlement_package.dart';
@@ -654,6 +657,8 @@ class _PackageCardState extends ConsumerState<_PackageCard> {
                           ? null
                           : () async {
                               setSheet(() => settling = true);
+                              final review =
+                                  ref.read(reviewPromptServiceProvider);
                               try {
                                 await ref
                                     .read(gradeServiceProvider)
@@ -676,7 +681,9 @@ class _PackageCardState extends ConsumerState<_PackageCard> {
                                     backgroundColor: AppColors.tierBest,
                                   ));
                                 }
+                                unawaited(review.recordSuccess());
                               } catch (e) {
+                                review.recordFailure();
                                 setSheet(() => settling = false);
                                 if (ctx.mounted) {
                                   ScaffoldMessenger.of(ctx).showSnackBar(

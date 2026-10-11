@@ -278,6 +278,9 @@ class AppLocalizationsDe extends AppLocalizations {
   String get settingsAbout => 'Über';
 
   @override
+  String get settingsRateApp => 'Bonifatus bewerten';
+
+  @override
   String get settingsLogOut => 'Abmelden';
 
   @override

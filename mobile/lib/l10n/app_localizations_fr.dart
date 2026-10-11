@@ -279,6 +279,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get settingsAbout => 'À propos';
 
   @override
+  String get settingsRateApp => 'Noter Bonifatus';
+
+  @override
   String get settingsLogOut => 'Se déconnecter';
 
   @override

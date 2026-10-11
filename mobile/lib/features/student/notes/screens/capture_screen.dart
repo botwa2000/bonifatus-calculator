@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -5,6 +7,7 @@ import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart';
 import 'package:bonifatus_mobile/l10n/app_localizations.dart';
+import '../../../../core/review/review_prompt.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../models/calculator_config.dart';
 import '../../providers/quick_grades_provider.dart';
@@ -432,6 +435,7 @@ class _CaptureScreenState extends ConsumerState<CaptureScreen> {
       return;
     }
     setState(() { _saving = true; _reviewError = null; _savedCount = 0; });
+    final review = ref.read(reviewPromptServiceProvider);
     try {
       for (final entry in valid) {
         await ref.read(quickGradesProvider.notifier).addGrade(
@@ -443,7 +447,9 @@ class _CaptureScreenState extends ConsumerState<CaptureScreen> {
         if (mounted) setState(() => _savedCount++);
       }
       if (mounted) context.pop();
+      unawaited(review.recordSuccess());
     } catch (e) {
+      review.recordFailure();
       if (mounted) setState(() { _saving = false; _reviewError = e.toString(); });
     }
   }

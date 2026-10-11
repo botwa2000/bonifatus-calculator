@@ -276,6 +276,9 @@ class AppLocalizationsRu extends AppLocalizations {
   String get settingsAbout => 'О приложении';
 
   @override
+  String get settingsRateApp => 'Оценить Bonifatus';
+
+  @override
   String get settingsLogOut => 'Выйти';
 
   @override
