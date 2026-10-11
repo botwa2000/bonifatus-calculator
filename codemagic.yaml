@@ -9,7 +9,7 @@ workflows:
   # Update mobile/store/whats_new.json before each release.
   flutter-release:
     name: Bonifatus Flutter iOS — App Store
-    max_build_duration: 120
+    max_build_duration: 60  # free plan never schedules longer caps (builds sit queued)
     instance_type: mac_mini_m2
 
     triggering:
@@ -103,7 +103,7 @@ workflows:
             --release-type AFTER_APPROVAL \
             --app-store-version-localizations @file:"$CM_BUILD_DIR/whats_new_localizations.json" \
             --cancel-previous-submissions \
-            --max-build-processing-wait 60 2>&1 | tee "$CM_BUILD_DIR/asc_publish.log"
+            --max-build-processing-wait 30 2>&1 | tee "$CM_BUILD_DIR/asc_publish.log"
 
     artifacts:
       - mobile/build/ios/ipa/*.ipa
