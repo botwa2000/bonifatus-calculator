@@ -21,6 +21,12 @@ services:
       - dev_FMP_API_KEY
       - dev_STATS_ADMIN_EMAILS
       - dev_STATS_ADMIN_KEY
+      - dev_ASC_ISSUER_ID
+      - dev_ASC_KEY_ID
+      - dev_ASC_PRIVATE_KEY
+      - dev_ASC_VENDOR_NUMBER
+      - dev_PLAY_SERVICE_ACCOUNT_JSON
+      - dev_PLAY_REPORTS_BUCKET
     extra_hosts:
       - "host.docker.internal:host-gateway"
     environment:
@@ -70,6 +76,18 @@ secrets:
   dev_STATS_ADMIN_EMAILS:
     external: true
   dev_STATS_ADMIN_KEY:
+    external: true
+  dev_ASC_ISSUER_ID:
+    external: true
+  dev_ASC_KEY_ID:
+    external: true
+  dev_ASC_PRIVATE_KEY:
+    external: true
+  dev_ASC_VENDOR_NUMBER:
+    external: true
+  dev_PLAY_SERVICE_ACCOUNT_JSON:
+    external: true
+  dev_PLAY_REPORTS_BUCKET:
     external: true
   dev_GOOGLE_CLIENT_ID:
     external: true
