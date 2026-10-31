@@ -13,6 +13,7 @@
  */
 import crypto from 'node:crypto'
 import { pool } from '@/lib/db/client'
+import { INTERNAL_COOKIE } from '@/lib/stats/usage'
 
 // Allow-list lives only in the server secret STATS_ADMIN_EMAILS (comma-separated),
 // never in the code, the client bundle or any response. Unset → nobody can sign in.
@@ -128,6 +129,21 @@ export const sessionCookies = (value: string, secure: boolean) =>
   SESSION_PATHS.map((p) => cookie(SESSION_COOKIE, value, SESSION_TTL_SEC, secure, p))
 export const clearSessionCookies = () =>
   SESSION_PATHS.map((p) => cookie(SESSION_COOKIE, '', 0, false, p))
+
+// Marks this browser as the team's own: its visits to the site are tagged
+// 'internal' and left out of "real users" (lib/stats/usage.ts trafficOf). It
+// grants nothing, so it outlives the session and survives sign-out.
+export const internalCookie = (secure: boolean) =>
+  [
+    `${INTERNAL_COOKIE}=1`,
+    'HttpOnly',
+    secure ? 'Secure' : '',
+    'SameSite=Lax',
+    'Path=/',
+    `Max-Age=${400 * 86400}`,
+  ]
+    .filter(Boolean)
+    .join('; ')
 
 function readCookie(req: Request, name: string): string | null {
   for (const part of (req.headers.get('cookie') ?? '').split(';')) {

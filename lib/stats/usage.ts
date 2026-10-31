@@ -13,9 +13,13 @@
  *     every statistics row of that person.
  *   • Country comes from Cloudflare's CF-IPCountry header (2 letters).
  *   • Free text (feedback comments, contact messages) is nulled after 30 days.
+ *   • Store review and test devices are recognised by their network at request
+ *     time (the IP is checked, never stored) and tagged in `traffic`, so the
+ *     dashboard can show real users only.
  * Every write is fire-and-forget: statistics must never slow or fail a request.
  */
 import crypto from 'node:crypto'
+import net from 'node:net'
 import { pool } from '@/lib/db/client'
 import { getClientIp } from '@/lib/auth/turnstile'
 
@@ -111,6 +115,85 @@ async function visitorHash(h: Headers): Promise<string> {
     .slice(0, 22)
 }
 
+// ── Store review / test devices ──────────────────────────────────────────────
+// Apple App Review runs on Apple's own network (17.0.0.0/8). Google Play's
+// pre-launch report runs on Firebase Test Lab, whose device ranges Google
+// publishes (firebase.google.com/docs/test-lab/android/get-started, updated
+// about yearly). A browser that signed in to /admin/stats carries
+// INTERNAL_COOKIE (lib/stats/admin-auth.ts) on every page of the site.
+export type Traffic = 'review' | 'test' | 'internal'
+export const INTERNAL_COOKIE = 'bstats_internal'
+
+const APPLE_NET = new net.BlockList()
+APPLE_NET.addSubnet('17.0.0.0', 8, 'ipv4')
+
+const TEST_LAB_NET = new net.BlockList()
+for (const cidr of [
+  '70.32.128.0/19',
+  '108.177.6.0/23',
+  '108.177.18.192/26',
+  '108.177.29.64/27',
+  '108.177.31.160/27',
+  '199.36.156.8/29',
+  '199.36.156.16/28',
+  '209.85.131.0/27',
+  '70.32.128.48/28',
+  '70.32.150.192/27',
+  '108.177.24.160/27',
+  '108.177.29.0/27',
+  '108.177.25.128/27',
+  '108.177.26.128/26',
+  '108.177.29.192/26',
+  '172.217.120.64/26',
+  '172.217.120.128/26',
+  '34.68.194.64/29',
+  '34.69.234.64/29',
+  '34.73.34.72/29',
+  '34.73.178.72/29',
+  '34.74.10.72/29',
+  '34.136.2.136/29',
+  '34.136.50.136/29',
+  '34.145.234.144/29',
+  '35.192.160.56/29',
+  '35.196.166.80/29',
+  '35.196.169.240/29',
+  '35.203.128.0/28',
+  '35.234.176.160/28',
+  '35.243.2.0/27',
+  '35.245.243.240/29',
+  '199.192.115.0/30',
+  '199.192.115.8/30',
+  '199.192.115.16/29',
+  '2001:4860:1008::/48',
+  '2001:4860:1018::/48',
+  '2001:4860:1019::/48',
+  '2001:4860:1020::/48',
+  '2001:4860:1022::/48',
+  '2001:4860:101d::/48',
+  '2001:4860:101e::/48',
+  '2001:4860:1031::/48',
+  '2001:4860:1037::/48',
+  '2001:4860:1038::/48',
+  '2001:4860:103a::/48',
+]) {
+  const [ip, bits] = cidr.split('/')
+  TEST_LAB_NET.addSubnet(ip, Number(bits), ip.includes(':') ? 'ipv6' : 'ipv4')
+}
+
+const inNet = (list: net.BlockList, ip: string) => {
+  const family = net.isIPv4(ip) ? 'ipv4' : net.isIPv6(ip) ? 'ipv6' : null
+  return family ? list.check(ip, family) : false
+}
+
+export function trafficOf(h: Headers): Traffic | null {
+  if (/(?:^|;\s*)bstats_internal=1(?:;|$)/.test(h.get('cookie') ?? '')) return 'internal'
+  const ip = getClientIp(h)
+  if (!ip) return null
+  if (inNet(APPLE_NET, ip)) return 'review'
+  if (inNet(TEST_LAB_NET, ip)) return 'test'
+  return null
+}
+
 export interface RequestContext {
   platform: Platform
   installId: string | null
@@ -119,6 +202,7 @@ export interface RequestContext {
   version: string | null
   lang: string | null
   country: string | null
+  traffic: Traffic | null
 }
 
 /**
@@ -140,6 +224,7 @@ export async function requestContext(
     version: cleanVersion(header(h, 'x-app-version')),
     lang: cleanLang(opts.bodyLang) || cleanLang(header(h, 'x-app-lang')) || acceptLang(h),
     country: countryOf(h),
+    traffic: trafficOf(h),
   }
 }
 
@@ -154,15 +239,16 @@ async function touchInstall(
 ) {
   if (!ctx.installId) return
   await pool.query(
-    `INSERT INTO usage_installs (install_id, platform, first_version, country, user_id, acq_source, acq_medium, acq_campaign)
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+    `INSERT INTO usage_installs (install_id, platform, first_version, country, user_id, acq_source, acq_medium, acq_campaign, traffic)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
      ON CONFLICT (install_id) DO UPDATE SET
        last_seen    = NOW(),
        platform     = CASE WHEN usage_installs.platform = 'app' THEN EXCLUDED.platform ELSE usage_installs.platform END,
        user_id      = COALESCE(EXCLUDED.user_id, usage_installs.user_id),
        acq_source   = COALESCE(usage_installs.acq_source, EXCLUDED.acq_source),
        acq_medium   = COALESCE(usage_installs.acq_medium, EXCLUDED.acq_medium),
-       acq_campaign = COALESCE(usage_installs.acq_campaign, EXCLUDED.acq_campaign)`,
+       acq_campaign = COALESCE(usage_installs.acq_campaign, EXCLUDED.acq_campaign),
+       traffic      = COALESCE(usage_installs.traffic, EXCLUDED.traffic)`,
     [
       ctx.installId,
       ctx.platform,
@@ -172,6 +258,7 @@ async function touchInstall(
       acq.source ?? null,
       acq.medium ?? null,
       acq.campaign ?? null,
+      ctx.traffic,
     ]
   )
 }
@@ -194,8 +281,8 @@ export function recordAction(ctx: RequestContext, a: ActionRecord): void {
   ;(async () => {
     await pool.query(
       `INSERT INTO action_log
-         (platform, app_version, install_id, visitor_hash, user_id, action, source, outcome, status_code, latency_ms, provider, result_id, lang, country)
-       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14)`,
+         (platform, app_version, install_id, visitor_hash, user_id, action, source, outcome, status_code, latency_ms, provider, result_id, lang, country, traffic)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15)`,
       [
         ctx.platform,
         ctx.version,
@@ -211,6 +298,7 @@ export function recordAction(ctx: RequestContext, a: ActionRecord): void {
         a.resultId ? String(a.resultId).slice(0, 80) : null,
         ctx.lang,
         ctx.country,
+        ctx.traffic,
       ]
     )
     await touchInstall(ctx)
@@ -353,8 +441,8 @@ export async function recordEvents(
   const values: string[] = []
   const params: unknown[] = []
   rows.forEach((r, i) => {
-    const o = i * 11
-    values.push(`(${Array.from({ length: 11 }, (_, k) => `$${o + k + 1}`).join(',')})`)
+    const o = i * 12
+    values.push(`(${Array.from({ length: 12 }, (_, k) => `$${o + k + 1}`).join(',')})`)
     params.push(
       r.ts,
       ctx.platform,
@@ -366,11 +454,12 @@ export async function recordEvents(
       r.s,
       r.p ? JSON.stringify(r.p) : null,
       ctx.lang,
-      ctx.country
+      ctx.country,
+      ctx.traffic
     )
   })
   await pool.query(
-    `INSERT INTO usage_events (ts, platform, app_version, install_id, visitor_hash, user_id, event, screen, props, lang, country)
+    `INSERT INTO usage_events (ts, platform, app_version, install_id, visitor_hash, user_id, event, screen, props, lang, country, traffic)
      VALUES ${values.join(',')}`,
     params
   )
@@ -389,8 +478,8 @@ export interface FeedbackRecord {
 
 export async function recordFeedback(ctx: RequestContext, f: FeedbackRecord): Promise<void> {
   await pool.query(
-    `INSERT INTO feedback (kind, platform, app_version, install_id, visitor_hash, user_id, rating, comment, result_id, action, lang, country)
-     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12)`,
+    `INSERT INTO feedback (kind, platform, app_version, install_id, visitor_hash, user_id, rating, comment, result_id, action, lang, country, traffic)
+     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13)`,
     [
       f.kind,
       ctx.platform,
@@ -404,6 +493,7 @@ export async function recordFeedback(ctx: RequestContext, f: FeedbackRecord): Pr
       cleanShort(f.action),
       ctx.lang,
       ctx.country,
+      ctx.traffic,
     ]
   )
 }

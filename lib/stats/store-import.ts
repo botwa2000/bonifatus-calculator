@@ -277,7 +277,22 @@ async function importAscReviews() {
     }
     url = r.body.links?.next || null
   }
-  return `${n} written reviews`
+  // The demo account App Review signs in with: its activity is review, not usage
+  // (lib/stats/classify.ts). Only the account name is read, never the password.
+  const versions = await asc(`/apps/${IOS_APP_ID}/appStoreVersions?limit=5`)
+  const demo = new Set<string>()
+  if (versions.status === 200) {
+    for (const v of versions.body.data) {
+      const d = await asc(
+        `/appStoreVersions/${v.id}/appStoreReviewDetail?fields[appStoreReviewDetails]=demoAccountName`
+      )
+      const name = d.body?.data?.attributes?.demoAccountName
+      if (d.status === 200 && typeof name === 'string' && name.includes('@'))
+        demo.add(name.trim().toLowerCase())
+    }
+    await setConfig('review_accounts', JSON.stringify([...demo]))
+  }
+  return `${n} written reviews${demo.size ? ` · App Review account noted` : ''}`
 }
 
 // Product Type Identifiers (Apple "Sales and Trends" guide): first-time

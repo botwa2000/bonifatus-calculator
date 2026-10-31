@@ -132,8 +132,8 @@ export function renderDashboardPage() {
     `<div class="wrap">
 <header>
   <h1>Bonifatus <span>stats</span></h1>
-  <div class="pills" id="range">
-    <button data-v="today">Today</button><button data-v="7d">7 days</button><button data-v="30d">30 days</button><button data-v="90d">90 days</button>
+  <div class="pills" id="traffic" title="Real users leaves out store review, test devices and the team's own accounts">
+    <button data-v="real">Real users</button><button data-v="all">All traffic</button>
   </div>
   <div class="pills" id="platform">
     <button data-v="all">All</button><button data-v="web">Web</button><button data-v="ios">iOS</button><button data-v="android">Android</button>
@@ -141,6 +141,16 @@ export function renderDashboardPage() {
   <button class="btn" id="import" title="Re-run the store imports now">↻ Store import</button>
   <a class="btn" href="/admin/stats/logout">Sign out</a>
 </header>
+<div class="periodbar">
+  <div class="pills" id="range">
+    <button data-v="today">Today</button><button data-v="yesterday">Yesterday</button><button data-v="7d">7 days</button><button data-v="30d">30 days</button><button data-v="90d">90 days</button><button data-v="mtd">This month</button><button data-v="ytd">Year to date</button><button data-v="12m">12 months</button><button data-v="custom">Custom</button>
+  </div>
+  <form id="custom" class="custom" hidden>
+    <label>From <input type="date" id="cfrom" required></label>
+    <label>To <input type="date" id="cto" required></label>
+    <button class="btn" type="submit">Apply</button>
+  </form>
+</div>
 <div class="meta" id="meta">Loading…</div>
 <div id="root"></div>
 </div>
@@ -159,6 +169,16 @@ h1 span{color:var(--accent)}
 .pills button.on{background:var(--accent);color:#fff}
 .btn{border:1px solid var(--border);background:var(--surface);color:var(--text);padding:6px 10px;border-radius:8px;cursor:pointer;font:inherit;text-decoration:none}
 .meta{color:var(--muted);font-size:.8rem;margin-bottom:12px}
+.periodbar{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;margin:-6px 0 10px}
+.periodbar .pills{flex-wrap:wrap}
+.custom{display:flex;flex-wrap:wrap;gap:8px;align-items:center;font-size:.84rem;color:var(--muted)}
+.custom input,.classify input,.classify select{padding:5px 8px;border:1px solid var(--border);border-radius:8px;background:var(--surface);color:var(--text);font:inherit}
+.card.wide{grid-column:1/-1}
+.card h2 .pills{margin-left:auto;font-size:.8rem}
+.note{background:var(--surface);border:1px dashed var(--border);border-radius:10px;padding:8px 12px;font-size:.82rem;color:var(--muted);margin-bottom:12px}
+.note a{color:var(--accent);cursor:pointer;text-decoration:underline}
+.classify{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:10px;font-size:.84rem}
+.classify input{flex:1 1 220px;min-width:0}
 .tiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px;margin-bottom:14px}
 .tile{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:12px 14px;min-width:0}
 .tile .k{color:var(--muted);font-size:.74rem;font-weight:600;text-transform:uppercase;letter-spacing:.03em}
@@ -207,8 +227,9 @@ const DASHBOARD_JS = String.raw`
     report_scan: "Report card scanned", calculator_preview: "Bonus calculated", settlement_create: "Settlement paid",
     invite_create: "Invite code created", invite_redeem: "Invite redeemed", signup: "Sign-up", signin: "App sign-in",
     market_fetch: "Market data loaded" };
-  var state = { range: "7d", platform: "all" };
-  try { var saved = JSON.parse(localStorage.getItem("bonifatus-stats") || "{}"); if (saved.range) state.range = saved.range; if (saved.platform) state.platform = saved.platform; } catch (e) {}
+  var CLASS = { review: "Store review", test: "Test devices & accounts", internal: "Team", real: "Counted (override)" };
+  var state = { range: "7d", platform: "all", traffic: "real", bucket: "", from: "", to: "" };
+  try { var saved = JSON.parse(localStorage.getItem("bonifatus-stats") || "{}"); Object.keys(state).forEach(function (k) { if (typeof saved[k] === "string") state[k] = saved[k]; }); } catch (e) {}
 
   function esc(s) { return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); }
   function fmt(n) { return n == null ? "—" : Number(n).toLocaleString("en-US"); }
@@ -223,6 +244,7 @@ const DASHBOARD_JS = String.raw`
   function join() { return Array.prototype.filter.call(arguments, Boolean).join(" · "); }
   function stars(n) { var r = Math.round(n || 0); return '<span class="stars">' + "★★★★★".slice(0, r) + '<span class="muted">' + "★★★★★".slice(r) + "</span></span>"; }
   function tile(k, v, s) { return '<div class="tile"><div class="k">' + k + '</div><div class="v">' + v + '</div><div class="s">' + (s || "&nbsp;") + "</div></div>"; }
+  function wide(cardHtml) { return cardHtml.replace('<div class="card">', '<div class="card wide">'); }
   function card(title, body, sub) { return '<div class="card"><h2>' + title + (sub ? " <small>" + sub + "</small>" : "") + "</h2>" + body + "</div>"; }
   function table(cols, rows, empty) {
     if (!rows.length) return '<p class="muted">' + (empty || "No data in this range yet.") + "</p>";
@@ -383,15 +405,50 @@ const DASHBOARD_JS = String.raw`
     // ── Users & activity (tracked)
     html.push(section("Users &amp; activity", "Tracked since " + (d.trackingSince ? esc(d.trackingSince.slice(0, 10)) : "— (nothing recorded yet)") + ". Signed-in people count once across devices; anonymous web visitors count once per day."));
     var fails = d.series.actions.reduce(function (a, p) { return a + p._fail; }, 0);
+    var ex = d.excluded.activity.filter(function (r) { return r.people; });
+    if (d.traffic === "real") {
+      html.push('<div class="note">Real users only.' + (ex.length ? " Left out in this period: " + ex.map(function (r) { return esc(CLASS[r["class"]] || r["class"]) + " " + fmt(r.people) + (r.people === 1 ? " person" : " people"); }).join(", ") + "." : " Nothing left out in this period.") +
+        ' <a data-traffic="all">Show all traffic</a></div>');
+    } else {
+      html.push('<div class="note">All traffic, including store review, test devices and the team. <a data-traffic="real">Show real users only</a></div>');
+    }
+    var bucketPills = '<span class="pills" id="bucket">' + ["day", "week", "month"].map(function (b) { return '<button data-v="' + b + '" class="' + (b === d.bucket ? "on" : "") + '">' + b.charAt(0).toUpperCase() + b.slice(1) + "</button>"; }).join("") + "</span>";
     html.push('<div class="grid">' +
+      wide(card("Activity by " + d.bucket + bucketPills,
+        '<div class="scroll">' + table([
+          { h: "Period", f: function (r) { return '<span style="white-space:nowrap">' + periodLabel(r.period, d.bucket) + "</span>"; } },
+          { h: "Active users", n: 1, f: function (r) { return "<b>" + fmt(r.users) + "</b>"; } },
+          { h: "Web", n: 1, f: function (r) { return fmt(r.web); } },
+          { h: "iOS", n: 1, f: function (r) { return fmt(r.ios); } },
+          { h: "Android", n: 1, f: function (r) { return fmt(r.android); } },
+          { h: "App opens", n: 1, f: function (r) { return fmt(r.opens); } },
+          { h: "Core actions", n: 1, f: function (r) { return fmt(r.actions); } },
+          { h: "New installs", n: 1, f: function (r) { return fmt(r.installs); } },
+          { h: "New accounts", n: 1, f: function (r) { return fmt(r.accounts); } },
+          { h: "Grades", n: 1, f: function (r) { return fmt(r.grades); } },
+          { h: "Downloads", n: 1, f: function (r) { return fmt(r.downloads); } }], d.activity) + "</div>")) +
       card("Active users per day", chartOrEmpty(d.series.activeUsers, PLAT), "accounts + app installs + web visitors") +
       card("Core actions per day", chartOrEmpty(d.series.actions, PLAT), fmt(fails) + " failed in range") +
       (d.platform === "web" ? "" : card("Downloads per day", chartOrEmpty(d.series.downloads, ["ios", "android"], "Needs the store sales feeds (see Store imports below)."), "App Store + Google Play")) +
       "</div>");
 
+    // ── Who is not counted
+    var acc = d.excluded.accounts;
+    html.push('<div class="grid">' + wide(card("Accounts not counted as real users",
+      '<div class="scroll">' + table([
+        { h: "Account", f: function (r) { return esc(r.email) + ' <span class="muted">' + esc(r.role) + "</span>"; } },
+        { h: "Counted as", f: function (r) { return '<span class="badge' + (r["class"] === "real" ? " ok" : "") + '">' + esc(CLASS[r["class"]] || r["class"]) + "</span>"; } },
+        { h: "Why", f: function (r) { return '<span class="muted">' + esc(r.reason) + (r.manual ? " (manual)" : "") + "</span>"; } },
+        { h: "Created", f: function (r) { return '<span class="muted" style="white-space:nowrap">' + esc(r.created) + "</span>"; } }], acc, "Every account counts as a real user.") + "</div>" +
+      '<form class="classify" id="classify"><input type="email" name="email" placeholder="account email" required>' +
+      '<select name="class"><option value="internal">Team</option><option value="test">Test</option><option value="review">Store review</option><option value="real">Real user</option><option value="auto">Automatic</option></select>' +
+      '<button class="btn" type="submit">Save</button><span class="muted" id="classifyMsg"></span></form>' +
+      '<p class="muted" style="margin-top:8px;font-size:.78rem">Automatic: Google Play reviewers (name.12345@gmail.com), Test Lab robots, the App Review demo account, test addresses, the team and their linked family. Store review and test devices are also recognised by their network; this browser is marked as the team\'s when you sign in here.</p>',
+      fmt(acc.filter(function (r) { return r["class"] !== "real"; }).length) + " left out")) + "</div>");
+
     // ── Accounts & data (records)
     var t = rec.totals, a = rec.activation;
-    html.push(section("Accounts &amp; data", "Straight from the product tables — exact for all time, all platforms (these rows carry no platform)."));
+    html.push(section("Accounts &amp; data", "Straight from the product tables — exact for all time, all platforms (these rows carry no platform)." + (d.traffic === "real" ? " Real users only." : "")));
     html.push('<div class="grid">' +
       card("Totals", "<table>" +
         "<tr><td>Accounts</td><td class=\"n\">" + fmt(t.accounts) + ' <span class="muted">' + fmt(t.parents) + " parents · " + fmt(t.children) + " children</span></td></tr>" +
@@ -537,8 +594,20 @@ const DASHBOARD_JS = String.raw`
     document.getElementById("root").innerHTML = html.join("");
   }
 
+  var MON = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+  var WD = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+  function periodLabel(day, bucket) {
+    var x = new Date(day + "T00:00:00Z");
+    if (bucket === "month") return MON[x.getUTCMonth()] + " " + x.getUTCFullYear();
+    var dm = x.getUTCDate() + " " + MON[x.getUTCMonth()] + " " + x.getUTCFullYear();
+    return bucket === "week" ? "Week of " + dm : WD[x.getUTCDay()] + " " + dm;
+  }
+
   function setPills() {
-    ["range", "platform"].forEach(function (id) {
+    document.getElementById("custom").hidden = state.range !== "custom";
+    document.getElementById("cfrom").value = state.from;
+    document.getElementById("cto").value = state.to;
+    ["range", "platform", "traffic"].forEach(function (id) {
       Array.prototype.forEach.call(document.querySelectorAll("#" + id + " button"), function (b) { b.classList.toggle("on", b.dataset.v === state[id]); });
     });
   }
@@ -547,19 +616,49 @@ const DASHBOARD_JS = String.raw`
     setPills();
     try { localStorage.setItem("bonifatus-stats", JSON.stringify(state)); } catch (e) {}
     document.getElementById("meta").textContent = "Loading…";
-    fetch("/api/admin/usage-stats?range=" + state.range + "&platform=" + state.platform, { credentials: "same-origin" })
+    if (state.range === "custom" && !(state.from && state.to)) { document.getElementById("meta").textContent = "Pick a start and end date."; return; }
+    var qs = "range=" + encodeURIComponent(state.range) + "&platform=" + encodeURIComponent(state.platform) + "&traffic=" + encodeURIComponent(state.traffic) +
+      (state.bucket ? "&bucket=" + encodeURIComponent(state.bucket) : "") +
+      (state.range === "custom" ? "&from=" + encodeURIComponent(state.from) + "&to=" + encodeURIComponent(state.to) : "");
+    fetch("/api/admin/usage-stats?" + qs, { credentials: "same-origin" })
       .then(function (r) { if (r.status === 401) { location.href = "/admin/stats/login"; throw new Error("auth"); } if (!r.ok) throw new Error("HTTP " + r.status); return r.json(); })
       .then(function (d) {
-        document.getElementById("meta").textContent = d.from + " → " + d.to + " (UTC) · " + (NAME[d.platform] || "All platforms") + " · updated " + new Date(d.generatedAt).toLocaleTimeString();
+        document.getElementById("meta").textContent = d.from + " → " + d.to + " (UTC, " + d.days + (d.days === 1 ? " day" : " days") + ") · " + (NAME[d.platform] || "All platforms") + " · " + (d.traffic === "real" ? "real users" : "all traffic") + " · updated " + new Date(d.generatedAt).toLocaleTimeString();
         render(d);
       })
       .catch(function (e) { if (e.message !== "auth") { document.getElementById("meta").textContent = ""; document.getElementById("root").innerHTML = '<div class="err">Could not load stats: ' + esc(e.message) + "</div>"; } });
   }
 
-  ["range", "platform"].forEach(function (id) {
+  ["range", "platform", "traffic"].forEach(function (id) {
     document.getElementById(id).addEventListener("click", function (e) {
-      var v = e.target.dataset && e.target.dataset.v; if (!v) return; state[id] = v; load();
+      var v = e.target.dataset && e.target.dataset.v; if (!v) return; state[id] = v;
+      if (id === "range") state.bucket = ""; // the server picks day / week / month for the new period
+      if (id === "range" && v === "custom" && !(state.from && state.to)) { setPills(); document.getElementById("cfrom").focus(); return; }
+      load();
     });
+  });
+  document.getElementById("custom").addEventListener("submit", function (e) {
+    e.preventDefault();
+    state.from = document.getElementById("cfrom").value; state.to = document.getElementById("cto").value;
+    state.range = "custom"; state.bucket = "";
+    load();
+  });
+  // Controls inside the re-rendered report (event delegation).
+  document.getElementById("root").addEventListener("click", function (e) {
+    var el = e.target;
+    if (el.closest && el.closest("#bucket") && el.dataset.v) { state.bucket = el.dataset.v; load(); }
+    if (el.dataset && el.dataset.traffic) { state.traffic = el.dataset.traffic; load(); }
+  });
+  document.getElementById("root").addEventListener("submit", function (e) {
+    if (e.target.id !== "classify") return;
+    e.preventDefault();
+    var f = e.target, msg = document.getElementById("classifyMsg");
+    msg.textContent = "Saving…";
+    fetch("/api/admin/usage-stats", { method: "POST", credentials: "same-origin", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action: "classify", email: f.email.value, "class": f["class"].value }) })
+      .then(function (r) { return r.json().then(function (j) { if (!r.ok) throw new Error(j.error || "HTTP " + r.status); }); })
+      .then(load)
+      .catch(function (err) { msg.textContent = err.message; });
   });
   document.getElementById("import").addEventListener("click", function () {
     var b = this; b.disabled = true; b.textContent = "Import started…";
@@ -567,6 +666,10 @@ const DASHBOARD_JS = String.raw`
       .then(function () { setTimeout(function () { b.disabled = false; b.textContent = "↻ Store import"; load(); }, 20000); });
   });
   load();
-  setInterval(function () { if (!document.hidden) load(); }, 60 * 1000);
+  // Auto-refresh, but never while someone is typing into a field on the page.
+  setInterval(function () {
+    var a = document.activeElement;
+    if (!document.hidden && !(a && /^(INPUT|SELECT)$/.test(a.tagName))) load();
+  }, 60 * 1000);
 })();
 `

@@ -8,6 +8,7 @@ import { getClientIp } from '@/lib/auth/turnstile'
 import {
   clearVerifyFails,
   generateSession,
+  internalCookie,
   isHttps,
   isVerifyLimited,
   recordVerifyFail,
@@ -32,7 +33,10 @@ export async function POST(req: Request) {
   if (await redeemLoginLink(token)) {
     await clearVerifyFails(ip)
     console.warn(`[admin/stats] one-time link login from ${ip}`)
-    return redirect('/admin/stats', sessionCookies(generateSession(), isHttps(req)))
+    return redirect('/admin/stats', [
+      ...sessionCookies(generateSession(), isHttps(req)),
+      internalCookie(isHttps(req)),
+    ])
   }
   await recordVerifyFail(ip)
   return page(401, renderLinkPage({ error: true }))

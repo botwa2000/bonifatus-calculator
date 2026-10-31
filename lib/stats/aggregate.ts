@@ -8,28 +8,120 @@
  *   • records  — the product tables themselves (accounts, grades, settlements,
  *     connections). These are the ground truth for all time, but they carry no
  *     platform, so the "Accounts & data" section ignores the platform filter.
+ *
+ * `traffic` = real (default) reads the stats_real_* views (migration 0024):
+ * store review and test devices, the team's own browsers and the accounts in
+ * stats_account_class are left out. `traffic` = all reads the raw tables.
+ * Store numbers (downloads, ratings) come from the stores and are never filtered.
  */
 import { pool } from '@/lib/db/client'
+import { autoClassify, listClassified } from '@/lib/stats/classify'
 
-export const RANGES: Record<string, number> = { today: 1, '7d': 7, '30d': 30, '90d': 90 }
+export const RANGES = [
+  'today',
+  'yesterday',
+  '7d',
+  '30d',
+  '90d',
+  'mtd',
+  'ytd',
+  '12m',
+  'custom',
+] as const
 export const PLATFORMS = ['all', 'web', 'ios', 'android'] as const
+export const BUCKETS = ['day', 'week', 'month'] as const
+type Range = (typeof RANGES)[number]
+type Bucket = (typeof BUCKETS)[number]
+
+const DAY = 86_400_000
+const MAX_DAYS = 400 // raw usage rows are kept 13 months
 
 interface Window {
   days: number
   from: Date
-  to: Date
-  prevFrom: Date
+  to: Date // exclusive
+  prevFrom: Date // the equally long period right before
 }
 
-function rangeWindow(range: string): Window {
-  const days = RANGES[range] || 7
-  const today = new Date()
-  today.setUTCHours(0, 0, 0, 0)
-  const from = new Date(today.getTime() - (days - 1) * 86_400_000)
-  const to = new Date(today.getTime() + 86_400_000)
-  const prevFrom = new Date(from.getTime() - days * 86_400_000)
-  return { days, from, to, prevFrom }
+const utcDay = (d: Date) => new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()))
+const parseDay = (s: unknown) =>
+  typeof s === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(s) && !isNaN(Date.parse(s))
+    ? new Date(`${s}T00:00:00Z`)
+    : null
+
+/** UTC day window for a preset, or for custom from/to (inclusive days). */
+export function rangeWindow(
+  range: string,
+  fromDay?: unknown,
+  toDay?: unknown,
+  now = new Date()
+): Window {
+  const today = utcDay(now)
+  const tomorrow = new Date(today.getTime() + DAY)
+  let from: Date
+  let to = tomorrow
+  switch (range as Range) {
+    case 'today':
+      from = today
+      break
+    case 'yesterday':
+      from = new Date(today.getTime() - DAY)
+      to = today
+      break
+    case '30d':
+      from = new Date(today.getTime() - 29 * DAY)
+      break
+    case '90d':
+      from = new Date(today.getTime() - 89 * DAY)
+      break
+    case 'mtd':
+      from = new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), 1))
+      break
+    case 'ytd':
+      from = new Date(Date.UTC(today.getUTCFullYear(), 0, 1))
+      break
+    case '12m':
+      from = new Date(today.getTime() - 364 * DAY)
+      break
+    case 'custom': {
+      const a = parseDay(fromDay)
+      const b = parseDay(toDay)
+      if (a && b) {
+        const [lo, hi] = a <= b ? [a, b] : [b, a]
+        to = new Date(Math.min(hi.getTime() + DAY, tomorrow.getTime()))
+        from = new Date(Math.max(lo.getTime(), to.getTime() - MAX_DAYS * DAY))
+        if (from >= to) from = new Date(to.getTime() - DAY)
+        break
+      }
+      from = new Date(today.getTime() - 6 * DAY)
+      break
+    }
+    default:
+      from = new Date(today.getTime() - 6 * DAY)
+  }
+  const days = Math.round((to.getTime() - from.getTime()) / DAY)
+  return { days, from, to, prevFrom: new Date(from.getTime() - days * DAY) }
 }
+
+// Real users only (views from migration 0024) or every row (raw tables).
+const TABLE_NAMES = [
+  'usage_events',
+  'action_log',
+  'usage_installs',
+  'feedback',
+  'user_profiles',
+  'quick_grades',
+  'term_grades',
+  'subject_grades',
+  'settlements',
+  'parent_child_relationships',
+  'parent_child_invites',
+] as const
+type Tables = Record<(typeof TABLE_NAMES)[number], string>
+const tablesFor = (traffic: 'real' | 'all') =>
+  Object.fromEntries(
+    TABLE_NAMES.map((n) => [n, traffic === 'real' ? `stats_real_${n}` : n])
+  ) as Tables
 
 const int = (v: unknown) => Number(v || 0)
 const q = async <T = Record<string, unknown>>(text: string, params: unknown[] = []) =>
@@ -43,10 +135,10 @@ const uid = (t: string) =>
   `COALESCE(${t}.user_id, (SELECT i.user_id FROM usage_installs i WHERE i.install_id = ${t}.install_id), ${t}.install_id, ${t}.visitor_hash)`
 
 // Union of every row that proves a person was active.
-const ACTIVITY = `
-  SELECT ts, platform, country, lang, ${uid('e')} AS uid FROM usage_events e WHERE ts >= $1 AND ts < $2 AND ${P}
+const activity = (t: Tables) => `
+  SELECT ts, platform, country, lang, ${uid('e')} AS uid FROM ${t.usage_events} e WHERE ts >= $1 AND ts < $2 AND ${P}
   UNION ALL
-  SELECT ts, platform, country, lang, ${uid('a')} AS uid FROM action_log a WHERE ts >= $1 AND ts < $2 AND ${P}
+  SELECT ts, platform, country, lang, ${uid('a')} AS uid FROM ${t.action_log} a WHERE ts >= $1 AND ts < $2 AND ${P}
     AND action <> 'bot_check'`
 
 // Core actions shown on the dashboard (bot_check is health-only).
@@ -66,7 +158,7 @@ function fold(days: string[], rows: Row[], key: string, by = 'platform') {
 }
 
 // ── KPIs ─────────────────────────────────────────────────────────────────────
-async function kpis(w: Window, p: string) {
+async function kpis(w: Window, p: string, t: Tables) {
   const one = async (from: Date, to: Date) => {
     const [act, actions, inst, accounts, grades, settled, families] = await Promise.all([
       // Unconsented web visitors rotate their hash daily, so a multi-day distinct
@@ -74,18 +166,18 @@ async function kpis(w: Window, p: string) {
       q(
         `SELECT COUNT(DISTINCT uid) AS users,
                 COUNT(DISTINCT (uid, (ts AT TIME ZONE 'UTC')::date)) AS user_days
-           FROM (${ACTIVITY}) a WHERE uid IS NOT NULL`,
+           FROM (${activity(t)}) a WHERE uid IS NOT NULL`,
         [from, to, p]
       ),
       q(
         `SELECT COUNT(*) FILTER (WHERE outcome = 'ok') AS ok,
                 COUNT(*) FILTER (WHERE outcome = 'fail') AS fail,
                 COUNT(*) AS n
-           FROM action_log WHERE ts >= $1 AND ts < $2 AND ${P} AND ${CORE}`,
+           FROM ${t.action_log} WHERE ts >= $1 AND ts < $2 AND ${P} AND ${CORE}`,
         [from, to, p]
       ),
       q(
-        `SELECT COUNT(*) AS n FROM usage_installs
+        `SELECT COUNT(*) AS n FROM ${t.usage_installs}
           WHERE first_seen >= $1 AND first_seen < $2 AND ${P}`,
         [from, to, p]
       ),
@@ -93,21 +185,21 @@ async function kpis(w: Window, p: string) {
         `SELECT COUNT(*) AS n,
                 COUNT(*) FILTER (WHERE role = 'parent') AS parents,
                 COUNT(*) FILTER (WHERE role = 'child') AS children
-           FROM user_profiles WHERE created_at >= $1 AND created_at < $2 AND role <> 'admin'`,
+           FROM ${t.user_profiles} WHERE created_at >= $1 AND created_at < $2 AND role <> 'admin'`,
         [from, to]
       ),
       q(
-        `SELECT (SELECT COUNT(*) FROM quick_grades WHERE created_at >= $1 AND created_at < $2) AS quick,
-                (SELECT COUNT(*) FROM term_grades  WHERE created_at >= $1 AND created_at < $2) AS terms`,
+        `SELECT (SELECT COUNT(*) FROM ${t.quick_grades} WHERE created_at >= $1 AND created_at < $2) AS quick,
+                (SELECT COUNT(*) FROM ${t.term_grades}  WHERE created_at >= $1 AND created_at < $2) AS terms`,
         [from, to]
       ),
       q(
         `SELECT currency, COUNT(*) AS n, SUM(amount)::float AS amount
-           FROM settlements WHERE created_at >= $1 AND created_at < $2 GROUP BY 1 ORDER BY 2 DESC`,
+           FROM ${t.settlements} WHERE created_at >= $1 AND created_at < $2 GROUP BY 1 ORDER BY 2 DESC`,
         [from, to]
       ),
       q(
-        `SELECT COUNT(*) AS n FROM parent_child_relationships
+        `SELECT COUNT(*) AS n FROM ${t.parent_child_relationships}
           WHERE invitation_status = 'accepted' AND created_at >= $1 AND created_at < $2`,
         [from, to]
       ),
@@ -139,73 +231,73 @@ async function kpis(w: Window, p: string) {
 }
 
 // ── Accounts & data (product tables, all platforms, all time) ───────────────
-async function records(w: Window) {
+async function records(w: Window, t: Tables) {
   const days = dayList(w)
   const [totals, signups, gradesPerDay, settlePerDay, activation, systems] = await Promise.all([
     q(
       `SELECT
-         (SELECT COUNT(*) FROM user_profiles WHERE role <> 'admin') AS accounts,
-         (SELECT COUNT(*) FROM user_profiles WHERE role = 'parent') AS parents,
-         (SELECT COUNT(*) FROM user_profiles WHERE role = 'child') AS children,
-         (SELECT COUNT(*) FROM users u JOIN user_profiles p ON p.id = u.id
+         (SELECT COUNT(*) FROM ${t.user_profiles} WHERE role <> 'admin') AS accounts,
+         (SELECT COUNT(*) FROM ${t.user_profiles} WHERE role = 'parent') AS parents,
+         (SELECT COUNT(*) FROM ${t.user_profiles} WHERE role = 'child') AS children,
+         (SELECT COUNT(*) FROM users u JOIN ${t.user_profiles} p ON p.id = u.id
             WHERE u.email_verified IS NULL AND p.role <> 'admin') AS unverified,
-         (SELECT COUNT(*) FROM user_profiles WHERE role <> 'admin' AND (is_active = false OR deleted_at IS NOT NULL)) AS inactive,
-         (SELECT COUNT(*) FROM parent_child_relationships WHERE invitation_status = 'accepted') AS connections,
-         (SELECT COUNT(DISTINCT parent_id) FROM parent_child_relationships WHERE invitation_status = 'accepted') AS families,
-         (SELECT COUNT(*) FROM quick_grades) AS quick_grades,
-         (SELECT COUNT(*) FROM term_grades) AS term_grades,
-         (SELECT COUNT(*) FROM subject_grades) AS subject_grades,
-         (SELECT COUNT(*) FROM settlements) AS settlements,
+         (SELECT COUNT(*) FROM ${t.user_profiles} WHERE role <> 'admin' AND (is_active = false OR deleted_at IS NOT NULL)) AS inactive,
+         (SELECT COUNT(*) FROM ${t.parent_child_relationships} WHERE invitation_status = 'accepted') AS connections,
+         (SELECT COUNT(DISTINCT parent_id) FROM ${t.parent_child_relationships} WHERE invitation_status = 'accepted') AS families,
+         (SELECT COUNT(*) FROM ${t.quick_grades}) AS quick_grades,
+         (SELECT COUNT(*) FROM ${t.term_grades}) AS term_grades,
+         (SELECT COUNT(*) FROM ${t.subject_grades}) AS subject_grades,
+         (SELECT COUNT(*) FROM ${t.settlements}) AS settlements,
          (SELECT COUNT(DISTINCT child_id) FROM (
-            SELECT child_id FROM quick_grades UNION SELECT child_id FROM term_grades) g) AS children_with_grades`
+            SELECT child_id FROM ${t.quick_grades} UNION SELECT child_id FROM ${t.term_grades}) g) AS children_with_grades`
     ),
     q(
       `SELECT (created_at AT TIME ZONE 'UTC')::date::text AS day, role, COUNT(*) AS n
-         FROM user_profiles WHERE created_at >= $1 AND created_at < $2 AND role <> 'admin'
+         FROM ${t.user_profiles} WHERE created_at >= $1 AND created_at < $2 AND role <> 'admin'
         GROUP BY 1, 2 ORDER BY 1`,
       [w.from, w.to]
     ),
     q(
       `SELECT day, kind, COUNT(*) AS n FROM (
-         SELECT (created_at AT TIME ZONE 'UTC')::date::text AS day, 'quick' AS kind FROM quick_grades
+         SELECT (created_at AT TIME ZONE 'UTC')::date::text AS day, 'quick' AS kind FROM ${t.quick_grades}
           WHERE created_at >= $1 AND created_at < $2
          UNION ALL
-         SELECT (created_at AT TIME ZONE 'UTC')::date::text, 'term' FROM term_grades
+         SELECT (created_at AT TIME ZONE 'UTC')::date::text, 'term' FROM ${t.term_grades}
           WHERE created_at >= $1 AND created_at < $2) g
         GROUP BY 1, 2 ORDER BY 1`,
       [w.from, w.to]
     ),
     q(
       `SELECT (created_at AT TIME ZONE 'UTC')::date::text AS day, 'settlement' AS kind, COUNT(*) AS n
-         FROM settlements WHERE created_at >= $1 AND created_at < $2 GROUP BY 1 ORDER BY 1`,
+         FROM ${t.settlements} WHERE created_at >= $1 AND created_at < $2 GROUP BY 1 ORDER BY 1`,
       [w.from, w.to]
     ),
     // Activation: accounts created in range that have a grade / a family link.
     q(
       `SELECT COUNT(*) AS signups,
               COUNT(*) FILTER (WHERE p.role = 'child' AND (
-                EXISTS (SELECT 1 FROM quick_grades g WHERE g.child_id = p.id) OR
-                EXISTS (SELECT 1 FROM term_grades t WHERE t.child_id = p.id))) AS children_graded,
+                EXISTS (SELECT 1 FROM ${t.quick_grades} g WHERE g.child_id = p.id) OR
+                EXISTS (SELECT 1 FROM ${t.term_grades} t WHERE t.child_id = p.id))) AS children_graded,
               COUNT(*) FILTER (WHERE p.role = 'child') AS children,
-              COUNT(*) FILTER (WHERE EXISTS (SELECT 1 FROM parent_child_relationships r
+              COUNT(*) FILTER (WHERE EXISTS (SELECT 1 FROM ${t.parent_child_relationships} r
                  WHERE r.invitation_status = 'accepted' AND (r.parent_id = p.id OR r.child_id = p.id))) AS connected
-         FROM user_profiles p WHERE p.created_at >= $1 AND p.created_at < $2 AND p.role <> 'admin'`,
+         FROM ${t.user_profiles} p WHERE p.created_at >= $1 AND p.created_at < $2 AND p.role <> 'admin'`,
       [w.from, w.to]
     ),
     q(
       `SELECT COALESCE(gs.name->>'en', gs.code) AS system, COUNT(*) AS n FROM (
-         SELECT grading_system_id FROM quick_grades WHERE created_at >= $1 AND created_at < $2
+         SELECT grading_system_id FROM ${t.quick_grades} WHERE created_at >= $1 AND created_at < $2
          UNION ALL
-         SELECT grading_system_id FROM term_grades WHERE created_at >= $1 AND created_at < $2) g
+         SELECT grading_system_id FROM ${t.term_grades} WHERE created_at >= $1 AND created_at < $2) g
          JOIN grading_systems gs ON gs.id = g.grading_system_id
         GROUP BY 1 ORDER BY 2 DESC LIMIT 10`,
       [w.from, w.to]
     ),
   ])
-  const t = totals[0]
+  const tot = totals[0]
   const a = activation[0]
   return {
-    totals: Object.fromEntries(Object.entries(t).map(([k, v]) => [k, int(v)])),
+    totals: Object.fromEntries(Object.entries(tot).map(([k, v]) => [k, int(v)])),
     signupsPerDay: fold(days, signups, 'n', 'role'),
     gradesPerDay: fold(days, gradesPerDay, 'n', 'kind'),
     settlementsPerDay: fold(days, settlePerDay, 'n', 'kind'),
@@ -220,7 +312,7 @@ async function records(w: Window) {
 }
 
 // ── Store ratings & downloads ────────────────────────────────────────────────
-async function store(w: Window, p: string) {
+async function store(w: Window, p: string, t: Tables) {
   const plats = p === 'all' ? ['ios', 'android'] : p === 'web' ? [] : [p]
   if (!plats.length) return { downloads: {}, prevDownloads: {}, reviews: null }
   const [dl, latest, written, recent, hist, writtenHist, replied, trend, base, countries] =
@@ -393,19 +485,19 @@ async function store(w: Window, p: string) {
 }
 
 // ── Daily series ─────────────────────────────────────────────────────────────
-async function series(w: Window, p: string) {
+async function series(w: Window, p: string, t: Tables) {
   const days = dayList(w)
   const [dau, acts, dl] = await Promise.all([
     q(
       `SELECT (ts AT TIME ZONE 'UTC')::date::text AS day, platform, COUNT(DISTINCT uid) AS n
-         FROM (${ACTIVITY}) a WHERE uid IS NOT NULL GROUP BY 1, 2 ORDER BY 1`,
+         FROM (${activity(t)}) a WHERE uid IS NOT NULL GROUP BY 1, 2 ORDER BY 1`,
       [w.from, w.to, p]
     ),
     q(
       `SELECT (ts AT TIME ZONE 'UTC')::date::text AS day, platform,
               COUNT(*) FILTER (WHERE outcome = 'ok') AS ok,
               COUNT(*) FILTER (WHERE outcome = 'fail') AS fail
-         FROM action_log WHERE ts >= $1 AND ts < $2 AND ${P} AND ${CORE}
+         FROM ${t.action_log} WHERE ts >= $1 AND ts < $2 AND ${P} AND ${CORE}
         GROUP BY 1, 2 ORDER BY 1`,
       [w.from, w.to, p]
     ),
@@ -427,7 +519,7 @@ async function series(w: Window, p: string) {
 }
 
 // ── Usage: core actions, screens, pages, events ──────────────────────────────
-async function usage(w: Window, p: string) {
+async function usage(w: Window, p: string, t: Tables) {
   const [core, screens, pages, events] = await Promise.all([
     q(
       `SELECT action, COUNT(*) AS n,
@@ -440,25 +532,25 @@ async function usage(w: Window, p: string) {
               COUNT(*) FILTER (WHERE platform = 'ios') AS ios,
               COUNT(*) FILTER (WHERE platform = 'android') AS android,
               COUNT(*) FILTER (WHERE platform = 'app') AS app
-         FROM action_log WHERE ts >= $1 AND ts < $2 AND ${P} AND ${CORE}
+         FROM ${t.action_log} WHERE ts >= $1 AND ts < $2 AND ${P} AND ${CORE}
         GROUP BY 1 ORDER BY n DESC`,
       [w.from, w.to, p]
     ),
     q(
       `SELECT screen, COUNT(*) AS n, COUNT(DISTINCT ${uid('e')}) AS users
-         FROM usage_events e WHERE event = 'screen_view' AND ts >= $1 AND ts < $2 AND ${P}
+         FROM ${t.usage_events} e WHERE event = 'screen_view' AND ts >= $1 AND ts < $2 AND ${P}
         GROUP BY 1 ORDER BY n DESC LIMIT 20`,
       [w.from, w.to, p]
     ),
     q(
       `SELECT screen, COUNT(*) AS n, COUNT(DISTINCT ${uid('e')}) AS users
-         FROM usage_events e WHERE event = 'page_view' AND ts >= $1 AND ts < $2 AND ${P}
+         FROM ${t.usage_events} e WHERE event = 'page_view' AND ts >= $1 AND ts < $2 AND ${P}
         GROUP BY 1 ORDER BY n DESC LIMIT 20`,
       [w.from, w.to, p]
     ),
     q(
       `SELECT event, platform, COUNT(*) AS n
-         FROM usage_events WHERE event NOT IN ('page_view', 'screen_view')
+         FROM ${t.usage_events} WHERE event NOT IN ('page_view', 'screen_view')
           AND ts >= $1 AND ts < $2 AND ${P}
         GROUP BY 1, 2 ORDER BY 1`,
       [w.from, w.to, p]
@@ -491,20 +583,20 @@ async function usage(w: Window, p: string) {
 }
 
 // ── Content: what people work on, where actions start, latest free text ─────
-async function content(w: Window, p: string) {
+async function content(w: Window, p: string, t: Tables) {
   const [subjects, sources, latestText] = await Promise.all([
     // Subjects of grades entered in range; platform from the action that created
     // them (rows saved before tracking went live count as "unknown").
     q(
       `WITH g AS (
          SELECT q.subject_id, COALESCE(a.platform, 'unknown') AS platform
-           FROM quick_grades q
-           LEFT JOIN action_log a ON a.result_id = q.id AND a.action = 'grade_quick_save'
+           FROM ${t.quick_grades} q
+           LEFT JOIN ${t.action_log} a ON a.result_id = q.id AND a.action = 'grade_quick_save'
           WHERE q.created_at >= $1 AND q.created_at < $2
          UNION ALL
          SELECT sg.subject_id, COALESCE(a.platform, 'unknown')
-           FROM subject_grades sg JOIN term_grades t ON t.id = sg.term_grade_id
-           LEFT JOIN action_log a ON a.result_id = t.id AND a.action = 'grade_term_save'
+           FROM ${t.subject_grades} sg JOIN ${t.term_grades} t ON t.id = sg.term_grade_id
+           LEFT JOIN ${t.action_log} a ON a.result_id = t.id AND a.action = 'grade_term_save'
           WHERE t.created_at >= $1 AND t.created_at < $2)
        SELECT COALESCE(s.name->>'en', s.name->>'de', s.code) AS subject, COUNT(*) AS n,
               COUNT(*) FILTER (WHERE g.platform = 'web') AS web,
@@ -518,14 +610,14 @@ async function content(w: Window, p: string) {
     ),
     q(
       `SELECT action, COALESCE(source, '(not sent)') AS source, COUNT(*) AS n
-         FROM action_log WHERE outcome = 'ok' AND ts >= $1 AND ts < $2 AND ${P} AND ${CORE}
+         FROM ${t.action_log} WHERE outcome = 'ok' AND ts >= $1 AND ts < $2 AND ${P} AND ${CORE}
         GROUP BY 1, 2 ORDER BY n DESC LIMIT 30`,
       [w.from, w.to, p]
     ),
     // Feedback comments and contact messages: raw text is kept 30 days.
     q(
       `SELECT ts, kind, platform, rating, LEFT(comment, 400) AS comment, lang, country
-         FROM feedback WHERE comment IS NOT NULL AND ($1 = 'all' OR platform = $1)
+         FROM ${t.feedback} WHERE comment IS NOT NULL AND ($1 = 'all' OR platform = $1)
         ORDER BY ts DESC LIMIT 30`,
       [p]
     ),
@@ -534,18 +626,18 @@ async function content(w: Window, p: string) {
 }
 
 // ── Acquisition ──────────────────────────────────────────────────────────────
-async function acquisition(w: Window, p: string) {
+async function acquisition(w: Window, p: string, t: Tables) {
   const [visits, installs, invites, storeSrc] = await Promise.all([
     q(
       `SELECT props->>'acq_source' AS source, NULLIF(props->>'acq_medium', '') AS medium,
               NULLIF(props->>'acq_campaign', '') AS campaign, COUNT(*) AS n
-         FROM usage_events WHERE props ? 'acq_source' AND ts >= $1 AND ts < $2 AND ${P}
+         FROM ${t.usage_events} WHERE props ? 'acq_source' AND ts >= $1 AND ts < $2 AND ${P}
         GROUP BY 1, 2, 3 ORDER BY n DESC LIMIT 20`,
       [w.from, w.to, p]
     ),
     q(
       `SELECT platform, COALESCE(acq_source, '(direct / store)') AS source, acq_campaign AS campaign, COUNT(*) AS n
-         FROM usage_installs WHERE first_seen >= $1 AND first_seen < $2 AND ${P}
+         FROM ${t.usage_installs} WHERE first_seen >= $1 AND first_seen < $2 AND ${P}
         GROUP BY 1, 2, 3 ORDER BY n DESC LIMIT 20`,
       [w.from, w.to, p]
     ),
@@ -553,12 +645,12 @@ async function acquisition(w: Window, p: string) {
     // → codes redeemed = families connected (records).
     q(
       `SELECT
-         (SELECT COUNT(*) FROM parent_child_invites WHERE created_at >= $1 AND created_at < $2) AS created,
-         (SELECT COUNT(*) FROM usage_events WHERE event = 'invite_open' AND ts >= $1 AND ts < $2 AND ${P}) AS opened,
-         (SELECT COUNT(*) FROM usage_events WHERE event = 'invite_share' AND ts >= $1 AND ts < $2 AND ${P}) AS shared,
-         (SELECT COUNT(*) FROM parent_child_invites WHERE status = 'accepted' AND created_at >= $1 AND created_at < $2) AS redeemed,
-         (SELECT COUNT(*) FROM user_profiles p WHERE p.role = 'child' AND p.created_at >= $1 AND p.created_at < $2
-            AND EXISTS (SELECT 1 FROM parent_child_invites i WHERE i.child_id = p.id AND i.status = 'accepted')) AS new_children`,
+         (SELECT COUNT(*) FROM ${t.parent_child_invites} WHERE created_at >= $1 AND created_at < $2) AS created,
+         (SELECT COUNT(*) FROM ${t.usage_events} WHERE event = 'invite_open' AND ts >= $1 AND ts < $2 AND ${P}) AS opened,
+         (SELECT COUNT(*) FROM ${t.usage_events} WHERE event = 'invite_share' AND ts >= $1 AND ts < $2 AND ${P}) AS shared,
+         (SELECT COUNT(*) FROM ${t.parent_child_invites} WHERE status = 'accepted' AND created_at >= $1 AND created_at < $2) AS redeemed,
+         (SELECT COUNT(*) FROM ${t.user_profiles} p WHERE p.role = 'child' AND p.created_at >= $1 AND p.created_at < $2
+            AND EXISTS (SELECT 1 FROM ${t.parent_child_invites} i WHERE i.child_id = p.id AND i.status = 'accepted')) AS new_children`,
       [w.from, w.to, p]
     ),
     q(
@@ -585,15 +677,15 @@ async function acquisition(w: Window, p: string) {
 }
 
 // D1 / D7: share of installs first seen on day X that were active again on X+1 / X+7.
-async function retention(w: Window, p: string) {
+async function retention(w: Window, p: string, t: Tables) {
   const rows = await q(
     `WITH cohort AS (
-       SELECT install_id, (first_seen AT TIME ZONE 'UTC')::date AS d0 FROM usage_installs
+       SELECT install_id, (first_seen AT TIME ZONE 'UTC')::date AS d0 FROM ${t.usage_installs}
         WHERE first_seen >= $1 AND first_seen < $2 AND ${P}),
      act AS (
-       SELECT install_id, (ts AT TIME ZONE 'UTC')::date AS d FROM usage_events WHERE install_id IS NOT NULL AND ts >= $1
+       SELECT install_id, (ts AT TIME ZONE 'UTC')::date AS d FROM ${t.usage_events} WHERE install_id IS NOT NULL AND ts >= $1
        UNION
-       SELECT install_id, (ts AT TIME ZONE 'UTC')::date FROM action_log WHERE install_id IS NOT NULL AND ts >= $1)
+       SELECT install_id, (ts AT TIME ZONE 'UTC')::date FROM ${t.action_log} WHERE install_id IS NOT NULL AND ts >= $1)
      SELECT
        COUNT(*) FILTER (WHERE c.d0 <= (NOW() AT TIME ZONE 'UTC')::date - 1) AS d1_base,
        COUNT(*) FILTER (WHERE c.d0 <= (NOW() AT TIME ZONE 'UTC')::date - 1 AND EXISTS (SELECT 1 FROM act a WHERE a.install_id = c.install_id AND a.d = c.d0 + 1)) AS d1,
@@ -614,7 +706,7 @@ async function retention(w: Window, p: string) {
 }
 
 // ── Feedback & implicit quality signals ──────────────────────────────────────
-async function feedback(w: Window, p: string) {
+async function feedback(w: Window, p: string, t: Tables) {
   const F = `ts >= $1 AND ts < $2 AND ${P}`
   const [app, appDist, appPrev, results, contact, prompts, redo] = await Promise.all([
     q(
@@ -622,32 +714,31 @@ async function feedback(w: Window, p: string) {
               COUNT(*) FILTER (WHERE platform = 'web') AS web,
               COUNT(*) FILTER (WHERE platform = 'ios') AS ios,
               COUNT(*) FILTER (WHERE platform = 'android') AS android
-         FROM feedback WHERE kind = 'app' AND ${F}`,
+         FROM ${t.feedback} WHERE kind = 'app' AND ${F}`,
       [w.from, w.to, p]
     ),
-    q(`SELECT rating, COUNT(*) AS n FROM feedback WHERE kind = 'app' AND ${F} GROUP BY 1`, [
+    q(`SELECT rating, COUNT(*) AS n FROM ${t.feedback} WHERE kind = 'app' AND ${F} GROUP BY 1`, [
       w.from,
       w.to,
       p,
     ]),
-    q(`SELECT COUNT(*) AS n, AVG(rating)::float AS avg FROM feedback WHERE kind = 'app' AND ${F}`, [
-      w.prevFrom,
-      w.from,
-      p,
-    ]),
+    q(
+      `SELECT COUNT(*) AS n, AVG(rating)::float AS avg FROM ${t.feedback} WHERE kind = 'app' AND ${F}`,
+      [w.prevFrom, w.from, p]
+    ),
     q(
       `SELECT COALESCE(action, '—') AS action, COUNT(*) AS n, AVG(rating)::float AS avg
-         FROM feedback WHERE kind = 'result' AND ${F} GROUP BY 1 ORDER BY n DESC`,
+         FROM ${t.feedback} WHERE kind = 'result' AND ${F} GROUP BY 1 ORDER BY n DESC`,
       [w.from, w.to, p]
     ),
     q(
       `SELECT COUNT(*) AS n,
               COUNT(*) FILTER (WHERE rating IS NULL AND comment IS NULL) AS redacted
-         FROM feedback WHERE kind = 'contact' AND ${F}`,
+         FROM ${t.feedback} WHERE kind = 'contact' AND ${F}`,
       [w.from, w.to, p]
     ),
     q(
-      `SELECT event, COUNT(*) AS n FROM usage_events
+      `SELECT event, COUNT(*) AS n FROM ${t.usage_events}
         WHERE event IN ('review_prompt', 'review_store_open', 'feedback_open') AND ${F} GROUP BY 1`,
       [w.from, w.to, p]
     ),
@@ -657,7 +748,7 @@ async function feedback(w: Window, p: string) {
               COUNT(*) FILTER (WHERE action = 'grade_term_save' AND outcome = 'ok') AS saves,
               COUNT(*) FILTER (WHERE action = 'grade_term_update' AND outcome = 'ok') AS edits,
               COUNT(DISTINCT ${uid('a')}) FILTER (WHERE action = 'report_scan') AS scanners
-         FROM action_log a WHERE ${F}`,
+         FROM ${t.action_log} a WHERE ${F}`,
       [w.from, w.to, p]
     ),
   ])
@@ -695,7 +786,7 @@ async function feedback(w: Window, p: string) {
 }
 
 // ── Health ───────────────────────────────────────────────────────────────────
-async function health(w: Window, p: string) {
+async function health(w: Window, p: string, t: Tables) {
   const [providers, outcomes, countries, langs, versions, botGate, quota, imports] =
     await Promise.all([
       q(
@@ -703,30 +794,30 @@ async function health(w: Window, p: string) {
                 COUNT(*) FILTER (WHERE outcome = 'ok') AS ok,
                 percentile_cont(0.5)  WITHIN GROUP (ORDER BY latency_ms) AS p50,
                 percentile_cont(0.95) WITHIN GROUP (ORDER BY latency_ms) AS p95
-           FROM action_log WHERE ts >= $1 AND ts < $2 AND ${P} AND ${CORE}
+           FROM ${t.action_log} WHERE ts >= $1 AND ts < $2 AND ${P} AND ${CORE}
           GROUP BY 1 ORDER BY n DESC`,
         [w.from, w.to, p]
       ),
       q(
-        `SELECT outcome, COUNT(*) AS n FROM action_log
+        `SELECT outcome, COUNT(*) AS n FROM ${t.action_log}
           WHERE ts >= $1 AND ts < $2 AND ${P} AND ${CORE} GROUP BY 1 ORDER BY n DESC`,
         [w.from, w.to, p]
       ),
       q(
-        `SELECT country, COUNT(DISTINCT uid) AS users FROM (${ACTIVITY}) x
+        `SELECT country, COUNT(DISTINCT uid) AS users FROM (${activity(t)}) x
           WHERE country IS NOT NULL AND uid IS NOT NULL GROUP BY 1 ORDER BY users DESC LIMIT 12`,
         [w.from, w.to, p]
       ),
       q(
-        `SELECT lang, COUNT(DISTINCT uid) AS users FROM (${ACTIVITY}) x
+        `SELECT lang, COUNT(DISTINCT uid) AS users FROM (${activity(t)}) x
           WHERE lang IS NOT NULL AND uid IS NOT NULL GROUP BY 1 ORDER BY users DESC LIMIT 12`,
         [w.from, w.to, p]
       ),
       q(
         `SELECT platform, app_version, COUNT(DISTINCT install_id) AS installs FROM (
-           SELECT platform, app_version, install_id, ts FROM usage_events
+           SELECT platform, app_version, install_id, ts FROM ${t.usage_events}
            UNION ALL
-           SELECT platform, app_version, install_id, ts FROM action_log) x
+           SELECT platform, app_version, install_id, ts FROM ${t.action_log}) x
           WHERE app_version IS NOT NULL AND platform IN ('ios', 'android') AND ts >= $1 AND ts < $2 AND ${P}
           GROUP BY 1, 2 ORDER BY installs DESC LIMIT 12`,
         [w.from, w.to, p]
@@ -735,7 +826,7 @@ async function health(w: Window, p: string) {
         `SELECT (ts AT TIME ZONE 'UTC')::date::text AS day,
                 COUNT(*) FILTER (WHERE outcome = 'ok') AS ok,
                 COUNT(*) FILTER (WHERE outcome <> 'ok') AS blocked
-           FROM action_log WHERE action = 'bot_check' AND ts >= $1 AND ts < $2
+           FROM ${t.action_log} WHERE action = 'bot_check' AND ts >= $1 AND ts < $2
           GROUP BY 1 ORDER BY 1 DESC`,
         [w.from, w.to]
       ),
@@ -769,6 +860,103 @@ async function health(w: Window, p: string) {
   }
 }
 
+// ── Activity per day / week / month (the "Activity by period" table) ────────
+/** Start of the bucket containing a UTC day (weeks start on Monday, like date_trunc). */
+export function bucketStart(day: string, bucket: Bucket): string {
+  const d = new Date(`${day}T00:00:00Z`)
+  if (bucket === 'month') return `${day.slice(0, 7)}-01`
+  if (bucket === 'week') d.setUTCDate(d.getUTCDate() - ((d.getUTCDay() + 6) % 7))
+  return d.toISOString().slice(0, 10)
+}
+
+async function activityTable(w: Window, p: string, t: Tables, bucket: Bucket) {
+  // Same day expression as the rest of the dashboard, truncated to the bucket.
+  const per = (col: string) =>
+    `date_trunc($4, (${col} AT TIME ZONE 'UTC')::date::timestamp)::date::text`
+  const args = [w.from, w.to, p, bucket]
+  const [users, opens, actions, installs, accounts, grades, downloads] = await Promise.all([
+    q(
+      `SELECT ${per('ts')} AS period, COUNT(DISTINCT uid) AS users,
+              COUNT(DISTINCT uid) FILTER (WHERE platform = 'web') AS web,
+              COUNT(DISTINCT uid) FILTER (WHERE platform = 'ios') AS ios,
+              COUNT(DISTINCT uid) FILTER (WHERE platform IN ('android', 'app')) AS android
+         FROM (${activity(t)}) a WHERE uid IS NOT NULL GROUP BY 1`,
+      args
+    ),
+    q(
+      `SELECT ${per('ts')} AS period, COUNT(*) AS n FROM ${t.usage_events}
+        WHERE event = 'app_open' AND ts >= $1 AND ts < $2 AND ${P} GROUP BY 1`,
+      args
+    ),
+    q(
+      `SELECT ${per('ts')} AS period, COUNT(*) AS n FROM ${t.action_log}
+        WHERE outcome = 'ok' AND ts >= $1 AND ts < $2 AND ${P} AND ${CORE} GROUP BY 1`,
+      args
+    ),
+    q(
+      `SELECT ${per('first_seen')} AS period, COUNT(*) AS n FROM ${t.usage_installs}
+        WHERE first_seen >= $1 AND first_seen < $2 AND ${P} GROUP BY 1`,
+      args
+    ),
+    q(
+      `SELECT ${per('created_at')} AS period, COUNT(*) AS n FROM ${t.user_profiles}
+        WHERE created_at >= $1 AND created_at < $2 AND role <> 'admin' AND $3::text IS NOT NULL GROUP BY 1`,
+      args
+    ),
+    q(
+      `SELECT period, COUNT(*) AS n FROM (
+         SELECT ${per('created_at')} AS period FROM ${t.quick_grades} WHERE created_at >= $1 AND created_at < $2
+         UNION ALL
+         SELECT ${per('created_at')} FROM ${t.term_grades} WHERE created_at >= $1 AND created_at < $2) g
+        WHERE $3::text IS NOT NULL GROUP BY 1`,
+      args
+    ),
+    q(
+      `SELECT date_trunc($4, day::timestamp)::date::text AS period, SUM(value) AS n FROM store_daily
+        WHERE metric = 'downloads' AND day >= $1::date AND day < $2::date AND ${P} GROUP BY 1`,
+      args
+    ),
+  ])
+  const map = (rows: Row[], key = 'n') =>
+    Object.fromEntries(rows.map((r) => [r.period as string, int(r[key])]))
+  const u = Object.fromEntries(users.map((r) => [r.period as string, r]))
+  const [o, a, i, acc, g, dl] = [opens, actions, installs, accounts, grades, downloads].map((r) =>
+    map(r)
+  )
+  const periods = [...new Set(dayList(w).map((d) => bucketStart(d, bucket)))].reverse()
+  return periods.map((period) => ({
+    period,
+    users: int(u[period]?.users),
+    web: int(u[period]?.web),
+    ios: int(u[period]?.ios),
+    android: int(u[period]?.android),
+    opens: o[period] || 0,
+    actions: a[period] || 0,
+    installs: i[period] || 0,
+    accounts: acc[period] || 0,
+    grades: g[period] || 0,
+    downloads: dl[period] || 0,
+  }))
+}
+
+// ── What "real users" leaves out ─────────────────────────────────────────────
+async function excludedActivity(w: Window, p: string) {
+  return q(
+    `SELECT cls, COUNT(DISTINCT uid) AS people, COUNT(*) AS rows FROM (
+       SELECT x.uid, COALESCE(x.traffic, i.traffic, c1.class, c2.class) AS cls FROM (
+         SELECT traffic, install_id, user_id, ${uid('e')} AS uid FROM usage_events e
+          WHERE ts >= $1 AND ts < $2 AND ${P}
+         UNION ALL
+         SELECT traffic, install_id, user_id, ${uid('a')} FROM action_log a
+          WHERE ts >= $1 AND ts < $2 AND ${P} AND action <> 'bot_check') x
+       LEFT JOIN usage_installs i ON i.install_id = x.install_id
+       LEFT JOIN stats_account_class c1 ON c1.user_id = x.user_id AND c1.class <> 'real'
+       LEFT JOIN stats_account_class c2 ON c2.user_id = i.user_id AND c2.class <> 'real') y
+     WHERE cls IS NOT NULL GROUP BY 1 ORDER BY people DESC`,
+    [w.from, w.to, p]
+  )
+}
+
 async function trackingSince() {
   const rows = await q(
     `SELECT LEAST((SELECT MIN(ts) FROM usage_events), (SELECT MIN(ts) FROM action_log)) AS since`
@@ -776,30 +964,58 @@ async function trackingSince() {
   return rows[0].since ? new Date(rows[0].since as string).toISOString() : null
 }
 
-export async function getStats({ range = '7d', platform = 'all' } = {}) {
-  if (!RANGES[range]) range = '7d'
-  if (!(PLATFORMS as readonly string[]).includes(platform)) platform = 'all'
-  const w = rangeWindow(range)
-  const [k, rec, s, ser, us, ct, acq, ret, fb, h, since] = await Promise.all([
-    kpis(w, platform),
-    records(w),
-    store(w, platform),
-    series(w, platform),
-    usage(w, platform),
-    content(w, platform),
-    acquisition(w, platform),
-    retention(w, platform),
-    feedback(w, platform),
-    health(w, platform),
-    trackingSince(),
-  ])
+export interface StatsQuery {
+  range?: string
+  platform?: string
+  from?: string | null
+  to?: string | null
+  traffic?: string
+  bucket?: string
+}
+
+export async function getStats(o: StatsQuery = {}) {
+  const range = (RANGES as readonly string[]).includes(o.range ?? '') ? (o.range as Range) : '7d'
+  const platform = (PLATFORMS as readonly string[]).includes(o.platform ?? '') ? o.platform! : 'all'
+  const traffic = o.traffic === 'all' ? 'all' : 'real'
+  const w = rangeWindow(range, o.from, o.to)
+  const bucket: Bucket = (BUCKETS as readonly string[]).includes(o.bucket ?? '')
+    ? (o.bucket as Bucket)
+    : w.days > 120
+      ? 'month'
+      : w.days > 31
+        ? 'week'
+        : 'day'
+  // Classification feeds the stats_real_* views, so it runs first.
+  await autoClassify().catch((e) => console.error('[stats] classify:', (e as Error).message))
+  const t = tablesFor(traffic)
+  const [k, rec, s, ser, us, ct, acq, ret, fb, h, since, act, excl, classified] = await Promise.all(
+    [
+      kpis(w, platform, t),
+      records(w, t),
+      store(w, platform, t),
+      series(w, platform, t),
+      usage(w, platform, t),
+      content(w, platform, t),
+      acquisition(w, platform, t),
+      retention(w, platform, t),
+      feedback(w, platform, t),
+      health(w, platform, t),
+      trackingSince(),
+      activityTable(w, platform, t, bucket),
+      excludedActivity(w, platform),
+      listClassified(),
+    ]
+  )
   return {
     generatedAt: new Date().toISOString(),
     range,
     platform,
+    traffic,
+    bucket,
     trackingSince: since,
     from: w.from.toISOString().slice(0, 10),
     to: new Date(w.to.getTime() - 1).toISOString().slice(0, 10),
+    days: w.days,
     kpis: k,
     records: rec,
     store: s,
@@ -810,6 +1026,15 @@ export async function getStats({ range = '7d', platform = 'all' } = {}) {
     retention: ret,
     feedback: fb,
     health: h,
+    activity: act,
+    excluded: {
+      activity: excl.map((r) => ({
+        class: r.cls as string,
+        people: int(r.people),
+        rows: int(r.rows),
+      })),
+      accounts: classified,
+    },
   }
 }
 

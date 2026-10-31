@@ -11,7 +11,10 @@ import {
   countryOf,
   platformOf,
   referrerHost,
+  trafficOf,
 } from '@/lib/stats/usage'
+import { bucketStart, rangeWindow } from '@/lib/stats/aggregate'
+import { normLocal } from '@/lib/stats/classify'
 import { outcomeOf } from '@/lib/stats/with-action-log'
 import { decodeText, parseCsv, parsePlayListing } from '@/lib/stats/store-import'
 import {
@@ -188,5 +191,70 @@ describe('one-time sign-in links', () => {
     expect(await redeemLoginLink(token)).toBe(true)
     expect(await redeemLoginLink(token)).toBe(false)
     expect(String(query.mock.calls[0][0])).toMatch(/used_at IS NULL AND expires_at > NOW\(\)/)
+  })
+})
+
+describe('periods', () => {
+  const now = new Date('2026-10-31T15:00:00Z')
+  const span = (range: string, from?: string, to?: string) => {
+    const w = rangeWindow(range, from, to, now)
+    return [
+      w.from.toISOString().slice(0, 10),
+      w.to.toISOString().slice(0, 10),
+      w.days,
+      w.prevFrom.toISOString().slice(0, 10),
+    ]
+  }
+
+  it('resolves presets to whole UTC days, with an equally long previous period', () => {
+    expect(span('today')).toEqual(['2026-10-31', '2026-11-01', 1, '2026-10-30'])
+    expect(span('yesterday')).toEqual(['2026-10-30', '2026-10-31', 1, '2026-10-29'])
+    expect(span('7d')).toEqual(['2026-10-25', '2026-11-01', 7, '2026-10-18'])
+    expect(span('mtd')).toEqual(['2026-10-01', '2026-11-01', 31, '2026-08-31'])
+    expect(span('ytd')).toEqual(['2026-01-01', '2026-11-01', 304, '2025-03-03'])
+  })
+
+  it('accepts custom days in either order, never past today, at most 400 days', () => {
+    expect(span('custom', '2026-10-20', '2026-10-10').slice(0, 3)).toEqual([
+      '2026-10-10',
+      '2026-10-21',
+      11,
+    ])
+    expect(span('custom', '2026-10-30', '2027-01-01').slice(0, 2)).toEqual([
+      '2026-10-30',
+      '2026-11-01',
+    ])
+    expect(span('custom', '2020-01-01', '2026-10-31')[2]).toBe(400)
+    expect(span('custom', 'nonsense', '2026-10-31').slice(0, 3)).toEqual([
+      '2026-10-25',
+      '2026-11-01',
+      7,
+    ])
+  })
+
+  it('buckets days into Monday weeks and calendar months', () => {
+    expect(bucketStart('2026-10-31', 'day')).toBe('2026-10-31')
+    expect(bucketStart('2026-10-31', 'week')).toBe('2026-10-26') // Saturday → Monday
+    expect(bucketStart('2026-10-26', 'week')).toBe('2026-10-26')
+    expect(bucketStart('2026-11-01', 'week')).toBe('2026-10-26') // Sunday → previous Monday
+    expect(bucketStart('2026-10-31', 'month')).toBe('2026-10-01')
+  })
+})
+
+describe('real-user detection', () => {
+  it('recognises Apple review, Test Lab devices and the team browser by request', () => {
+    expect(trafficOf(h({ 'cf-connecting-ip': '17.58.100.4' }))).toBe('review')
+    expect(trafficOf(h({ 'cf-connecting-ip': '108.177.6.20' }))).toBe('test')
+    expect(trafficOf(h({ 'cf-connecting-ip': '2001:4860:1008::42' }))).toBe('test')
+    expect(
+      trafficOf(h({ 'cf-connecting-ip': '84.150.1.2', cookie: 'a=b; bstats_internal=1' }))
+    ).toBe('internal')
+    expect(trafficOf(h({ 'cf-connecting-ip': '84.150.1.2' }))).toBeNull()
+    expect(trafficOf(h({ 'cf-connecting-ip': '170.1.1.1' }))).toBeNull()
+  })
+
+  it('normalises addresses so the team is found across aliases and domains', () => {
+    expect(normLocal('Alexander.Perel+Maxim@gmail.com')).toBe('alexanderperel')
+    expect(normLocal('alexanderperel@yahoo.com')).toBe('alexanderperel')
   })
 })

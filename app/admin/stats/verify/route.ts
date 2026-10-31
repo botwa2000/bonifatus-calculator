@@ -4,6 +4,7 @@ import {
   clearOtpCookie,
   clearVerifyFails,
   generateSession,
+  internalCookie,
   getOtpState,
   isHttps,
   isVerifyLimited,
@@ -29,6 +30,7 @@ export async function POST(req: Request) {
     console.warn(`[admin/stats] login ok from ${ip}`)
     return redirect('/admin/stats', [
       ...sessionCookies(generateSession(), isHttps(req)),
+      internalCookie(isHttps(req)),
       clearOtpCookie(),
     ])
   }
