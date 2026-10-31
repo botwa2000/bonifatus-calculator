@@ -12,6 +12,8 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../models/calculator_config.dart';
 import '../../providers/quick_grades_provider.dart';
 import '../../providers/calculator_config_provider.dart';
+import '../../../../core/usage/usage_service.dart';
+import '../../../../core/feedback/feedback_ui.dart';
 
 enum _CaptureState { viewfinder, processing, confirming }
 
@@ -363,6 +365,7 @@ class _CaptureScreenState extends ConsumerState<CaptureScreen> {
   @override
   void initState() {
     super.initState();
+    UsageService.instance.track('scan_open');
   }
 
   Future<void> _captureFromCamera() async {
@@ -403,6 +406,7 @@ class _CaptureScreenState extends ConsumerState<CaptureScreen> {
           rawGrade: r.rawGrade,
         )).toList();
         _config = config;
+        UsageService.instance.track('scan_result', props: {'count': results.length, 'result': results.isEmpty ? 'empty' : 'ok'});
         setState(() {
           _scanResults = results;
           _detectedClassLevel = classLevel;
@@ -415,6 +419,7 @@ class _CaptureScreenState extends ConsumerState<CaptureScreen> {
       }
     } catch (e, st) {
       if (kDebugMode) debugPrint('[OCR] error: $e\n$st');
+      UsageService.instance.track('scan_result', props: {'count': 0, 'result': 'error'});
       if (mounted) {
         try { _config = await ref.read(calculatorConfigProvider.future); } catch (_) {}
         setState(() {
@@ -618,6 +623,15 @@ class _CaptureScreenState extends ConsumerState<CaptureScreen> {
                   ),
                 ],
               ),
+            ),
+          ),
+
+        // One-tap OCR quality rating (first-party stats, /admin/stats).
+        if (_scanResults.isNotEmpty)
+          const SliverToBoxAdapter(
+            child: Padding(
+              padding: EdgeInsets.only(top: 6),
+              child: ResultRatingBar(action: 'report_scan'),
             ),
           ),
 

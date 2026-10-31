@@ -98,6 +98,8 @@ jobs:
           packageName: com.bonifatus.app
           releaseFiles: mobile/build/app/outputs/bundle/release/app-release.aab
           tracks: ${{ inputs.track }}
+          # Release notes per language (same text as mobile/store/whats_new.json for iOS)
+          whatsNewDirectory: mobile/store/play-whatsnew
           status: completed
           changesNotSentForReview: false
 

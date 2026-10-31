@@ -584,5 +584,22 @@
   "parentNamePromptBody": "Damit deine Kinder dich finden können",
 
   "settingsValueNotSet": "Nicht angegeben",
-  "settingsBirthdayLabel": "Geburtstag"
+  "settingsBirthdayLabel": "Geburtstag",
+
+  "settingsSendFeedback": "Feedback senden",
+  "feedbackTitle": "Bonifatus bewerten",
+  "feedbackSubtitle": "Wie gefällt Ihnen Bonifatus? Ihre Bewertung geht direkt an unser Team.",
+  "feedbackCommentHint": "Was können wir besser machen? (optional)",
+  "feedbackSend": "Senden",
+  "feedbackThanks": "Vielen Dank für Ihr Feedback!",
+  "feedbackError": "Ihr Feedback konnte nicht gesendet werden. Bitte versuchen Sie es erneut.",
+  "feedbackSelectRating": "Bitte wählen Sie zuerst eine Bewertung.",
+  "feedbackStarLabel": "{count} von 5 Sternen",
+  "parentalGateTitle": "Für Eltern",
+  "parentalGateQuestion": "Bitte lösen, um fortzufahren: {a} × {b} = ?",
+  "parentalGateAnswerHint": "Antwort",
+  "parentalGateWrong": "Das stimmt leider nicht. Bitte frag deine Eltern.",
+  "parentalGateContinue": "Weiter",
+  "scanRatingQuestion": "Wie gut wurden die Noten erkannt?",
+  "scanRatingThanks": "Danke für deine Bewertung!"
 }

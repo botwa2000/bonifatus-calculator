@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:in_app_review/in_app_review.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../constants/app_constants.dart';
+import '../usage/usage_service.dart';
 
 /// Locally persisted review-prompt history for this install.
 ///
@@ -105,6 +106,7 @@ class ReviewPromptService {
       await prefs.setInt(AppConstants.keyReviewLastAskAt, now.millisecondsSinceEpoch);
       await prefs.setInt(AppConstants.keyReviewSuccessesAtLastAsk, updated.successCount);
       _log('requesting store review (ask ${updated.askCount + 1})');
+      UsageService.instance.track('review_prompt');
       await _inAppReview.requestReview();
     } catch (e) {
       // A review prompt must never break the action that triggered it.
@@ -114,8 +116,10 @@ class ReviewPromptService {
 
   /// Opens the store listing directly (Settings → Rate Bonifatus). Not subject
   /// to the store quotas and does not count as an ask.
-  Future<void> openStoreListing() =>
-      _inAppReview.openStoreListing(appStoreId: AppConstants.appStoreId);
+  Future<void> openStoreListing() {
+    UsageService.instance.track('review_store_open');
+    return _inAppReview.openStoreListing(appStoreId: AppConstants.appStoreId);
+  }
 
   Future<ReviewPromptState> _load(SharedPreferences prefs) async {
     var firstUseMs = prefs.getInt(AppConstants.keyReviewFirstUseAt);

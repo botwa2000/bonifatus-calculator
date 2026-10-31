@@ -1,11 +1,11 @@
 import 'dart:convert';
-import 'dart:math';
 import 'package:crypto/crypto.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../core/constants/app_constants.dart';
+import '../core/usage/usage_service.dart';
 
 final apiClientProvider = Provider<ApiClient>((ref) => ApiClient());
 
@@ -30,6 +30,7 @@ class ApiClient {
     ));
     _dio.interceptors.add(_AuthInterceptor(_storage));
     _dio.interceptors.add(_MobileTokenInterceptor(_appSecret));
+    _dio.interceptors.add(_ClientInfoInterceptor());
     _dio.interceptors.add(LogInterceptor(requestBody: false, responseBody: false));
   }
 
@@ -94,8 +95,7 @@ class _MobileTokenInterceptor extends Interceptor {
 
   @override
   void onRequest(RequestOptions options, RequestInterceptorHandler handler) async {
-    final storage = const FlutterSecureStorage();
-    final deviceId = await _getOrCreateDeviceId(storage);
+    final deviceId = await UsageService.instance.installId();
     final timestamp = DateTime.now().millisecondsSinceEpoch.toString();
     final path = options.path;
     final payload = '$deviceId:$timestamp:$path';
@@ -106,23 +106,14 @@ class _MobileTokenInterceptor extends Interceptor {
     options.headers['X-Mobile-Client-Token'] = '${digest.toString()}:$timestamp:$deviceId';
     handler.next(options);
   }
+}
 
-  Future<String> _getOrCreateDeviceId(FlutterSecureStorage storage) async {
-    try {
-      var id = await storage.read(key: AppConstants.keyDeviceId);
-      if (id == null) {
-        id = _generateDeviceId();
-        await storage.write(key: AppConstants.keyDeviceId, value: id);
-      }
-      return id;
-    } on PlatformException catch (_) {
-      return _generateDeviceId();
-    }
-  }
-
-  String _generateDeviceId() {
-    final rng = Random.secure();
-    final bytes = List<int>.generate(8, (_) => rng.nextInt(256));
-    return bytes.map((b) => b.toRadixString(16).padLeft(2, '0')).join();
+/// Platform, version, install ID, language and entry point on every request,
+/// for the server-side usage statistics (/admin/stats).
+class _ClientInfoInterceptor extends Interceptor {
+  @override
+  void onRequest(RequestOptions options, RequestInterceptorHandler handler) async {
+    options.headers.addAll(await UsageService.instance.clientHeaders());
+    handler.next(options);
   }
 }

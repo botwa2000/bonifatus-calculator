@@ -9,6 +9,7 @@ import 'app.dart';
 import 'core/constants/app_constants.dart';
 import 'core/providers/onboarding_provider.dart';
 import 'core/review/review_prompt.dart';
+import 'core/usage/usage_service.dart';
 import 'firebase_options.dart';
 
 void main() async {
@@ -35,6 +36,9 @@ void main() async {
   ));
 
   final prefs = await SharedPreferences.getInstance();
+  await UsageService.instance.init(prefs: prefs);
+  // Not awaited: statistics must never delay the first frame.
+  UsageService.instance.appStarted();
   final hasSeenOnboarding = prefs.getBool(AppConstants.keySeenOnboarding) ?? false;
 
   final reviewPrompt = ReviewPromptService(InAppReview.instance);

@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../features/auth/providers/auth_provider.dart';
 import '../providers/onboarding_provider.dart';
+import '../usage/usage_service.dart';
 import '../../features/auth/screens/splash_screen.dart';
 import '../../features/auth/screens/onboarding_screen.dart';
 import '../../features/auth/screens/login_screen.dart';
@@ -33,7 +34,7 @@ import '../shells/parent_shell.dart';
 final appRouterProvider = Provider<GoRouter>((ref) {
   final listenable = _AuthListenable(ref);
 
-  return GoRouter(
+  final router = GoRouter(
     initialLocation: '/splash',
     refreshListenable: listenable,
     observers: [FirebaseAnalyticsObserver(analytics: FirebaseAnalytics.instance)],
@@ -181,6 +182,19 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       ),
     ],
   );
+
+  // First-party screen statistics: the route template (/student/notes/:id),
+  // never the concrete path, so ids never leave the device.
+  void reportScreen() {
+    // router.state is the top-most route, including screens opened with push().
+    if (router.routerDelegate.currentConfiguration.isEmpty) return;
+    final template = router.state.fullPath ?? router.routerDelegate.currentConfiguration.fullPath;
+    UsageService.instance.screenView(template);
+  }
+
+  router.routerDelegate.addListener(reportScreen);
+  ref.onDispose(() => router.routerDelegate.removeListener(reportScreen));
+  return router;
 });
 
 class _AuthListenable extends ChangeNotifier {

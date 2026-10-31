@@ -236,6 +236,7 @@ export const EVENTS = new Set([
   'screen_view', // app screen (route template)
   'calculator_result', // a bonus was calculated (web calculator / app)
   'scan_open', // report-card scanner opened
+  'scan_result', // on-device scan finished (props: count, result ok|empty|error)
   'invite_open', // the /invite page or an invite deep link was opened
   'invite_share', // a parent shared an invite code / QR
   'review_prompt', // the store review prompt was shown

@@ -1628,4 +1628,57 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get settingsBirthdayLabel => 'День рождения';
+
+  @override
+  String get settingsSendFeedback => 'Отправить отзыв';
+
+  @override
+  String get feedbackTitle => 'Оценить Bonifatus';
+
+  @override
+  String get feedbackSubtitle =>
+      'Как вам Bonifatus? Ваша оценка сразу попадёт к нашей команде.';
+
+  @override
+  String get feedbackCommentHint => 'Что нам улучшить? (необязательно)';
+
+  @override
+  String get feedbackSend => 'Отправить';
+
+  @override
+  String get feedbackThanks => 'Спасибо за ваш отзыв!';
+
+  @override
+  String get feedbackError => 'Не удалось отправить отзыв. Попробуйте ещё раз.';
+
+  @override
+  String get feedbackSelectRating => 'Сначала выберите оценку.';
+
+  @override
+  String feedbackStarLabel(int count) {
+    return '$count из 5 звёзд';
+  }
+
+  @override
+  String get parentalGateTitle => 'Для родителей';
+
+  @override
+  String parentalGateQuestion(int a, int b) {
+    return 'Решите, чтобы продолжить: $a × $b = ?';
+  }
+
+  @override
+  String get parentalGateAnswerHint => 'Ответ';
+
+  @override
+  String get parentalGateWrong => 'Неверно. Попроси помощи у родителей.';
+
+  @override
+  String get parentalGateContinue => 'Продолжить';
+
+  @override
+  String get scanRatingQuestion => 'Насколько хорошо распознаны оценки?';
+
+  @override
+  String get scanRatingThanks => 'Спасибо за оценку!';
 }

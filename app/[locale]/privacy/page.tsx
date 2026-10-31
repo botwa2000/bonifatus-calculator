@@ -67,7 +67,13 @@ export default async function PrivacyPage({ params }: { params: Promise<{ locale
     {
       title: t('thirdPartyTitle'),
       desc: t('thirdPartyDesc'),
-      items: [t('thirdPartyL1'), t('thirdPartyL2'), t('thirdPartyL3'), t('thirdPartyL4')],
+      items: [
+        t('thirdPartyL1'),
+        t('thirdPartyL2'),
+        t('thirdPartyL3'),
+        t('thirdPartyL4'),
+        t('thirdPartyL5'),
+      ],
     },
     {
       title: t('cookiesTitle'),

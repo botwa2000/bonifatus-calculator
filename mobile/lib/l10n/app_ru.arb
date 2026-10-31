@@ -583,5 +583,22 @@
   "parentNamePromptBody": "Чтобы дети могли вас найти",
 
   "settingsValueNotSet": "Не указано",
-  "settingsBirthdayLabel": "День рождения"
+  "settingsBirthdayLabel": "День рождения",
+
+  "settingsSendFeedback": "Отправить отзыв",
+  "feedbackTitle": "Оценить Bonifatus",
+  "feedbackSubtitle": "Как вам Bonifatus? Ваша оценка сразу попадёт к нашей команде.",
+  "feedbackCommentHint": "Что нам улучшить? (необязательно)",
+  "feedbackSend": "Отправить",
+  "feedbackThanks": "Спасибо за ваш отзыв!",
+  "feedbackError": "Не удалось отправить отзыв. Попробуйте ещё раз.",
+  "feedbackSelectRating": "Сначала выберите оценку.",
+  "feedbackStarLabel": "{count} из 5 звёзд",
+  "parentalGateTitle": "Для родителей",
+  "parentalGateQuestion": "Решите, чтобы продолжить: {a} × {b} = ?",
+  "parentalGateAnswerHint": "Ответ",
+  "parentalGateWrong": "Неверно. Попроси помощи у родителей.",
+  "parentalGateContinue": "Продолжить",
+  "scanRatingQuestion": "Насколько хорошо распознаны оценки?",
+  "scanRatingThanks": "Спасибо за оценку!"
 }

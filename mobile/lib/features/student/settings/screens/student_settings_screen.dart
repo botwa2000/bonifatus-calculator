@@ -15,6 +15,7 @@ import '../../../../api/services/profile_service.dart';
 import '../../providers/calculator_config_provider.dart';
 import '../../../../core/constants/app_constants.dart';
 import '../../../../l10n/app_localizations.dart';
+import '../../../../core/feedback/feedback_ui.dart';
 
 class StudentSettingsScreen extends ConsumerStatefulWidget {
   final bool autoOpenSchool;
@@ -479,6 +480,14 @@ class _StudentSettingsScreenState extends ConsumerState<StudentSettingsScreen> {
         icon: Icons.star_outline_rounded,
         label: l10n.settingsRateApp,
         onTap: () => ref.read(reviewPromptServiceProvider).openStoreListing(),
+      ),
+      Divider(height: 1, indent: 56, color: Theme.of(context).colorScheme.outlineVariant),
+      _SettingsTile(
+        icon: Icons.rate_review_outlined,
+        label: l10n.settingsSendFeedback,
+        onTap: () async {
+          if (await showParentalGate(context) && context.mounted) await showFeedbackSheet(context);
+        },
       ),
     ]);
   }

@@ -1640,4 +1640,59 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get settingsBirthdayLabel => 'Anniversaire';
+
+  @override
+  String get settingsSendFeedback => 'Envoyer un avis';
+
+  @override
+  String get feedbackTitle => 'Évaluer Bonifatus';
+
+  @override
+  String get feedbackSubtitle =>
+      'Que pensez-vous de Bonifatus ? Votre note est envoyée directement à notre équipe.';
+
+  @override
+  String get feedbackCommentHint =>
+      'Que pourrions-nous améliorer ? (facultatif)';
+
+  @override
+  String get feedbackSend => 'Envoyer';
+
+  @override
+  String get feedbackThanks => 'Merci pour votre avis !';
+
+  @override
+  String get feedbackError =>
+      'Votre avis n\'a pas pu être envoyé. Veuillez réessayer.';
+
+  @override
+  String get feedbackSelectRating => 'Veuillez d\'abord choisir une note.';
+
+  @override
+  String feedbackStarLabel(int count) {
+    return '$count étoiles sur 5';
+  }
+
+  @override
+  String get parentalGateTitle => 'Pour les parents';
+
+  @override
+  String parentalGateQuestion(int a, int b) {
+    return 'Résolvez ceci pour continuer : $a × $b = ?';
+  }
+
+  @override
+  String get parentalGateAnswerHint => 'Réponse';
+
+  @override
+  String get parentalGateWrong => 'Ce n\'est pas correct. Demande à un parent.';
+
+  @override
+  String get parentalGateContinue => 'Continuer';
+
+  @override
+  String get scanRatingQuestion => 'Les notes ont-elles été bien reconnues ?';
+
+  @override
+  String get scanRatingThanks => 'Merci pour ta note !';
 }

@@ -693,5 +693,24 @@
   "parentNamePromptBody": "So your children can find you",
 
   "settingsValueNotSet": "Not set",
-  "settingsBirthdayLabel": "Birthday"
+  "settingsBirthdayLabel": "Birthday",
+
+  "settingsSendFeedback": "Send feedback",
+  "feedbackTitle": "Rate Bonifatus",
+  "feedbackSubtitle": "How do you like Bonifatus? Your rating goes straight to our team.",
+  "feedbackCommentHint": "What could we do better? (optional)",
+  "feedbackSend": "Send",
+  "feedbackThanks": "Thank you for your feedback!",
+  "feedbackError": "Your feedback could not be sent. Please try again.",
+  "feedbackSelectRating": "Please choose a rating first.",
+  "feedbackStarLabel": "{count} of 5 stars",
+  "@feedbackStarLabel": {"placeholders": {"count": {"type": "int"}}},
+  "parentalGateTitle": "For parents",
+  "parentalGateQuestion": "Please solve this to continue: {a} × {b} = ?",
+  "@parentalGateQuestion": {"placeholders": {"a": {"type": "int"}, "b": {"type": "int"}}},
+  "parentalGateAnswerHint": "Answer",
+  "parentalGateWrong": "That is not right. Please ask a parent.",
+  "parentalGateContinue": "Continue",
+  "scanRatingQuestion": "How well were the grades recognised?",
+  "scanRatingThanks": "Thanks for rating!"
 }

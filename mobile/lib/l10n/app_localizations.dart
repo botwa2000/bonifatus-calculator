@@ -3033,6 +3033,102 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Birthday'**
   String get settingsBirthdayLabel;
+
+  /// No description provided for @settingsSendFeedback.
+  ///
+  /// In en, this message translates to:
+  /// **'Send feedback'**
+  String get settingsSendFeedback;
+
+  /// No description provided for @feedbackTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Rate Bonifatus'**
+  String get feedbackTitle;
+
+  /// No description provided for @feedbackSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'How do you like Bonifatus? Your rating goes straight to our team.'**
+  String get feedbackSubtitle;
+
+  /// No description provided for @feedbackCommentHint.
+  ///
+  /// In en, this message translates to:
+  /// **'What could we do better? (optional)'**
+  String get feedbackCommentHint;
+
+  /// No description provided for @feedbackSend.
+  ///
+  /// In en, this message translates to:
+  /// **'Send'**
+  String get feedbackSend;
+
+  /// No description provided for @feedbackThanks.
+  ///
+  /// In en, this message translates to:
+  /// **'Thank you for your feedback!'**
+  String get feedbackThanks;
+
+  /// No description provided for @feedbackError.
+  ///
+  /// In en, this message translates to:
+  /// **'Your feedback could not be sent. Please try again.'**
+  String get feedbackError;
+
+  /// No description provided for @feedbackSelectRating.
+  ///
+  /// In en, this message translates to:
+  /// **'Please choose a rating first.'**
+  String get feedbackSelectRating;
+
+  /// No description provided for @feedbackStarLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} of 5 stars'**
+  String feedbackStarLabel(int count);
+
+  /// No description provided for @parentalGateTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'For parents'**
+  String get parentalGateTitle;
+
+  /// No description provided for @parentalGateQuestion.
+  ///
+  /// In en, this message translates to:
+  /// **'Please solve this to continue: {a} × {b} = ?'**
+  String parentalGateQuestion(int a, int b);
+
+  /// No description provided for @parentalGateAnswerHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Answer'**
+  String get parentalGateAnswerHint;
+
+  /// No description provided for @parentalGateWrong.
+  ///
+  /// In en, this message translates to:
+  /// **'That is not right. Please ask a parent.'**
+  String get parentalGateWrong;
+
+  /// No description provided for @parentalGateContinue.
+  ///
+  /// In en, this message translates to:
+  /// **'Continue'**
+  String get parentalGateContinue;
+
+  /// No description provided for @scanRatingQuestion.
+  ///
+  /// In en, this message translates to:
+  /// **'How well were the grades recognised?'**
+  String get scanRatingQuestion;
+
+  /// No description provided for @scanRatingThanks.
+  ///
+  /// In en, this message translates to:
+  /// **'Thanks for rating!'**
+  String get scanRatingThanks;
 }
 
 class _AppLocalizationsDelegate

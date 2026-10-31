@@ -583,5 +583,22 @@
   "parentNamePromptBody": "Para que tus hijos puedan encontrarte",
 
   "settingsValueNotSet": "No establecido",
-  "settingsBirthdayLabel": "Cumpleaños"
+  "settingsBirthdayLabel": "Cumpleaños",
+
+  "settingsSendFeedback": "Enviar opinión",
+  "feedbackTitle": "Valorar Bonifatus",
+  "feedbackSubtitle": "¿Qué te parece Bonifatus? Tu valoración llega directamente a nuestro equipo.",
+  "feedbackCommentHint": "¿Qué podríamos mejorar? (opcional)",
+  "feedbackSend": "Enviar",
+  "feedbackThanks": "¡Gracias por tu opinión!",
+  "feedbackError": "No se pudo enviar tu opinión. Inténtalo de nuevo.",
+  "feedbackSelectRating": "Elige primero una valoración.",
+  "feedbackStarLabel": "{count} de 5 estrellas",
+  "parentalGateTitle": "Para padres",
+  "parentalGateQuestion": "Resuelve esto para continuar: {a} × {b} = ?",
+  "parentalGateAnswerHint": "Respuesta",
+  "parentalGateWrong": "No es correcto. Pide ayuda a tus padres.",
+  "parentalGateContinue": "Continuar",
+  "scanRatingQuestion": "¿Qué tal se reconocieron las notas?",
+  "scanRatingThanks": "¡Gracias por valorar!"
 }

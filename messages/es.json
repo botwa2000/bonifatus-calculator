@@ -909,6 +909,7 @@
     "thirdPartyL2": "Netcup SMTP: envío de correos electrónicos para códigos de verificación y notificaciones. Su dirección de correo electrónico se transmite para enviar los mensajes.",
     "thirdPartyL3": "Financial Modeling Prep API: datos opcionales del mercado bursátil para el simulador de inversiones. No se comparte ningún dato personal con este servicio.",
     "thirdPartyL4": "Google Analytics 4 (Google Ireland Ltd.): solo si permites la analítica en el aviso de cookies. Mide las visitas al sitio web con cookies (_ga). Google Signals y la personalización de anuncios están desactivados. Puedes retirar tu consentimiento en cualquier momento con el icono de cookies. Consulta la política de privacidad de Google.",
+    "thirdPartyL5": "Google Analytics para Firebase (Google Ireland Ltd.) en las apps de iOS y Android: qué pantallas de la app se abren y cómo se usa, con un ID aleatorio de instancia de la app. No se recopilan identificadores publicitarios y la personalización de anuncios está desactivada.",
     "cookiesTitle": "Cookies",
     "cookiesDesc": "Bonifatus usa cookies esenciales para funcionar. La analítica (Google Analytics y un ID de visitante recurrente) solo se usa con tu consentimiento. Nunca usamos cookies publicitarias. Para más detalles, consulta nuestra Política de cookies.",
     "childrenTitle": "Privacidad de los menores",

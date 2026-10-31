@@ -583,5 +583,22 @@
   "parentNamePromptBody": "Pour que vos enfants puissent vous trouver",
 
   "settingsValueNotSet": "Non renseigné",
-  "settingsBirthdayLabel": "Anniversaire"
+  "settingsBirthdayLabel": "Anniversaire",
+
+  "settingsSendFeedback": "Envoyer un avis",
+  "feedbackTitle": "Évaluer Bonifatus",
+  "feedbackSubtitle": "Que pensez-vous de Bonifatus ? Votre note est envoyée directement à notre équipe.",
+  "feedbackCommentHint": "Que pourrions-nous améliorer ? (facultatif)",
+  "feedbackSend": "Envoyer",
+  "feedbackThanks": "Merci pour votre avis !",
+  "feedbackError": "Votre avis n'a pas pu être envoyé. Veuillez réessayer.",
+  "feedbackSelectRating": "Veuillez d'abord choisir une note.",
+  "feedbackStarLabel": "{count} étoiles sur 5",
+  "parentalGateTitle": "Pour les parents",
+  "parentalGateQuestion": "Résolvez ceci pour continuer : {a} × {b} = ?",
+  "parentalGateAnswerHint": "Réponse",
+  "parentalGateWrong": "Ce n'est pas correct. Demande à un parent.",
+  "parentalGateContinue": "Continuer",
+  "scanRatingQuestion": "Les notes ont-elles été bien reconnues ?",
+  "scanRatingThanks": "Merci pour ta note !"
 }
