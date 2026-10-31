@@ -231,7 +231,7 @@ const DASHBOARD_JS = String.raw`
   }
   function legend(keys) { return '<div class="legend">' + keys.map(function (k) { return '<span><i class="dot" style="background:' + COL[k] + '"></i>' + NAME[k] + "</span>"; }).join("") + "</div>"; }
   function section(title, note) { return '<h2 class="sec">' + title + "</h2>" + (note ? '<p class="secnote">' + note + "</p>" : '<p class="secnote"></p>'); }
-  function dot(p) { return '<i class="dot" style="background:' + (COL[p] || "var(--app)") + '"></i>'; }
+  function dot(p) { var n = esc(NAME[p] || p || "app"); return '<i class="dot" title="' + n + '" role="img" aria-label="' + n + '" style="background:' + (COL[p] || "var(--app)") + '"></i>'; }
   function actionName(a) { return esc(ACTION[a] || a.replace(/_/g, " ")); }
 
   function lineChart(rows, series, fmtY) {
@@ -311,6 +311,9 @@ const DASHBOARD_JS = String.raw`
     var dlPrev = (st.prevDownloads.ios || 0) + (st.prevDownloads.android || 0);
     var failRate = k.actions ? k.actionsFailed / k.actions : null;
     var html = [];
+    // Which store feeds last imported successfully (drives the "needs …" hints).
+    var feedOk = {};
+    (h.imports || []).forEach(function (r) { feedOk[r.source] = r.ok; });
 
     // ── Headline tiles
     html.push('<div class="tiles">' +
@@ -345,7 +348,7 @@ const DASHBOARD_JS = String.raw`
         }).join("") : "";
         var note = t.histogramSource ? "" : p === "android"
           ? '<p class="muted" style="margin-top:6px">Google Play shows no public rating yet — it appears once enough people have rated the app.</p>'
-          : '<p class="muted" style="margin-top:6px">Apple publishes only the count and average; the star split comes from written reviews (needs the App Store Connect key).</p>';
+          : '<p class="muted" style="margin-top:6px">Apple publishes only the count and average; the star split comes from written reviews' + (feedOk.asc_reviews ? "" : " (needs the App Store Connect key)") + ".</p>";
         return card(p === "ios" ? "App Store" : "Google Play",
           '<p><span class="big">' + (t.avg ? t.avg.toFixed(2) : "—") + "</span> " + (t.avg ? stars(t.avg) : "") + "</p>" +
           '<p class="muted" style="margin-bottom:8px">' + fmt(t.ratings) + (t.ratingsIsWrittenOnly ? " written reviews" : " ratings") +
@@ -366,7 +369,9 @@ const DASHBOARD_JS = String.raw`
         return '<div class="review">' + dot(r.platform) + stars(r.rating) + ' <span class="muted">' + esc(String(r.created_at).slice(0, 10)) + " " + esc(r.territory || r.lang || "") + (r.app_version ? " v" + esc(r.app_version) : "") + "</span> " +
           (r.replied === true ? '<span class="badge ok">replied</span>' : r.replied === false ? '<span class="badge">no reply</span>' : "") +
           (r.title ? "<br><b>" + esc(r.title) + "</b>" : "") + (r.body ? "<br>" + esc(r.body) : "") + "</div>";
-      }).join("") : '<p class="muted">No written reviews imported yet (iOS needs the App Store Connect key; Android needs the Play service account).</p>';
+      }).join("") : '<p class="muted">' + (feedOk.asc_reviews && feedOk.play_reviews
+        ? "No written reviews yet on either store."
+        : "No written reviews imported yet (" + [feedOk.asc_reviews ? "" : "iOS needs the App Store Connect key", feedOk.play_reviews ? "" : "Android needs the Play service account"].filter(Boolean).join("; ") + ").") + "</p>";
       html.push(section("App Store &amp; Google Play ratings") + '<div class="grid">' + storeCards +
         card("Rating count over time", lineChart(rv.trend, trendSeries) + legend(Object.keys(rv.perPlatform)), "daily snapshot") +
         card("Average over time", lineChart(rv.trend, avgSeries, function (v) { return Number(v).toFixed(2); }) + legend(Object.keys(rv.perPlatform))) +
