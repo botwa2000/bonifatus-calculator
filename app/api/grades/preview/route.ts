@@ -6,6 +6,7 @@ import { requireAuthApi } from '@/lib/auth/session'
 import { getEffectiveBonusFactors } from '@/lib/db/queries/config'
 import { calculateBonus, type CalculatorInput } from '@/lib/calculator/engine'
 import { eq, and, inArray } from 'drizzle-orm'
+import { withActionLog } from '@/lib/stats/with-action-log'
 
 const previewSchema = z.object({
   gradingSystemId: z.string().uuid(),
@@ -24,7 +25,7 @@ const previewSchema = z.object({
     .min(1),
 })
 
-export async function POST(request: NextRequest) {
+async function handlePost(request: NextRequest) {
   const body = await request.json()
   const parsed = previewSchema.safeParse(body)
 
@@ -96,3 +97,5 @@ export async function POST(request: NextRequest) {
     )
   }
 }
+
+export const POST = withActionLog('calculator_preview', handlePost)

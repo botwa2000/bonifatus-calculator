@@ -10,6 +10,7 @@ import {
   type CalculatorSubjectResult,
 } from '@/lib/calculator/engine'
 import { eq, and, inArray } from 'drizzle-orm'
+import { withActionLog } from '@/lib/stats/with-action-log'
 
 const updateSchema = z.object({
   termId: z.string().uuid(),
@@ -31,7 +32,7 @@ const updateSchema = z.object({
     .min(1),
 })
 
-export async function POST(request: NextRequest) {
+async function handlePost(request: NextRequest) {
   const body = await request.json()
   const parsed = updateSchema.safeParse(body)
 
@@ -149,3 +150,5 @@ export async function POST(request: NextRequest) {
     )
   }
 }
+
+export const POST = withActionLog('grade_term_update', handlePost)

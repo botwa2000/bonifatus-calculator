@@ -5,6 +5,7 @@ import { recognizeText, type OcrResult } from '@/lib/scanner/ocr-engine'
 import { parseOcrText } from '@/lib/scanner/text-parser'
 import { matchSubjects } from '@/lib/scanner/subject-matcher'
 import { loadScanConfig } from '@/lib/db/queries/scan-config'
+import { withActionLog } from '@/lib/stats/with-action-log'
 
 // School type keywords → country code mapping for auto-detection
 const SCHOOL_COUNTRY_MAP: Array<{ keywords: string[]; country: string }> = [
@@ -63,7 +64,7 @@ const rateLimits = new Map<string, { count: number; resetAt: number }>()
 const MAX_SCANS_PER_HOUR = 20
 const MAX_IMAGE_SIZE = 10 * 1024 * 1024 // 10MB
 
-export async function POST(req: Request) {
+async function handlePost(req: Request) {
   const user = await requireAuthApi()
   if (!user) {
     return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
@@ -220,3 +221,5 @@ export async function POST(req: Request) {
     return NextResponse.json({ success: false, error: 'Failed to process image' }, { status: 500 })
   }
 }
+
+export const POST = withActionLog('report_scan', handlePost, { provider: 'tesseract' })

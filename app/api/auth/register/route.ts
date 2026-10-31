@@ -13,6 +13,7 @@ import { logSecurityEvent } from '@/lib/db/queries/security'
 import { sendEmail } from '@/lib/email/service'
 import { getVerificationCodeEmail } from '@/lib/email/templates'
 import { generateCode } from '@/lib/auth/generate-code'
+import { withActionLog } from '@/lib/stats/with-action-log'
 
 const registerSchema = z.object({
   email: z.string().email('Invalid email address'),
@@ -31,7 +32,7 @@ const registerSchema = z.object({
   programLength: z.number().int().min(1).max(20).optional(),
 })
 
-export async function POST(request: NextRequest) {
+async function handlePost(request: NextRequest) {
   try {
     const body = await request.json()
     const validationResult = registerSchema.safeParse(body)
@@ -197,3 +198,8 @@ export async function POST(request: NextRequest) {
     )
   }
 }
+
+export const POST = withActionLog('signup', handlePost, {
+  provider: 'password',
+  userId: (b) => b.userId,
+})

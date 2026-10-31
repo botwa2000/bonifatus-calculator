@@ -56,6 +56,14 @@ function hasSessionCookie(req: NextRequest): boolean {
 }
 
 const publicApiPrefixes = ['/api/health', '/api/auth', '/api/config', '/api/contact', '/api/mobile']
+// Routes that do their own auth (or none): usage beacon, feedback, and the stats
+// dashboard API, which uses its own email-OTP session instead of NextAuth.
+const publicApiPaths = new Set(['/api/t', '/api/feedback', '/api/admin/usage-stats'])
+
+// The confidential stats dashboard lives outside the localized app (English-only,
+// noindex, own email-OTP login) — never locale-redirect it.
+const isStatsDashboard = (pathname: string) =>
+  pathname === '/admin/stats' || pathname.startsWith('/admin/stats/')
 
 // Locale routing (always-prefixed URLs, unprefixed → redirect to the visitor's locale).
 const handleI18nRouting = createIntlMiddleware(routing)
@@ -70,13 +78,16 @@ const FILE_PATTERN = /\/[^/]+\.[a-z0-9]+$/i
 export default async function proxy(req: NextRequest) {
   const { pathname } = req.nextUrl
 
-  if (pathname.startsWith('/_next') || FILE_PATTERN.test(pathname)) {
+  if (pathname.startsWith('/_next') || FILE_PATTERN.test(pathname) || isStatsDashboard(pathname)) {
     return NextResponse.next()
   }
 
   // API routes - no locale prefix, no intl middleware
   if (pathname.startsWith('/api/')) {
-    if (publicApiPrefixes.some((prefix) => pathname.startsWith(prefix))) {
+    if (
+      publicApiPaths.has(pathname) ||
+      publicApiPrefixes.some((prefix) => pathname.startsWith(prefix))
+    ) {
       dbg('mw', `public API pass-through: ${pathname}`)
       return NextResponse.next()
     }

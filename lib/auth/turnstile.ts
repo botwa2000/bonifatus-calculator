@@ -19,6 +19,20 @@ export async function verifyTurnstileToken(
   error?: string
   errorCodes?: string[]
 }> {
+  const result = await verifyWithCloudflare(token, ip)
+  // Dynamic import: lib/stats/usage imports getClientIp from this module.
+  import('@/lib/stats/usage').then((u) => u.recordBotCheck(result.success)).catch(() => {})
+  return result
+}
+
+async function verifyWithCloudflare(
+  token: string,
+  ip?: string
+): Promise<{
+  success: boolean
+  error?: string
+  errorCodes?: string[]
+}> {
   const secretKey = process.env.TURNSTILE_SECRET_KEY
 
   if (!secretKey) {

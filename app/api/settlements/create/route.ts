@@ -3,6 +3,7 @@ import { z } from 'zod'
 import { requireAuthApi, getUserProfile } from '@/lib/auth/session'
 import { getAcceptedChildren } from '@/lib/db/queries/relationships'
 import { createSettlement } from '@/lib/db/queries/settlements'
+import { withActionLog } from '@/lib/stats/with-action-log'
 
 const schema = z.object({
   childId: z.string().min(1),
@@ -17,7 +18,7 @@ const schema = z.object({
   packageLabel: z.string().max(200).optional(),
 })
 
-export async function POST(request: NextRequest) {
+async function handlePost(request: NextRequest) {
   try {
     const user = await requireAuthApi()
     if (!user) {
@@ -83,3 +84,7 @@ export async function POST(request: NextRequest) {
     )
   }
 }
+
+export const POST = withActionLog('settlement_create', handlePost, {
+  resultId: (b) => b.settlementId,
+})

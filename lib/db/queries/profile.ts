@@ -2,6 +2,7 @@ import { db } from '@/lib/db/client'
 import { users } from '@/drizzle/schema/auth'
 import { userProfiles } from '@/drizzle/schema/users'
 import { eq } from 'drizzle-orm'
+import { forgetUser } from '@/lib/stats/usage'
 
 export async function getProfile(userId: string) {
   const [profile] = await db.select().from(userProfiles).where(eq(userProfiles.id, userId)).limit(1)
@@ -40,6 +41,9 @@ export async function updateProfile(
 }
 
 export async function deleteAccount(userId: string) {
+  // Usage statistics and feedback of this person go with the account.
+  await forgetUser(userId)
+
   // Soft-delete profile
   await db
     .update(userProfiles)

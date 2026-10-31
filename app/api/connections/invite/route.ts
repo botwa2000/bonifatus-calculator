@@ -5,6 +5,7 @@ import { db } from '@/lib/db/client'
 import { parentChildInvites } from '@/drizzle/schema/relationships'
 import { eq, and } from 'drizzle-orm'
 import { generateCode } from '@/lib/auth/generate-code'
+import { withActionLog } from '@/lib/stats/with-action-log'
 
 const schema = z.object({
   expiresInMinutes: z
@@ -15,7 +16,7 @@ const schema = z.object({
     .optional(),
 })
 
-export async function POST(request: NextRequest) {
+async function handlePost(request: NextRequest) {
   const user = await requireAuthApi()
   if (!user) {
     return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
@@ -73,3 +74,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ success: false, error: 'Failed to create invite' }, { status: 500 })
   }
 }
+
+export const POST = withActionLog('invite_create', handlePost, {
+  resultId: (b) => (b.invite as { id?: string } | undefined)?.id,
+})

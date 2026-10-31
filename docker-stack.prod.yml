@@ -17,6 +17,8 @@ services:
       - prod_EMAIL_USER
       - prod_EMAIL_PASSWORD
       - prod_FMP_API_KEY
+      - prod_STATS_ADMIN_EMAILS
+      - prod_STATS_ADMIN_KEY
       - prod_GOOGLE_CLIENT_ID
       - prod_GOOGLE_CLIENT_SECRET
       - prod_GOOGLE_IOS_CLIENT_ID
@@ -65,6 +67,10 @@ secrets:
   prod_EMAIL_PASSWORD:
     external: true
   prod_FMP_API_KEY:
+    external: true
+  prod_STATS_ADMIN_EMAILS:
+    external: true
+  prod_STATS_ADMIN_KEY:
     external: true
   prod_GOOGLE_CLIENT_ID:
     external: true

@@ -1,5 +1,7 @@
 import { NextResponse } from 'next/server'
 import { sendEmail } from '@/lib/email/service'
+import { requireAuthApi } from '@/lib/auth/session'
+import { recordFeedback, requestContext } from '@/lib/stats/usage'
 
 export async function POST(request: Request) {
   try {
@@ -51,6 +53,19 @@ export async function POST(request: Request) {
     if (!sent) {
       return NextResponse.json({ error: 'Failed to send' }, { status: 500 })
     }
+
+    // Count for /admin/stats: subject + message only (name/email live in the email, never here).
+    const user = await requireAuthApi().catch(() => null)
+    requestContext(request.headers, { userId: user?.id ?? null })
+      .then((ctx) =>
+        recordFeedback(ctx, {
+          kind: 'contact',
+          comment: `${subject}
+
+${message}`.slice(0, 2000),
+        })
+      )
+      .catch((err) => console.error('[contact] stats write failed:', err.message))
 
     return NextResponse.json({ success: true })
   } catch {

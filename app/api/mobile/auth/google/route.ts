@@ -4,6 +4,7 @@ import { users, accounts } from '@/drizzle/schema/auth'
 import { userProfiles } from '@/drizzle/schema/users'
 import { eq, and } from 'drizzle-orm'
 import { signMobileToken } from '@/lib/auth/mobile-token'
+import { withActionLog } from '@/lib/stats/with-action-log'
 
 interface GoogleTokenInfo {
   sub: string
@@ -35,7 +36,7 @@ async function verifyGoogleToken(idToken: string): Promise<GoogleTokenInfo> {
   return data
 }
 
-export async function POST(request: NextRequest) {
+async function handlePost(request: NextRequest) {
   try {
     const body = await request.json()
     const { idToken, role, fullName, dateOfBirth } = body as {
@@ -160,3 +161,8 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: message }, { status: 401 })
   }
 }
+
+export const POST = withActionLog('signin', handlePost, {
+  provider: 'google',
+  userId: (b) => (b.user as { id?: string } | undefined)?.id,
+})

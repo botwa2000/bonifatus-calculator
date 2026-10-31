@@ -57,6 +57,25 @@ export default async function CookiePolicyPage({
       type: t('typeEssential'),
       storage: 'localStorage',
     },
+    {
+      name: '_ga',
+      purpose: t('cookieGaPurpose'),
+      duration: t('cookieGaDuration'),
+      type: t('typeAnalytics'),
+    },
+    {
+      name: '_ga_<ID>',
+      purpose: t('cookieGaSessionPurpose'),
+      duration: t('cookieGaDuration'),
+      type: t('typeAnalytics'),
+    },
+    {
+      name: 'bonifatus-usage-id',
+      purpose: t('cookieUsageIdPurpose'),
+      duration: t('cookieConsentDuration'),
+      type: t('typeAnalytics'),
+      storage: 'localStorage',
+    },
   ]
 
   return (

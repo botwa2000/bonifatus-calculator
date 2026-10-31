@@ -10,6 +10,7 @@ import { routing, type Locale } from '@/i18n/routing'
 import { ServiceWorkerRegistrar } from '@/components/pwa/ServiceWorkerRegistrar'
 import { CapacitorInit } from '@/components/native/CapacitorInit'
 import { Analytics } from '@/components/analytics/Analytics'
+import { UsageBeacon } from '@/components/analytics/UsageBeacon'
 import {
   LanguageSuggestion,
   type LanguageSuggestionStrings,
@@ -120,6 +121,7 @@ export default async function LocaleLayout({
               <ServiceWorkerRegistrar />
               <CapacitorInit />
               <Analytics />
+              <UsageBeacon />
             </ThemeProvider>
           </NextIntlClientProvider>
         </SessionProvider>

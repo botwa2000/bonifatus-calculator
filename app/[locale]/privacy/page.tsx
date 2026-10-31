@@ -46,6 +46,7 @@ export default async function PrivacyPage({ params }: { params: Promise<{ locale
         t('collectL4'),
         t('collectL5'),
         t('collectL6'),
+        t('collectL7'),
       ],
     },
     {
@@ -56,7 +57,7 @@ export default async function PrivacyPage({ params }: { params: Promise<{ locale
     {
       title: t('basisTitle'),
       desc: t('basisDesc'),
-      items: [t('basisL1'), t('basisL2'), t('basisL3')],
+      items: [t('basisL1'), t('basisL2'), t('basisL3'), t('basisL4')],
     },
     {
       title: t('storageTitle'),
@@ -66,7 +67,7 @@ export default async function PrivacyPage({ params }: { params: Promise<{ locale
     {
       title: t('thirdPartyTitle'),
       desc: t('thirdPartyDesc'),
-      items: [t('thirdPartyL1'), t('thirdPartyL2'), t('thirdPartyL3')],
+      items: [t('thirdPartyL1'), t('thirdPartyL2'), t('thirdPartyL3'), t('thirdPartyL4')],
     },
     {
       title: t('cookiesTitle'),

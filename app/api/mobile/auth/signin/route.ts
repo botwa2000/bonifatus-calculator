@@ -9,13 +9,14 @@ import { eq, and, gt, count } from 'drizzle-orm'
 import { signMobileToken } from '@/lib/auth/mobile-token'
 import { getClientIp } from '@/lib/auth/turnstile'
 import { logSecurityEvent } from '@/lib/db/queries/security'
+import { withActionLog } from '@/lib/stats/with-action-log'
 
 const schema = z.object({
   email: z.string().email(),
   password: z.string().min(1),
 })
 
-export async function POST(request: NextRequest) {
+async function handlePost(request: NextRequest) {
   try {
     const body = await request.json()
     const parsed = schema.safeParse(body)
@@ -113,3 +114,8 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ success: false, error: 'Unexpected error' }, { status: 500 })
   }
 }
+
+export const POST = withActionLog('signin', handlePost, {
+  provider: 'password',
+  userId: (b) => (b.user as { id?: string } | undefined)?.id,
+})

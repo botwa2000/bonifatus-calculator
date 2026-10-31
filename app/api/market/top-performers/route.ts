@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server'
+import { withActionLog } from '@/lib/stats/with-action-log'
 
 type StockData = {
   ticker: string
@@ -126,7 +127,7 @@ async function fetchFromFMP(): Promise<StockData[] | null> {
   }
 }
 
-export async function GET() {
+async function handleGet() {
   const now = Date.now()
 
   if (cachedData && now - cacheTime < CACHE_DURATION) {
@@ -149,3 +150,5 @@ export async function GET() {
 
   return NextResponse.json({ success: true, stocks: cachedData })
 }
+
+export const GET = withActionLog('market_fetch', handleGet, { provider: 'fmp' })

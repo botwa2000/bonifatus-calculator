@@ -8,6 +8,7 @@ import { getEffectiveBonusFactors } from '@/lib/db/queries/config'
 import { calculateSingleGradeBonus } from '@/lib/calculator/engine'
 import type { CalculatorInput } from '@/lib/calculator/engine'
 import { eq, and } from 'drizzle-orm'
+import { withActionLog } from '@/lib/stats/with-action-log'
 
 const schema = z.object({
   subjectId: z.string().uuid(),
@@ -18,7 +19,7 @@ const schema = z.object({
   note: z.string().max(200).optional(),
 })
 
-export async function POST(request: NextRequest) {
+async function handlePost(request: NextRequest) {
   const body = await request.json()
   const parsed = schema.safeParse(body)
 
@@ -108,3 +109,7 @@ export async function POST(request: NextRequest) {
     )
   }
 }
+
+export const POST = withActionLog('grade_quick_save', handlePost, {
+  resultId: (b) => (b.quickGrade as { id?: string } | undefined)?.id,
+})

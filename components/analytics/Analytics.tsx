@@ -40,7 +40,7 @@ export function Analytics() {
         window.dataLayer = window.dataLayer || [];
         function gtag(){dataLayer.push(arguments);}
         gtag('js', new Date());
-        gtag('config', '${GA_ID}');
+        gtag('config', '${GA_ID}', { allow_google_signals: false, allow_ad_personalization_signals: false });
       `}</Script>
     </>
   )
