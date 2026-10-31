@@ -1026,7 +1026,11 @@ export async function getStats(o: StatsQuery = {}) {
     retention: ret,
     feedback: fb,
     health: h,
-    activity: act,
+    // Usage columns before the first tracked day are unknown, not zero.
+    activity: act.map((r) => ({
+      ...r,
+      tracked: !!since && r.period >= bucketStart(since.slice(0, 10), bucket),
+    })),
     excluded: {
       activity: excl.map((r) => ({
         class: r.cls as string,

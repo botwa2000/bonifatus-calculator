@@ -171,6 +171,7 @@ h1 span{color:var(--accent)}
 .meta{color:var(--muted);font-size:.8rem;margin-bottom:12px}
 .periodbar{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;margin:-6px 0 10px}
 .periodbar .pills{flex-wrap:wrap}
+.custom[hidden]{display:none}
 .custom{display:flex;flex-wrap:wrap;gap:8px;align-items:center;font-size:.84rem;color:var(--muted)}
 .custom input,.classify input,.classify select{padding:5px 8px;border:1px solid var(--border);border-radius:8px;background:var(--surface);color:var(--text);font:inherit}
 .card.wide{grid-column:1/-1}
@@ -244,6 +245,8 @@ const DASHBOARD_JS = String.raw`
   function join() { return Array.prototype.filter.call(arguments, Boolean).join(" · "); }
   function stars(n) { var r = Math.round(n || 0); return '<span class="stars">' + "★★★★★".slice(0, r) + '<span class="muted">' + "★★★★★".slice(r) + "</span></span>"; }
   function tile(k, v, s) { return '<div class="tile"><div class="k">' + k + '</div><div class="v">' + v + '</div><div class="s">' + (s || "&nbsp;") + "</div></div>"; }
+  // Usage columns of periods before tracking started are unknown, not zero.
+  function tracked(r, html) { return r.tracked ? html : '<span class="muted" title="before usage tracking started">—</span>'; }
   function wide(cardHtml) { return cardHtml.replace('<div class="card">', '<div class="card wide">'); }
   function card(title, body, sub) { return '<div class="card"><h2>' + title + (sub ? " <small>" + sub + "</small>" : "") + "</h2>" + body + "</div>"; }
   function table(cols, rows, empty) {
@@ -417,13 +420,13 @@ const DASHBOARD_JS = String.raw`
       wide(card("Activity by " + d.bucket + bucketPills,
         '<div class="scroll">' + table([
           { h: "Period", f: function (r) { return '<span style="white-space:nowrap">' + periodLabel(r.period, d.bucket) + "</span>"; } },
-          { h: "Active users", n: 1, f: function (r) { return "<b>" + fmt(r.users) + "</b>"; } },
-          { h: "Web", n: 1, f: function (r) { return fmt(r.web); } },
-          { h: "iOS", n: 1, f: function (r) { return fmt(r.ios); } },
-          { h: "Android", n: 1, f: function (r) { return fmt(r.android); } },
-          { h: "App opens", n: 1, f: function (r) { return fmt(r.opens); } },
-          { h: "Core actions", n: 1, f: function (r) { return fmt(r.actions); } },
-          { h: "New installs", n: 1, f: function (r) { return fmt(r.installs); } },
+          { h: "Active users", n: 1, f: function (r) { return tracked(r, "<b>" + fmt(r.users) + "</b>"); } },
+          { h: "Web", n: 1, f: function (r) { return tracked(r, fmt(r.web)); } },
+          { h: "iOS", n: 1, f: function (r) { return tracked(r, fmt(r.ios)); } },
+          { h: "Android", n: 1, f: function (r) { return tracked(r, fmt(r.android)); } },
+          { h: "App opens", n: 1, f: function (r) { return tracked(r, fmt(r.opens)); } },
+          { h: "Core actions", n: 1, f: function (r) { return tracked(r, fmt(r.actions)); } },
+          { h: "New installs", n: 1, f: function (r) { return tracked(r, fmt(r.installs)); } },
           { h: "New accounts", n: 1, f: function (r) { return fmt(r.accounts); } },
           { h: "Grades", n: 1, f: function (r) { return fmt(r.grades); } },
           { h: "Downloads", n: 1, f: function (r) { return fmt(r.downloads); } }], d.activity) + "</div>")) +
