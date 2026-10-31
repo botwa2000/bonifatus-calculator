@@ -8,7 +8,8 @@
  * are HttpOnly + SameSite=Strict + Secure (on https), scoped to /admin/stats
  * and /api/admin/usage-stats. Turnstile guards the send step; sends and wrong
  * codes are rate-limited per IP in the database (survives restarts/replicas).
- * Scripts use X-Admin-Key (STATS_ADMIN_KEY).
+ * Scripts use X-Admin-Key (STATS_ADMIN_KEY), which can also mint a one-time
+ * sign-in link (/admin/stats/link#<token>) for opening the page in a browser.
  */
 import crypto from 'node:crypto'
 import { pool } from '@/lib/db/client'
@@ -155,6 +156,32 @@ export function hasAdminKey(req: Request): boolean {
 }
 
 export const isAdminRequest = (req: Request) => hasAdminKey(req) || hasSession(req)
+
+// ── one-time sign-in links (stats_login_links) ───────────────────────────────
+// Minted only with X-Admin-Key, so a session can never extend itself. Only the
+// token's SHA-256 is stored; redeeming marks it used in the same statement.
+const LINK_TTL_SEC = 10 * 60
+const tokenHash = (t: string) => crypto.createHash('sha256').update(t).digest('hex')
+
+export async function createLoginLink(): Promise<{ token: string; expiresIn: number }> {
+  const token = crypto.randomBytes(32).toString('base64url')
+  await pool.query(
+    `INSERT INTO stats_login_links (token_hash, expires_at)
+     VALUES ($1, NOW() + ($2 || ' seconds')::interval)`,
+    [tokenHash(token), LINK_TTL_SEC]
+  )
+  return { token, expiresIn: LINK_TTL_SEC }
+}
+
+export async function redeemLoginLink(token: string): Promise<boolean> {
+  if (!/^[A-Za-z0-9_-]{43}$/.test(token)) return false
+  const { rowCount } = await pool.query(
+    `UPDATE stats_login_links SET used_at = NOW()
+      WHERE token_hash = $1 AND used_at IS NULL AND expires_at > NOW()`,
+    [tokenHash(token)]
+  )
+  return rowCount === 1
+}
 
 // ── durable rate limits (stats_rate_limits) ──────────────────────────────────
 async function hits(bucket: string, k: string, windowMs: number): Promise<number> {

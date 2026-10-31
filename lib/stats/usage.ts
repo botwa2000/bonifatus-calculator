@@ -446,6 +446,7 @@ export async function purgeUsage(): Promise<void> {
     ])
     await pool.query(`DELETE FROM usage_salts WHERE day < (NOW() AT TIME ZONE 'UTC')::date - 1`)
     await pool.query(`DELETE FROM stats_rate_limits WHERE ts < NOW() - INTERVAL '1 day'`)
+    await pool.query(`DELETE FROM stats_login_links WHERE expires_at < NOW() - INTERVAL '1 day'`)
   } catch (err) {
     console.error('[usage] purge failed:', (err as Error).message)
   }

@@ -15,12 +15,15 @@ import {
 import { outcomeOf } from '@/lib/stats/with-action-log'
 import { decodeText, parseCsv, parsePlayListing } from '@/lib/stats/store-import'
 import {
+  createLoginLink,
   generateOtp,
   generateSession,
   isAllowedEmail,
+  redeemLoginLink,
   validateOtp,
   validateSession,
 } from '@/lib/stats/admin-auth'
+import { pool } from '@/lib/db/client'
 
 const h = (o: Record<string, string>) => new Headers(o)
 
@@ -158,5 +161,32 @@ describe('admin OTP auth', () => {
     expect(isAllowedEmail('second@example.org')).toBe(true)
     expect(isAllowedEmail('owner+x@example.com')).toBe(false)
     expect(isAllowedEmail('')).toBe(false)
+  })
+})
+
+describe('one-time sign-in links', () => {
+  const query = vi.mocked(pool.query) as unknown as ReturnType<typeof vi.fn>
+
+  it('stores only the hash of a random 256-bit token', async () => {
+    query.mockReset().mockResolvedValue({ rows: [], rowCount: 1 })
+    const { token, expiresIn } = await createLoginLink()
+    expect(token).toMatch(/^[A-Za-z0-9_-]{43}$/)
+    expect(expiresIn).toBe(600)
+    const [, params] = query.mock.calls[0]
+    expect(params[0]).toMatch(/^[0-9a-f]{64}$/)
+    expect(params[0]).not.toContain(token)
+  })
+
+  it('redeems only once and rejects malformed tokens without a query', async () => {
+    query.mockReset()
+    expect(await redeemLoginLink('short')).toBe(false)
+    expect(await redeemLoginLink("x'; DROP TABLE users; --".padEnd(43, 'x'))).toBe(false)
+    expect(query).not.toHaveBeenCalled()
+
+    const token = 'a'.repeat(43)
+    query.mockResolvedValueOnce({ rowCount: 1 }).mockResolvedValueOnce({ rowCount: 0 })
+    expect(await redeemLoginLink(token)).toBe(true)
+    expect(await redeemLoginLink(token)).toBe(false)
+    expect(String(query.mock.calls[0][0])).toMatch(/used_at IS NULL AND expires_at > NOW\(\)/)
   })
 })

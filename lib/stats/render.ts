@@ -99,6 +99,33 @@ export function renderOtpPage(o: { error?: boolean; rateLimited?: boolean } = {}
   )
 }
 
+// The token travels in the URL fragment, which browsers never send to a server,
+// so it stays out of proxy and access logs; the script moves it into a POST.
+export function renderLinkPage(o: { error?: boolean } = {}) {
+  if (o.error) {
+    return shell(
+      'Bonifatus Stats',
+      `<div class="auth">
+  <h1>Bonifatus <span>stats</span></h1>
+  <div class="err">This sign-in link is invalid, expired or already used.</div>
+  <p style="margin:0"><a href="/admin/stats/login">Sign in with an email code</a></p>
+</div>`
+    )
+  }
+  return shell(
+    'Bonifatus Stats',
+    `<form class="auth" id="f" method="post" action="/admin/stats/link">
+  <h1>Bonifatus <span>stats</span></h1>
+  <p>Signing you in…</p>
+  <input type="hidden" name="token" id="t">
+  <noscript><div class="err">This link needs JavaScript.</div></noscript>
+</form>
+<script>(function(){var t=location.hash.slice(1);history.replaceState(null,'',location.pathname);
+if(!t){location.replace('/admin/stats/login');return}
+document.getElementById('t').value=t;document.getElementById('f').submit()})()</script>`
+  )
+}
+
 export function renderDashboardPage() {
   return shell(
     'Bonifatus Stats',

@@ -6,9 +6,11 @@
  * POST {"action":"import","only":["play_listing",...]?} → start the store import
  *      in the background (the iOS ratings sweep takes ~10 min); poll GET for
  *      health.imports to see the result.
+ * POST {"action":"login-link"} (X-Admin-Key only) → one-time sign-in link for
+ *      the dashboard, valid 10 minutes, single use.
  */
 import { NextResponse } from 'next/server'
-import { hasAdminKey, isAdminRequest } from '@/lib/stats/admin-auth'
+import { createLoginLink, hasAdminKey, isAdminRequest, isHttps } from '@/lib/stats/admin-auth'
 import { getStats } from '@/lib/stats/aggregate'
 import { runImports, SOURCES } from '@/lib/stats/store-import'
 
@@ -43,6 +45,15 @@ export async function POST(req: Request) {
   if (!hasAdminKey(req) && origin && !OWN_ORIGIN.test(origin))
     return send(403, { error: 'Bad origin' })
   const body = await req.json().catch(() => null)
+  if (body?.action === 'login-link') {
+    // Key only: a browser session must not be able to mint further sessions.
+    if (!hasAdminKey(req)) return send(403, { error: 'Admin key required' })
+    const { token, expiresIn } = await createLoginLink()
+    const host = req.headers.get('x-forwarded-host') ?? new URL(req.url).host
+    const proto = isHttps(req) ? 'https' : 'http'
+    console.warn('[admin/usage-stats] one-time login link minted')
+    return send(201, { url: `${proto}://${host}/admin/stats/link#${token}`, expiresIn })
+  }
   if (!body || body.action !== 'import') return send(400, { error: 'Unknown action' })
   const only = Array.isArray(body.only)
     ? body.only.filter((s: unknown) => SOURCES.some((x) => x.id === s))
