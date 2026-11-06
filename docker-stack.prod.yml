@@ -25,6 +25,7 @@ services:
       - prod_ASC_VENDOR_NUMBER
       - prod_PLAY_SERVICE_ACCOUNT_JSON
       - prod_PLAY_REPORTS_BUCKET
+      - prod_CF_ANALYTICS_TOKEN
       - prod_GOOGLE_CLIENT_ID
       - prod_GOOGLE_CLIENT_SECRET
       - prod_GOOGLE_IOS_CLIENT_ID
@@ -87,6 +88,8 @@ secrets:
   prod_ASC_VENDOR_NUMBER:
     external: true
   prod_PLAY_SERVICE_ACCOUNT_JSON:
+    external: true
+  prod_CF_ANALYTICS_TOKEN:
     external: true
   prod_PLAY_REPORTS_BUCKET:
     external: true

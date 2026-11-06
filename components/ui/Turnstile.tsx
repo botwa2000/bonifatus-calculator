@@ -290,8 +290,9 @@ export const Turnstile: React.FC<TurnstileProps> = ({
           },
           action,
           theme,
-          // 'invisible' was removed from the size API; use appearance:'interaction-only' instead
-          size: executeOnReady || size === 'invisible' ? 'compact' : size,
+          // 'invisible' was removed from the size API; use appearance:'interaction-only' instead.
+          // Flexible, not compact: the box shows when Cloudflare asks for a click.
+          size: executeOnReady || size === 'invisible' ? 'flexible' : size,
           ...(executeOnReady && { appearance: 'interaction-only' }),
         })
         log('widget rendered', {

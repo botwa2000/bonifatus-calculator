@@ -2,7 +2,7 @@
  * /admin/stats/link#<token> — one-time sign-in link, minted with
  * POST /api/admin/usage-stats {"action":"login-link"} + X-Admin-Key.
  * GET serves a page that posts the fragment token back; POST redeems it
- * (single use, 10 minutes) and starts the normal 12-hour admin session.
+ * (single use, 10 minutes) and starts a one-hour admin session.
  */
 import { getClientIp } from '@/lib/auth/turnstile'
 import {
@@ -11,6 +11,7 @@ import {
   internalCookie,
   isHttps,
   isVerifyLimited,
+  LINK_SESSION_TTL_SEC,
   recordVerifyFail,
   redeemLoginLink,
   sessionCookies,
@@ -30,11 +31,12 @@ export async function POST(req: Request) {
 
   const form = await req.formData().catch(() => null)
   const token = String(form?.get('token') ?? '').slice(0, 64)
-  if (await redeemLoginLink(token)) {
+  const tag = await redeemLoginLink(token)
+  if (tag) {
     await clearVerifyFails(ip)
     console.warn(`[admin/stats] one-time link login from ${ip}`)
     return redirect('/admin/stats', [
-      ...sessionCookies(generateSession(), isHttps(req)),
+      ...sessionCookies(generateSession(tag, LINK_SESSION_TTL_SEC), isHttps(req)),
       internalCookie(isHttps(req)),
     ])
   }

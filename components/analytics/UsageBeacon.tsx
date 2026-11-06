@@ -9,6 +9,9 @@
  * is sent — the server counts the visit with a daily-rotating anonymous hash.
  * With consent (cookie banner) a random ID in localStorage lets returning
  * visits be counted. Exposes window.bonifatusTrack(event, props) for buttons.
+ *
+ * The first tap, scroll or key sends `engage`, which is what counts an anonymous
+ * visitor as a person on the dashboard (link scanners never do any of these).
  */
 import { useEffect, useRef } from 'react'
 import { usePathname } from 'next/navigation'
@@ -70,6 +73,7 @@ export function UsageBeacon() {
       const payload: Record<string, unknown> = {
         iid: installId(),
         lang: (document.documentElement.lang || '').slice(0, 2),
+        wd: navigator.webdriver === true || undefined,
         events: queue.current.splice(0, 50),
       }
       if (acq.current) {
@@ -100,9 +104,17 @@ export function UsageBeacon() {
     const onHide = () => {
       if (document.visibilityState === 'hidden') flush()
     }
+    const ENGAGE = ['pointerdown', 'keydown', 'scroll'] as const
+    const onEngage = () => {
+      ENGAGE.forEach((ev) => window.removeEventListener(ev, onEngage))
+      track('engage')
+      flush()
+    }
+    ENGAGE.forEach((ev) => window.addEventListener(ev, onEngage, { passive: true }))
     document.addEventListener('visibilitychange', onHide)
     window.addEventListener('pagehide', flush)
     return () => {
+      ENGAGE.forEach((ev) => window.removeEventListener(ev, onEngage))
       document.removeEventListener('visibilitychange', onHide)
       window.removeEventListener('pagehide', flush)
       flush()

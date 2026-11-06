@@ -2,12 +2,16 @@
  * Auth for the confidential /admin/stats dashboard and its JSON API.
  *
  * Stateless email-OTP login, independent of NextAuth: the pending code lives in
- * a short-lived HttpOnly cookie as "EXP.HMAC(code, exp)", the session as
- * "EXP.HMAC(exp)". Its HMAC key is derived from AUTH_SECRET under a fixed
- * label, so a NextAuth token can never validate here and vice versa. Cookies
- * are HttpOnly + SameSite=Strict + Secure (on https), scoped to /admin/stats
- * and /api/admin/usage-stats. Turnstile guards the send step; sends and wrong
- * codes are rate-limited per IP in the database (survives restarts/replicas).
+ * a short-lived HttpOnly cookie as "EXP.TAG.HMAC(code, exp, tag)", the session as
+ * "EXP.TAG.HMAC(exp, tag)". TAG is an opaque HMAC of the signed-in address (never
+ * the address itself), re-checked against the live allow-list on every request:
+ * removing an address revokes its sessions at once, and a code requested for an
+ * address that is not allowed can never open a session, even if guessed. The
+ * HMAC key is derived from AUTH_SECRET under a fixed label, so a NextAuth token
+ * can never validate here and vice versa. Cookies are HttpOnly + SameSite=Strict
+ * + Secure (on https), scoped to /admin/stats and /api/admin/usage-stats.
+ * Turnstile guards the send step; sends and wrong codes are rate-limited per IP
+ * in the database (survives restarts/replicas).
  * Scripts use X-Admin-Key (STATS_ADMIN_KEY), which can also mint a one-time
  * sign-in link (/admin/stats/link#<token>) for opening the page in a browser.
  */
@@ -42,6 +46,7 @@ function allowedDigests(): Set<string> {
 const SESSION_COOKIE = 'bstats_sess'
 const OTP_COOKIE = 'bstats_otp'
 const SESSION_TTL_SEC = 12 * 3600
+export const LINK_SESSION_TTL_SEC = 3600
 const OTP_TTL_SEC = 10 * 60
 const SEND_WINDOW_MS = 60 * 60 * 1000
 const SEND_MAX = 3 // OTP emails per hour per IP
@@ -69,35 +74,46 @@ export function isAllowedEmail(email: string): boolean {
   return allowedDigests().has(digest(email))
 }
 
-export function generateOtp(): { code: string; state: string } {
+// A tag is valid only while its address is still on the allow-list.
+const emailTag = (emailDigest: string) => hmac(`id:${emailDigest}`).slice(0, 22)
+const isAllowedTag = (tag: string) => [...allowedDigests()].some((d) => safeEq(emailTag(d), tag))
+
+/** "EXP.TAG.MAC" with a future expiry, or null. */
+function parts(value: string | null) {
+  const p = (value ?? '').split('.')
+  if (p.length !== 3 || !/^\d+$/.test(p[0]) || !p[1] || !p[2]) return null
+  return parseInt(p[0], 10) < nowSec() ? null : { exp: p[0], tag: p[1], mac: p[2] }
+}
+
+/**
+ * Pending code for an address. Unknown addresses get a well-formed state too, so
+ * the response reveals nothing, but its tag can never pass isAllowedTag.
+ */
+export function generateOtp(email: string): { code: string; state: string } {
   const code = String(crypto.randomInt(100000, 1000000))
   const exp = nowSec() + OTP_TTL_SEC
-  return { code, state: `${exp}.${hmac(`otp:${code}:${exp}`)}` }
+  const tag = emailTag(digest(email))
+  return { code, state: `${exp}.${tag}.${hmac(`otp:${code}:${exp}:${tag}`)}` }
 }
 
-export function validateOtp(submitted: string, state: string | null): boolean {
-  if (!submitted || !state) return false
-  const dot = state.indexOf('.')
-  if (dot < 1) return false
-  const exp = state.slice(0, dot)
-  if (parseInt(exp, 10) < nowSec()) return false
+/** The tag to open a session for, or null. */
+export function validateOtp(submitted: string, state: string | null): string | null {
+  const s = parts(state)
   const code = submitted.replace(/\D/g, '')
-  if (code.length !== 6) return false
-  return safeEq(state.slice(dot + 1), hmac(`otp:${code}:${exp}`))
+  if (!s || code.length !== 6) return null
+  if (!safeEq(s.mac, hmac(`otp:${code}:${s.exp}:${s.tag}`))) return null
+  return isAllowedTag(s.tag) ? s.tag : null
 }
 
-export function generateSession(): string {
-  const exp = nowSec() + SESSION_TTL_SEC
-  return `${exp}.${hmac(`sess:${exp}`)}`
+export function generateSession(tag: string, ttlSec = SESSION_TTL_SEC): string {
+  const exp = nowSec() + Math.min(ttlSec, SESSION_TTL_SEC)
+  return `${exp}.${tag}.${hmac(`sess:${exp}:${tag}`)}`
 }
 
 export function validateSession(value: string | null): boolean {
-  if (!value) return false
-  const dot = value.indexOf('.')
-  if (dot < 1) return false
-  const exp = value.slice(0, dot)
-  if (parseInt(exp, 10) < nowSec()) return false
-  return safeEq(value.slice(dot + 1), hmac(`sess:${exp}`))
+  const s = parts(value)
+  if (!s || !safeEq(s.mac, hmac(`sess:${s.exp}:${s.tag}`))) return false
+  return isAllowedTag(s.tag)
 }
 
 // ── cookies ──────────────────────────────────────────────────────────────────
@@ -176,6 +192,7 @@ export const isAdminRequest = (req: Request) => hasAdminKey(req) || hasSession(r
 // ── one-time sign-in links (stats_login_links) ───────────────────────────────
 // Minted only with X-Admin-Key, so a session can never extend itself. Only the
 // token's SHA-256 is stored; redeeming marks it used in the same statement.
+// A link opens a one-hour session, not the twelve hours of an emailed code.
 const LINK_TTL_SEC = 10 * 60
 const tokenHash = (t: string) => crypto.createHash('sha256').update(t).digest('hex')
 
@@ -189,14 +206,17 @@ export async function createLoginLink(): Promise<{ token: string; expiresIn: num
   return { token, expiresIn: LINK_TTL_SEC }
 }
 
-export async function redeemLoginLink(token: string): Promise<boolean> {
-  if (!/^[A-Za-z0-9_-]{43}$/.test(token)) return false
+/** The tag of the session this link opens (the first allow-listed address), or null. */
+export async function redeemLoginLink(token: string): Promise<string | null> {
+  if (!/^[A-Za-z0-9_-]{43}$/.test(token)) return null
+  const [first] = allowedDigests()
+  if (!first) return null
   const { rowCount } = await pool.query(
     `UPDATE stats_login_links SET used_at = NOW()
       WHERE token_hash = $1 AND used_at IS NULL AND expires_at > NOW()`,
     [tokenHash(token)]
   )
-  return rowCount === 1
+  return rowCount === 1 ? emailTag(first) : null
 }
 
 // ── durable rate limits (stats_rate_limits) ──────────────────────────────────

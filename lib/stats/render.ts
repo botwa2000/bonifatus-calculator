@@ -15,11 +15,11 @@ const esc = (s: string) =>
 
 const BASE_CSS = `
 :root{--bg:#f6f5fb;--surface:#fff;--text:#1c1830;--muted:#6b6785;--border:#e6e3f0;--accent:#7c3aed;
-  --web:#7c3aed;--ios:#2f80ed;--android:#1e9e5a;--app:#9a96b0;--parent:#2f80ed;--child:#1e9e5a;
-  --quick:#7c3aed;--term:#f59e0b;--settlement:#0ea5e9;--bad:#d64545;--good:#1e9e5a;--grid:#eeecf5;--star:#f5a623}
+  --web:#7c3aed;--ios:#0a9490;--android:#d97706;--app:#8d8aa3;--parent:#0a9490;--child:#d97706;
+  --quick:#7c3aed;--term:#d97706;--settlement:#0a9490;--bad:#d64545;--good:#1e9e5a;--grid:#eeecf5;--star:#f5a623}
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#100e19;--surface:#1a1727;--text:#e9e7f3;--muted:#9c98b8;--border:#2b2740;
-  --web:#a78bfa;--ios:#5aa2ff;--android:#3cc47c;--app:#6f6b88;--parent:#5aa2ff;--child:#3cc47c;--quick:#a78bfa;--term:#fbbf24;
-  --settlement:#38bdf8;--grid:#25213a}}
+  --web:#8d6ef2;--ios:#17a394;--android:#c4851f;--app:#6f6b88;--parent:#17a394;--child:#c4851f;--quick:#8d6ef2;--term:#c4851f;
+  --settlement:#17a394;--good:#3cc47c;--grid:#25213a}}
 *{box-sizing:border-box;margin:0;padding:0}
 body{background:var(--bg);color:var(--text);font:14px/1.45 -apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;padding:16px}
 `
@@ -39,10 +39,18 @@ function shell(title: string, body: string, extraHead = '') {
 .auth p{color:var(--muted);margin-bottom:16px}
 .auth label{display:block;font-weight:600;font-size:.85rem;margin-bottom:6px}
 .auth input{width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:10px;background:var(--bg);color:var(--text);font:inherit;margin-bottom:14px}
-.auth input.code{font-size:1.4rem;letter-spacing:.4em;text-align:center;font-variant-numeric:tabular-nums}
+.auth input::placeholder{color:var(--muted);opacity:.6}
+.auth input.code{font:700 1.7rem/1.2 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;letter-spacing:.4em;text-indent:.4em;text-align:center;padding:12px}
 .auth button{width:100%;padding:10px;border:0;border-radius:10px;background:var(--accent);color:#fff;font:inherit;font-weight:700;cursor:pointer}
+.auth button:disabled{opacity:.5;cursor:default}
 .auth .err{background:#fde8e8;color:#8a1c1c;padding:8px 10px;border-radius:8px;margin-bottom:12px;font-size:.85rem}
-.auth .ts{margin-bottom:14px;min-height:65px}
+.auth .ts{margin-bottom:6px}
+.auth .tstat{color:var(--muted);font-size:.8rem;margin-bottom:12px}
+.auth .tstat.ok{color:var(--good)}
+.auth .tstat.bad{color:var(--bad)}
+.auth .hint{color:var(--muted);font-size:.85rem;margin:14px 0 0}
+.auth .back{display:block;text-align:center;font-size:.85rem;margin-top:14px;color:var(--muted)}
+.auth strong{color:var(--text);overflow-wrap:anywhere}
 .auth a{color:var(--accent)}
 </style>
 ${extraHead}
@@ -50,6 +58,27 @@ ${extraHead}
 <body>${body}</body>
 </html>`
 }
+
+const BACK_LINK = '<a class="back" href="/">← bonifatus.com</a>'
+
+// The send button waits for Cloudflare's token, and the line under the widget says
+// what is happening: a site key in Invisible mode draws nothing of its own, and an
+// early click would only come back as "bot check failed".
+const TURNSTILE_SCRIPT = `<script>
+(function () {
+  function set(cls, text, ready) {
+    var el = document.getElementById("tstat"), b = document.getElementById("send");
+    if (!el || !b) return;
+    el.className = "tstat" + cls; el.textContent = text; b.disabled = !ready;
+  }
+  var done = false;
+  window.tsOk = function () { done = true; set(" ok", "✓ Verified by Cloudflare", true); };
+  window.tsWait = function () { done = false; set("", "Checking with Cloudflare that you are human…", false); };
+  window.tsErr = function () { done = false; set(" bad", "The Cloudflare check failed. Reload the page, or turn off a blocker for this site.", false); };
+  setTimeout(function () { if (!done) window.tsErr(); }, 20000);
+})();
+</script>
+<script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer onerror="tsErr()"></script>`
 
 export function renderLoginPage(
   o: { siteKey?: string; error?: boolean; rateLimited?: boolean } = {}
@@ -60,42 +89,48 @@ export function renderLoginPage(
       ? '<div class="err">Bot check failed. Please try again.</div>'
       : ''
   const turnstile = o.siteKey
-    ? `<div class="ts"><div class="cf-turnstile" data-sitekey="${esc(o.siteKey)}" data-theme="auto"></div></div>`
+    ? `<div class="ts"><div class="cf-turnstile" data-sitekey="${esc(o.siteKey)}" data-theme="auto" data-size="flexible" data-callback="tsOk" data-error-callback="tsErr" data-expired-callback="tsWait" data-timeout-callback="tsErr"></div></div>
+  <p class="tstat" id="tstat" role="status">Checking with Cloudflare that you are human…</p>`
     : ''
   return shell(
     'Bonifatus Stats',
     `<form class="auth" method="post" action="/admin/stats/login">
   <h1>Bonifatus <span>stats</span></h1>
-  <p>Confidential. Enter your email to receive a sign-in code.</p>
+  <p>Confidential. Enter your email to receive a 6-digit sign-in code.</p>
   ${msg}
-  <label for="email">Email</label>
-  <input id="email" name="email" type="email" autocomplete="email" required autofocus>
+  <label for="email">Email address</label>
+  <input id="email" name="email" type="email" placeholder="your@email.com" autocomplete="email" required autofocus>
   ${turnstile}
-  <button type="submit">Send code</button>
+  <button type="submit" id="send"${o.siteKey ? ' disabled' : ''}>Send code →</button>
+  ${BACK_LINK}
 </form>`,
-    o.siteKey
-      ? '<script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>'
-      : ''
+    o.siteKey ? TURNSTILE_SCRIPT : ''
   )
 }
 
-export function renderOtpPage(o: { error?: boolean; rateLimited?: boolean } = {}) {
+export function renderOtpPage(o: { email?: string; error?: boolean; rateLimited?: boolean } = {}) {
   const msg = o.rateLimited
     ? '<div class="err">Too many wrong codes. Try again in 15 minutes.</div>'
     : o.error
-      ? '<div class="err">That code is wrong or expired.</div>'
+      ? '<div class="err">That code is wrong or expired. Check your email and try again.</div>'
       : ''
+  const to = o.email ? `<strong>${esc(o.email)}</strong>` : 'your email'
   return shell(
     'Bonifatus Stats',
-    `<form class="auth" method="post" action="/admin/stats/verify">
-  <h1>Bonifatus <span>stats</span></h1>
-  <p>If that address is allowed, a 6-digit code is on its way. It expires in 10 minutes.</p>
+    `<form class="auth" id="f" method="post" action="/admin/stats/verify">
+  <h1>Check your <span>email</span></h1>
+  <p>We sent a 6-digit code to ${to}. It expires in 10 minutes.</p>
   ${msg}
-  <label for="code">Code</label>
-  <input id="code" class="code" name="code" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" autocomplete="one-time-code" required autofocus>
-  <button type="submit">Sign in</button>
-  <p style="margin:14px 0 0;font-size:.85rem"><a href="/admin/stats/login">Send a new code</a></p>
-</form>`
+  <label for="code">6-digit code</label>
+  <input id="code" class="code" name="code" type="text" inputmode="numeric" pattern="[0-9]{6}" maxlength="7" placeholder="000000" autocomplete="one-time-code" required autofocus>
+  <input type="hidden" name="email" value="${esc(o.email ?? '')}">
+  <button type="submit">Sign in →</button>
+  <p class="hint">Didn't receive it? Check spam or <a href="/admin/stats/login">request a new code</a>.</p>
+  ${BACK_LINK}
+</form>
+<script>(function(){var c=document.getElementById('code'),sent=false;
+c.addEventListener('input',function(){c.value=c.value.replace(/\\D/g,'').slice(0,6);
+if(c.value.length===6&&!sent){sent=true;document.getElementById('f').submit()}})})()</script>`
   )
 }
 
@@ -132,7 +167,7 @@ export function renderDashboardPage() {
     `<div class="wrap">
 <header>
   <h1>Bonifatus <span>stats</span></h1>
-  <div class="pills" id="traffic" title="Real users leaves out store review, test devices and the team's own accounts">
+  <div class="pills" id="traffic" title="Real users leaves out bots, visitors who never interacted, store review, test devices and the team">
     <button data-v="real">Real users</button><button data-v="all">All traffic</button>
   </div>
   <div class="pills" id="platform">
@@ -143,7 +178,13 @@ export function renderDashboardPage() {
 </header>
 <div class="periodbar">
   <div class="pills" id="range">
-    <button data-v="today">Today</button><button data-v="yesterday">Yesterday</button><button data-v="7d">7 days</button><button data-v="30d">30 days</button><button data-v="90d">90 days</button><button data-v="mtd">This month</button><button data-v="ytd">Year to date</button><button data-v="12m">12 months</button><button data-v="custom">Custom</button>
+    <button data-v="day">Day</button><button data-v="week">Week</button><button data-v="month">Month</button><button data-v="ytd">Year to date</button><button data-v="7d">7 days</button><button data-v="30d">30 days</button><button data-v="90d">90 days</button><button data-v="12m">12 months</button><button data-v="custom">Custom</button>
+  </div>
+  <div id="step" class="custom" hidden>
+    <button class="btn" type="button" id="prev" title="Previous" aria-label="Previous">◀</button>
+    <input type="date" id="at" aria-label="Date">
+    <button class="btn" type="button" id="next" title="Next" aria-label="Next">▶</button>
+    <button class="btn" type="button" id="now">Today</button>
   </div>
   <form id="custom" class="custom" hidden>
     <label>From <input type="date" id="cfrom" required></label>
@@ -154,6 +195,7 @@ export function renderDashboardPage() {
 <div class="meta" id="meta">Loading…</div>
 <div id="root"></div>
 </div>
+<div id="tip" role="status"></div>
 <script>${DASHBOARD_JS}</script>`,
     `<style>${DASHBOARD_CSS}</style>`
   )
@@ -164,18 +206,19 @@ const DASHBOARD_CSS = `
 header{display:flex;flex-wrap:wrap;gap:10px 16px;align-items:center;margin-bottom:16px}
 h1{font-size:1.25rem;font-weight:800;margin-right:auto}
 h1 span{color:var(--accent)}
-.pills{display:flex;gap:4px;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:3px}
+.pills{display:flex;flex-wrap:wrap;gap:4px;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:3px}
 .pills button{border:0;background:none;color:var(--muted);padding:5px 10px;border-radius:7px;cursor:pointer;font:inherit;font-weight:600}
 .pills button.on{background:var(--accent);color:#fff}
 .btn{border:1px solid var(--border);background:var(--surface);color:var(--text);padding:6px 10px;border-radius:8px;cursor:pointer;font:inherit;text-decoration:none}
+.btn:disabled{opacity:.4;cursor:default}
 .meta{color:var(--muted);font-size:.8rem;margin-bottom:12px}
 .periodbar{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;margin:-6px 0 10px}
-.periodbar .pills{flex-wrap:wrap}
 .custom[hidden]{display:none}
 .custom{display:flex;flex-wrap:wrap;gap:8px;align-items:center;font-size:.84rem;color:var(--muted)}
 .custom input,.classify input,.classify select{padding:5px 8px;border:1px solid var(--border);border-radius:8px;background:var(--surface);color:var(--text);font:inherit}
 .card.wide{grid-column:1/-1}
 .card h2 .pills{margin-left:auto;font-size:.8rem}
+.card h2 .btn{align-self:center}
 .note{background:var(--surface);border:1px dashed var(--border);border-radius:10px;padding:8px 12px;font-size:.82rem;color:var(--muted);margin-bottom:12px}
 .note a{color:var(--accent);cursor:pointer;text-decoration:underline}
 .classify{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:10px;font-size:.84rem}
@@ -205,7 +248,15 @@ td.n,th.n{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
 details summary{cursor:pointer;color:var(--accent);font-weight:600;font-size:.84rem;margin:6px 0}
 .scroll{max-height:360px;overflow:auto}
 .tw{overflow-x:auto}
+.stick{max-height:440px;overflow:auto}
+.stick th{position:sticky;top:0;background:var(--surface);z-index:1}
+.stick td:first-child,.stick th:first-child{white-space:nowrap}
+tr.we td{background:var(--grid)}
+.small{font-size:.78rem;padding:3px 8px;font-weight:500}
 svg text{fill:var(--muted);font-size:10px}
+.hit{fill:transparent}
+.hit:hover{fill:var(--accent);fill-opacity:.1}
+#tip{position:fixed;z-index:9;left:0;top:0;pointer-events:none;display:none;background:var(--text);color:var(--surface);font-size:.76rem;line-height:1.4;padding:6px 9px;border-radius:8px;max-width:240px;white-space:pre-line;font-variant-numeric:tabular-nums}
 h2.sec{font-size:1.05rem;font-weight:800;margin:22px 0 4px}
 p.secnote{color:var(--muted);font-size:.8rem;margin-bottom:10px}
 .badge{display:inline-block;font-size:.7rem;font-weight:700;padding:1px 6px;border-radius:6px;background:var(--grid);color:var(--muted)}
@@ -228,16 +279,31 @@ const DASHBOARD_JS = String.raw`
     report_scan: "Report card scanned", calculator_preview: "Bonus calculated", settlement_create: "Settlement paid",
     invite_create: "Invite code created", invite_redeem: "Invite redeemed", signup: "Sign-up", signin: "App sign-in",
     market_fetch: "Market data loaded" };
-  var CLASS = { review: "Store review", test: "Test devices & accounts", internal: "Team", real: "Counted (override)" };
-  var state = { range: "7d", platform: "all", traffic: "real", bucket: "", from: "", to: "" };
-  try { var saved = JSON.parse(localStorage.getItem("bonifatus-stats") || "{}"); Object.keys(state).forEach(function (k) { if (typeof saved[k] === "string") state[k] = saved[k]; }); } catch (e) {}
+  var CLASS = { review: "Store review", test: "Test devices & accounts", internal: "Team", real: "Counted (override)",
+    unengaged: "Left without interacting", bot: "Bots" };
+  var WHY = { unengaged: "web visits with no tap, scroll or key: link scanners and one-glance bounces",
+    bot: "crawlers, link previews, headless and automated browsers",
+    review: "App Review and Play reviewers", test: "Firebase Test Lab devices, test addresses",
+    internal: "browsers signed in to this page, the team's accounts and families" };
+  var RANGES = ["day", "week", "month", "ytd", "7d", "30d", "90d", "12m", "custom"];
+  // at = anchor day of day / week / month ("" = today); from / to = custom period.
+  var state = { range: "7d", platform: "all", traffic: "real", bucket: "", at: "", from: "", to: "" };
+  try {
+    var saved = JSON.parse(localStorage.getItem("bonifatus-stats") || "{}");
+    ["platform", "traffic", "bucket", "from", "to"].forEach(function (k) { if (typeof saved[k] === "string") state[k] = saved[k]; });
+    var was = { today: "day", yesterday: "day", mtd: "month" }[saved.range] || saved.range;
+    if (RANGES.indexOf(was) >= 0) state.range = was;
+  } catch (e) {}
+  var last = null;
 
   function esc(s) { return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); }
   function fmt(n) { return n == null ? "—" : Number(n).toLocaleString("en-US"); }
   function money(n, cur) { try { return Number(n).toLocaleString("en-US", { style: "currency", currency: cur, maximumFractionDigits: 0 }); } catch (e) { return fmt(Math.round(n)) + " " + esc(cur); } }
   function pct(x, d) { return x == null ? "—" : (x * 100).toFixed(d == null ? 0 : d) + "%"; }
   function ms(v) { return v == null ? "—" : v >= 1000 ? (v / 1000).toFixed(1) + "s" : v + "ms"; }
-  function delta(cur, prev) {
+  // tracked === false: the comparison period predates tracking, so there is nothing to compare.
+  function delta(cur, prev, tracked) {
+    if (tracked === false) return "";
     if (!prev) return cur ? '<span class="muted">new</span>' : "";
     var d = (cur - prev) / prev;
     return '<span class="' + (d >= 0 ? "up" : "down") + '">' + (d >= 0 ? "▲" : "▼") + " " + Math.abs(d * 100).toFixed(0) + "%</span> vs prev";
@@ -256,6 +322,15 @@ const DASHBOARD_JS = String.raw`
   }
   function legend(keys) { return '<div class="legend">' + keys.map(function (k) { return '<span><i class="dot" style="background:' + COL[k] + '"></i>' + NAME[k] + "</span>"; }).join("") + "</div>"; }
   function section(title, note) { return '<h2 class="sec">' + title + "</h2>" + (note ? '<p class="secnote">' + note + "</p>" : '<p class="secnote"></p>'); }
+  function attr(v) { return esc(v).replace(/\n/g, "&#10;"); }
+  var bucketNow = "day";
+  function tick(day) { return bucketNow === "month" ? MON[+day.slice(5, 7) - 1] : day.slice(5); }
+  function tipFor(r, rows, total) {
+    var filled = rows.filter(function (x) { return x[1]; });
+    return periodLabel(r.day, bucketNow) + "\n" + (filled.length
+      ? filled.map(function (x) { return x[0] + ": " + x[1]; }).join("\n") + (filled.length > 1 && total != null ? "\nTotal: " + fmt(total) : "")
+      : "None");
+  }
   function dot(p) { var n = esc(NAME[p] || p || "app"); return '<i class="dot" title="' + n + '" role="img" aria-label="' + n + '" style="background:' + (COL[p] || "var(--app)") + '"></i>'; }
   function actionName(a) { return esc(ACTION[a] || a.replace(/_/g, " ")); }
 
@@ -266,7 +341,7 @@ const DASHBOARD_JS = String.raw`
     if (!vals.length) return '<p class="muted">No snapshots in this range yet — the store import runs nightly.</p>';
     var max = Math.max.apply(null, vals), min = Math.min.apply(null, vals);
     if (max === min) { max = max + 1; min = Math.max(0, min - 1); }
-    var n = rows.length, x = function (i) { return padL + (n === 1 ? (W - padL) / 2 : i * (W - padL - 10) / (n - 1)); };
+    var n = rows.length, x = function (i) { return padL + (n === 1 ? (W - padL) / 2 : i * (W - padL - 22) / (n - 1)); };
     var y = function (v) { return (H - padB) - (v - min) / (max - min) * (H - padB - 8); };
     var out = [];
     [min, (min + max) / 2, max].forEach(function (v) {
@@ -276,11 +351,15 @@ const DASHBOARD_JS = String.raw`
     series.forEach(function (s) {
       var pts = [];
       rows.forEach(function (r, i) { if (r[s.key] != null) pts.push([x(i), y(r[s.key]), r]); });
-      if (pts.length > 1) out.push('<polyline fill="none" stroke="' + s.color + '" stroke-width="2" points="' + pts.map(function (p) { return p[0].toFixed(1) + "," + p[1].toFixed(1); }).join(" ") + '"/>');
-      pts.forEach(function (p) { out.push('<circle cx="' + p[0].toFixed(1) + '" cy="' + p[1].toFixed(1) + '" r="3" fill="' + s.color + '"><title>' + p[2].day + " " + s.name + ": " + (fmtY ? fmtY(p[2][s.key]) : fmt(p[2][s.key])) + "</title></circle>"); });
+      if (pts.length > 1) out.push('<polyline fill="none" stroke="' + s.color + '" stroke-width="2" stroke-linejoin="round" points="' + pts.map(function (p) { return p[0].toFixed(1) + "," + p[1].toFixed(1); }).join(" ") + '"/>');
+      if (n <= 31) pts.forEach(function (p) { out.push('<circle cx="' + p[0].toFixed(1) + '" cy="' + p[1].toFixed(1) + '" r="4" fill="' + s.color + '" stroke="var(--surface)" stroke-width="2"/>'); });
     });
-    var every = Math.ceil(n / 8);
+    var every = Math.ceil(n / 8), cw = (W - padL) / Math.max(1, n - 1);
     rows.forEach(function (r, i) { if (i % every === 0 || n <= 8) out.push('<text x="' + x(i).toFixed(1) + '" y="' + (H - 4) + '" text-anchor="middle">' + r.day.slice(5) + "</text>"); });
+    rows.forEach(function (r, i) {
+      var tip = r.day + "\n" + series.filter(function (s) { return r[s.key] != null; }).map(function (s) { return s.name + ": " + (fmtY ? fmtY(r[s.key]) : fmt(r[s.key])); }).join("\n");
+      out.push('<rect class="hit" x="' + (n === 1 ? padL : Math.max(padL, x(i) - cw / 2)).toFixed(1) + '" y="0" width="' + (n === 1 ? W - padL : cw).toFixed(1) + '" height="' + (H - padB) + '" data-tip="' + attr(tip) + '"/>');
+    });
     return '<svg viewBox="0 0 ' + W + " " + H + '" width="100%" role="img">' + out.join("") + "</svg>";
   }
 
@@ -288,21 +367,24 @@ const DASHBOARD_JS = String.raw`
     var W = 560, H = 150, padL = 30, padB = 18, n = points.length || 1;
     var max = 1;
     points.forEach(function (p) { var t = 0; keys.forEach(function (k) { t += p[k] || 0; }); if (t > max) max = t; });
-    var bw = (W - padL) / n, out = [];
-    [0, 0.5, 1].forEach(function (f) {
+    if (max > 1) max = Math.ceil(max / 2) * 2; // keeps the middle gridline a whole number
+    var bw = (W - padL) / n, out = [], every = Math.ceil(n / 8);
+    (max === 1 ? [0, 1] : [0, 0.5, 1]).forEach(function (f) {
       var y = (H - padB) * (1 - f);
       out.push('<line x1="' + padL + '" x2="' + W + '" y1="' + y + '" y2="' + y + '" stroke="var(--grid)"/>');
-      out.push('<text x="' + (padL - 4) + '" y="' + (y + 3) + '" text-anchor="end">' + fmt(Math.round(max * f * 10) / 10) + "</text>");
+      out.push('<text x="' + (padL - 4) + '" y="' + (y + 3) + '" text-anchor="end">' + fmt(max * f) + "</text>");
     });
     points.forEach(function (p, i) {
-      var y = H - padB, x = padL + i * bw + bw * 0.15, w = Math.max(1, bw * 0.7);
+      var y = H - padB, x = padL + i * bw + bw * 0.15, w = Math.max(1, bw * 0.7), total = 0;
       keys.forEach(function (k) {
         var v = p[k] || 0; if (!v) return;
+        total += v;
         var h = (H - padB) * v / max; y -= h;
-        out.push('<rect x="' + x.toFixed(1) + '" y="' + y.toFixed(1) + '" width="' + w.toFixed(1) + '" height="' + h.toFixed(1) + '" fill="' + COL[k] + '" rx="1.5"><title>' + p.day + " " + NAME[k] + ": " + fmt(v) + "</title></rect>");
+        out.push('<rect x="' + x.toFixed(1) + '" y="' + y.toFixed(1) + '" width="' + w.toFixed(1) + '" height="' + h.toFixed(1) + '" fill="' + COL[k] + '" rx="1.5" stroke="var(--surface)" stroke-width="1"/>');
       });
-      var every = Math.ceil(n / 8);
-      if (i % every === 0 || n <= 8) out.push('<text x="' + (x + w / 2).toFixed(1) + '" y="' + (H - 4) + '" text-anchor="middle">' + p.day.slice(5) + "</text>");
+      if (i % every === 0 || n <= 8) out.push('<text x="' + (x + w / 2).toFixed(1) + '" y="' + (H - 4) + '" text-anchor="middle">' + tick(p.day) + "</text>");
+      out.push('<rect class="hit" x="' + (padL + i * bw).toFixed(1) + '" y="0" width="' + bw.toFixed(1) + '" height="' + (H - padB) + '" data-tip="' +
+        attr(tipFor(p, keys.map(function (k) { return [NAME[k], p[k] || 0]; }), total)) + '"/>');
     });
     return '<svg viewBox="0 0 ' + W + " " + H + '" width="100%" role="img">' + out.join("") + "</svg>";
   }
@@ -330,8 +412,34 @@ const DASHBOARD_JS = String.raw`
     return Math.round(s / 86400) + "d ago";
   }
 
+  // Columns of the activity table that mean something on the selected platform.
+  function activityCols(p) {
+    return [
+      { k: "users", h: "Active users", usage: 1, bold: 1 },
+      { k: "web", h: "Web", usage: 1, only: "all" }, { k: "ios", h: "iOS", usage: 1, only: "all" }, { k: "android", h: "Android", usage: 1, only: "all" },
+      { k: "pageViews", h: "Page views", usage: 1, not: ["ios", "android"] },
+      { k: "opens", h: "App opens", usage: 1, not: ["web"] },
+      { k: "actions", h: "Core actions", usage: 1 }, { k: "installs", h: "New installs", usage: 1 },
+      { k: "accounts", h: "New accounts" }, { k: "grades", h: "Grades" },
+      { k: "downloads", h: "Downloads", not: ["web"] }
+    ].filter(function (c) { return (!c.only || c.only === p) && (!c.not || c.not.indexOf(p) < 0); });
+  }
+  function downloadCsv() {
+    if (!last) return;
+    var cols = activityCols(last.platform), nl = String.fromCharCode(10);
+    var lines = [["Period"].concat(cols.map(function (c) { return c.h; })).join(",")].concat(last.activity.map(function (r) {
+      return [r.period].concat(cols.map(function (c) { return c.usage && !r.tracked ? "" : r[c.k]; })).join(",");
+    }));
+    var a = document.createElement("a");
+    a.href = URL.createObjectURL(new Blob([lines.join(nl)], { type: "text/csv" }));
+    a.download = "bonifatus-activity-" + last.bucket + "-" + last.platform + "-" + last.from + "_" + last.to + ".csv";
+    document.body.appendChild(a); a.click(); a.remove();
+  }
+
   function render(d) {
+    last = d; bucketNow = d.bucket;
     var k = d.kpis.cur, kp = d.kpis.prev, st = d.store, rv = st.reviews, h = d.health, rec = d.records;
+    var pt = d.prevTracked; // usage numbers of the comparison period exist
     var dlIos = st.downloads.ios || 0, dlAnd = st.downloads.android || 0;
     var dlPrev = (st.prevDownloads.ios || 0) + (st.prevDownloads.android || 0);
     var failRate = k.actions ? k.actionsFailed / k.actions : null;
@@ -342,21 +450,24 @@ const DASHBOARD_JS = String.raw`
 
     // ── Headline tiles
     html.push('<div class="tiles">' +
-      tile("Active users", fmt(k.activeUsers), join("≈ " + (k.avgDailyUsers < 10 ? k.avgDailyUsers.toFixed(1) : fmt(Math.round(k.avgDailyUsers))) + "/day", delta(k.activeUsers, kp.activeUsers))) +
+      tile("Active users", fmt(k.activeUsers), join("≈ " + (k.avgDailyUsers < 10 ? k.avgDailyUsers.toFixed(1) : fmt(Math.round(k.avgDailyUsers))) + "/day", delta(k.activeUsers, kp.activeUsers, pt))) +
       tile("New accounts", fmt(k.newAccounts), join(fmt(k.newParents) + " parents", fmt(k.newChildren) + " children", delta(k.newAccounts, kp.newAccounts))) +
       tile("Grades entered", fmt(k.quickGrades + k.termGrades), join(fmt(k.quickGrades) + " single", fmt(k.termGrades) + " report cards", delta(k.quickGrades + k.termGrades, kp.quickGrades + kp.termGrades))) +
       tile("Settlements", fmt(k.settlements), join(k.settledByCurrency.map(function (c) { return money(c.amount, c.currency); }).join(" · ") || "none", delta(k.settlements, kp.settlements))) +
       tile("Families connected", fmt(k.newConnections), delta(k.newConnections, kp.newConnections) || "&nbsp;") +
-      tile("Core actions", fmt(k.actions), join(failRate == null ? "" : '<span class="' + (failRate > 0.02 ? "bad" : "") + '">' + pct(failRate, 1) + " failed</span>", delta(k.actions, kp.actions))) +
-      tile("New installs", fmt(k.newInstalls), join("apps + consented web", delta(k.newInstalls, kp.newInstalls))) +
+      tile("Core actions", fmt(k.actions), join(failRate == null ? "" : '<span class="' + (failRate > 0.02 ? "bad" : "") + '">' + pct(failRate, 1) + " failed</span>", delta(k.actions, kp.actions, pt))) +
+      tile("New installs", fmt(k.newInstalls), join("apps + consented web", delta(k.newInstalls, kp.newInstalls, pt))) +
       (d.platform === "web" ? "" : tile("Downloads", fmt(dlIos + dlAnd), ["iOS " + fmt(dlIos), "Android " + fmt(dlAnd), delta(dlIos + dlAnd, dlPrev)].filter(Boolean).join(" · "))) +
+      (rv && rv.perPlatform.android && rv.perPlatform.android.installsTotal != null ? tile("Google Play installs", fmt(rv.perPlatform.android.installsTotal), "lifetime, all countries") : "") +
+      (d.edge && d.edge.days.length ? tile("Site visitors", fmt(Math.round(d.edge.totals.uniquesPerDay)) + "/day", fmt(d.edge.totals.pageviews) + " page views · Cloudflare") : "") +
       (rv ? Object.keys(rv.perPlatform).map(function (p) {
         var t = rv.perPlatform[p], gained = t.ratingsAtStart == null ? null : t.ratings - t.ratingsAtStart;
         return tile(p === "ios" ? "App Store rating" : "Google Play rating", t.avg ? t.avg.toFixed(2) + " ★" : "—",
           fmt(t.ratings) + (t.ratingsIsWrittenOnly ? " written reviews" : " ratings") + (gained ? ' · <span class="up">+' + fmt(gained) + "</span> in range" : ""));
       }).join("") + (Object.keys(rv.perPlatform).length > 1 ? tile("Store ratings total", fmt(rv.total), rv.avg ? stars(rv.avg) + " " + rv.avg.toFixed(2) + " weighted" : "no ratings yet") : "") : "") +
       tile("In-app rating", d.feedback.app.avg ? d.feedback.app.avg.toFixed(2) + " ★" : "—", fmt(d.feedback.app.n) + " ratings in range") +
-      tile("Retention", pct(d.retention.d1) + " / " + pct(d.retention.d7), "D1 / D7 · cohorts " + fmt(d.retention.d1Base) + " / " + fmt(d.retention.d7Base)) +
+      tile("Retention", pct(d.retention.d1) + " / " + pct(d.retention.d7), "D1 / D7 · D30 " + pct(d.retention.d30) + " · cohorts " + fmt(d.retention.d1Base) + " / " + fmt(d.retention.d7Base) + " / " + fmt(d.retention.d30Base)) +
+      tile("Stickiness", pct(d.stickiness.dauMau), "DAU ÷ MAU · " + fmt(d.stickiness.mau) + " monthly accounts + installs") +
       "</div>");
 
     // ── Store ratings
@@ -381,6 +492,7 @@ const DASHBOARD_JS = String.raw`
           (avgMove ? " · avg " + (avgMove > 0 ? '<span class="up">▲' : '<span class="down">▼') + Math.abs(avgMove).toFixed(2) + "</span>" : "") +
           " · " + fmt(t.written) + " written (" + fmt(t.writtenPeriod) + " new)" +
           (t.repliedKnown ? " · replied " + fmt(t.replied) + "/" + fmt(t.repliedKnown) : "") +
+          (t.installsTotal != null ? " · " + fmt(t.installsTotal) + " installs" : "") +
           (t.activeDevices != null ? " · " + fmt(t.activeDevices) + " active devices" : "") + "</p>" +
           (histRows ? "<table>" + histRows + "</table>" : "") +
           (t.histogramSource ? '<p class="muted" style="font-size:.75rem;margin-top:4px">distribution: ' + esc(t.histogramSource) + "</p>" : "") + note,
@@ -416,28 +528,32 @@ const DASHBOARD_JS = String.raw`
       html.push('<div class="note">All traffic, including store review, test devices and the team. <a data-traffic="real">Show real users only</a></div>');
     }
     var bucketPills = '<span class="pills" id="bucket">' + ["day", "week", "month"].map(function (b) { return '<button data-v="' + b + '" class="' + (b === d.bucket ? "on" : "") + '">' + b.charAt(0).toUpperCase() + b.slice(1) + "</button>"; }).join("") + "</span>";
+    var cols = activityCols(d.platform);
+    var rowsHtml = table([{ h: "Period", f: function (r) { return '<span style="white-space:nowrap">' + periodLabel(r.period, d.bucket) + "</span>"; } }].concat(cols.map(function (c) {
+      return { h: c.h, n: 1, f: function (r) {
+        var v = c.bold ? "<b>" + fmt(r[c.k]) + "</b>" : r[c.k] ? fmt(r[c.k]) : '<span class="muted">0</span>';
+        return c.usage ? tracked(r, v) : v;
+      } };
+    })), d.activity);
+    // Weekends stand out in the day view.
+    if (d.bucket === "day") rowsHtml = rowsHtml.replace(/<tr><td class=""><span style="white-space:nowrap">(Sat|Sun)/g, '<tr class="we"><td class=""><span style="white-space:nowrap">$1');
+    var csv = '<button class="btn small" id="csv" type="button">⬇ CSV</button>';
+    var per = d.bucket;
     html.push('<div class="grid">' +
-      wide(card("Activity by " + d.bucket + bucketPills,
-        '<div class="scroll">' + table([
-          { h: "Period", f: function (r) { return '<span style="white-space:nowrap">' + periodLabel(r.period, d.bucket) + "</span>"; } },
-          { h: "Active users", n: 1, f: function (r) { return tracked(r, "<b>" + fmt(r.users) + "</b>"); } },
-          { h: "Web", n: 1, f: function (r) { return tracked(r, fmt(r.web)); } },
-          { h: "iOS", n: 1, f: function (r) { return tracked(r, fmt(r.ios)); } },
-          { h: "Android", n: 1, f: function (r) { return tracked(r, fmt(r.android)); } },
-          { h: "App opens", n: 1, f: function (r) { return tracked(r, fmt(r.opens)); } },
-          { h: "Core actions", n: 1, f: function (r) { return tracked(r, fmt(r.actions)); } },
-          { h: "New installs", n: 1, f: function (r) { return tracked(r, fmt(r.installs)); } },
-          { h: "New accounts", n: 1, f: function (r) { return fmt(r.accounts); } },
-          { h: "Grades", n: 1, f: function (r) { return fmt(r.grades); } },
-          { h: "Downloads", n: 1, f: function (r) { return fmt(r.downloads); } }], d.activity) + "</div>")) +
-      card("Active users per day", chartOrEmpty(d.series.activeUsers, PLAT), "accounts + app installs + web visitors") +
-      card("Core actions per day", chartOrEmpty(d.series.actions, PLAT), fmt(fails) + " failed in range") +
-      (d.platform === "web" ? "" : card("Downloads per day", chartOrEmpty(d.series.downloads, ["ios", "android"], "Needs the store sales feeds (see Store imports below)."), "App Store + Google Play")) +
+      wide(card("Activity by " + per + bucketPills + csv, '<div class="stick">' + rowsHtml + "</div>")) +
+      card("Active users per " + per, chartOrEmpty(d.series.activeUsers, PLAT), "accounts + app installs + web visitors who interacted") +
+      card("Core actions per " + per, chartOrEmpty(d.series.actions, PLAT), fmt(fails) + " failed in range") +
+      (d.platform === "web" ? "" : card("Downloads per " + per, chartOrEmpty(d.series.downloads, ["ios", "android"], "Needs the store sales feeds (see Store imports below)."), "App Store + Google Play")) +
       "</div>");
 
     // ── Who is not counted
     var acc = d.excluded.accounts;
-    html.push('<div class="grid">' + wide(card("Accounts not counted as real users",
+    html.push('<div class="grid">' + wide(card("Not counted as real users",
+      table([
+        { h: "Traffic", f: function (r) { return "<b>" + esc(CLASS[r["class"]] || r["class"]) + '</b> <span class="muted">' + esc(WHY[r["class"]] || "") + "</span>"; } },
+        { h: "People", n: 1, f: function (r) { return fmt(r.people); } },
+        { h: "Events", n: 1, f: function (r) { return fmt(r.rows); } }], d.excluded.activity, "Nothing left out in this period.") +
+      '<h2 style="margin-top:14px">Accounts <small>' + fmt(acc.filter(function (r) { return r["class"] !== "real"; }).length) + " left out</small></h2>" +
       '<div class="scroll">' + table([
         { h: "Account", f: function (r) { return esc(r.email) + ' <span class="muted">' + esc(r.role) + "</span>"; } },
         { h: "Counted as", f: function (r) { return '<span class="badge' + (r["class"] === "real" ? " ok" : "") + '">' + esc(CLASS[r["class"]] || r["class"]) + "</span>"; } },
@@ -446,8 +562,7 @@ const DASHBOARD_JS = String.raw`
       '<form class="classify" id="classify"><input type="email" name="email" placeholder="account email" required>' +
       '<select name="class"><option value="internal">Team</option><option value="test">Test</option><option value="review">Store review</option><option value="real">Real user</option><option value="auto">Automatic</option></select>' +
       '<button class="btn" type="submit">Save</button><span class="muted" id="classifyMsg"></span></form>' +
-      '<p class="muted" style="margin-top:8px;font-size:.78rem">Automatic: Google Play reviewers (name.12345@gmail.com), Test Lab robots, the App Review demo account, test addresses, the team and their linked family. Store review and test devices are also recognised by their network; this browser is marked as the team\'s when you sign in here.</p>',
-      fmt(acc.filter(function (r) { return r["class"] !== "real"; }).length) + " left out")) + "</div>");
+      '<p class="muted" style="margin-top:8px;font-size:.78rem">Automatic: Google Play reviewers (name.12345@gmail.com), Test Lab robots, the App Review demo account, test addresses, the team and their linked family. Store review and test devices are also recognised by their network; this browser is marked as the team\'s when you sign in here.</p>')) + "</div>");
 
     // ── Accounts & data (records)
     var t = rec.totals, a = rec.activation;
@@ -462,16 +577,57 @@ const DASHBOARD_JS = String.raw`
         "<tr><td>Single grades</td><td class=\"n\">" + fmt(t.quick_grades) + "</td></tr>" +
         "<tr><td>Report cards</td><td class=\"n\">" + fmt(t.term_grades) + ' <span class="muted">' + fmt(t.subject_grades) + " subject grades</span></td></tr>" +
         "<tr><td>Settlements</td><td class=\"n\">" + fmt(t.settlements) + "</td></tr></table>", "all time") +
-      card("Sign-ups per day", chartOrEmpty(rec.signupsPerDay, ["parent", "child"], "No sign-ups in this range."),
+      card("Sign-ups per " + per, chartOrEmpty(rec.signupsPerDay, ["parent", "child"], "No sign-ups in this range."),
         "activation: " + (a.children ? pct(a.childrenGraded / a.children) : "—") + " of new children entered a grade · " + (a.signups ? pct(a.connected / a.signups) : "—") + " of new accounts linked a family") +
-      card("Grades &amp; settlements per day", chartOrEmpty(rec.gradesPerDay.map(function (g, i) { var s = rec.settlementsPerDay[i] || {}; return Object.assign({}, g, { settlement: s.settlement || 0 }); }), ["quick", "term", "settlement"], "No grades or settlements in this range.")) +
+      card("Grades &amp; settlements per " + per, chartOrEmpty(rec.gradesPerDay.map(function (g, i) { var s = rec.settlementsPerDay[i] || {}; return Object.assign({}, g, { settlement: s.settlement || 0 }); }), ["quick", "term", "settlement"], "No grades or settlements in this range.")) +
       card("Grading systems used", hbars(rec.gradingSystems, function (r) { return esc(r.system); }, function (r) { return r.n; }), "grades entered in range") +
       "</div>");
+
+    // ── Website traffic: Cloudflare edge, everyone including bots
+    if (d.edge) {
+      var tr = d.edge;
+      html.push(section("Website traffic", "Every request Cloudflare saw, bots included. The numbers above count real visitors only.") + (tr.days.length
+        ? '<div class="grid">' +
+            card("Visitors &amp; page views per day", lineChart(tr.days, [
+              { key: "uniques", color: "var(--web)", name: "Unique visitors" },
+              { key: "pageviews", color: "var(--ios)", name: "Page views" }]) +
+              '<div class="legend"><span><i class="dot" style="background:var(--web)"></i>Unique visitors</span><span><i class="dot" style="background:var(--ios)"></i>Page views</span></div>', "Cloudflare edge") +
+            card("Edge totals", "<table>" +
+              "<tr><td>Requests</td><td class=\"n\">" + fmt(tr.totals.requests) + "</td></tr>" +
+              "<tr><td>Served from cache</td><td class=\"n\">" + (tr.totals.requests ? pct(tr.totals.cached / tr.totals.requests) : "—") + "</td></tr>" +
+              "<tr><td>Page views</td><td class=\"n\">" + fmt(tr.totals.pageviews) + "</td></tr>" +
+              "<tr><td>Unique visitors / day</td><td class=\"n\">" + fmt(Math.round(tr.totals.uniquesPerDay || 0)) + "</td></tr>" +
+              "<tr><td>Threats blocked</td><td class=\"n\">" + fmt(tr.totals.threats) + "</td></tr></table>") +
+            card("Countries", hbars(tr.countries, function (r) { return esc(r.country); }, function (r) { return r.n; }), "requests") +
+          "</div>"
+        : '<div class="card" style="margin-bottom:12px"><p class="muted">' + (feedOk.cf_traffic
+          ? "Cloudflare connected ✓ — no traffic imported for this period."
+          : "Not connected yet. Needs a Cloudflare API token with <b>Zone → Analytics → Read</b> for bonifatus.com as the <code>CF_ANALYTICS_TOKEN</code> secret; the last 30 days fill in on the next import.") + "</p></div>"));
+    }
+
+    // ── App quality: Android vitals
+    if (d.vitals) {
+      var vt = d.vitals, lv = vt.latest, rate = function (v) { return v == null ? "—" : (v * 100).toFixed(2) + "%"; };
+      var flag = function (v, lim) { return v == null ? "" : v > lim ? '<span class="bad">▲ above Play\'s bad-behaviour line (' + rate(lim) + ")</span>" : '<span class="ok">✓ under Play\'s ' + rate(lim) + " line</span>"; };
+      html.push(section("App quality", "Android vitals from Google Play: crash and ANR rates of real devices.") + (vt.days.length
+        ? '<div class="tiles">' +
+            tile("User-perceived crash rate", rate(lv.crash_rate_user), flag(lv.crash_rate_user, vt.thresholds.crash_rate_user)) +
+            tile("User-perceived ANR rate", rate(lv.anr_rate_user), flag(lv.anr_rate_user, vt.thresholds.anr_rate_user)) +
+            tile("Crash rate (all)", rate(lv.crash_rate), "ANR " + rate(lv.anr_rate)) +
+            tile("Users measured", fmt(lv.vitals_users), "latest day " + esc(lv.day)) +
+          '</div><div class="grid">' + card("Crash &amp; ANR rate per day", lineChart(vt.days, [
+              { key: "crash_rate_user", color: "var(--bad)", name: "Crash rate" },
+              { key: "anr_rate_user", color: "var(--star)", name: "ANR rate" }], rate) +
+              '<div class="legend"><span><i class="dot" style="background:var(--bad)"></i>Crash (user-perceived)</span><span><i class="dot" style="background:var(--star)"></i>ANR (user-perceived)</span></div>', "last 30 days") + "</div>"
+        : '<div class="card" style="margin-bottom:12px"><p class="muted">' + (feedOk.play_vitals
+          ? "Reporting API connected ✓ — Play publishes crash and ANR rates only once enough users are active; they appear here automatically."
+          : "No vitals yet. Needs the <b>Google Play Developer Reporting API</b> switched on for the service account\'s Cloud project (see Store imports below).") + "</p></div>"));
+    }
 
     // ── Usage
     html.push(section("What people do"));
     html.push('<div class="grid">' +
-      card("Core actions", table([
+      wide(card("Core actions", table([
         { h: "Action", f: function (r) { return actionName(r.action); } },
         { h: "Total", n: 1, f: function (r) { return fmt(r.n); } },
         { h: "OK", n: 1, f: function (r) { return pct(r.n ? r.ok / r.n : null) ; } },
@@ -481,7 +637,7 @@ const DASHBOARD_JS = String.raw`
         { h: "Web", n: 1, f: function (r) { return fmt(r.web); } },
         { h: "iOS", n: 1, f: function (r) { return fmt(r.ios); } },
         { h: "Android", n: 1, f: function (r) { return fmt(r.android); } },
-        { h: "Old app", n: 1, f: function (r) { return fmt(r.app); } }], d.usage.core), "server-side, every request; rejected = invalid / denied / rate-limited") +
+        { h: "Old app", n: 1, f: function (r) { return fmt(r.app); } }], d.usage.core), "server-side, every request; rejected = invalid / denied / rate-limited")) +
       card("Tracked events", table([
         { h: "Event", f: function (r) { return esc(r.e.replace(/_/g, " ")); } },
         { h: "Total", n: 1, f: function (r) { return fmt(r.a.total); } },
@@ -587,11 +743,11 @@ const DASHBOARD_JS = String.raw`
         { h: "", f: function (r) { return dot(r.platform); } },
         { h: "Version", f: function (r) { return esc(r.app_version); } },
         { h: "Installs", n: 1, f: function (r) { return fmt(r.installs); } }], h.versions, "Needs the app release with usage stats.")) +
-      card("Store imports", table([
+      wide(card("Store imports", table([
         { h: "Feed", f: function (r) { return '<span style="white-space:nowrap">' + esc(r.source) + "</span>"; } },
         { h: "", f: function (r) { return r.ok ? '<span class="ok">✓</span>' : '<span class="bad">✗</span>'; } },
         { h: "Last run", f: function (r) { return '<span class="muted">' + ago(r.ran_at) + "</span>"; } },
-        { h: "Detail", f: function (r) { return '<span class="muted">' + esc(r.detail) + "</span>"; } }], h.imports, "Not run yet — first run ~2 min after deploy, then nightly 04:30 UTC."), "nightly 04:30 UTC") +
+        { h: "Detail", f: function (r) { return '<span class="muted">' + esc(r.detail) + "</span>"; } }], h.imports, "Not run yet — first run ~2 min after deploy, then nightly 04:30 UTC."), "nightly 04:30 UTC")) +
       "</div>");
 
     document.getElementById("root").innerHTML = html.join("");
@@ -606,10 +762,22 @@ const DASHBOARD_JS = String.raw`
     return bucket === "week" ? "Week of " + dm : WD[x.getUTCDay()] + " " + dm;
   }
 
+  function $(id) { return document.getElementById(id); }
+  function todayUtc() { return new Date().toISOString().slice(0, 10); }
+  function addDays(s, n) { var t = new Date(s + "T00:00:00Z"); t.setUTCDate(t.getUTCDate() + n); return t.toISOString().slice(0, 10); }
+  function addMonths(s, n) { var t = new Date(s.slice(0, 8) + "01T00:00:00Z"); t.setUTCMonth(t.getUTCMonth() + n); return t.toISOString().slice(0, 10); }
+  function stepped() { return ["day", "week", "month"].indexOf(state.range) >= 0; }
+  function dayName(s) { return WD[new Date(s + "T00:00:00Z").getUTCDay()] + " " + s; }
+  function spanName(a, b) { return a === b ? dayName(a) : a + " → " + b; }
+
   function setPills() {
     document.getElementById("custom").hidden = state.range !== "custom";
     document.getElementById("cfrom").value = state.from;
     document.getElementById("cto").value = state.to;
+    $("step").hidden = !stepped();
+    $("at").value = state.at || todayUtc();
+    $("at").max = $("cfrom").max = $("cto").max = todayUtc();
+    $("next").disabled = !state.at || state.at >= todayUtc();
     ["range", "platform", "traffic"].forEach(function (id) {
       Array.prototype.forEach.call(document.querySelectorAll("#" + id + " button"), function (b) { b.classList.toggle("on", b.dataset.v === state[id]); });
     });
@@ -617,16 +785,17 @@ const DASHBOARD_JS = String.raw`
 
   function load() {
     setPills();
-    try { localStorage.setItem("bonifatus-stats", JSON.stringify(state)); } catch (e) {}
+    try { localStorage.setItem("bonifatus-stats", JSON.stringify({ range: state.range, platform: state.platform, traffic: state.traffic, bucket: state.bucket, from: state.from, to: state.to })); } catch (e) {}
     document.getElementById("meta").textContent = "Loading…";
     if (state.range === "custom" && !(state.from && state.to)) { document.getElementById("meta").textContent = "Pick a start and end date."; return; }
     var qs = "range=" + encodeURIComponent(state.range) + "&platform=" + encodeURIComponent(state.platform) + "&traffic=" + encodeURIComponent(state.traffic) +
       (state.bucket ? "&bucket=" + encodeURIComponent(state.bucket) : "") +
+      (state.at && stepped() ? "&at=" + encodeURIComponent(state.at) : "") +
       (state.range === "custom" ? "&from=" + encodeURIComponent(state.from) + "&to=" + encodeURIComponent(state.to) : "");
     fetch("/api/admin/usage-stats?" + qs, { credentials: "same-origin" })
       .then(function (r) { if (r.status === 401) { location.href = "/admin/stats/login"; throw new Error("auth"); } if (!r.ok) throw new Error("HTTP " + r.status); return r.json(); })
       .then(function (d) {
-        document.getElementById("meta").textContent = d.from + " → " + d.to + " (UTC, " + d.days + (d.days === 1 ? " day" : " days") + ") · " + (NAME[d.platform] || "All platforms") + " · " + (d.traffic === "real" ? "real users" : "all traffic") + " · updated " + new Date(d.generatedAt).toLocaleTimeString();
+        document.getElementById("meta").textContent = spanName(d.from, d.to) + " (UTC, " + d.days + (d.days === 1 ? " day" : " days") + ") · compared with " + spanName(d.prevFrom, d.prevTo) + " · " + (NAME[d.platform] || "All platforms") + " · " + (d.traffic === "real" ? "real users" : "all traffic") + " · updated " + new Date(d.generatedAt).toLocaleTimeString();
         render(d);
       })
       .catch(function (e) { if (e.message !== "auth") { document.getElementById("meta").textContent = ""; document.getElementById("root").innerHTML = '<div class="err">Could not load stats: ' + esc(e.message) + "</div>"; } });
@@ -635,11 +804,21 @@ const DASHBOARD_JS = String.raw`
   ["range", "platform", "traffic"].forEach(function (id) {
     document.getElementById(id).addEventListener("click", function (e) {
       var v = e.target.dataset && e.target.dataset.v; if (!v) return; state[id] = v;
-      if (id === "range") state.bucket = ""; // the server picks day / week / month for the new period
+      if (id === "range") { state.bucket = ""; state.at = ""; } // the server picks day / week / month for the new period
       if (id === "range" && v === "custom" && !(state.from && state.to)) { setPills(); document.getElementById("cfrom").focus(); return; }
       load();
     });
   });
+  function step(n) {
+    var at = state.at || todayUtc();
+    at = state.range === "month" ? addMonths(at, n) : addDays(at, n * (state.range === "week" ? 7 : 1));
+    state.at = at >= todayUtc() ? "" : at;
+    load();
+  }
+  $("prev").addEventListener("click", function () { step(-1); });
+  $("next").addEventListener("click", function () { step(1); });
+  $("now").addEventListener("click", function () { state.at = ""; load(); });
+  $("at").addEventListener("change", function () { state.at = this.value && this.value < todayUtc() ? this.value : ""; load(); });
   document.getElementById("custom").addEventListener("submit", function (e) {
     e.preventDefault();
     state.from = document.getElementById("cfrom").value; state.to = document.getElementById("cto").value;
@@ -651,7 +830,20 @@ const DASHBOARD_JS = String.raw`
     var el = e.target;
     if (el.closest && el.closest("#bucket") && el.dataset.v) { state.bucket = el.dataset.v; load(); }
     if (el.dataset && el.dataset.traffic) { state.traffic = el.dataset.traffic; load(); }
+    if (el.id === "csv") downloadCsv();
   });
+  // One tooltip for every chart; a tap shows it on touch screens.
+  var tip = $("tip");
+  function showTip(e) {
+    var t = e.target.closest && e.target.closest("[data-tip]");
+    if (!t) { tip.style.display = "none"; return; }
+    tip.textContent = t.getAttribute("data-tip");
+    tip.style.display = "block";
+    var x = Math.min(e.clientX + 12, innerWidth - tip.offsetWidth - 8), y = e.clientY - tip.offsetHeight - 10;
+    tip.style.transform = "translate(" + Math.max(8, x) + "px," + (y < 8 ? e.clientY + 14 : y) + "px)";
+  }
+  document.addEventListener("pointermove", showTip);
+  document.addEventListener("pointerdown", showTip);
   document.getElementById("root").addEventListener("submit", function (e) {
     if (e.target.id !== "classify") return;
     e.preventDefault();

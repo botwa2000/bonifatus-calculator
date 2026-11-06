@@ -1,4 +1,4 @@
-import { describe, expect, it, vi, beforeAll } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 vi.mock('@/lib/db/client', () => ({ pool: { query: vi.fn() } }))
 vi.mock('@/lib/auth/session', () => ({ requireAuthApi: vi.fn() }))
@@ -12,6 +12,7 @@ import {
   platformOf,
   referrerHost,
   trafficOf,
+  webTraffic,
 } from '@/lib/stats/usage'
 import { bucketStart, rangeWindow } from '@/lib/stats/aggregate'
 import { normLocal } from '@/lib/stats/classify'
@@ -22,6 +23,7 @@ import {
   generateOtp,
   generateSession,
   isAllowedEmail,
+  LINK_SESSION_TTL_SEC,
   redeemLoginLink,
   validateOtp,
   validateSession,
@@ -29,6 +31,30 @@ import {
 import { pool } from '@/lib/db/client'
 
 const h = (o: Record<string, string>) => new Headers(o)
+
+describe('web traffic classes', () => {
+  const chrome =
+    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/130.0 Safari/537.36'
+
+  it('starts anonymous browsers as unengaged, signed-in people as real', () => {
+    expect(webTraffic(h({ 'user-agent': chrome }))).toBe('unengaged')
+    expect(webTraffic(h({ 'user-agent': chrome }), { userId: 'u1' })).toBeNull()
+  })
+
+  it('recognises crawlers, link previews, scripts and automation', () => {
+    for (const ua of [
+      'Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)',
+      'facebookexternalhit/1.1',
+      'WhatsApp/2.23',
+      'curl/8.4.0',
+      'python-requests/2.31',
+      'Mozilla/5.0 HeadlessChrome/130.0',
+    ])
+      expect(webTraffic(h({ 'user-agent': ua }), { userId: 'u1' })).toBe('bot')
+    expect(webTraffic(h({}))).toBe('bot')
+    expect(webTraffic(h({ 'user-agent': chrome }), { webdriver: true })).toBe('bot')
+  })
+})
 
 describe('usage sanitizers', () => {
   it('only accepts allow-listed prop keys with short enum values', () => {
@@ -106,6 +132,7 @@ describe('store import parsers', () => {
       count: 1234,
       avg: 4.6,
       histogram: { '5': 1000, '1': 34 },
+      installs: null,
     })
   })
 
@@ -115,7 +142,18 @@ describe('store import parsers', () => {
       count: 0,
       avg: null,
       histogram: {},
+      installs: null,
     })
+  })
+
+  it('takes the exact install count only from the triple of the visible bucket', () => {
+    const html = (body: string) => `${unrated}${body}`
+    expect(
+      parsePlayListing(html('<div>10+</div><div class="x">Downloads</div> ["10+",10,16]')).installs
+    ).toEqual({ bucket: '10+', exact: 16 })
+    expect(
+      parsePlayListing(html('<div>10+</div><div class="x">Downloads</div> ["50+",50,77]')).installs
+    ).toEqual({ bucket: '10+', exact: null })
   })
 
   it('fails loudly when the listing format changes', () => {
@@ -133,27 +171,49 @@ describe('store import parsers', () => {
 })
 
 describe('admin OTP auth', () => {
-  beforeAll(() => {
+  const owner = 'owner@example.com'
+  const tagOf = (state: string) => state.split('.')[1]
+
+  beforeEach(() => {
     process.env.AUTH_SECRET = 'test-secret'
+    process.env.STATS_ADMIN_EMAILS = `${owner}, second@example.org`
   })
 
   it('accepts the emailed code only with its own cookie state', () => {
-    const { code, state } = generateOtp()
-    expect(validateOtp(code, state)).toBe(true)
+    const { code, state } = generateOtp(owner)
+    expect(validateOtp(code, state)).toBe(tagOf(state))
     const wrong = code === '123456' ? '654321' : '123456'
-    expect(validateOtp(wrong, state)).toBe(false)
-    expect(validateOtp(code, null)).toBe(false)
-    expect(validateOtp(code, `${Math.floor(Date.now() / 1000) - 1}.${state.split('.')[1]}`)).toBe(
-      false
-    )
+    expect(validateOtp(wrong, state)).toBeNull()
+    expect(validateOtp(code, null)).toBeNull()
+    const [, tag, mac] = state.split('.')
+    expect(validateOtp(code, `${Math.floor(Date.now() / 1000) - 1}.${tag}.${mac}`)).toBeNull()
+  })
+
+  it('never opens a session for an address off the allow-list, even with the right code', () => {
+    const { code, state } = generateOtp('stranger@example.com')
+    expect(validateOtp(code, state)).toBeNull()
   })
 
   it('signs sessions that cannot be forged or extended', () => {
-    const s = generateSession()
+    const s = generateSession(tagOf(generateOtp(owner).state))
     expect(validateSession(s)).toBe(true)
-    const [exp, mac] = s.split('.')
-    expect(validateSession(`${Number(exp) + 3600}.${mac}`)).toBe(false)
+    const [exp, tag, mac] = s.split('.')
+    expect(validateSession(`${Number(exp) + 3600}.${tag}.${mac}`)).toBe(false)
     expect(validateSession('garbage')).toBe(false)
+  })
+
+  it('revokes a session as soon as its address leaves the allow-list', () => {
+    const s = generateSession(tagOf(generateOtp('second@example.org').state))
+    expect(validateSession(s)).toBe(true)
+    process.env.STATS_ADMIN_EMAILS = owner
+    expect(validateSession(s)).toBe(false)
+  })
+
+  it('caps a session at twelve hours and links at one', () => {
+    const tag = tagOf(generateOtp(owner).state)
+    const left = (s: string) => Number(s.split('.')[0]) - Math.floor(Date.now() / 1000)
+    expect(left(generateSession(tag, 999_999))).toBeLessThanOrEqual(12 * 3600)
+    expect(left(generateSession(tag, LINK_SESSION_TTL_SEC))).toBeLessThanOrEqual(3600)
   })
 
   it('allows only addresses from the STATS_ADMIN_EMAILS secret', () => {
@@ -181,51 +241,82 @@ describe('one-time sign-in links', () => {
   })
 
   it('redeems only once and rejects malformed tokens without a query', async () => {
+    process.env.AUTH_SECRET = 'test-secret'
+    process.env.STATS_ADMIN_EMAILS = 'owner@example.com'
     query.mockReset()
-    expect(await redeemLoginLink('short')).toBe(false)
-    expect(await redeemLoginLink("x'; DROP TABLE users; --".padEnd(43, 'x'))).toBe(false)
+    expect(await redeemLoginLink('short')).toBeNull()
+    expect(await redeemLoginLink("x'; DROP TABLE users; --".padEnd(43, 'x'))).toBeNull()
     expect(query).not.toHaveBeenCalled()
 
     const token = 'a'.repeat(43)
     query.mockResolvedValueOnce({ rowCount: 1 }).mockResolvedValueOnce({ rowCount: 0 })
-    expect(await redeemLoginLink(token)).toBe(true)
-    expect(await redeemLoginLink(token)).toBe(false)
+    const tag = await redeemLoginLink(token)
+    expect(validateSession(generateSession(tag!))).toBe(true)
+    expect(await redeemLoginLink(token)).toBeNull()
     expect(String(query.mock.calls[0][0])).toMatch(/used_at IS NULL AND expires_at > NOW\(\)/)
   })
 })
 
 describe('periods', () => {
   const now = new Date('2026-10-31T15:00:00Z')
-  const span = (range: string, from?: string, to?: string) => {
-    const w = rangeWindow(range, from, to, now)
-    return [
-      w.from.toISOString().slice(0, 10),
-      w.to.toISOString().slice(0, 10),
-      w.days,
-      w.prevFrom.toISOString().slice(0, 10),
-    ]
+  const span = (range: string, o: { at?: string; from?: string; to?: string } = {}) => {
+    const w = rangeWindow(range, o, now)
+    const d = (x: Date) => x.toISOString().slice(0, 10)
+    return [d(w.from), d(w.to), w.days, d(w.prevFrom), d(w.prevTo)]
   }
 
-  it('resolves presets to whole UTC days, with an equally long previous period', () => {
-    expect(span('today')).toEqual(['2026-10-31', '2026-11-01', 1, '2026-10-30'])
-    expect(span('yesterday')).toEqual(['2026-10-30', '2026-10-31', 1, '2026-10-29'])
-    expect(span('7d')).toEqual(['2026-10-25', '2026-11-01', 7, '2026-10-18'])
-    expect(span('mtd')).toEqual(['2026-10-01', '2026-11-01', 31, '2026-08-31'])
-    expect(span('ytd')).toEqual(['2026-01-01', '2026-11-01', 304, '2025-03-03'])
+  it('resolves rolling periods to whole UTC days, with an equally long previous period', () => {
+    expect(span('7d')).toEqual(['2026-10-25', '2026-11-01', 7, '2026-10-18', '2026-10-25'])
+    expect(span('30d')).toEqual(['2026-10-02', '2026-11-01', 30, '2026-09-02', '2026-10-02'])
+    expect(span('12m')[2]).toBe(365)
+  })
+
+  it('anchors calendar periods on any past day, never past today', () => {
+    expect(span('day')).toEqual(['2026-10-31', '2026-11-01', 1, '2026-10-30', '2026-10-31'])
+    expect(span('day', { at: '2026-10-30' }).slice(0, 2)).toEqual(['2026-10-30', '2026-10-31'])
+    expect(span('day', { at: '2027-01-01' }).slice(0, 2)).toEqual(['2026-10-31', '2026-11-01'])
+    // 2026-10-14 is a Wednesday: Monday to Sunday around it.
+    expect(span('week', { at: '2026-10-14' })).toEqual([
+      '2026-10-12',
+      '2026-10-19',
+      7,
+      '2026-10-05',
+      '2026-10-12',
+    ])
+  })
+
+  it('compares an unfinished period with the same stretch of the one before', () => {
+    // Saturday 31 Oct: six days of this week against the first six of last week.
+    expect(span('week')).toEqual(['2026-10-26', '2026-11-01', 6, '2026-10-19', '2026-10-25'])
+    const mid = rangeWindow('month', {}, new Date('2026-10-10T12:00:00Z'))
+    expect(mid.days).toBe(10)
+    expect(mid.prevFrom.toISOString().slice(0, 10)).toBe('2026-09-01')
+    expect(mid.prevTo.toISOString().slice(0, 10)).toBe('2026-09-11')
+  })
+
+  it('compares the month before, and the same dates last year for year to date', () => {
+    expect(span('month', { at: '2026-09-15' })).toEqual([
+      '2026-09-01',
+      '2026-10-01',
+      30,
+      '2026-08-01',
+      '2026-08-31',
+    ])
+    expect(span('ytd')).toEqual(['2026-01-01', '2026-11-01', 304, '2025-01-01', '2025-11-01'])
   })
 
   it('accepts custom days in either order, never past today, at most 400 days', () => {
-    expect(span('custom', '2026-10-20', '2026-10-10').slice(0, 3)).toEqual([
+    expect(span('custom', { from: '2026-10-20', to: '2026-10-10' }).slice(0, 3)).toEqual([
       '2026-10-10',
       '2026-10-21',
       11,
     ])
-    expect(span('custom', '2026-10-30', '2027-01-01').slice(0, 2)).toEqual([
+    expect(span('custom', { from: '2026-10-30', to: '2027-01-01' }).slice(0, 2)).toEqual([
       '2026-10-30',
       '2026-11-01',
     ])
-    expect(span('custom', '2020-01-01', '2026-10-31')[2]).toBe(400)
-    expect(span('custom', 'nonsense', '2026-10-31').slice(0, 3)).toEqual([
+    expect(span('custom', { from: '2020-01-01', to: '2026-10-31' })[2]).toBe(400)
+    expect(span('custom', { from: 'nonsense', to: '2026-10-31' }).slice(0, 3)).toEqual([
       '2026-10-25',
       '2026-11-01',
       7,

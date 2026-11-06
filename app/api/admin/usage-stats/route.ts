@@ -2,7 +2,8 @@
  * /api/admin/usage-stats — data for the confidential /admin/stats dashboard.
  * Auth: admin session cookie (email OTP, lib/stats/admin-auth.ts) or X-Admin-Key.
  *
- * GET  ?range=today|yesterday|7d|30d|90d|mtd|ytd|12m|custom (&from=&to= YYYY-MM-DD)
+ * GET  ?range=day|week|month|ytd|7d|30d|90d|12m|custom (&at= anchor of day/week/month,
+ *      &from=&to= of custom, all YYYY-MM-DD)
  *      &platform=all|web|ios|android &traffic=real|all &bucket=day|week|month → aggregates
  * POST {"action":"import","only":["play_listing",...]?} → start the store import
  *      in the background (the iOS ratings sweep takes ~10 min); poll GET for
@@ -33,6 +34,7 @@ export async function GET(req: Request) {
     const stats = await getStats({
       range: url.searchParams.get('range') ?? undefined,
       platform: url.searchParams.get('platform') ?? undefined,
+      at: url.searchParams.get('at'),
       from: url.searchParams.get('from'),
       to: url.searchParams.get('to'),
       traffic: url.searchParams.get('traffic') ?? undefined,

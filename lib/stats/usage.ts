@@ -15,7 +15,9 @@
  *   • Free text (feedback comments, contact messages) is nulled after 30 days.
  *   • Store review and test devices are recognised by their network at request
  *     time (the IP is checked, never stored) and tagged in `traffic`, so the
- *     dashboard can show real users only.
+ *     dashboard can show real users only. Crawlers are recognised the same way
+ *     from the user agent (read, never stored). Anonymous web visitors count
+ *     only once they interact: a first tap, scroll or key sends `engage`.
  * Every write is fire-and-forget: statistics must never slow or fail a request.
  */
 import crypto from 'node:crypto'
@@ -121,8 +123,19 @@ async function visitorHash(h: Headers): Promise<string> {
 // publishes (firebase.google.com/docs/test-lab/android/get-started, updated
 // about yearly). A browser that signed in to /admin/stats carries
 // INTERNAL_COOKIE (lib/stats/admin-auth.ts) on every page of the site.
-export type Traffic = 'review' | 'test' | 'internal'
+//
+// Web visitors start 'unengaged' and become real (traffic NULL) on their first
+// interaction or core action, which also upgrades their earlier rows of the day.
+// That keeps link scanners and one-glance bounces out of the numbers without
+// deleting anything: they stay visible under "All traffic".
+export type Traffic = 'review' | 'test' | 'internal' | 'bot' | 'unengaged'
 export const INTERNAL_COOKIE = 'bstats_internal'
+
+const BOT_UA =
+  /bot\b|bot\/|crawl|spider|slurp|preview|facebookexternalhit|embedly|whatsapp|telegram|skype|discord|headless|phantom|puppeteer|playwright|selenium|lighthouse|pagespeed|gtmetrix|curl\/|wget|python|httpclient|axios|node-fetch|go-http|java\//i
+
+/** Runs on page load without anyone doing anything, so it proves no person. */
+const PASSIVE_ACTIONS = new Set(['market_fetch'])
 
 const APPLE_NET = new net.BlockList()
 APPLE_NET.addSubnet('17.0.0.0', 8, 'ipv4')
@@ -194,6 +207,16 @@ export function trafficOf(h: Headers): Traffic | null {
   return null
 }
 
+/** Class of a web request that is neither store review, test device nor team. */
+export function webTraffic(
+  h: Headers,
+  o: { userId?: string | null; webdriver?: boolean } = {}
+): 'bot' | 'unengaged' | null {
+  const ua = header(h, 'user-agent')
+  if (!ua || BOT_UA.test(ua) || o.webdriver) return 'bot'
+  return o.userId ? null : 'unengaged'
+}
+
 export interface RequestContext {
   platform: Platform
   installId: string | null
@@ -212,7 +235,12 @@ export interface RequestContext {
  */
 export async function requestContext(
   h: Headers,
-  opts: { bodyInstallId?: unknown; bodyLang?: unknown; userId?: string | null } = {}
+  opts: {
+    bodyInstallId?: unknown
+    bodyLang?: unknown
+    userId?: string | null
+    webdriver?: boolean
+  } = {}
 ): Promise<RequestContext> {
   const platform = platformOf(h)
   const installId = platform === 'web' ? cleanInstallId(opts.bodyInstallId) : nativeInstallId(h)
@@ -224,12 +252,68 @@ export async function requestContext(
     version: cleanVersion(header(h, 'x-app-version')),
     lang: cleanLang(opts.bodyLang) || cleanLang(header(h, 'x-app-lang')) || acceptLang(h),
     country: countryOf(h),
-    traffic: trafficOf(h),
+    traffic:
+      trafficOf(h) ??
+      (platform === 'web'
+        ? webTraffic(h, { userId: opts.userId, webdriver: opts.webdriver })
+        : null),
   }
 }
 
 const logErr = (where: string) => (err: Error) =>
   console.error(`[usage] ${where} failed:`, err.message)
+
+// ── Engagement ───────────────────────────────────────────────────────────────
+// Visitors seen engaged today; cleared at UTC midnight (visitor hashes rotate daily).
+let engagedCache: { day: string | null; set: Set<string> } = { day: null, set: new Set() }
+
+function cacheEngaged(id: string) {
+  const day = new Date().toISOString().slice(0, 10)
+  if (engagedCache.day !== day) engagedCache = { day, set: new Set() }
+  if (engagedCache.set.size > 50_000) engagedCache.set.clear()
+  engagedCache.set.add(id)
+}
+
+const RECENT = `ts > NOW() - INTERVAL '1 day' AND (install_id = $1 OR visitor_hash = $2)`
+
+async function isEngaged(ctx: RequestContext): Promise<boolean> {
+  const id = ctx.installId || ctx.visitorHash
+  if (!id) return false
+  if (engagedCache.set.has(id) && engagedCache.day === new Date().toISOString().slice(0, 10))
+    return true
+  const { rows } = await pool.query(
+    `SELECT 1 FROM usage_events WHERE traffic IS NULL AND platform = 'web' AND ${RECENT} LIMIT 1`,
+    [ctx.installId, ctx.visitorHash]
+  )
+  if (rows.length) cacheEngaged(id)
+  return rows.length > 0
+}
+
+// A person, after all: count what this visitor did so far today.
+async function markEngaged(ctx: RequestContext) {
+  const id = ctx.installId || ctx.visitorHash
+  if (!id) return
+  cacheEngaged(id)
+  const args = [ctx.installId, ctx.visitorHash]
+  for (const table of ['usage_events', 'action_log'])
+    await pool.query(
+      `UPDATE ${table} SET traffic = NULL WHERE traffic = 'unengaged' AND ${RECENT}`,
+      args
+    )
+  if (ctx.installId)
+    await pool.query(
+      `UPDATE usage_installs SET traffic = NULL WHERE install_id = $1 AND traffic = 'unengaged'`,
+      [ctx.installId]
+    )
+}
+
+/** Settles an 'unengaged' request: real if it proves a person or one was seen before. */
+async function settleTraffic(ctx: RequestContext, proof: boolean): Promise<RequestContext> {
+  if (ctx.traffic !== 'unengaged') return ctx
+  if (proof) await markEngaged(ctx)
+  else if (!(await isEngaged(ctx))) return ctx
+  return { ...ctx, traffic: null }
+}
 
 // First/last sighting of an install. Acquisition is first-touch: an existing
 // source is never overwritten (COALESCE keeps the stored value).
@@ -248,7 +332,11 @@ async function touchInstall(
        acq_source   = COALESCE(usage_installs.acq_source, EXCLUDED.acq_source),
        acq_medium   = COALESCE(usage_installs.acq_medium, EXCLUDED.acq_medium),
        acq_campaign = COALESCE(usage_installs.acq_campaign, EXCLUDED.acq_campaign),
-       traffic      = COALESCE(usage_installs.traffic, EXCLUDED.traffic)`,
+       traffic      = CASE
+         WHEN usage_installs.traffic IN ('review', 'test', 'internal') THEN usage_installs.traffic
+         WHEN EXCLUDED.traffic IN ('review', 'test', 'internal') THEN EXCLUDED.traffic
+         WHEN usage_installs.traffic IS NULL OR EXCLUDED.traffic IS NULL THEN NULL
+         ELSE usage_installs.traffic END`,
     [
       ctx.installId,
       ctx.platform,
@@ -277,8 +365,9 @@ export interface ActionRecord {
 }
 
 /** Record one core-action request. Never throws, never awaited by the caller. */
-export function recordAction(ctx: RequestContext, a: ActionRecord): void {
+export function recordAction(context: RequestContext, a: ActionRecord): void {
   ;(async () => {
+    const ctx = await settleTraffic(context, a.outcome === 'ok' && !PASSIVE_ACTIONS.has(a.action))
     await pool.query(
       `INSERT INTO action_log
          (platform, app_version, install_id, visitor_hash, user_id, action, source, outcome, status_code, latency_ms, provider, result_id, lang, country, traffic)
@@ -320,6 +409,7 @@ export function recordBotCheck(ok: boolean): void {
 // UsageBeacon.tsx and the Flutter UsageService). Unknown events are dropped.
 export const EVENTS = new Set([
   'app_open', // app cold start / resume; web: first page view of a visit
+  'engage', // web: first tap, scroll or key of a visit; marks the visitor as a person
   'page_view', // web page (path)
   'screen_view', // app screen (route template)
   'calculator_result', // a bonus was calculated (web calculator / app)
@@ -393,12 +483,14 @@ export interface EventBatch {
   v?: unknown
   lang?: unknown
   acq?: unknown
+  wd?: unknown
   events?: unknown
 }
 
 /**
  * Store a batch from POST /api/t. Body:
- *   { iid?, v?, lang?, acq?: {utm_source, utm_medium, utm_campaign, referrer, source, medium, campaign},
+ *   { iid?, v?, lang?, wd? (navigator.webdriver),
+ *     acq?: {utm_source, utm_medium, utm_campaign, referrer, source, medium, campaign},
  *     events: [{ e, s?, p?, t? }] }
  * Returns the number of accepted events.
  */
@@ -425,7 +517,15 @@ export async function recordEvents(
   }
   if (!rows.length) return 0
 
-  const ctx = await requestContext(h, { bodyInstallId: body.iid, bodyLang: body.lang, userId })
+  const ctx = await settleTraffic(
+    await requestContext(h, {
+      bodyInstallId: body.iid,
+      bodyLang: body.lang,
+      userId,
+      webdriver: body.wd === true,
+    }),
+    rows.some((r) => r.e === 'engage')
+  )
   ctx.version = cleanVersion(body.v) || ctx.version
   const acq = acquisitionOf(body)
   if (acq.source || acq.campaign) {
@@ -476,7 +576,8 @@ export interface FeedbackRecord {
   action?: string | null
 }
 
-export async function recordFeedback(ctx: RequestContext, f: FeedbackRecord): Promise<void> {
+export async function recordFeedback(context: RequestContext, f: FeedbackRecord): Promise<void> {
+  const ctx = await settleTraffic(context, true) // writing to us proves a person
   await pool.query(
     `INSERT INTO feedback (kind, platform, app_version, install_id, visitor_hash, user_id, rating, comment, result_id, action, lang, country, traffic)
      VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13)`,

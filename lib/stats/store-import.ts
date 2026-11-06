@@ -673,11 +673,22 @@ export function parsePlayListing(html: string) {
   for (const m of html.matchAll(/aria-label="([\d,.]+) reviews? for star rating ([1-5])"/g)) {
     histogram[m[2]] = Number(m[1].replace(/[,.]/g, ''))
   }
+  // Installs: the visible "10+ Downloads" bucket, and the page data's
+  // ["10+",10,16] triple (bucket, bucket floor, exact install count). Only the
+  // triple whose label matches the visible bucket is trusted.
+  let installs: { bucket: string; exact: number | null } | null = null
+  const shown = html.match(/>([\d,.]+[KMB]?\+)<\/div><div[^>]*>Downloads</)
+  if (shown) {
+    const label = shown[1].replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+    const exact = html.match(new RegExp(`"${label}",(\\d+),(\\d+)`))
+    installs = { bucket: shown[1], exact: exact ? Number(exact[2]) : null }
+  }
   return {
     name: blocks[0].name as string,
     count: agg ? Number(agg.ratingCount) : 0,
     avg: agg ? Number(agg.ratingValue) : null,
     histogram,
+    installs,
   }
 }
 
@@ -700,9 +711,169 @@ async function importPlayListing() {
   if (r.avg !== null) await putMetric(day, 'android', 'rating_avg_total', r.avg)
   for (const [star, n] of Object.entries(r.histogram))
     await putMetric(day, 'android', `hist:${star}`, n)
-  return r.count
+  let inst = 'no public install count'
+  if (r.installs?.exact != null) {
+    await putMetric(day, 'android', 'installs_public', r.installs.exact)
+    // Without the bulk reports (exact daily installs) the public count is the
+    // best source: its growth since the last snapshot is today's downloads.
+    if (!process.env.PLAY_REPORTS_BUCKET) {
+      const { rows } = await pool.query(
+        `SELECT value FROM store_daily WHERE platform = 'android' AND metric = 'installs_public' AND day < $1
+          ORDER BY day DESC LIMIT 1`,
+        [day]
+      )
+      if (rows.length)
+        await putMetric(
+          day,
+          'android',
+          'downloads',
+          Math.max(0, r.installs.exact - Number(rows[0].value))
+        )
+    }
+    inst = `${r.installs.exact} installs (${r.installs.bucket})`
+  } else if (r.installs) inst = `installs ${r.installs.bucket}`
+  const rated = r.count
     ? `${r.count} ratings, ★${r.avg!.toFixed(2)}`
-    : 'listing OK — no public rating yet (Play shows it after enough ratings)'
+    : 'no public rating yet (Play shows it after enough ratings)'
+  return `${rated} · ${inst}`
+}
+
+// ── Android vitals: Play Developer Reporting API ─────────────────────────────
+// Daily crash + ANR rates (the Play Console "Android vitals" numbers), same
+// service account as the reviews feed. Needs the API enabled once in the
+// service account's Google Cloud project.
+async function playVitalsQuery(token: string, set: string, metrics: string[]) {
+  const base = `https://playdeveloperreporting.googleapis.com/v1beta1/apps/${ANDROID_PACKAGE}/${set}`
+  const auth = { Authorization: `Bearer ${token}` }
+  const meta = await fetchJson(base, { headers: auth })
+  if (meta.status === 403 && /has not been used|is disabled/.test(meta.text)) {
+    const m = meta.text.match(/project[= ](\d+)/)
+    throw new Error(
+      `Play Developer Reporting API is off — enable it: https://console.developers.google.com/apis/api/playdeveloperreporting.googleapis.com/overview${m ? `?project=${m[1]}` : ''}`
+    )
+  }
+  if (meta.status !== 200) throw new Error(`${set}: HTTP ${meta.status} ${meta.text.slice(0, 160)}`)
+  const fresh = (meta.body.freshnessInfo?.freshnesses ?? []).find(
+    (f: { aggregationPeriod: string }) => f.aggregationPeriod === 'DAILY'
+  )
+  if (!fresh) return []
+  const end = fresh.latestEndTime
+  const start = new Date(Date.UTC(end.year, end.month - 1, end.day) - 30 * 86_400_000)
+  const r = await fetchJson(`${base}:query`, {
+    method: 'POST',
+    headers: { ...auth, 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      timelineSpec: {
+        aggregationPeriod: 'DAILY',
+        startTime: {
+          year: start.getUTCFullYear(),
+          month: start.getUTCMonth() + 1,
+          day: start.getUTCDate(),
+          timeZone: end.timeZone,
+        },
+        endTime: end,
+      },
+      metrics,
+      pageSize: 100,
+    }),
+  })
+  if (r.status !== 200) throw new Error(`${set}:query HTTP ${r.status} ${r.text.slice(0, 160)}`)
+  return (r.body.rows ?? []) as {
+    startTime: { year: number; month: number; day: number }
+    metrics?: { metric: string; decimalValue?: { value?: string } }[]
+  }[]
+}
+
+async function importPlayVitals() {
+  const sa = playSa()
+  if (!sa) throw new Error('PLAY_SERVICE_ACCOUNT_JSON is not valid')
+  const token = await googleAccessToken(sa)
+  const sets: [string, Record<string, string>][] = [
+    [
+      'crashRateMetricSet',
+      {
+        crashRate: 'crash_rate',
+        userPerceivedCrashRate: 'crash_rate_user',
+        distinctUsers: 'vitals_users',
+      },
+    ],
+    ['anrRateMetricSet', { anrRate: 'anr_rate', userPerceivedAnrRate: 'anr_rate_user' }],
+  ]
+  let days = 0
+  for (const [set, map] of sets) {
+    const rows = await playVitalsQuery(token, set, Object.keys(map))
+    for (const row of rows) {
+      const t = row.startTime
+      const day = `${t.year}-${String(t.month).padStart(2, '0')}-${String(t.day).padStart(2, '0')}`
+      for (const m of row.metrics ?? []) {
+        const v = m.decimalValue?.value
+        if (map[m.metric] && v != null) await putMetric(day, 'android', map[m.metric], Number(v))
+      }
+    }
+    days = Math.max(days, rows.length)
+  }
+  return days
+    ? `${days} days of crash + ANR rates`
+    : 'no vitals yet (Play reports them once enough users are active)'
+}
+
+// ── Web traffic: Cloudflare zone analytics (GraphQL) ─────────────────────────
+// Everything that reached bonifatus.com at the edge, humans and bots alike, so
+// it complements the first-party beacon rather than replacing it. Needs an API
+// token with Zone → Analytics → Read for the zone.
+async function importCfTraffic() {
+  const headers = {
+    Authorization: `Bearer ${process.env.CF_ANALYTICS_TOKEN}`,
+    'Content-Type': 'application/json',
+  }
+  let zone = process.env.CF_ZONE_ID
+  if (!zone) {
+    const z = await fetchJson('https://api.cloudflare.com/client/v4/zones?name=bonifatus.com', {
+      headers,
+    })
+    zone = z.body?.result?.[0]?.id
+    if (!zone)
+      throw new Error(
+        'token cannot see the bonifatus.com zone (needs Zone → Analytics → Read, or set CF_ZONE_ID)'
+      )
+  }
+  const query = `query($zone: String!, $from: Date!, $to: Date!) { viewer { zones(filter: { zoneTag: $zone }) {
+    httpRequests1dGroups(limit: 40, orderBy: [date_ASC], filter: { date_geq: $from, date_leq: $to }) {
+      dimensions { date }
+      sum { requests pageViews cachedRequests threats countryMap { clientCountryName requests } }
+      uniq { uniques } } } } }`
+  const r = await fetchJson('https://api.cloudflare.com/client/v4/graphql', {
+    method: 'POST',
+    headers,
+    body: JSON.stringify({ query, variables: { zone, from: daysAgo(30), to: daysAgo(0) } }),
+  })
+  if (r.status !== 200 || r.body?.errors?.length) {
+    const errs = ((r.body?.errors ?? []) as { message: string }[]).map((e) => e.message)
+    throw new Error(`Cloudflare GraphQL: ${r.status} ${errs.join('; ').slice(0, 200)}`)
+  }
+  const groups = (r.body.data.viewer.zones[0]?.httpRequests1dGroups ?? []) as {
+    dimensions: { date: string }
+    sum: {
+      requests: number
+      pageViews: number
+      cachedRequests: number
+      threats: number
+      countryMap?: { clientCountryName: string; requests: number }[]
+    }
+    uniq: { uniques: number }
+  }[]
+  for (const g of groups) {
+    const day = g.dimensions.date
+    await putMetric(day, 'web', 'cf_requests', g.sum.requests)
+    await putMetric(day, 'web', 'cf_pageviews', g.sum.pageViews)
+    await putMetric(day, 'web', 'cf_cached', g.sum.cachedRequests)
+    await putMetric(day, 'web', 'cf_threats', g.sum.threats)
+    await putMetric(day, 'web', 'cf_uniques', g.uniq.uniques)
+    for (const c of g.sum.countryMap ?? [])
+      if (c.clientCountryName)
+        await putMetric(day, 'web', `cf_cc:${c.clientCountryName}`, c.requests)
+  }
+  return `${groups.length} days of edge traffic`
 }
 
 // ── orchestration ─────────────────────────────────────────────────────────────
@@ -740,6 +911,18 @@ export const SOURCES: { id: string; needs: () => Ready; run: () => Promise<strin
     id: 'asc_analytics',
     needs: () => ascConfigured() || 'ASC key (Admin role)',
     run: importAscAnalytics,
+  },
+  {
+    id: 'play_vitals',
+    needs: () => !!process.env.PLAY_SERVICE_ACCOUNT_JSON || 'PLAY_SERVICE_ACCOUNT_JSON',
+    run: importPlayVitals,
+  },
+  {
+    id: 'cf_traffic',
+    needs: () =>
+      !!process.env.CF_ANALYTICS_TOKEN ||
+      'CF_ANALYTICS_TOKEN (Cloudflare API token: Zone → Analytics → Read)',
+    run: importCfTraffic,
   },
   // Last: ~10 minutes (≈20 lookups/min across ~175 storefronts).
   { id: 'ios_ratings', needs: () => true, run: importIosRatings },

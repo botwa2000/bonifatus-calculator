@@ -17,17 +17,13 @@
 import { pool } from '@/lib/db/client'
 import { autoClassify, listClassified } from '@/lib/stats/classify'
 
-export const RANGES = [
-  'today',
-  'yesterday',
-  '7d',
-  '30d',
-  '90d',
-  'mtd',
-  'ytd',
-  '12m',
-  'custom',
-] as const
+// Periods: calendar (day, week = Mon–Sun, month — around the anchor date `at`,
+// default today), rolling (7d, 30d, 90d, 12m — ending today), ytd, and custom
+// `from`..`to` (inclusive). A period never runs past today. The comparison period
+// has the same length, starting at the previous day / week / month / year (ytd:
+// same dates last year), otherwise right before `from`, so a month that is ten
+// days old is compared with the first ten days of the month before.
+export const RANGES = ['day', 'week', 'month', 'ytd', '7d', '30d', '90d', '12m', 'custom'] as const
 export const PLATFORMS = ['all', 'web', 'ios', 'android'] as const
 export const BUCKETS = ['day', 'week', 'month'] as const
 type Range = (typeof RANGES)[number]
@@ -35,72 +31,74 @@ type Bucket = (typeof BUCKETS)[number]
 
 const DAY = 86_400_000
 const MAX_DAYS = 400 // raw usage rows are kept 13 months
+const ROLLING: Record<string, number> = { '7d': 7, '30d': 30, '90d': 90, '12m': 365 }
 
 interface Window {
   days: number
   from: Date
   to: Date // exclusive
-  prevFrom: Date // the equally long period right before
+  prevFrom: Date
+  prevTo: Date // exclusive
 }
 
 const utcDay = (d: Date) => new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()))
-const parseDay = (s: unknown) =>
-  typeof s === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(s) && !isNaN(Date.parse(s))
-    ? new Date(`${s}T00:00:00Z`)
-    : null
+const parseDay = (s: unknown) => {
+  if (typeof s !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(s)) return null
+  const d = new Date(`${s}T00:00:00Z`)
+  return isNaN(d.getTime()) || d.toISOString().slice(0, 10) !== s ? null : d
+}
 
-/** UTC day window for a preset, or for custom from/to (inclusive days). */
+/** UTC day window of a period; `at` anchors day/week/month, from/to a custom one. */
 export function rangeWindow(
   range: string,
-  fromDay?: unknown,
-  toDay?: unknown,
+  o: { at?: unknown; from?: unknown; to?: unknown } = {},
   now = new Date()
 ): Window {
   const today = utcDay(now)
   const tomorrow = new Date(today.getTime() + DAY)
+  const at = parseDay(o.at)
+  const anchor = at && at < today ? at : today
+  const y = anchor.getUTCFullYear()
+  const m = anchor.getUTCMonth()
   let from: Date
+  let prevFrom: Date
   let to = tomorrow
-  switch (range as Range) {
-    case 'today':
-      from = today
-      break
-    case 'yesterday':
-      from = new Date(today.getTime() - DAY)
-      to = today
-      break
-    case '30d':
-      from = new Date(today.getTime() - 29 * DAY)
-      break
-    case '90d':
-      from = new Date(today.getTime() - 89 * DAY)
-      break
-    case 'mtd':
-      from = new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), 1))
-      break
-    case 'ytd':
-      from = new Date(Date.UTC(today.getUTCFullYear(), 0, 1))
-      break
-    case '12m':
-      from = new Date(today.getTime() - 364 * DAY)
-      break
-    case 'custom': {
-      const a = parseDay(fromDay)
-      const b = parseDay(toDay)
-      if (a && b) {
-        const [lo, hi] = a <= b ? [a, b] : [b, a]
-        to = new Date(Math.min(hi.getTime() + DAY, tomorrow.getTime()))
-        from = new Date(Math.max(lo.getTime(), to.getTime() - MAX_DAYS * DAY))
-        if (from >= to) from = new Date(to.getTime() - DAY)
-        break
-      }
-      from = new Date(today.getTime() - 6 * DAY)
-      break
+  if (range === 'day') {
+    from = anchor
+    to = new Date(from.getTime() + DAY)
+    prevFrom = new Date(from.getTime() - DAY)
+  } else if (range === 'week') {
+    from = new Date(anchor.getTime() - ((anchor.getUTCDay() + 6) % 7) * DAY)
+    to = new Date(Math.min(from.getTime() + 7 * DAY, tomorrow.getTime()))
+    prevFrom = new Date(from.getTime() - 7 * DAY)
+  } else if (range === 'month') {
+    from = new Date(Date.UTC(y, m, 1))
+    to = new Date(Math.min(Date.UTC(y, m + 1, 1), tomorrow.getTime()))
+    prevFrom = new Date(Date.UTC(y, m - 1, 1))
+  } else if (range === 'ytd') {
+    from = new Date(Date.UTC(today.getUTCFullYear(), 0, 1))
+    prevFrom = new Date(Date.UTC(today.getUTCFullYear() - 1, 0, 1))
+  } else {
+    const a = range === 'custom' ? parseDay(o.from) : null
+    const b = range === 'custom' ? parseDay(o.to) : null
+    if (a && b) {
+      const [lo, hi] = a <= b ? [a, b] : [b, a]
+      to = new Date(Math.min(hi.getTime() + DAY, tomorrow.getTime()))
+      from = new Date(Math.max(lo.getTime(), to.getTime() - MAX_DAYS * DAY))
+      if (from >= to) from = new Date(to.getTime() - DAY)
+    } else {
+      from = new Date(tomorrow.getTime() - (ROLLING[range] ?? 7) * DAY)
     }
-    default:
-      from = new Date(today.getTime() - 6 * DAY)
+    prevFrom = new Date(from.getTime() - (to.getTime() - from.getTime()))
   }
-  const days = Math.round((to.getTime() - from.getTime()) / DAY)
-  return { days, from, to, prevFrom: new Date(from.getTime() - days * DAY) }
+  const span = to.getTime() - from.getTime()
+  return {
+    days: Math.round(span / DAY),
+    from,
+    to,
+    prevFrom,
+    prevTo: new Date(Math.min(prevFrom.getTime() + span, from.getTime())),
+  }
 }
 
 // Real users only (views from migration 0024) or every row (raw tables).
@@ -134,22 +132,35 @@ const P = `($3 = 'all' OR platform = $3)`
 const uid = (t: string) =>
   `COALESCE(${t}.user_id, (SELECT i.user_id FROM usage_installs i WHERE i.install_id = ${t}.install_id), ${t}.install_id, ${t}.visitor_hash)`
 
-// Union of every row that proves a person was active.
+// Union of every row that proves a person was active. `known` = account or
+// install, as opposed to a web visitor whose anonymous hash rotates daily.
 const activity = (t: Tables) => `
-  SELECT ts, platform, country, lang, ${uid('e')} AS uid FROM ${t.usage_events} e WHERE ts >= $1 AND ts < $2 AND ${P}
+  SELECT ts, platform, country, lang, ${uid('e')} AS uid,
+         (e.user_id IS NOT NULL OR e.install_id IS NOT NULL) AS known
+    FROM ${t.usage_events} e WHERE ts >= $1 AND ts < $2 AND ${P}
   UNION ALL
-  SELECT ts, platform, country, lang, ${uid('a')} AS uid FROM ${t.action_log} a WHERE ts >= $1 AND ts < $2 AND ${P}
-    AND action <> 'bot_check'`
+  SELECT ts, platform, country, lang, ${uid('a')} AS uid,
+         (a.user_id IS NOT NULL OR a.install_id IS NOT NULL) AS known
+    FROM ${t.action_log} a WHERE ts >= $1 AND ts < $2 AND ${P} AND action <> 'bot_check'`
 
 // Core actions shown on the dashboard (bot_check is health-only).
 const CORE = `action <> 'bot_check'`
 
 function dayList(w: Window): string[] {
   const days: string[] = []
-  for (let d = new Date(w.from); d < w.to; d = new Date(d.getTime() + 86_400_000))
+  for (let d = new Date(w.from); d < w.to; d = new Date(d.getTime() + DAY))
     days.push(d.toISOString().slice(0, 10))
   return days
 }
+
+/** Start days of the buckets a window touches, oldest first. */
+const bucketList = (w: Window, bucket: Bucket) => [
+  ...new Set(dayList(w).map((d) => bucketStart(d, bucket))),
+]
+
+// Same day expression everywhere, truncated to the bucket held in parameter $n.
+const per = (col: string, n: number) =>
+  `date_trunc($${n}, (${col} AT TIME ZONE 'UTC')::date::timestamp)::date::text`
 
 function fold(days: string[], rows: Row[], key: string, by = 'platform') {
   const m: Record<string, Record<string, number>> = {}
@@ -204,7 +215,7 @@ async function kpis(w: Window, p: string, t: Tables) {
         [from, to]
       ),
     ])
-    const days = Math.max(1, Math.round((to.getTime() - from.getTime()) / 86_400_000))
+    const days = Math.max(1, Math.round((to.getTime() - from.getTime()) / DAY))
     return {
       activeUsers: int(act[0].users),
       avgDailyUsers: Math.round((10 * int(act[0].user_days)) / days) / 10,
@@ -226,13 +237,13 @@ async function kpis(w: Window, p: string, t: Tables) {
       actionsFailed: int(actions[0].fail),
     }
   }
-  const [cur, prev] = await Promise.all([one(w.from, w.to), one(w.prevFrom, w.from)])
+  const [cur, prev] = await Promise.all([one(w.from, w.to), one(w.prevFrom, w.prevTo)])
   return { cur, prev }
 }
 
 // ── Accounts & data (product tables, all platforms, all time) ───────────────
-async function records(w: Window, t: Tables) {
-  const days = dayList(w)
+async function records(w: Window, t: Tables, bucket: Bucket) {
+  const days = bucketList(w, bucket)
   const [totals, signups, gradesPerDay, settlePerDay, activation, systems] = await Promise.all([
     q(
       `SELECT
@@ -252,25 +263,25 @@ async function records(w: Window, t: Tables) {
             SELECT child_id FROM ${t.quick_grades} UNION SELECT child_id FROM ${t.term_grades}) g) AS children_with_grades`
     ),
     q(
-      `SELECT (created_at AT TIME ZONE 'UTC')::date::text AS day, role, COUNT(*) AS n
+      `SELECT ${per('created_at', 3)} AS day, role, COUNT(*) AS n
          FROM ${t.user_profiles} WHERE created_at >= $1 AND created_at < $2 AND role <> 'admin'
         GROUP BY 1, 2 ORDER BY 1`,
-      [w.from, w.to]
+      [w.from, w.to, bucket]
     ),
     q(
       `SELECT day, kind, COUNT(*) AS n FROM (
-         SELECT (created_at AT TIME ZONE 'UTC')::date::text AS day, 'quick' AS kind FROM ${t.quick_grades}
+         SELECT ${per('created_at', 3)} AS day, 'quick' AS kind FROM ${t.quick_grades}
           WHERE created_at >= $1 AND created_at < $2
          UNION ALL
-         SELECT (created_at AT TIME ZONE 'UTC')::date::text, 'term' FROM ${t.term_grades}
+         SELECT ${per('created_at', 3)}, 'term' FROM ${t.term_grades}
           WHERE created_at >= $1 AND created_at < $2) g
         GROUP BY 1, 2 ORDER BY 1`,
-      [w.from, w.to]
+      [w.from, w.to, bucket]
     ),
     q(
-      `SELECT (created_at AT TIME ZONE 'UTC')::date::text AS day, 'settlement' AS kind, COUNT(*) AS n
+      `SELECT ${per('created_at', 3)} AS day, 'settlement' AS kind, COUNT(*) AS n
          FROM ${t.settlements} WHERE created_at >= $1 AND created_at < $2 GROUP BY 1 ORDER BY 1`,
-      [w.from, w.to]
+      [w.from, w.to, bucket]
     ),
     // Activation: accounts created in range that have a grade / a family link.
     q(
@@ -319,15 +330,15 @@ async function store(w: Window, p: string, t: Tables) {
     await Promise.all([
       q(
         `SELECT platform,
-                SUM(value) FILTER (WHERE day >= $1::date) AS cur,
-                SUM(value) FILTER (WHERE day <  $1::date) AS prev
+                SUM(value) FILTER (WHERE day >= $1::date AND day < $3::date) AS cur,
+                SUM(value) FILTER (WHERE day >= $2::date AND day < $5::date) AS prev
            FROM store_daily WHERE metric = 'downloads' AND day >= $2::date AND day < $3::date AND platform = ANY($4)
           GROUP BY platform`,
-        [w.from, w.prevFrom, w.to, plats]
+        [w.from, w.prevFrom, w.to, plats, w.prevTo]
       ),
       q(
         `SELECT DISTINCT ON (platform, metric) platform, metric, value
-           FROM store_daily WHERE metric IN ('rating_count_total', 'rating_avg_total', 'installs_total', 'active_devices')
+           FROM store_daily WHERE metric IN ('rating_count_total', 'rating_avg_total', 'installs_total', 'installs_public', 'active_devices')
             AND platform = ANY($1)
           ORDER BY platform, metric, day DESC`,
         [plats]
@@ -441,7 +452,10 @@ async function store(w: Window, p: string, t: Tables) {
     const t = per[r.platform as string]
     if (r.metric === 'rating_count_total') t.ratings = int(r.value)
     if (r.metric === 'rating_avg_total') t.avg = Number(r.value)
-    if (r.metric === 'installs_total') t.installsTotal = int(r.value)
+    // The higher of the store report and the public listing: bulk reports can
+    // lag behind or be missing for the current month.
+    if (r.metric === 'installs_total' || r.metric === 'installs_public')
+      t.installsTotal = Math.max(t.installsTotal ?? 0, int(r.value))
     if (r.metric === 'active_devices') t.activeDevices = int(r.value)
   }
   for (const r of written)
@@ -484,28 +498,30 @@ async function store(w: Window, p: string, t: Tables) {
   }
 }
 
-// ── Daily series ─────────────────────────────────────────────────────────────
-async function series(w: Window, p: string, t: Tables) {
-  const days = dayList(w)
+// ── Series per bucket (the charts) ───────────────────────────────────────────
+async function series(w: Window, p: string, t: Tables, bucket: Bucket) {
+  const days = bucketList(w, bucket)
+  const args = [w.from, w.to, p, bucket]
   const [dau, acts, dl] = await Promise.all([
     q(
-      `SELECT (ts AT TIME ZONE 'UTC')::date::text AS day, platform, COUNT(DISTINCT uid) AS n
+      `SELECT ${per('ts', 4)} AS day, platform, COUNT(DISTINCT uid) AS n
          FROM (${activity(t)}) a WHERE uid IS NOT NULL GROUP BY 1, 2 ORDER BY 1`,
-      [w.from, w.to, p]
+      args
     ),
     q(
-      `SELECT (ts AT TIME ZONE 'UTC')::date::text AS day, platform,
+      `SELECT ${per('ts', 4)} AS day, platform,
               COUNT(*) FILTER (WHERE outcome = 'ok') AS ok,
               COUNT(*) FILTER (WHERE outcome = 'fail') AS fail
          FROM ${t.action_log} WHERE ts >= $1 AND ts < $2 AND ${P} AND ${CORE}
         GROUP BY 1, 2 ORDER BY 1`,
-      [w.from, w.to, p]
+      args
     ),
     q(
-      `SELECT day::text, platform, value FROM store_daily
+      `SELECT date_trunc($4, day::timestamp)::date::text AS day, platform, SUM(value) AS value
+         FROM store_daily
         WHERE metric = 'downloads' AND day >= $1::date AND day < $2::date AND ${P}
-        ORDER BY day`,
-      [w.from, w.to, p]
+        GROUP BY 1, 2 ORDER BY 1`,
+      args
     ),
   ])
   const fails: Record<string, number> = {}
@@ -550,7 +566,7 @@ async function usage(w: Window, p: string, t: Tables) {
     ),
     q(
       `SELECT event, platform, COUNT(*) AS n
-         FROM ${t.usage_events} WHERE event NOT IN ('page_view', 'screen_view')
+         FROM ${t.usage_events} WHERE event NOT IN ('page_view', 'screen_view', 'engage')
           AND ts >= $1 AND ts < $2 AND ${P}
         GROUP BY 1, 2 ORDER BY 1`,
       [w.from, w.to, p]
@@ -676,7 +692,7 @@ async function acquisition(w: Window, p: string, t: Tables) {
   }
 }
 
-// D1 / D7: share of installs first seen on day X that were active again on X+1 / X+7.
+// D1 / D7 / D30: share of installs first seen on day X active again on X+1 / X+7 / X+30.
 async function retention(w: Window, p: string, t: Tables) {
   const rows = await q(
     `WITH cohort AS (
@@ -690,10 +706,12 @@ async function retention(w: Window, p: string, t: Tables) {
        COUNT(*) FILTER (WHERE c.d0 <= (NOW() AT TIME ZONE 'UTC')::date - 1) AS d1_base,
        COUNT(*) FILTER (WHERE c.d0 <= (NOW() AT TIME ZONE 'UTC')::date - 1 AND EXISTS (SELECT 1 FROM act a WHERE a.install_id = c.install_id AND a.d = c.d0 + 1)) AS d1,
        COUNT(*) FILTER (WHERE c.d0 <= (NOW() AT TIME ZONE 'UTC')::date - 7) AS d7_base,
-       COUNT(*) FILTER (WHERE c.d0 <= (NOW() AT TIME ZONE 'UTC')::date - 7 AND EXISTS (SELECT 1 FROM act a WHERE a.install_id = c.install_id AND a.d = c.d0 + 7)) AS d7
+       COUNT(*) FILTER (WHERE c.d0 <= (NOW() AT TIME ZONE 'UTC')::date - 7 AND EXISTS (SELECT 1 FROM act a WHERE a.install_id = c.install_id AND a.d = c.d0 + 7)) AS d7,
+       COUNT(*) FILTER (WHERE c.d0 <= (NOW() AT TIME ZONE 'UTC')::date - 30) AS d30_base,
+       COUNT(*) FILTER (WHERE c.d0 <= (NOW() AT TIME ZONE 'UTC')::date - 30 AND EXISTS (SELECT 1 FROM act a WHERE a.install_id = c.install_id AND a.d = c.d0 + 30)) AS d30
      FROM cohort c`,
-    // Cohorts need at least 7 days of follow-up, so look back past short ranges.
-    [new Date(Math.min(w.from.getTime(), Date.now() - 37 * 86_400_000)), w.to, p]
+    // Cohorts need at least 30 days of follow-up, so look back past short ranges.
+    [new Date(Math.min(w.from.getTime(), Date.now() - 60 * DAY)), w.to, p]
   )
   const r = rows[0]
   const pct = (a: unknown, b: unknown) => (int(b) ? int(a) / int(b) : null)
@@ -702,7 +720,22 @@ async function retention(w: Window, p: string, t: Tables) {
     d1Base: int(r.d1_base),
     d7: pct(r.d7, r.d7_base),
     d7Base: int(r.d7_base),
+    d30: pct(r.d30, r.d30_base),
+    d30Base: int(r.d30_base),
   }
+}
+
+// Stickiness: average daily users ÷ monthly users over the 30 days up to the end
+// of the period. Accounts and installs only: an anonymous web visitor's hash
+// rotates daily, so one person would count as thirty "monthly users".
+async function stickiness(w: Window, p: string, t: Tables) {
+  const rows = await q(
+    `SELECT COUNT(DISTINCT uid) AS mau, COUNT(DISTINCT (uid, (ts AT TIME ZONE 'UTC')::date)) AS user_days
+       FROM (${activity(t)}) a WHERE uid IS NOT NULL AND known`,
+    [new Date(w.to.getTime() - 30 * DAY), w.to, p]
+  )
+  const mau = int(rows[0].mau)
+  return { mau, dauMau: mau ? int(rows[0].user_days) / 30 / mau : null }
 }
 
 // ── Feedback & implicit quality signals ──────────────────────────────────────
@@ -724,7 +757,7 @@ async function feedback(w: Window, p: string, t: Tables) {
     ]),
     q(
       `SELECT COUNT(*) AS n, AVG(rating)::float AS avg FROM ${t.feedback} WHERE kind = 'app' AND ${F}`,
-      [w.prevFrom, w.from, p]
+      [w.prevFrom, w.prevTo, p]
     ),
     q(
       `SELECT COALESCE(action, '—') AS action, COUNT(*) AS n, AVG(rating)::float AS avg
@@ -870,13 +903,10 @@ export function bucketStart(day: string, bucket: Bucket): string {
 }
 
 async function activityTable(w: Window, p: string, t: Tables, bucket: Bucket) {
-  // Same day expression as the rest of the dashboard, truncated to the bucket.
-  const per = (col: string) =>
-    `date_trunc($4, (${col} AT TIME ZONE 'UTC')::date::timestamp)::date::text`
   const args = [w.from, w.to, p, bucket]
-  const [users, opens, actions, installs, accounts, grades, downloads] = await Promise.all([
+  const [users, views, actions, installs, accounts, grades, downloads] = await Promise.all([
     q(
-      `SELECT ${per('ts')} AS period, COUNT(DISTINCT uid) AS users,
+      `SELECT ${per('ts', 4)} AS period, COUNT(DISTINCT uid) AS users,
               COUNT(DISTINCT uid) FILTER (WHERE platform = 'web') AS web,
               COUNT(DISTINCT uid) FILTER (WHERE platform = 'ios') AS ios,
               COUNT(DISTINCT uid) FILTER (WHERE platform IN ('android', 'app')) AS android
@@ -884,30 +914,33 @@ async function activityTable(w: Window, p: string, t: Tables, bucket: Bucket) {
       args
     ),
     q(
-      `SELECT ${per('ts')} AS period, COUNT(*) AS n FROM ${t.usage_events}
-        WHERE event = 'app_open' AND ts >= $1 AND ts < $2 AND ${P} GROUP BY 1`,
+      `SELECT ${per('ts', 4)} AS period,
+              COUNT(*) FILTER (WHERE event = 'app_open') AS opens,
+              COUNT(*) FILTER (WHERE event = 'page_view') AS page_views,
+              COUNT(*) FILTER (WHERE event = 'screen_view') AS screen_views
+         FROM ${t.usage_events} WHERE ts >= $1 AND ts < $2 AND ${P} GROUP BY 1`,
       args
     ),
     q(
-      `SELECT ${per('ts')} AS period, COUNT(*) AS n FROM ${t.action_log}
+      `SELECT ${per('ts', 4)} AS period, COUNT(*) AS n FROM ${t.action_log}
         WHERE outcome = 'ok' AND ts >= $1 AND ts < $2 AND ${P} AND ${CORE} GROUP BY 1`,
       args
     ),
     q(
-      `SELECT ${per('first_seen')} AS period, COUNT(*) AS n FROM ${t.usage_installs}
+      `SELECT ${per('first_seen', 4)} AS period, COUNT(*) AS n FROM ${t.usage_installs}
         WHERE first_seen >= $1 AND first_seen < $2 AND ${P} GROUP BY 1`,
       args
     ),
     q(
-      `SELECT ${per('created_at')} AS period, COUNT(*) AS n FROM ${t.user_profiles}
+      `SELECT ${per('created_at', 4)} AS period, COUNT(*) AS n FROM ${t.user_profiles}
         WHERE created_at >= $1 AND created_at < $2 AND role <> 'admin' AND $3::text IS NOT NULL GROUP BY 1`,
       args
     ),
     q(
       `SELECT period, COUNT(*) AS n FROM (
-         SELECT ${per('created_at')} AS period FROM ${t.quick_grades} WHERE created_at >= $1 AND created_at < $2
+         SELECT ${per('created_at', 4)} AS period FROM ${t.quick_grades} WHERE created_at >= $1 AND created_at < $2
          UNION ALL
-         SELECT ${per('created_at')} FROM ${t.term_grades} WHERE created_at >= $1 AND created_at < $2) g
+         SELECT ${per('created_at', 4)} FROM ${t.term_grades} WHERE created_at >= $1 AND created_at < $2) g
         WHERE $3::text IS NOT NULL GROUP BY 1`,
       args
     ),
@@ -920,23 +953,83 @@ async function activityTable(w: Window, p: string, t: Tables, bucket: Bucket) {
   const map = (rows: Row[], key = 'n') =>
     Object.fromEntries(rows.map((r) => [r.period as string, int(r[key])]))
   const u = Object.fromEntries(users.map((r) => [r.period as string, r]))
-  const [o, a, i, acc, g, dl] = [opens, actions, installs, accounts, grades, downloads].map((r) =>
-    map(r)
-  )
-  const periods = [...new Set(dayList(w).map((d) => bucketStart(d, bucket)))].reverse()
+  const v = Object.fromEntries(views.map((r) => [r.period as string, r]))
+  const [a, i, acc, g, dl] = [actions, installs, accounts, grades, downloads].map((r) => map(r))
+  const periods = bucketList(w, bucket).reverse()
   return periods.map((period) => ({
     period,
     users: int(u[period]?.users),
     web: int(u[period]?.web),
     ios: int(u[period]?.ios),
     android: int(u[period]?.android),
-    opens: o[period] || 0,
+    opens: int(v[period]?.opens),
+    pageViews: int(v[period]?.page_views),
+    screenViews: int(v[period]?.screen_views),
     actions: a[period] || 0,
     installs: i[period] || 0,
     accounts: acc[period] || 0,
     grades: g[period] || 0,
     downloads: dl[period] || 0,
   }))
+}
+
+// ── Android vitals (Play Developer Reporting API, imported nightly) ──────────
+// Rates are fractions; Play's "bad behaviour" lines are 1.09% crash / 0.47% ANR.
+async function vitals(w: Window, p: string) {
+  if (p !== 'all' && p !== 'android') return null
+  const rows = await q(
+    `SELECT day::text, metric, value FROM store_daily
+      WHERE platform = 'android' AND day >= $1::date - 30 AND day < $2::date
+        AND metric IN ('crash_rate', 'crash_rate_user', 'anr_rate', 'anr_rate_user', 'vitals_users')
+      ORDER BY day`,
+    [w.from, w.to]
+  )
+  const byDay: Record<string, Record<string, number | string>> = {}
+  for (const r of rows)
+    (byDay[r.day as string] ||= { day: r.day as string })[r.metric as string] = Number(r.value)
+  const days = Object.values(byDay)
+  return {
+    days,
+    latest: days[days.length - 1] ?? null,
+    thresholds: { crash_rate_user: 0.0109, anr_rate_user: 0.0047 },
+  }
+}
+
+// ── Cloudflare edge traffic (humans + bots, imported nightly) ────────────────
+async function edge(w: Window, p: string) {
+  if (p !== 'all' && p !== 'web') return null
+  const [daily, countries] = await Promise.all([
+    q(
+      `SELECT day::text, metric, value FROM store_daily
+        WHERE platform = 'web' AND metric IN ('cf_requests', 'cf_pageviews', 'cf_uniques', 'cf_threats', 'cf_cached')
+          AND day >= $1::date AND day < $2::date ORDER BY day`,
+      [w.from, w.to]
+    ),
+    q(
+      `SELECT substring(metric FROM 7) AS country, SUM(value) AS n FROM store_daily
+        WHERE platform = 'web' AND metric LIKE 'cf_cc:%' AND day >= $1::date AND day < $2::date
+        GROUP BY 1 ORDER BY 2 DESC LIMIT 15`,
+      [w.from, w.to]
+    ),
+  ])
+  const byDay: Record<string, Record<string, number | string>> = {}
+  for (const r of daily)
+    (byDay[r.day as string] ||= { day: r.day as string })[(r.metric as string).slice(3)] = Number(
+      r.value
+    )
+  const days = Object.values(byDay)
+  const sum = (k: string) => days.reduce((a, d) => a + Number(d[k] || 0), 0)
+  return {
+    days,
+    totals: {
+      requests: sum('requests'),
+      pageviews: sum('pageviews'),
+      threats: sum('threats'),
+      cached: sum('cached'),
+      uniquesPerDay: days.length ? sum('uniques') / days.length : null,
+    },
+    countries: countries.map((r) => ({ country: r.country as string, n: int(r.n) })),
+  }
 }
 
 // ── What "real users" leaves out ─────────────────────────────────────────────
@@ -967,6 +1060,7 @@ async function trackingSince() {
 export interface StatsQuery {
   range?: string
   platform?: string
+  at?: string | null
   from?: string | null
   to?: string | null
   traffic?: string
@@ -977,7 +1071,7 @@ export async function getStats(o: StatsQuery = {}) {
   const range = (RANGES as readonly string[]).includes(o.range ?? '') ? (o.range as Range) : '7d'
   const platform = (PLATFORMS as readonly string[]).includes(o.platform ?? '') ? o.platform! : 'all'
   const traffic = o.traffic === 'all' ? 'all' : 'real'
-  const w = rangeWindow(range, o.from, o.to)
+  const w = rangeWindow(range, o)
   const bucket: Bucket = (BUCKETS as readonly string[]).includes(o.bucket ?? '')
     ? (o.bucket as Bucket)
     : w.days > 120
@@ -988,24 +1082,27 @@ export async function getStats(o: StatsQuery = {}) {
   // Classification feeds the stats_real_* views, so it runs first.
   await autoClassify().catch((e) => console.error('[stats] classify:', (e as Error).message))
   const t = tablesFor(traffic)
-  const [k, rec, s, ser, us, ct, acq, ret, fb, h, since, act, excl, classified] = await Promise.all(
-    [
+  const [k, rec, s, ser, us, ct, acq, ret, stick, fb, h, vit, ed, since, act, excl, classified] =
+    await Promise.all([
       kpis(w, platform, t),
-      records(w, t),
+      records(w, t, bucket),
       store(w, platform, t),
-      series(w, platform, t),
+      series(w, platform, t, bucket),
       usage(w, platform, t),
       content(w, platform, t),
       acquisition(w, platform, t),
       retention(w, platform, t),
+      stickiness(w, platform, t),
       feedback(w, platform, t),
       health(w, platform, t),
+      vitals(w, platform),
+      edge(w, platform),
       trackingSince(),
       activityTable(w, platform, t, bucket),
       excludedActivity(w, platform),
       listClassified(),
-    ]
-  )
+    ])
+  const day = (d: Date) => d.toISOString().slice(0, 10)
   return {
     generatedAt: new Date().toISOString(),
     range,
@@ -1013,9 +1110,13 @@ export async function getStats(o: StatsQuery = {}) {
     traffic,
     bucket,
     trackingSince: since,
-    from: w.from.toISOString().slice(0, 10),
-    to: new Date(w.to.getTime() - 1).toISOString().slice(0, 10),
+    from: day(w.from),
+    to: day(new Date(w.to.getTime() - 1)),
     days: w.days,
+    prevFrom: day(w.prevFrom),
+    prevTo: day(new Date(w.prevTo.getTime() - 1)),
+    // Usage numbers of a period before tracking started are unknown, not zero.
+    prevTracked: !!since && w.prevTo.getTime() > new Date(since).getTime(),
     kpis: k,
     records: rec,
     store: s,
@@ -1024,8 +1125,11 @@ export async function getStats(o: StatsQuery = {}) {
     content: ct,
     acquisition: acq,
     retention: ret,
+    stickiness: stick,
     feedback: fb,
     health: h,
+    vitals: vit,
+    edge: ed,
     // Usage columns before the first tracked day are unknown, not zero.
     activity: act.map((r) => ({
       ...r,
