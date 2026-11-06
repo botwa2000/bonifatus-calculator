@@ -200,6 +200,9 @@ const inNet = (list: net.BlockList, ip: string) => {
 
 export function trafficOf(h: Headers): Traffic | null {
   if (/(?:^|;\s*)bstats_internal=1(?:;|$)/.test(h.get('cookie') ?? '')) return 'internal'
+  // Debug / profile app builds and emulators. Only ever hides the sender from
+  // "real users", so a forged header gains nothing.
+  if (header(h, 'x-internal') === '1') return 'internal'
   const ip = getClientIp(h)
   if (!ip) return null
   if (inNet(APPLE_NET, ip)) return 'review'

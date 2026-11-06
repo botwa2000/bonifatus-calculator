@@ -448,7 +448,7 @@ async function googleAccessToken(sa: ServiceAccount) {
       iat: now,
       exp: now + 3600,
       scope:
-        'https://www.googleapis.com/auth/androidpublisher https://www.googleapis.com/auth/devstorage.read_only',
+        'https://www.googleapis.com/auth/androidpublisher https://www.googleapis.com/auth/devstorage.read_only https://www.googleapis.com/auth/playdeveloperreporting',
     },
     sa.private_key
   )

@@ -340,6 +340,9 @@ describe('real-user detection', () => {
     expect(
       trafficOf(h({ 'cf-connecting-ip': '84.150.1.2', cookie: 'a=b; bstats_internal=1' }))
     ).toBe('internal')
+    expect(trafficOf(h({ 'cf-connecting-ip': '84.150.1.2', 'x-internal': '1' }))).toBe('internal')
+    expect(trafficOf(h({ 'cf-connecting-ip': '17.58.100.4', 'x-internal': '1' }))).toBe('internal')
+    expect(trafficOf(h({ 'cf-connecting-ip': '84.150.1.2', 'x-internal': '0' }))).toBeNull()
     expect(trafficOf(h({ 'cf-connecting-ip': '84.150.1.2' }))).toBeNull()
     expect(trafficOf(h({ 'cf-connecting-ip': '170.1.1.1' }))).toBeNull()
   })
