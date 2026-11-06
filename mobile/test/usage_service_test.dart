@@ -96,6 +96,14 @@ void main() {
     expect(h['X-Device-ID'], '0a1b2c3d4e5f6a7b');
   });
 
+  test('only team builds and emulators are tagged internal', () async {
+    addTearDown(() => usage.internal = true);
+    usage.internal = true;
+    expect((await usage.clientHeaders())['X-Internal'], '1');
+    usage.internal = false;
+    expect((await usage.clientHeaders()).containsKey('X-Internal'), isFalse);
+  });
+
   test('parses the Play install referrer', () {
     expect(UsageService.parseReferrer('utm_source=google-play&utm_medium=organic'),
         {'utm_source': 'google-play', 'utm_medium': 'organic'});

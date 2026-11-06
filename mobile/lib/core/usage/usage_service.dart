@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io' show Platform;
 import 'dart:math';
 
+import 'package:device_info_plus/device_info_plus.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
@@ -68,6 +69,10 @@ class UsageService with WidgetsBindingObserver {
     return v.isEmpty ? null : (v.length > 40 ? v.substring(0, 40) : v);
   }
 
+  /// Debug / profile builds and emulators are the team testing: the server
+  /// stores their traffic as `internal`, never as users.
+  bool internal = !kReleaseMode;
+
   String get platform => _platform;
   String get version => _version;
 
@@ -80,6 +85,7 @@ class UsageService with WidgetsBindingObserver {
       final info = await PackageInfo.fromPlatform();
       _version = info.buildNumber.isEmpty ? info.version : '${info.version}+${info.buildNumber}';
     } catch (_) {}
+    await _detectEmulator();
     _dio = dio ??
         Dio(BaseOptions(
           baseUrl: AppConstants.apiBaseUrl,
@@ -87,6 +93,18 @@ class UsageService with WidgetsBindingObserver {
           receiveTimeout: const Duration(seconds: 10),
         ));
     WidgetsBinding.instance.addObserver(this);
+  }
+
+  Future<void> _detectEmulator() async {
+    if (internal || kIsWeb) return;
+    try {
+      final device = DeviceInfoPlugin();
+      if (_platform == 'android') {
+        internal = !(await device.androidInfo.timeout(const Duration(seconds: 2))).isPhysicalDevice;
+      } else if (_platform == 'ios') {
+        internal = !(await device.iosInfo.timeout(const Duration(seconds: 2))).isPhysicalDevice;
+      }
+    } catch (_) {}
   }
 
   /// The random install ID shared with the request signer (X-Mobile-Client-Token).
@@ -117,6 +135,7 @@ class UsageService with WidgetsBindingObserver {
         'X-Device-ID': await installId(),
         'X-App-Lang': PlatformDispatcher.instance.locale.languageCode,
         'X-Source': ?currentSource,
+        if (internal) 'X-Internal': '1',
       };
 
   /// Queue one event. Unknown names are ignored (the server would drop them too).
