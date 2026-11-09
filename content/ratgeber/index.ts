@@ -65,6 +65,36 @@ export const RATGEBER_INDEX: readonly RatgeberMeta[] = [
     updatedAt: '2026-10-10',
     readingTimeMinutes: 6,
   },
+  {
+    slug: 'schlechtes-zeugnis-was-tun',
+    locale: 'de',
+    title: 'Schlechtes Zeugnis: Was Eltern jetzt tun können – und was besser nicht',
+    description:
+      'Ein schlechtes Zeugnis ist eine Momentaufnahme, kein Urteil über Ihr Kind. Was die Forschung über Strafen und Druck zeigt, welche Fragen helfen, die Ursache zu finden – und wann Sie sich Unterstützung holen sollten.',
+    publishedAt: '2026-11-09',
+    updatedAt: '2026-11-09',
+    readingTimeMinutes: 6,
+  },
+  {
+    slug: 'halbjahreszeugnis-bedeutung',
+    locale: 'de',
+    title: 'Halbjahreszeugnis: Was es bedeutet – und was nicht (mit Terminen 2027)',
+    description:
+      'Das Halbjahreszeugnis ist keine Versetzungsentscheidung. Was es aussagt, wann es 2027 in welchem Bundesland ausgegeben wird und in welchen Fällen es doch Gewicht hat – etwa in Klasse 4.',
+    publishedAt: '2026-11-09',
+    updatedAt: '2026-11-09',
+    readingTimeMinutes: 6,
+  },
+  {
+    slug: 'zeugnis-gespraech-fuehren',
+    locale: 'de',
+    title: 'Das Zeugnisgespräch: So sprechen Sie mit Ihrem Kind über das Zeugnis',
+    description:
+      'Wie Sie am Zeugnistag reagieren, prägt mehr als die Noten selbst. Welches Lob wirkt, wie Sie über schwache Noten sprechen, was Sie besser lassen – mit Leitfaden für das Gespräch.',
+    publishedAt: '2026-11-09',
+    updatedAt: '2026-11-09',
+    readingTimeMinutes: 6,
+  },
 ]
 
 export function getRatgeberIndex(locale: string): RatgeberMeta[] {

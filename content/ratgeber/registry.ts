@@ -6,6 +6,9 @@ import schulnotenBelohnen from './de/schulnoten-belohnen'
 import zeugnisgeldHoeheNachKlasse from './de/zeugnisgeld-hoehe-nach-klasse'
 import belohnenOhneGeld from './de/belohnen-ohne-geld'
 import geschwisterGerechtigkeit from './de/geschwister-gerechtigkeit'
+import schlechtesZeugnisWasTun from './de/schlechtes-zeugnis-was-tun'
+import halbjahreszeugnisBedeutung from './de/halbjahreszeugnis-bedeutung'
+import zeugnisGespraechFuehren from './de/zeugnis-gespraech-fuehren'
 
 export type RatgeberBody = Omit<RatgeberArticle, keyof RatgeberMeta>
 
@@ -16,6 +19,9 @@ const BODIES: Record<string, RatgeberBody> = {
   'de/zeugnisgeld-hoehe-nach-klasse': zeugnisgeldHoeheNachKlasse,
   'de/belohnen-ohne-geld': belohnenOhneGeld,
   'de/geschwister-gerechtigkeit': geschwisterGerechtigkeit,
+  'de/schlechtes-zeugnis-was-tun': schlechtesZeugnisWasTun,
+  'de/halbjahreszeugnis-bedeutung': halbjahreszeugnisBedeutung,
+  'de/zeugnis-gespraech-fuehren': zeugnisGespraechFuehren,
 }
 
 export function getRatgeberArticle(locale: string, slug: string): RatgeberArticle | null {
