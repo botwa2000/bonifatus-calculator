@@ -151,6 +151,9 @@ export interface Copy {
     ratgeberKlasse: RatgeberPin
     ratgeberOhneGeld: RatgeberPin
     ratgeberGeschwister: RatgeberPin
+    ratgeberSchlechtesZeugnis: RatgeberPin
+    ratgeberHalbjahr: RatgeberPin
+    ratgeberGespraech: RatgeberPin
     baMotivation: {
       label: string
       headline: string
@@ -616,6 +619,100 @@ const de: Copy = {
       ],
       source: 'Quellen: Kowal u. a. 2002 · Almås u. a. 2010 · DJI 2025',
       cta: 'Ganzer Ratgeber mit Gesprächstipps',
+    },
+    // Zeugnis season (Halbjahreszeugnisse 2027). Every statement restates the live page
+    // named above it; no figures beyond what that page cites.
+    // content/ratgeber/de/schlechtes-zeugnis-was-tun.ts
+    ratgeberSchlechtesZeugnis: {
+      label: 'Ratgeber',
+      headline: 'Schlechtes Zeugnis – was jetzt hilft',
+      subtext: 'Ruhig bleiben, Ursachen finden, gemeinsam planen.',
+      cards: [
+        {
+          title: 'Eine Momentaufnahme',
+          body: 'Kein Urteil über die Begabung Ihres Kindes – und keine Vorhersage.',
+        },
+        {
+          title: 'Druck macht es schwerer',
+          body: 'Harte Worte sagten in einer Studie mehr Verhaltensprobleme voraus.',
+        },
+        {
+          title: 'Erst fragen, dann handeln',
+          body: '„Was war schwierig?“ statt „Warum schon wieder?“',
+        },
+        {
+          title: 'Mit der Lehrkraft sprechen',
+          body: 'Sie kann am besten einschätzen, woran es liegt und was hilft.',
+        },
+        {
+          title: 'Hilfe holen ist in Ordnung',
+          body: 'Elterntelefon 0800 111 0 550 – kostenlos und anonym.',
+        },
+      ],
+      source: 'Quellen: Wang & Kenny 2014 · Haimovitz & Dweck 2016',
+      cta: 'Ganzer Ratgeber mit Fragen für das Gespräch',
+    },
+    // content/ratgeber/de/halbjahreszeugnis-bedeutung.ts — only the four Länder whose
+    // 2026/27 date the page cites from an official source.
+    ratgeberHalbjahr: {
+      label: 'Termine 2027',
+      headline: 'Halbjahreszeugnis 2027: Termine & Bedeutung',
+      subtext: 'Ein Zwischenstand – keine Versetzung.',
+      table: {
+        head: ['Bundesland', 'Zeugnis'],
+        rows: [
+          ['Niedersachsen', 'Fr., 29.01.'],
+          ['Sachsen', 'Fr., 05.02.'],
+          ['Nordrhein-Westfalen', 'Fr., 12.02.'],
+          ['Bayern', 'Fr., 19.02.'],
+        ],
+      },
+      cards: [
+        {
+          title: 'Keine Versetzungsentscheidung',
+          body: 'Über die Versetzung wird in der Regel am Schuljahresende entschieden.',
+        },
+        {
+          title: 'Das zweite Halbjahr zählt voll',
+          body: 'Bis zum Sommer bleibt Zeit, gezielt nachzuarbeiten.',
+        },
+        {
+          title: 'Klasse 4: genau hinschauen',
+          body: 'In NRW kommt die Schulformempfehlung mit diesem Zeugnis.',
+        },
+      ],
+      source: 'Quellen: Kultusministerien NI, SN, NRW, BY · Übrige Länder: Schule fragen',
+      cta: 'Alle Details im Ratgeber',
+    },
+    // content/ratgeber/de/zeugnis-gespraech-fuehren.ts
+    ratgeberGespraech: {
+      label: 'Ratgeber',
+      headline: 'Zeugnisgespräch: So reden Sie mit Ihrem Kind',
+      subtext: 'Was am Zeugnistag hilft – bei guten und schlechten Noten.',
+      cards: [
+        {
+          title: 'Erst das Kind, dann die Noten',
+          body: '„Wie geht es dir damit?“ als erster Satz.',
+        },
+        {
+          title: 'Anstrengung loben, nicht Talent',
+          body: '„Du hast nicht aufgegeben“ statt „Du bist so schlau“.',
+        },
+        {
+          title: 'Schwache Noten als Information',
+          body: '„Was war schwierig – und was würde helfen?“',
+        },
+        {
+          title: 'Keine Vergleiche',
+          body: 'Nicht mit Geschwistern, nicht mit der Klasse.',
+        },
+        {
+          title: 'Gemeinsam einen Plan machen',
+          body: 'Ein, zwei Ziele bis zum Sommer – mit festem Termin.',
+        },
+      ],
+      source: 'Quellen: Mueller & Dweck 1998 · Haimovitz & Dweck 2016',
+      cta: 'Ganzer Ratgeber mit Gesprächsleitfaden',
     },
     baMotivation: {
       label: 'Motivation',
