@@ -553,6 +553,27 @@ async function firstThatFits<T>(
   throw new Error(`${name}: no layout variant fits ${avail}px`)
 }
 
+/**
+ * Hand the height a chosen variant leaves unused back to a stack of `n` cards, so the
+ * stack ends near the footer instead of leaving an empty band above it. The variant
+ * ladders step in coarse jumps (e.g. dropping every card body at once), which on its own
+ * strands up to ~170px at the bottom of an ig frame.
+ *
+ * Padding grows first (cards get taller, their text stays centred), capped so a card never
+ * looks hollow; the remainder widens the gaps, capped so the stack still reads as one
+ * group. Anything beyond both caps stays below the stack. Per-card arithmetic, so a
+ * 3-card and a 5-card asset need no per-file tuning.
+ */
+function spreadSlack(slack: number, n: number) {
+  const PAD_GROW_MAX = 32
+  const GAP_GROW_MAX = 16
+  const s = Math.max(0, slack)
+  const padAdd = Math.min(Math.floor(s / n), PAD_GROW_MAX)
+  const rest = s - padAdd * n
+  const gapAdd = n > 1 ? Math.min(Math.floor(rest / (n - 1)), GAP_GROW_MAX) : 0
+  return { padAdd, gapAdd }
+}
+
 const pinTaschengeld: Builder = async (f, copy) => {
   const k = copy.pins.taschengeld
   const band = C.secondary700
@@ -705,17 +726,23 @@ const pinZeugnisgeldRegeln: Builder = async (f, copy) => {
   const cardH = (r: (typeof rules)[number], withBody: boolean, pad: number) =>
     Math.max(markerD, r.title.height + (withBody ? 8 + r.body.height : 0)) + pad
   const avail = f.size.contentBottom - y0 - 40
-  const [withBody, pad, gap] = await firstThatFits(
+  const measure = ([wb, p, g]: readonly [boolean, number, number]) =>
+    rules.reduce((a, r) => a + cardH(r, wb, p), 0) + g * (rules.length - 1)
+  const chosen = await firstThatFits(
     [
       [true, 48, 18],
       [true, 34, 14],
       [true, 26, 10],
       [false, 48, 18],
     ] as const,
-    async ([wb, p, g]) => rules.reduce((a, r) => a + cardH(r, wb, p), 0) + g * (rules.length - 1),
+    async (v) => measure(v),
     avail,
     'zeugnisgeld-regeln'
   )
+  const { padAdd, gapAdd } = spreadSlack(avail - measure(chosen), rules.length)
+  const withBody = chosen[0]
+  const pad = chosen[1] + padAdd
+  const gap = chosen[2] + gapAdd
   let y = y0 + 40
   for (const [i, r] of rules.entries()) {
     const h = cardH(r, withBody, pad)
@@ -791,7 +818,7 @@ const pinRatgeber =
       20 +
       source.height +
       (withCta ? 22 + ctaH : 0)
-    const [withBody, pad, gap, withCta] = await firstThatFits(
+    const chosen = await firstThatFits(
       [
         [true, 40, 16, true],
         [true, 30, 12, true],
@@ -804,6 +831,10 @@ const pinRatgeber =
       avail,
       `ratgeber ${k.headline}`
     )
+    const { padAdd, gapAdd } = spreadSlack(avail - measure(chosen), cards.length)
+    const [withBody, , , withCta] = chosen
+    const pad = chosen[1] + padAdd
+    const gap = chosen[2] + gapAdd
     let y = y0 + 36
 
     if (k.table) {
