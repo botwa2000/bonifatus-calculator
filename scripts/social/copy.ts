@@ -34,8 +34,59 @@ export interface Step {
   callout: string
 }
 
+/** One side of a "compare" beat. */
+export interface CompareSide {
+  tag: string
+  title: string
+  body: string
+}
+
+/**
+ * One beat of a "Was ist fair?" video. Durations are not copy: the renderer derives each
+ * beat's length from how much text it shows (see scripts/make-social-video.ts).
+ * Every figure must come from the Ratgeber page the episode promotes, with its source.
+ */
+export type VideoBeat =
+  | { kind: 'hook'; headline: string; sub?: string }
+  | { kind: 'compare'; headline?: string; left: CompareSide; right: CompareSide }
+  | {
+      kind: 'statement'
+      label: string
+      headline: string
+      body?: string
+      note?: string
+      source?: string
+    }
+  | { kind: 'stat'; value: number; unit: string; label: string; source: string }
+  | {
+      kind: 'bars'
+      headline: string
+      unit: string
+      bars: { label: string; value: number }[]
+      note?: string
+      source: string
+    }
+  /** An item "Label: text" renders as a bold label line over a regular text line. */
+  | { kind: 'list'; headline: string; items: string[]; source?: string }
+  | { kind: 'end'; headline: string; url: string; cta: string; source: string }
+
+export interface VideoEpisode {
+  /** The live Ratgeber page this episode promotes, e.g. "/de/ratgeber/zeugnisgeld". */
+  page: string
+  beats: VideoBeat[]
+}
+
 export interface Copy {
   url: string
+  videos: {
+    /** Series name shown on every beat, e.g. "Was ist fair?". */
+    series: string
+    /** "Folge" in "Was ist fair? · Folge 2". */
+    episodeLabel: string
+    geschwister: VideoEpisode
+    zeugnisgeld: VideoEpisode
+    ohneGeld: VideoEpisode
+  }
   carousel: {
     hook: { headline: string; subtext: string; swipe: string; callout: string }
     step1: Step
@@ -153,6 +204,111 @@ function djiSpan(fromAge: number, toAge: number): string {
 
 const de: Copy = {
   url: 'bonifatus.com',
+  // "Was ist fair?" — Reels series. Each episode restates one live Ratgeber page; every
+  // figure is copied from that page (content/ratgeber/de/<slug>.ts) with its source.
+  // No real child data: no names, no real report cards.
+  videos: {
+    series: 'Was ist fair?',
+    episodeLabel: 'Folge',
+    // content/ratgeber/de/geschwister-gerechtigkeit.ts
+    geschwister: {
+      page: '/de/ratgeber/geschwister-gerechtigkeit',
+      beats: [
+        { kind: 'hook', headline: '„Warum bekommt sie mehr als ich?“' },
+        {
+          // §"Gleiche Regel oder gleicher Maßstab?" — the page's own comparison table.
+          kind: 'compare',
+          left: {
+            tag: 'Gleich',
+            title: 'Gleicher Betrag pro Note',
+            body: 'Belohnt auch Begabung.',
+          },
+          right: { tag: 'Gerecht', title: 'Gleicher Maßstab', body: 'Jedes Kind kann gewinnen.' },
+        },
+        {
+          // §"Gleich ist nicht dasselbe wie gerecht" — Kowal et al. 2002 as summarised there.
+          kind: 'statement',
+          label: 'Studie',
+          headline: 'Kinder, die einen Unterschied fair fanden, hatten mehr Selbstwert.',
+          source: 'Kowal u. a. 2002 · 135 Kinder',
+        },
+        {
+          kind: 'end',
+          headline: 'Gerecht heißt nicht gleich.',
+          url: 'bonifatus.com',
+          cta: 'Ratgeber: Geschwister gerecht belohnen',
+          source: 'Quelle: Kowal u. a. 2002',
+        },
+      ],
+    },
+    // content/ratgeber/de/zeugnisgeld.ts
+    zeugnisgeld: {
+      page: '/de/ratgeber/zeugnisgeld',
+      beats: [
+        { kind: 'hook', headline: 'Wie viel Zeugnisgeld ist fair?' },
+        {
+          // §"Wie verbreitet ist Zeugnisgeld?": "Geld gaben 21 Prozent."
+          kind: 'stat',
+          value: 21,
+          unit: '%',
+          label: 'der befragten Eltern gaben Geld zum Zeugnis.',
+          source: 'forsa-Umfrage für Studienkreis, 2018',
+        },
+        {
+          // §"Welcher Betrag ist angemessen?" — the page labels this rule of thumb as its own
+          // estimate, not a norm; that caveat must stay on screen.
+          kind: 'statement',
+          label: 'Faustregel',
+          headline: 'Insgesamt ½ bis 1 Monatstaschengeld.',
+          note: 'Unsere Einschätzung – keine wissenschaftliche Norm.',
+        },
+        {
+          // §"Warum die Regel vor dem Zeugnis stehen sollte".
+          kind: 'end',
+          headline: 'Die Regel steht vor dem Zeugnis.',
+          url: 'bonifatus.com',
+          cta: 'Ratgeber: Zeugnisgeld – wie viel ist fair?',
+          source: 'Quelle: forsa 2018',
+        },
+      ],
+    },
+    // content/ratgeber/de/belohnen-ohne-geld.ts
+    ohneGeld: {
+      page: '/de/ratgeber/belohnen-ohne-geld',
+      beats: [
+        { kind: 'hook', headline: 'Zeugnis belohnen – ohne Geld?' },
+        {
+          // §"Was Eltern tatsächlich tun": "gemeinsamer Ausflug oder eine Unternehmung" 36 %, Geld 21 %.
+          kind: 'bars',
+          headline: 'Belohnung zum Zeugnis',
+          unit: '%',
+          bars: [
+            { label: 'Gemeinsame Unternehmung', value: 36 },
+            { label: 'Geld', value: 21 },
+          ],
+          source: 'forsa-Umfrage für Studienkreis, 2018',
+        },
+        {
+          // §"Ohne Geld ist nicht automatisch besser" — Deci, Koestner & Ryan 1999.
+          kind: 'list',
+          headline: 'Was die Forschung zeigt',
+          items: [
+            'Versprochenes Geschenk: schwächt das Interesse',
+            'Ehrliches Lob: stärkt die Motivation',
+          ],
+          source: 'Deci, Koestner & Ryan 1999',
+        },
+        {
+          // §"So fangen Sie an", item 4: "Zeit statt Sachen."
+          kind: 'end',
+          headline: 'Zeit statt Sachen.',
+          url: 'bonifatus.com',
+          cta: 'Ratgeber: Belohnen ohne Geld',
+          source: 'forsa 2018 · Deci u. a. 1999',
+        },
+      ],
+    },
+  },
   carousel: {
     hook: {
       headline: 'Schluss mit Zeugnisgeld-Willkür.',
@@ -485,7 +641,7 @@ export const COPY: Partial<Record<Locale, Copy>> = { de }
 // Transliterations that have shipped (or nearly shipped) on this project.
 // A renderer or an editor that ASCII-folds strings produces exactly these.
 const TRANSLITERATED =
-  /\b(Willkuer|Faecher|fuer|Praemie\w*|ueber|Waehl\w*|Schueler\w*|Fuell\w*|Blaett\w*|Aeltere|Ueber\w*|Taetig\w*|Maeppchen|Bloecke|Schultuete|pruefen|zaehlt|weiss|regelmaessig|Betraege|Woechentlich|uebernimmt|beruecksichtigt|Kuechentisch|koennen|muessen|juengere?|unabhaengig\w*|wofuer|ausser|Abzuege|daempf\w*)\b/i
+  /\b(Willkuer|Faecher|fuer|Praemie\w*|ueber|Waehl\w*|Schueler\w*|Fuell\w*|Blaett\w*|Aeltere|Ueber\w*|Taetig\w*|Maeppchen|Bloecke|Schultuete|pruefen|zaehlt|weiss|regelmaessig|Betraege|Woechentlich|uebernimmt|beruecksichtigt|Kuechentisch|koennen|muessen|juengere?|unabhaengig\w*|wofuer|ausser|Abzuege|daempf\w*|heisst|Massstab\w*|Massstaebe|geuebt|Gruende|Ueberrasch\w*|staerkt)\b/i
 
 /** Throws if any German string contains an ASCII-folded umlaut or ß. */
 export function assertNoTransliteration(locale: Locale, copy: Copy) {
