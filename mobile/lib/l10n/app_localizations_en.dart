@@ -1671,4 +1671,52 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get scanRatingThanks => 'Thanks for rating!';
+
+  @override
+  String get loginInvalidCredentials => 'Email or password is incorrect.';
+
+  @override
+  String get loginInvalidCredentialsHelp =>
+      'Created your account with Google or Apple? Use that button instead. Otherwise check the email address, or reset your password with \"Forgot password?\".';
+
+  @override
+  String get loginTooManyAttempts =>
+      'Too many sign-in attempts. Please wait 15 minutes and try again.';
+
+  @override
+  String get loginEmailNotVerified =>
+      'Please confirm your email address first, using the code we emailed you.';
+
+  @override
+  String get loginNetworkError =>
+      'Couldn\'t reach Bonifatus. Check your internet connection and try again.';
+
+  @override
+  String get loginServerError =>
+      'Something went wrong on our side. Please try again in a moment.';
+
+  @override
+  String get verifyEmailInvalidCode =>
+      'Invalid or expired code. Check the code and try again.';
+
+  @override
+  String get getStartedTitle => 'Let\'s earn your first reward 🎯';
+
+  @override
+  String get getStartedBody =>
+      'Two steps and Bonifatus starts counting your grades:';
+
+  @override
+  String get getStartedAddGrade => 'Add your first grade';
+
+  @override
+  String get getStartedAddGradeHint =>
+      'Snap a test or enter a grade — takes 10 seconds.';
+
+  @override
+  String get getStartedConnectParent => 'Connect a parent';
+
+  @override
+  String get getStartedConnectParentHint =>
+      'Your parent installs Bonifatus and shows you a QR code — scan it in Settings.';
 }

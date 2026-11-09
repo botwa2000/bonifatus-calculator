@@ -47,6 +47,17 @@ class StudentDashboardScreen extends ConsumerWidget {
                   child: _buildHeader(context, l10n, userName),
                 ),
               ),
+              // First run (nothing recorded yet): lead straight to the two
+              // actions that make Bonifatus useful, ahead of the profile
+              // checklist. 2026-11 stats: 5 child sign-ups, 0 grades, 0 parents.
+              if ((gradesAsync.value?.isEmpty ?? false) &&
+                  (termsAsync.value?.isEmpty ?? false))
+                const SliverToBoxAdapter(
+                  child: Padding(
+                    padding: EdgeInsets.fromLTRB(20, 20, 20, 0),
+                    child: _GetStartedCard(),
+                  ),
+                ),
               const SliverToBoxAdapter(child: ProfileCompletionBanner()),
               SliverToBoxAdapter(
                 child: Padding(
@@ -413,12 +424,23 @@ class _HeroCardState extends State<_HeroCard> {
         children: [
           Row(
             children: [
-              _tab(l10n.periodWeek, _CardPeriod.week),
+              // Tabs scroll instead of overflowing on narrow phones / long
+              // translations (de overflowed 97px at 392dp in widget tests).
+              Expanded(
+                child: SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Row(
+                    children: [
+                      _tab(l10n.periodWeek, _CardPeriod.week),
+                      const SizedBox(width: 8),
+                      _tab(l10n.periodMonth, _CardPeriod.month),
+                      const SizedBox(width: 8),
+                      _tab(l10n.periodAllTime, _CardPeriod.allTime),
+                    ],
+                  ),
+                ),
+              ),
               const SizedBox(width: 8),
-              _tab(l10n.periodMonth, _CardPeriod.month),
-              const SizedBox(width: 8),
-              _tab(l10n.periodAllTime, _CardPeriod.allTime),
-              const Spacer(),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                 decoration: BoxDecoration(
@@ -473,6 +495,63 @@ class _HeroCardState extends State<_HeroCard> {
             color: AppColors.white,
           ),
         ),
+      ),
+    );
+  }
+}
+
+
+class _GetStartedCard extends StatelessWidget {
+  const _GetStartedCard();
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final scheme = Theme.of(context).colorScheme;
+    final text = Theme.of(context).textTheme;
+    return Container(
+      key: const Key('get-started-card'),
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: scheme.surface,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: AppColors.primary, width: 1.5),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Text(l10n.getStartedTitle, style: text.titleLarge?.copyWith(color: scheme.onSurface)),
+          const SizedBox(height: 4),
+          Text(l10n.getStartedBody, style: text.bodyMedium?.copyWith(color: scheme.onSurfaceVariant)),
+          const SizedBox(height: 16),
+          FilledButton.icon(
+            key: const Key('get-started-add-grade'),
+            style: FilledButton.styleFrom(
+              backgroundColor: AppColors.primary,
+              foregroundColor: AppColors.white,
+              minimumSize: const Size.fromHeight(48),
+            ),
+            onPressed: () => context.push('/student/notes/capture'),
+            icon: const Icon(Icons.add_a_photo_rounded),
+            label: Text(l10n.getStartedAddGrade),
+          ),
+          const SizedBox(height: 6),
+          Text(l10n.getStartedAddGradeHint,
+              textAlign: TextAlign.center,
+              style: text.bodySmall?.copyWith(color: scheme.onSurfaceVariant)),
+          const SizedBox(height: 14),
+          OutlinedButton.icon(
+            key: const Key('get-started-connect-parent'),
+            style: OutlinedButton.styleFrom(minimumSize: const Size.fromHeight(48)),
+            onPressed: () => context.go('/student/settings'),
+            icon: const Icon(Icons.family_restroom_rounded),
+            label: Text(l10n.getStartedConnectParent),
+          ),
+          const SizedBox(height: 6),
+          Text(l10n.getStartedConnectParentHint,
+              textAlign: TextAlign.center,
+              style: text.bodySmall?.copyWith(color: scheme.onSurfaceVariant)),
+        ],
       ),
     );
   }

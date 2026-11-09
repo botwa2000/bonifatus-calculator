@@ -3129,6 +3129,84 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Thanks for rating!'**
   String get scanRatingThanks;
+
+  /// No description provided for @loginInvalidCredentials.
+  ///
+  /// In en, this message translates to:
+  /// **'Email or password is incorrect.'**
+  String get loginInvalidCredentials;
+
+  /// No description provided for @loginInvalidCredentialsHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'Created your account with Google or Apple? Use that button instead. Otherwise check the email address, or reset your password with \"Forgot password?\".'**
+  String get loginInvalidCredentialsHelp;
+
+  /// No description provided for @loginTooManyAttempts.
+  ///
+  /// In en, this message translates to:
+  /// **'Too many sign-in attempts. Please wait 15 minutes and try again.'**
+  String get loginTooManyAttempts;
+
+  /// No description provided for @loginEmailNotVerified.
+  ///
+  /// In en, this message translates to:
+  /// **'Please confirm your email address first, using the code we emailed you.'**
+  String get loginEmailNotVerified;
+
+  /// No description provided for @loginNetworkError.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t reach Bonifatus. Check your internet connection and try again.'**
+  String get loginNetworkError;
+
+  /// No description provided for @loginServerError.
+  ///
+  /// In en, this message translates to:
+  /// **'Something went wrong on our side. Please try again in a moment.'**
+  String get loginServerError;
+
+  /// No description provided for @verifyEmailInvalidCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Invalid or expired code. Check the code and try again.'**
+  String get verifyEmailInvalidCode;
+
+  /// No description provided for @getStartedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Let\'s earn your first reward 🎯'**
+  String get getStartedTitle;
+
+  /// No description provided for @getStartedBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Two steps and Bonifatus starts counting your grades:'**
+  String get getStartedBody;
+
+  /// No description provided for @getStartedAddGrade.
+  ///
+  /// In en, this message translates to:
+  /// **'Add your first grade'**
+  String get getStartedAddGrade;
+
+  /// No description provided for @getStartedAddGradeHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Snap a test or enter a grade — takes 10 seconds.'**
+  String get getStartedAddGradeHint;
+
+  /// No description provided for @getStartedConnectParent.
+  ///
+  /// In en, this message translates to:
+  /// **'Connect a parent'**
+  String get getStartedConnectParent;
+
+  /// No description provided for @getStartedConnectParentHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Your parent installs Bonifatus and shows you a QR code — scan it in Settings.'**
+  String get getStartedConnectParentHint;
 }
 
 class _AppLocalizationsDelegate

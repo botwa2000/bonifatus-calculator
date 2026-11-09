@@ -1,9 +1,7 @@
 {
   "@@locale": "de",
   "@@last_modified": "2026-07-09T00:00:00.000000",
-
   "appName": "Bonifatus",
-
   "loginWelcomeBack": "Willkommen zurück",
   "loginSignInSubtitle": "In dein Konto einloggen",
   "loginEmailLabel": "E-Mail",
@@ -15,7 +13,6 @@
   "loginBiometricButton": "Mit Biometrie anmelden",
   "loginNoAccountPrompt": "Noch kein Konto? ",
   "loginSignUpLink": "Registrieren",
-
   "registerStep1Title": "Wie heißt du?",
   "registerStep1Subtitle": "So wirst du anderen angezeigt.",
   "registerFullNameLabel": "Vollständiger Name",
@@ -37,7 +34,6 @@
   "registerPasswordsDoNotMatch": "Passwörter stimmen nicht überein",
   "registerPasswordTooShort": "Passwort muss mindestens 12 Zeichen haben",
   "registerFailed": "Registrierung fehlgeschlagen. Bitte erneut versuchen.",
-
   "forgotPasswordAppBarTitle": "Passwort zurücksetzen",
   "forgotPasswordStep1Title": "Passwort vergessen?",
   "forgotPasswordStep1Subtitle": "Gib deine E-Mail ein und wir schicken dir einen Reset-Code.",
@@ -50,13 +46,11 @@
   "forgotPasswordResetButton": "Passwort zurücksetzen",
   "forgotPasswordResendCode": "Code erneut senden",
   "forgotPasswordUpdatedSnackbar": "Passwort aktualisiert! Melde dich mit deinem neuen Passwort an.",
-
   "verifyEmailAppBarTitle": "E-Mail bestätigen",
   "verifyEmailTitle": "Prüfe deine E-Mails",
   "verifyEmailSubtitle": "Gib den 6-stelligen Code ein, der an\n{email} gesendet wurde",
   "verifyEmailButton": "Bestätigen",
   "verifyEmailFailed": "Bestätigung fehlgeschlagen. Bitte erneut versuchen.",
-
   "onboardingSkip": "Überspringen",
   "onboardingNext": "Weiter",
   "onboardingGetStarted": "Loslegen",
@@ -68,7 +62,6 @@
   "onboardingPage2Body": "Fotografiere jede benotete Schularbeit. Die App liest das Fach und die Note automatisch.",
   "onboardingPage3Title": "Fortschritt\ngemeinsam verfolgen",
   "onboardingPage3Body": "Eltern und Schüler sehen dieselben Erkenntnisse — Noten, Boni und Trends im Laufe der Zeit.",
-
   "settingsTitle": "Einstellungen",
   "settingsSectionPreferences": "Voreinstellungen",
   "settingsSectionAccount": "Konto",
@@ -144,7 +137,6 @@
   "settingsTierBelowLabel": "Ungenügend (Note 5–6)",
   "settingsFailedToLoadChildren": "Kinder konnten nicht geladen werden",
   "settingsNoChildrenConnected": "Keine Kinder verbunden",
-
   "dashboardHiName": "Hallo {name} 👋",
   "dashboardSubtitle": "Verfolge deine Noten, verdiene Belohnungen",
   "dashboardThisWeek": "Diese Woche",
@@ -155,7 +147,6 @@
   "dashboardNoNotesYet": "Noch keine Noten",
   "dashboardCouldNotLoadResults": "Ergebnisse konnten nicht geladen werden",
   "dashboardNoSavedResultsYet": "Noch keine gespeicherten Ergebnisse",
-
   "calculatorTitle": "Notenrechner",
   "calculatorGradingSystem": "Benotungssystem",
   "calculatorClass": "Klasse",
@@ -182,7 +173,6 @@
   "calculatorTierSatisfactory": "Befriedigend",
   "calculatorTierBelow": "Unter Schwelle",
   "calculatorSettingsTooltip": "Einstellungen",
-
   "notesTitle": "Noten",
   "notesNoNotesYet": "Noch keine Noten",
   "notesTapToCaptureFirst": "Tippe + um deine erste Note aufzunehmen",
@@ -196,7 +186,6 @@
   "notesCancel": "Abbrechen",
   "notesThisWeek": "Diese Woche",
   "notesLastWeek": "Letzte Woche",
-
   "noteDetailTitle": "Notendetails",
   "noteDetailCouldNotLoad": "Notiz konnte nicht geladen werden",
   "noteDetailNotFound": "Note nicht gefunden",
@@ -213,7 +202,6 @@
   "noteDetailDeleteConfirm": "Möchtest du diese Notiz wirklich löschen? Diese Aktion kann nicht rückgängig gemacht werden.",
   "noteDetailDelete": "Löschen",
   "noteDetailCancel": "Abbrechen",
-
   "captureTitle": "Note aufnehmen",
   "capturePositionGrade": "Positioniere die Note so, dass sie gut sichtbar ist",
   "captureChooseFromGallery": "Aus Galerie wählen",
@@ -227,7 +215,6 @@
   "captureSelectSubjectAndGrade": "Bitte Fach und Note auswählen",
   "captureSaveGrade": "Note speichern",
   "captureCancel": "Abbrechen",
-
   "cycleSummaryTitle": "Zyklusbericht",
   "cycleSummaryCouldNotLoad": "Noten konnten nicht geladen werden",
   "cycleSummaryWeekly": "Wöchentlich",
@@ -235,14 +222,12 @@
   "cycleSummaryNoGrades": "Keine Noten in diesem Zeitraum",
   "cycleSummaryPositive": "Positiv",
   "cycleSummaryNet": "Netto",
-
   "resultsTitle": "Gespeicherte Ergebnisse",
   "resultsFailedToLoad": "Ergebnisse konnten nicht geladen werden",
   "resultsRetry": "Wiederholen",
   "resultsNoResults": "Noch keine gespeicherten Ergebnisse",
   "resultsUseCalculator": "Verwende den Rechner, um dein erstes Halbjahresergebnis zu speichern.",
   "resultsOpenCalculator": "Rechner öffnen",
-
   "termDetailTitle": "Halbjahresergebnis",
   "termDetailCouldNotLoad": "Halbjahr konnte nicht geladen werden",
   "termDetailNotFound": "Halbjahr nicht gefunden",
@@ -250,7 +235,6 @@
   "termDetailBonus": "Bonus",
   "termDetailSubjects": "Fächer",
   "termDetailSubjectBreakdown": "Fächerübersicht",
-
   "insightsTitle": "Erkenntnisse",
   "insightsFailedToLoad": "Erkenntnisse konnten nicht geladen werden",
   "insightsRetry": "Wiederholen",
@@ -273,7 +257,6 @@
   "insightsTierGood": "Gut (1,5–2,4)",
   "insightsTierOk": "Befriedigend (2,5–3,4)",
   "insightsTierBelow": "Ungenügend (3,5+)",
-
   "parentDashboardHiName": "Hallo {name}",
   "parentDashboardOverview": "Übersicht deiner Kinder",
   "parentDashboardSummary": "Zusammenfassung",
@@ -284,7 +267,6 @@
   "parentDashboardNoChildrenConnected": "Noch keine Kinder verbunden.\nGehe zum Tab Kinder, um ein Kind hinzuzufügen.",
   "parentDashboardRecentGrade": "Aktuelle Note",
   "parentDashboardCouldNotLoadChildren": "Kinderdaten konnten nicht geladen werden",
-
   "childrenTitle": "Kinder",
   "childrenNoChildrenConnected": "Keine Kinder verbunden",
   "childrenShareQrHint": "Teile einen Einladungs-QR-Code, um einen Schüler zu verbinden",
@@ -295,7 +277,6 @@
   "childrenRetry": "Wiederholen",
   "childrenClose": "Schließen",
   "childrenFailedToLoad": "Kinder konnten nicht geladen werden",
-
   "childDetailTitle": "Kinddetails",
   "childDetailCouldNotLoad": "Daten konnten nicht geladen werden",
   "childDetailNotFound": "Kind nicht gefunden",
@@ -310,7 +291,6 @@
   "childDetailSettled": "Abgerechnet",
   "childDetailBonus": "Bonus",
   "childDetailStatus": "Status",
-
   "rewardsTitle": "Belohnungen",
   "rewardsTabQuickGrades": "Schnellnoten",
   "rewardsTabGrades": "Noten",
@@ -332,19 +312,24 @@
   "rewardsSectionNotesWeek": "Noten — {weekRange}",
   "@rewardsSectionNotesWeek": {
     "placeholders": {
-      "weekRange": { "type": "String" }
+      "weekRange": {
+        "type": "String"
+      }
     }
   },
   "rewardsGroupSettleBonusFor": "{label} für {childName} abrechnen",
   "@rewardsGroupSettleBonusFor": {
     "placeholders": {
-      "label": { "type": "String" },
-      "childName": { "type": "String" }
+      "label": {
+        "type": "String"
+      },
+      "childName": {
+        "type": "String"
+      }
     }
   },
   "childrenSearchPlaceholder": "Kinder suchen ...",
   "insightsFilterAll": "Alle",
-
   "parentInsightsTitle": "Erkenntnisse",
   "parentInsightsFailedToLoad": "Erkenntnisse konnten nicht geladen werden",
   "parentInsightsRetry": "Wiederholen",
@@ -363,7 +348,9 @@
   "insightsDaysAgo": "vor {days}T",
   "@insightsDaysAgo": {
     "placeholders": {
-      "days": { "type": "int" }
+      "days": {
+        "type": "int"
+      }
     }
   },
   "insightsNote": "Note",
@@ -371,32 +358,39 @@
   "rewardsSettleAmount": "Abrechnen · {pts} Pts",
   "@rewardsSettleAmount": {
     "placeholders": {
-      "pts": { "type": "num" }
+      "pts": {
+        "type": "num"
+      }
     }
   },
-
   "navHome": "Start",
   "navCalculator": "Rechner",
-
   "parentDashboardChildSubtitle": "{count} Noten · {pts} Pkt. ausstehend",
   "@parentDashboardChildSubtitle": {
     "placeholders": {
-      "count": { "type": "int" },
-      "pts": { "type": "num" }
+      "count": {
+        "type": "int"
+      },
+      "pts": {
+        "type": "num"
+      }
     }
   },
-
   "homeActionCenterSubtitle": "Das braucht deine Aufmerksamkeit",
   "homeUnsettledBannerTitle": "{pts} Pkt. zum Auszahlen bereit",
   "@homeUnsettledBannerTitle": {
     "placeholders": {
-      "pts": { "type": "num" }
+      "pts": {
+        "type": "num"
+      }
     }
   },
   "homeUnsettledBannerSub": "{count} offene Posten",
   "@homeUnsettledBannerSub": {
     "placeholders": {
-      "count": { "type": "int" }
+      "count": {
+        "type": "int"
+      }
     }
   },
   "homeGoToInsights": "Zu Analysen",
@@ -404,7 +398,6 @@
   "homeActiveTodaySection": "Heute aktiv",
   "homeActiveTodayEmpty": "Keine Aktivität in den letzten 24 Stunden",
   "homeAllSettledUp": "Alles ausgezahlt!",
-
   "termDetailDeleteTitle": "Ergebnis löschen",
   "termDetailDeleteConfirm": "Bist du sicher, dass du dieses Ergebnis löschen möchtest? Diese Aktion kann nicht rückgängig gemacht werden.",
   "termDetailDelete": "Löschen",
@@ -412,7 +405,6 @@
   "termDetailEditGrade": "Note bearbeiten",
   "termSettledBadge": "Abgerechnet",
   "termOpenBadge": "Offen",
-
   "calculatorLabelHint": "z.B. Abschlussprüfung",
   "studentNotesCount": "{count, plural, =1{{count} Notiz} other{{count} Notizen}}",
   "calculatorNoSubjectsMatch": "Keine Fächer für \"{query}\" gefunden",
@@ -448,18 +440,21 @@
   "captureNGradesDetected": "{count, plural, =0{Keine Noten erkannt} =1{1 Note erkannt} other{{count} Noten erkannt}}",
   "@captureNGradesDetected": {
     "placeholders": {
-      "count": { "type": "int" }
+      "count": {
+        "type": "int"
+      }
     }
   },
   "captureAddEntry": "Eintrag hinzufügen",
   "captureSaveAll": "{count} speichern",
   "@captureSaveAll": {
     "placeholders": {
-      "count": { "type": "int" }
+      "count": {
+        "type": "int"
+      }
     }
   },
   "captureSelectSubject": "Tippen zum Auswählen",
-
   "termTypeSemester1": "Semester 1",
   "termTypeSemester2": "Semester 2",
   "termTypeTrimester1": "Trimester 1",
@@ -468,25 +463,21 @@
   "termTypeAnnual": "Jährlich",
   "nameUnknown": "Unbekannt",
   "gradingSystemGermanDefault": "Deutsch 1–6",
-
   "loginOrDivider": "oder",
   "loginContinueWithGoogle": "Mit Google fortfahren",
   "loginContinueWithApple": "Mit Apple fortfahren",
   "googleProfileTitle": "Profil vervollständigen",
   "googleProfileSubtitle": "Noch ein paar Details zum Einstieg.",
   "googleProfileRoleRequired": "Bitte wähle deine Rolle",
-
   "registerPasswordHelper": "Mindestens 12 Zeichen",
   "aboutDescription": "Bonifatus verwandelt Schulnoten in Familienbelohnungen. Schüler verdienen Bonuspunkte für gute Noten, Eltern setzen die Belohnungen.",
   "aboutPrivacyPolicy": "Datenschutzerklärung",
   "aboutTermsOfService": "Nutzungsbedingungen",
-
   "settingsSectionConnectedChildren": "Verbundene Kinder",
   "settingsChildBirthday": "Geburtstag",
   "settingsChildSchool": "Schule",
   "settingsChildNotSpecified": "Nicht angegeben",
   "settingsChildStats": "{grades} Noten · {pts} Pkt. gesamt · {pending} ausstehend",
-
   "settleTitle": "Abrechnen",
   "settleTabPending": "Ausstehend",
   "settleTabHistory": "Verlauf",
@@ -520,16 +511,32 @@
   "insightsWorstSubject": "Verbesserungspotenzial",
   "insightsStreak": "Aktuelle Serie",
   "insightsStreakWeeks": "{count}W",
-  "@insightsStreakWeeks": { "placeholders": { "count": { "type": "int" } } },
+  "@insightsStreakWeeks": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "insightsBestGrade": "Beste Note",
   "insightsWorstGrade": "Niedrigste Note",
   "insightsNoStreak": "Starte deine Serie!",
   "homeChildPts": "{pts} Pkt.",
-  "@homeChildPts": { "placeholders": { "pts": { "type": "num" } } },
+  "@homeChildPts": {
+    "placeholders": {
+      "pts": {
+        "type": "num"
+      }
+    }
+  },
   "homeChildGrades": "{count} Noten",
-  "@homeChildGrades": { "placeholders": { "count": { "type": "int" } } }
-,
-
+  "@homeChildGrades": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "profileSchoolTown": "Schulstadt",
   "profileSchoolTownPlaceholder": "z.B. Muenchen",
   "profileSchoolName": "Schulname",
@@ -546,12 +553,10 @@
   "insightsPeriodMonth": "1 Monat",
   "insightsPeriod3Months": "3 Monate",
   "insightsPeriodYear": "1 Jahr",
-  "insightsPeriodAll": "Alle Zeit"
-,
+  "insightsPeriodAll": "Alle Zeit",
   "settingsSectionSchool": "Schuldaten",
   "settingsSchoolInfo": "Schule & Notensystem",
   "settingsSchoolInfoDesc": "Schuldaten fuer genaue Bonusberechnungen konfigurieren",
-
   "filterAll": "Alle",
   "filterNotes": "Noten",
   "filterTestReports": "Zeugnisse",
@@ -559,33 +564,31 @@
   "filterUnsettled": "Offen",
   "filterGradeType": "Notentyp",
   "filterStatusLabel": "Status",
-
   "profileCompleteBanner": "Profil einrichten",
   "profileCompleteBannerBody": "Füge Schule und Benotungssystem hinzu – für besseres Tracking und vorausgefüllte Berichte.",
   "profileCompleteAction": "Zu Einstellungen",
   "settingsGradingSystem": "Benotungssystem",
   "settingsGradingSystemHint": "Voreinstellung für den Notenrechner und Berichte.",
-
   "registerTermsHint": "Mit der Registrierung stimmst du unseren Nutzungsbedingungen zu.",
-
   "profileSetupCount": "{completed} von {total} abgeschlossen",
   "@profileSetupCount": {
     "placeholders": {
-      "completed": {"type": "int"},
-      "total": {"type": "int"}
+      "completed": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
     }
   },
   "profileSetupItemName": "Dein Name",
   "profileSetupItemBirthday": "Geburtstag",
   "profileSetupItemSchool": "Schule",
   "profileSetupItemGrading": "Benotungssystem",
-
   "parentNamePromptTitle": "Deinen Namen hinzufügen",
   "parentNamePromptBody": "Damit deine Kinder dich finden können",
-
   "settingsValueNotSet": "Nicht angegeben",
   "settingsBirthdayLabel": "Geburtstag",
-
   "settingsSendFeedback": "Feedback senden",
   "feedbackTitle": "Bonifatus bewerten",
   "feedbackSubtitle": "Wie gefällt Ihnen Bonifatus? Ihre Bewertung geht direkt an unser Team.",
@@ -601,5 +604,18 @@
   "parentalGateWrong": "Das stimmt leider nicht. Bitte frag deine Eltern.",
   "parentalGateContinue": "Weiter",
   "scanRatingQuestion": "Wie gut wurden die Noten erkannt?",
-  "scanRatingThanks": "Danke für deine Bewertung!"
+  "scanRatingThanks": "Danke für deine Bewertung!",
+  "loginInvalidCredentials": "E-Mail-Adresse oder Passwort ist falsch.",
+  "loginInvalidCredentialsHelp": "Konto mit Google oder Apple erstellt? Dann nutze diesen Button. Sonst prüfe die E-Mail-Adresse oder setze dein Passwort über „Passwort vergessen?“ zurück.",
+  "loginTooManyAttempts": "Zu viele Anmeldeversuche. Bitte warte 15 Minuten und versuche es erneut.",
+  "loginEmailNotVerified": "Bitte bestätige zuerst deine E-Mail-Adresse mit dem Code, den wir dir geschickt haben.",
+  "loginNetworkError": "Bonifatus ist nicht erreichbar. Prüfe deine Internetverbindung und versuche es erneut.",
+  "loginServerError": "Bei uns ist etwas schiefgelaufen. Bitte versuche es gleich noch einmal.",
+  "verifyEmailInvalidCode": "Ungültiger oder abgelaufener Code. Prüfe den Code und versuche es erneut.",
+  "getStartedTitle": "Hol dir deine erste Belohnung 🎯",
+  "getStartedBody": "Zwei Schritte, dann zählt Bonifatus deine Noten:",
+  "getStartedAddGrade": "Erste Note eintragen",
+  "getStartedAddGradeHint": "Test fotografieren oder Note eingeben – dauert 10 Sekunden.",
+  "getStartedConnectParent": "Mit Eltern verbinden",
+  "getStartedConnectParentHint": "Deine Eltern installieren Bonifatus und zeigen dir einen QR-Code – scanne ihn in den Einstellungen."
 }

@@ -1688,4 +1688,53 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get scanRatingThanks => 'Danke für deine Bewertung!';
+
+  @override
+  String get loginInvalidCredentials =>
+      'E-Mail-Adresse oder Passwort ist falsch.';
+
+  @override
+  String get loginInvalidCredentialsHelp =>
+      'Konto mit Google oder Apple erstellt? Dann nutze diesen Button. Sonst prüfe die E-Mail-Adresse oder setze dein Passwort über „Passwort vergessen?“ zurück.';
+
+  @override
+  String get loginTooManyAttempts =>
+      'Zu viele Anmeldeversuche. Bitte warte 15 Minuten und versuche es erneut.';
+
+  @override
+  String get loginEmailNotVerified =>
+      'Bitte bestätige zuerst deine E-Mail-Adresse mit dem Code, den wir dir geschickt haben.';
+
+  @override
+  String get loginNetworkError =>
+      'Bonifatus ist nicht erreichbar. Prüfe deine Internetverbindung und versuche es erneut.';
+
+  @override
+  String get loginServerError =>
+      'Bei uns ist etwas schiefgelaufen. Bitte versuche es gleich noch einmal.';
+
+  @override
+  String get verifyEmailInvalidCode =>
+      'Ungültiger oder abgelaufener Code. Prüfe den Code und versuche es erneut.';
+
+  @override
+  String get getStartedTitle => 'Hol dir deine erste Belohnung 🎯';
+
+  @override
+  String get getStartedBody =>
+      'Zwei Schritte, dann zählt Bonifatus deine Noten:';
+
+  @override
+  String get getStartedAddGrade => 'Erste Note eintragen';
+
+  @override
+  String get getStartedAddGradeHint =>
+      'Test fotografieren oder Note eingeben – dauert 10 Sekunden.';
+
+  @override
+  String get getStartedConnectParent => 'Mit Eltern verbinden';
+
+  @override
+  String get getStartedConnectParentHint =>
+      'Deine Eltern installieren Bonifatus und zeigen dir einen QR-Code – scanne ihn in den Einstellungen.';
 }
