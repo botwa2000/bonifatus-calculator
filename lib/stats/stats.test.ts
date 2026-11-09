@@ -337,6 +337,10 @@ describe('real-user detection', () => {
     expect(trafficOf(h({ 'cf-connecting-ip': '17.58.100.4' }))).toBe('review')
     expect(trafficOf(h({ 'cf-connecting-ip': '108.177.6.20' }))).toBe('test')
     expect(trafficOf(h({ 'cf-connecting-ip': '2001:4860:1008::42' }))).toBe('test')
+    expect(trafficOf(h({ 'cf-connecting-ip': '139.178.131.68' }))).toBe('review')
+    expect(trafficOf(h({ 'cf-connecting-ip': '66.249.88.23' }))).toBe('test')
+    expect(trafficOf(h({ 'cf-connecting-ip': '74.125.210.9' }))).toBe('test')
+    expect(trafficOf(h({ 'cf-connecting-ip': '139.178.64.1' }))).toBeNull()
     expect(
       trafficOf(h({ 'cf-connecting-ip': '84.150.1.2', cookie: 'a=b; bstats_internal=1' }))
     ).toBe('internal')

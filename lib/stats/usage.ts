@@ -139,6 +139,8 @@ const PASSIVE_ACTIONS = new Set(['market_fetch'])
 
 const APPLE_NET = new net.BlockList()
 APPLE_NET.addSubnet('17.0.0.0', 8, 'ipv4')
+// App Review devices also sign in from 139.178.128-131.x (seen Oct-Nov 2026).
+APPLE_NET.addSubnet('139.178.128.0', 18, 'ipv4')
 
 const TEST_LAB_NET = new net.BlockList()
 for (const cidr of [
@@ -188,6 +190,11 @@ for (const cidr of [
   '2001:4860:1037::/48',
   '2001:4860:1038::/48',
   '2001:4860:103a::/48',
+  // Google Play's pre-launch / app-access robots sign in from Google's own
+  // crawler and infrastructure space (66.249.84/88.x, 74.125.210.x, Oct-Nov
+  // 2026), which no real person uses.
+  '66.249.64.0/19',
+  '74.125.0.0/16',
 ]) {
   const [ip, bits] = cidr.split('/')
   TEST_LAB_NET.addSubnet(ip, Number(bits), ip.includes(':') ? 'ipv6' : 'ipv4')
