@@ -195,6 +195,7 @@ export function renderDashboardPage() {
 <div class="meta" id="meta">Loading…</div>
 <div id="root"></div>
 </div>
+<dialog id="person" class="person" aria-label="Person timeline"></dialog>
 <div id="tip" role="status"></div>
 <script>${DASHBOARD_JS}</script>`,
     `<style>${DASHBOARD_CSS}</style>`
@@ -263,6 +264,42 @@ p.secnote{color:var(--muted);font-size:.8rem;margin-bottom:10px}
 .badge.ok{background:rgba(30,158,90,.15);color:var(--good)}
 .big{font-size:2rem;font-weight:800;font-variant-numeric:tabular-nums}
 .err{background:#fde8e8;color:#8a1c1c;padding:10px 12px;border-radius:8px;margin-bottom:12px}
+.ins{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,320px),1fr));gap:14px}
+.ins h3{font-size:.8rem;text-transform:uppercase;letter-spacing:.04em;margin-bottom:6px}
+.ins h3.w{color:var(--bad)} .ins h3.s{color:var(--good)}
+.in{border-left:3px solid var(--border);padding:6px 10px;margin-bottom:8px;background:var(--bg);border-radius:0 8px 8px 0}
+.in.w{border-color:var(--bad)} .in.s{border-color:var(--good)}
+.in b{display:block;font-size:.88rem}
+.in span{color:var(--muted);font-size:.8rem}
+.fun{display:grid;grid-template-columns:minmax(110px,34%) 1fr auto;gap:4px 10px;align-items:center;font-size:.84rem}
+.fun .track{background:var(--grid);border-radius:4px;height:18px;overflow:hidden}
+.fun .fill{height:100%;background:var(--accent);border-radius:4px}
+.fun .drop{grid-column:2/4;color:var(--bad);font-size:.74rem;margin:-2px 0 4px}
+.pips{display:inline-flex;gap:2px;vertical-align:middle}
+.pips i{width:8px;height:8px;border-radius:2px;background:var(--grid)}
+.pips i.on{background:var(--accent)}
+.flag{display:inline-block;font-size:.68rem;font-weight:700;padding:1px 6px;border-radius:6px;margin:1px 2px 1px 0;white-space:nowrap}
+.flag.stuck_signin,.flag.gave_up{background:rgba(214,69,69,.14);color:var(--bad)}
+.flag.power{background:rgba(30,158,90,.15);color:var(--good)}
+.flag.new{background:rgba(124,58,237,.13);color:var(--accent)}
+.flag.dormant{background:var(--grid);color:var(--muted)}
+a.code{font:600 .8rem ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;color:var(--accent);cursor:pointer;text-decoration:none;white-space:nowrap}
+a.code:hover{text-decoration:underline}
+.ptools{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:8px}
+.ptools input{padding:5px 8px;border:1px solid var(--border);border-radius:8px;background:var(--surface);color:var(--text);font:inherit;width:170px}
+.cell-bad{color:var(--bad);font-weight:700} .cell-good{color:var(--good);font-weight:700}
+dialog.person{margin:auto;border:1px solid var(--border);border-radius:14px;background:var(--surface);color:var(--text);padding:0;width:min(720px,calc(100vw - 24px));max-height:calc(100vh - 40px)}
+dialog.person::backdrop{background:rgba(10,8,20,.55)}
+.person .ph{position:sticky;top:0;background:var(--surface);border-bottom:1px solid var(--border);padding:14px 16px;display:flex;gap:10px;align-items:flex-start;z-index:2}
+.person .ph div{flex:1;min-width:0}
+.person .pb{padding:12px 16px 16px}
+.sess{border:1px solid var(--border);border-radius:10px;margin-bottom:10px;overflow:hidden}
+.sess .sh{background:var(--bg);padding:7px 10px;font-size:.82rem;display:flex;flex-wrap:wrap;gap:4px 10px;align-items:center}
+.step{display:grid;grid-template-columns:52px 18px 1fr auto;gap:6px;padding:4px 10px;font-size:.82rem;border-top:1px solid var(--grid);align-items:baseline}
+.step .t{color:var(--muted);font-variant-numeric:tabular-nums;font-size:.75rem}
+.step .d{color:var(--muted);font-size:.75rem;white-space:nowrap}
+.step.screen .i{color:var(--accent)} .step.value .i,.step.value{color:var(--good)} .step.fail .i,.step.fail{color:var(--bad)}
+.step.open{color:var(--muted)}
 @media (max-width:420px){.card{padding:12px}.tile .v{font-size:1.35rem}.tiles{grid-template-columns:repeat(2,minmax(0,1fr))}}
 `
 
@@ -436,6 +473,157 @@ const DASHBOARD_JS = String.raw`
     document.body.appendChild(a); a.click(); a.remove();
   }
 
+  // ── App behaviour (lib/stats/behaviour.ts) ──────────────────────────────────
+  var SEG = { parent: "Parents", child: "Children", guest: "Not signed in" };
+  var FLAG = { stuck_signin: "stuck at sign-in", gave_up: "gave up after error", power: "power user", "new": "new", dormant: "inactive 7d+" };
+  var FLAG_HELP = { stuck_signin: "Tried to sign in, was rejected and never got in",
+    gave_up: "An action failed and the person never succeeded with it afterwards",
+    power: "Active on 4+ days or 5+ completed actions", "new": "First seen in this period", dormant: "No activity in the last 7 days" };
+  var pplFilter = "all", pplSearch = "";
+  function dur(ms) {
+    if (ms == null) return "—";
+    var s = Math.round(ms / 1000);
+    if (s < 60) return s + "s";
+    if (s < 3600) return Math.floor(s / 60) + "m" + (s % 60 ? " " + (s % 60) + "s" : "");
+    return Math.floor(s / 3600) + "h " + Math.round((s % 3600) / 60) + "m";
+  }
+  function pips(i) { var o = '<span class="pips" title="' + (i + 1) + ' of 5 funnel steps">'; for (var k = 0; k < 5; k++) o += '<i class="' + (k <= i ? "on" : "") + '"></i>'; return o + "</span>"; }
+  function flags(f) { return f.map(function (x) { return '<span class="flag ' + esc(x) + '" title="' + esc(FLAG_HELP[x] || "") + '">' + esc(FLAG[x] || x) + "</span>"; }).join(""); }
+  function early(base) { return base < 20 ? ' <span class="badge" title="Few people or sessions behind this. Treat it as a signal to watch, not a conclusion.">early signal · n=' + fmt(base) + "</span>" : ""; }
+  function codeLink(c) { return '<a class="code" data-person="' + esc(c) + '">' + esc(c) + "</a>"; }
+  function insightList(list, kind) {
+    var cls = kind === "weakness" ? "w" : "s";
+    var rows = list.filter(function (x) { return x.kind === kind; });
+    return '<div><h3 class="' + cls + '">' + (kind === "weakness" ? "▼ Weaknesses — fix first" : "▲ Strengths — keep") + "</h3>" +
+      (rows.length ? rows.map(function (x) { return '<div class="in ' + cls + '"><b>' + esc(x.title) + early(x.base) + "</b><span>" + esc(x.detail) + "</span></div>"; }).join("")
+        : '<p class="muted">' + (kind === "weakness" ? "Nothing stands out in this period." : "Not enough activity yet to call a strength.") + "</p>") + "</div>";
+  }
+  function funnelHtml(f) {
+    var top = f[0].people || 1;
+    return '<div class="fun">' + f.map(function (s, i) {
+      var prev = i ? f[i - 1].people : null, lost = prev == null ? 0 : prev - s.people;
+      return "<div>" + esc(s.label) + '</div><div class="track"><div class="fill" style="width:' + (100 * s.people / top).toFixed(1) + '%"></div></div><div class="n"><b>' + fmt(s.people) + "</b> " +
+        '<span class="muted">' + pct(s.people / top) + "</span></div>" +
+        (lost > 0 ? '<div class="drop">−' + fmt(lost) + " (" + pct(lost / prev) + ") " + esc(s.miss) + "</div>" : "");
+    }).join("") + "</div>";
+  }
+  function behaviourHtml(b) {
+    var sm = b.summary, out = [];
+    out.push(section("App behaviour", "iOS and Android. A session ends after 30 minutes without activity. People are shown by code only: <b>P-</b> parent, <b>C-</b> child, <b>G-</b> not signed in (merges into the account once that device signs in). Click a code for the person's step-by-step timeline." +
+      (b.truncated ? ' <span class="bad">Very large period: only the first 250,000 events are analysed — pick a shorter range.</span>' : "")));
+    if (!sm.people) return out.join("") + '<div class="card" style="margin-bottom:12px"><p class="muted">No app activity in this period.</p></div>';
+    out.push('<div class="tiles">' +
+      tile("App users", fmt(sm.people), fmt(sm.newPeople) + " new in period") +
+      tile("Sessions", fmt(sm.sessions), (sm.sessionsPerPerson == null ? "—" : sm.sessionsPerPerson.toFixed(1)) + " per person") +
+      tile("Median session", dur(sm.medianSessionMs), (sm.medianScreensPerSession == null ? "—" : sm.medianScreensPerSession) + (sm.medianScreensPerSession === 1 ? " screen · " : " screens · ") + pct(sm.bounceShare) + " bounced") +
+      tile("Productive sessions", pct(sm.productiveShare), "with at least one completed action") +
+      tile("Came back", pct(sm.returnedShare), "active on 2+ days in period") +
+      tile("Hit an error", fmt(sm.failingPeople), sm.people ? pct(sm.failingPeople / sm.people) + " of people" : "&nbsp;") +
+      "</div>");
+    out.push('<div class="grid">' +
+      wide(card("Strengths &amp; weaknesses", '<div class="ins">' + insightList(b.insights, "weakness") + insightList(b.insights, "strength") + "</div>", "worked out from the numbers below, biggest impact first")) +
+      card("Activation funnel", funnelHtml(b.funnel), "people in this period; each step includes the ones before") +
+      wide(card("Segments", table([
+        { h: "", f: function (r) { return "<b>" + SEG[r.segment] + "</b>"; } },
+        { h: "People", n: 1, f: function (r) { return fmt(r.people) + ' <span class="muted">' + fmt(r.newPeople) + " new</span>"; } },
+        { h: "Sessions/person", n: 1, f: function (r) { return r.sessionsPerPerson == null ? "—" : r.sessionsPerPerson.toFixed(1); } },
+        { h: "Median session", n: 1, f: function (r) { return dur(r.medianSessionMs); } },
+        { h: "Days active", n: 1, f: function (r) { return r.activeDaysPerPerson == null ? "—" : r.activeDaysPerPerson.toFixed(1); } },
+        { h: "Productive", n: 1, f: function (r) { return pct(r.productiveShare); } },
+        { h: "Came back", n: 1, f: function (r) { return pct(r.returnedShare); } }], b.segments.filter(function (r) { return r.people; }), "No one in this period."), "new = first seen in this period · productive = sessions with a completed action")) +
+      wide(card("Screens", table([
+        { h: "Screen", f: function (r) { return "<b>" + esc(r.label) + '</b><br><span class="muted" style="font-size:.72rem">' + esc(r.screen) + "</span>"; } },
+        { h: "People", n: 1, f: function (r) { return fmt(r.people); } },
+        { h: "Views", n: 1, f: function (r) { return fmt(r.views); } },
+        { h: "Median time", n: 1, f: function (r) { return dur(r.medianDwellMs); } },
+        { h: "Led to action", n: 1, f: function (r) { var v = r.valueRate; return v ? '<span class="' + (v >= 0.25 ? "cell-good" : "") + '">' + pct(v) + "</span>" : '<span class="muted">0%</span>'; } },
+        { h: "Dead end", n: 1, f: function (r) { var v = r.deadEndRate; return '<span class="' + (v >= 0.3 && r.sessions >= 2 ? "cell-bad" : v ? "" : "muted") + '" title="' + fmt(r.deadEnds) + " of " + fmt(r.sessions) + ' sessions ended here with nothing done">' + pct(v) + "</span>"; } },
+        { h: "Errors", n: 1, f: function (r) { return r.fails ? '<span class="cell-bad">' + fmt(r.fails) + "</span>" : '<span class="muted">0</span>'; } },
+        { h: "Where people go next", f: function (r) { return r.next.map(function (x) { return '<span style="white-space:nowrap' + (x.to === "(exit)" ? ";color:var(--muted)" : "") + '">' + esc(x.label) + " " + pct(x.share) + "</span>"; }).join(" · "); } }], b.screens),
+        "led to action = visits with a completed action · dead end = sessions that closed the app here with nothing done")) +
+      card("Errors &amp; rejections", table([
+        { h: "What", f: function (r) { return "<b>" + esc(r.label) + "</b> " + esc(r.outcomeLabel) + '<br><span class="muted" style="font-size:.75rem">' + r.screens.filter(function (x) { return x.screen !== "(unknown)"; }).map(function (x) { return "on " + esc(x.label) + " " + fmt(x.n) + "×"; }).join(" · ") + "</span>"; } },
+        { h: "Times", n: 1, f: function (r) { return fmt(r.n); } },
+        { h: "People", n: 1, f: function (r) { return fmt(r.people); } },
+        { h: "Gave up", n: 1, f: function (r) { return r.gaveUp ? '<span class="cell-bad">' + fmt(r.gaveUp) + "</span>" : "0"; } }], b.failures, "No failed actions or app errors in this period."),
+        "gave up = never succeeded with that action afterwards") +
+      card("Common paths", table([
+        { h: "From", f: function (r) { return esc(r.from); } },
+        { h: "", f: function () { return '<span class="muted">→</span>'; } },
+        { h: "To", f: function (r) { return esc(r.to); } },
+        { h: "Times", n: 1, f: function (r) { return fmt(r.n); } }], b.transitions) +
+        (b.loops.length ? '<h2 style="margin-top:12px">Back and forth <small>A → B → A in one session</small></h2>' + table([
+          { h: "Screens", f: function (r) { return esc(r.a) + " ↔ " + esc(r.b); } },
+          { h: "Sessions", n: 1, f: function (r) { return fmt(r.sessions); } },
+          { h: "People", n: 1, f: function (r) { return fmt(r.people); } }], b.loops) : "")) +
+      card("Feature adoption", table([
+        { h: "Feature", f: function (r) { return esc(r.label) + ' <span class="muted">' + (r.role === "child" ? "children" : "parents") + "</span>"; } },
+        { h: "", f: function (r) { return '<div style="width:110px;background:var(--grid);border-radius:3px"><div class="bar" style="width:' + (100 * (r.share || 0)).toFixed(0) + '%;min-width:2px"></div></div>'; } },
+        { h: "Used", n: 1, f: function (r) { return r.base ? fmt(r.people) + "/" + fmt(r.base) + " · " + pct(r.share) : '<span class="muted">no one signed in</span>'; } }], b.adoption),
+        "share of signed-in children / parents who opened it or did it") +
+      card("How often people come", hbars(b.activeDays, function (r) { return esc(r.label); }, function (r) { return r.people; }) +
+        '<h2 style="margin-top:12px">Session length</h2>' + hbars(b.sessionLengths, function (r) { return esc(r.label); }, function (r) { return r.sessions; }), "active days per person · sessions") +
+      wide(card("People", '<div class="ptools"><input id="pplq" type="search" placeholder="Find code, e.g. C-1A2B…" value="' + esc(pplSearch) + '" aria-label="Find a person by code">' +
+        '<span class="pills" id="pplf">' + [["all", "All"], ["stuck_signin", "Stuck at sign-in"], ["gave_up", "Gave up"], ["power", "Power users"], ["new", "New"], ["dormant", "Inactive 7d+"]].map(function (x) {
+          var n = x[0] === "all" ? b.people.length : b.people.filter(function (p) { return p.flags.indexOf(x[0]) >= 0; }).length;
+          return '<button data-v="' + x[0] + '" class="' + (pplFilter === x[0] ? "on" : "") + '">' + x[1] + " " + n + "</button>";
+        }).join("") + "</span></div>" +
+        '<div class="stick" id="ppl"></div>', fmt(b.peopleTotal) + " in period" + (b.peopleTotal > b.people.length ? ", latest " + fmt(b.people.length) + " shown" : ""))) +
+      "</div>");
+    return out.join("");
+  }
+  function renderPeople() {
+    var el = $("ppl"); if (!el || !last || !last.behaviour) return;
+    var q = pplSearch.trim().toUpperCase();
+    var rows = last.behaviour.people.filter(function (p) {
+      return (pplFilter === "all" || p.flags.indexOf(pplFilter) >= 0) && (!q || p.code.indexOf(q) >= 0);
+    });
+    el.innerHTML = table([
+      { h: "Person", f: function (r) { return codeLink(r.code) + " " + r.platforms.map(dot).join(""); } },
+      { h: "Type", f: function (r) { return esc(SEG[r.segment]); } },
+      { h: "Reached", f: function (r) { return pips(r.stageIndex) + ' <span class="muted" style="font-size:.76rem">' + esc(r.stage) + "</span>"; } },
+      { h: "Last seen", f: function (r) { return '<span class="muted" style="white-space:nowrap">' + ago(r.lastSeen) + "</span>"; } },
+      { h: "Days", n: 1, f: function (r) { return fmt(r.activeDays); } },
+      { h: "Sessions", n: 1, f: function (r) { return fmt(r.sessions); } },
+      { h: "Time", n: 1, f: function (r) { return dur(r.timeMs); } },
+      { h: "Screens", n: 1, f: function (r) { return fmt(r.views); } },
+      { h: "Done", n: 1, f: function (r) { return r.value ? '<span class="cell-good">' + fmt(r.value) + "</span>" : '<span class="muted">0</span>'; } },
+      { h: "Errors", n: 1, f: function (r) { return r.fails ? '<span class="cell-bad">' + fmt(r.fails) + "</span>" : '<span class="muted">0</span>'; } },
+      { h: "Last screen", f: function (r) { return esc(r.lastScreen || "—"); } },
+      { h: "", f: function (r) { return flags(r.flags) + (r.gaveUp.length ? ' <span class="muted" style="font-size:.74rem">' + esc(r.gaveUp.join(", ")) + "</span>" : ""); } }], rows,
+      q ? "No one with that code in this period. Press Enter to look the code up across the last 90 days." : "No one matches this filter.");
+  }
+  function closeBtn() { return '<button class="btn" data-close="1" aria-label="Close">✕</button>'; }
+  function openPerson(code) {
+    var dlg = $("person");
+    dlg.innerHTML = '<div class="ph"><div><b>' + esc(code) + '</b><br><span class="muted">Loading…</span></div>' + closeBtn() + "</div>";
+    if (!dlg.open) dlg.showModal();
+    fetch("/api/admin/usage-stats?person=" + encodeURIComponent(code) + "&traffic=" + encodeURIComponent(state.traffic), { credentials: "same-origin" })
+      .then(function (r) { return r.json().then(function (j) { if (!r.ok) throw new Error(j.error || "HTTP " + r.status); return j; }); })
+      .then(function (p) {
+        var t = p.totals;
+        dlg.innerHTML = '<div class="ph"><div><b style="font-size:1.05rem">' + esc(p.code) + "</b> · " + esc(SEG[p.segment]) +
+          '<br><span class="muted">Last ' + p.days + " days: " + fmt(t.sessions) + " sessions · " + fmt(t.activeDays) + " active days · " + fmt(t.views) + " screens · " +
+          '<span class="ok">' + fmt(t.value) + " done</span> · " + (t.fails ? '<span class="bad">' + fmt(t.fails) + " errors</span>" : "0 errors") +
+          (p.firstSeen ? " · first seen " + esc(p.firstSeen.slice(0, 10)) : "") + "</span></div>" + closeBtn() + '</div><div class="pb">' +
+          p.sessions.map(function (s) {
+            var t0 = new Date(s.start).getTime();
+            return '<div class="sess"><div class="sh">' + dot(s.platform) + "<b>" + esc(new Date(s.start).toLocaleString()) + '</b><span class="muted">' + dur(s.durationMs) + "</span>" +
+              (s.value ? '<span class="badge ok">' + fmt(s.value) + " done</span>" : "") + (s.fails ? '<span class="flag gave_up">' + fmt(s.fails) + " errors</span>" : "") + "</div>" +
+              s.steps.map(function (x) {
+                var off = Math.round((new Date(x.at).getTime() - t0) / 1000);
+                var cls = x.fail ? "fail" : x.value ? "value" : x.kind;
+                var icon = x.fail ? "✕" : x.value ? "✓" : x.kind === "screen" ? "▸" : x.kind === "open" ? "↻" : "•";
+                return '<div class="step ' + cls + '"><span class="t">+' + (off < 60 ? off + "s" : Math.floor(off / 60) + ":" + ("0" + (off % 60)).slice(-2)) + '</span><span class="i">' + icon + "</span><span>" + esc(x.label) +
+                  (x.outcomeLabel ? " — " + esc(x.outcomeLabel) : "") + '</span><span class="d">' + (x.dwellMs != null ? dur(x.dwellMs) : "") + "</span></div>";
+              }).join("") + "</div>";
+          }).join("") + (p.sessionsTotal > p.sessions.length ? '<p class="muted">Latest ' + p.sessions.length + " of " + p.sessionsTotal + " sessions shown.</p>" : "") + "</div>";
+      })
+      .catch(function (e) {
+        dlg.innerHTML = '<div class="ph"><div><b>' + esc(code) + '</b><br><span class="bad">' + esc(e.message) + "</span></div>" + closeBtn() + "</div>";
+      });
+  }
+
   function render(d) {
     last = d; bucketNow = d.bucket;
     var k = d.kpis.cur, kp = d.kpis.prev, st = d.store, rv = st.reviews, h = d.health, rec = d.records;
@@ -469,6 +657,9 @@ const DASHBOARD_JS = String.raw`
       tile("Retention", pct(d.retention.d1) + " / " + pct(d.retention.d7), "D1 / D7 · D30 " + pct(d.retention.d30) + " · cohorts " + fmt(d.retention.d1Base) + " / " + fmt(d.retention.d7Base) + " / " + fmt(d.retention.d30Base)) +
       tile("Stickiness", pct(d.stickiness.dauMau), "DAU ÷ MAU · " + fmt(d.stickiness.mau) + " monthly accounts + installs") +
       "</div>");
+
+    // ── App behaviour
+    if (d.behaviour) html.push(behaviourHtml(d.behaviour));
 
     // ── Store ratings
     if (rv) {
@@ -751,6 +942,7 @@ const DASHBOARD_JS = String.raw`
       "</div>");
 
     document.getElementById("root").innerHTML = html.join("");
+    renderPeople();
   }
 
   var MON = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
@@ -831,6 +1023,18 @@ const DASHBOARD_JS = String.raw`
     if (el.closest && el.closest("#bucket") && el.dataset.v) { state.bucket = el.dataset.v; load(); }
     if (el.dataset && el.dataset.traffic) { state.traffic = el.dataset.traffic; load(); }
     if (el.id === "csv") downloadCsv();
+    var pf = el.closest && el.closest("#pplf");
+    if (pf && el.dataset.v) { pplFilter = el.dataset.v; Array.prototype.forEach.call(pf.children, function (b) { b.classList.toggle("on", b === el); }); renderPeople(); }
+    if (el.dataset && el.dataset.person) openPerson(el.dataset.person);
+  });
+  document.getElementById("root").addEventListener("input", function (e) {
+    if (e.target.id === "pplq") { pplSearch = e.target.value; renderPeople(); }
+  });
+  document.getElementById("root").addEventListener("keydown", function (e) {
+    if (e.target.id === "pplq" && e.key === "Enter" && /^[PCG]-?[0-9A-F]{8}$/i.test(e.target.value.trim())) openPerson(e.target.value.trim().toUpperCase());
+  });
+  $("person").addEventListener("click", function (e) {
+    if (e.target === this || (e.target.closest && e.target.closest("[data-close]"))) this.close();
   });
   // One tooltip for every chart; a tap shows it on touch screens.
   var tip = $("tip");
@@ -864,7 +1068,7 @@ const DASHBOARD_JS = String.raw`
   // Auto-refresh, but never while someone is typing into a field on the page.
   setInterval(function () {
     var a = document.activeElement;
-    if (!document.hidden && !(a && /^(INPUT|SELECT)$/.test(a.tagName))) load();
+    if (!document.hidden && !$("person").open && !(a && /^(INPUT|SELECT)$/.test(a.tagName))) load();
   }, 60 * 1000);
 })();
 `

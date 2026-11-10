@@ -2,6 +2,7 @@
  * /api/admin/usage-stats — data for the confidential /admin/stats dashboard.
  * Auth: admin session cookie (email OTP, lib/stats/admin-auth.ts) or X-Admin-Key.
  *
+ * GET  ?person=C-1A2B3C4D (&traffic=) → that person's app sessions of the last 90 days
  * GET  ?range=day|week|month|ytd|7d|30d|90d|12m|custom (&at= anchor of day/week/month,
  *      &from=&to= of custom, all YYYY-MM-DD)
  *      &platform=all|web|ios|android &traffic=real|all &bucket=day|week|month → aggregates
@@ -16,6 +17,8 @@
 import { NextResponse } from 'next/server'
 import { createLoginLink, hasAdminKey, isAdminRequest, isHttps } from '@/lib/stats/admin-auth'
 import { getStats } from '@/lib/stats/aggregate'
+import { personTimeline } from '@/lib/stats/behaviour'
+import { tablesFor } from '@/lib/stats/sql'
 import { CLASSES, setAccountClass, type AccountClass } from '@/lib/stats/classify'
 import { runImports, SOURCES } from '@/lib/stats/store-import'
 
@@ -31,6 +34,14 @@ export async function GET(req: Request) {
   if (!isAdminRequest(req)) return send(401, { error: 'Unauthorized' })
   const url = new URL(req.url)
   try {
+    const person = url.searchParams.get('person')
+    if (person) {
+      const t = tablesFor(url.searchParams.get('traffic') === 'all' ? 'all' : 'real')
+      const timeline = await personTimeline(person, t)
+      return timeline
+        ? send(200, timeline)
+        : send(404, { error: 'No app activity for that code in 90 days' })
+    }
     const stats = await getStats({
       range: url.searchParams.get('range') ?? undefined,
       platform: url.searchParams.get('platform') ?? undefined,

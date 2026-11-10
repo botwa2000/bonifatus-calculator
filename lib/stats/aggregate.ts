@@ -14,8 +14,9 @@
  * stats_account_class are left out. `traffic` = all reads the raw tables.
  * Store numbers (downloads, ratings) come from the stores and are never filtered.
  */
-import { pool } from '@/lib/db/client'
 import { autoClassify, listClassified } from '@/lib/stats/classify'
+import { behaviour } from '@/lib/stats/behaviour'
+import { int, P, q, tablesFor, uid, type Row, type Tables } from '@/lib/stats/sql'
 
 // Periods: calendar (day, week = Mon–Sun, month — around the anchor date `at`,
 // default today), rolling (7d, 30d, 90d, 12m — ending today), ytd, and custom
@@ -33,7 +34,7 @@ const DAY = 86_400_000
 const MAX_DAYS = 400 // raw usage rows are kept 13 months
 const ROLLING: Record<string, number> = { '7d': 7, '30d': 30, '90d': 90, '12m': 365 }
 
-interface Window {
+export interface Window {
   days: number
   from: Date
   to: Date // exclusive
@@ -100,37 +101,6 @@ export function rangeWindow(
     prevTo: new Date(Math.min(prevFrom.getTime() + span, from.getTime())),
   }
 }
-
-// Real users only (views from migration 0024) or every row (raw tables).
-const TABLE_NAMES = [
-  'usage_events',
-  'action_log',
-  'usage_installs',
-  'feedback',
-  'user_profiles',
-  'quick_grades',
-  'term_grades',
-  'subject_grades',
-  'settlements',
-  'parent_child_relationships',
-  'parent_child_invites',
-] as const
-type Tables = Record<(typeof TABLE_NAMES)[number], string>
-const tablesFor = (traffic: 'real' | 'all') =>
-  Object.fromEntries(
-    TABLE_NAMES.map((n) => [n, traffic === 'real' ? `stats_real_${n}` : n])
-  ) as Tables
-
-const int = (v: unknown) => Number(v || 0)
-const q = async <T = Record<string, unknown>>(text: string, params: unknown[] = []) =>
-  (await pool.query(text, params)).rows as T[]
-type Row = Record<string, unknown>
-
-const P = `($3 = 'all' OR platform = $3)`
-// One person = one id: the account when known — also for that account's
-// devices before sign-in (usage_installs.user_id) — else install, else visitor hash.
-const uid = (t: string) =>
-  `COALESCE(${t}.user_id, (SELECT i.user_id FROM usage_installs i WHERE i.install_id = ${t}.install_id), ${t}.install_id, ${t}.visitor_hash)`
 
 // Union of every row that proves a person was active. `known` = account or
 // install, as opposed to a web visitor whose anonymous hash rotates daily.
@@ -1082,26 +1052,45 @@ export async function getStats(o: StatsQuery = {}) {
   // Classification feeds the stats_real_* views, so it runs first.
   await autoClassify().catch((e) => console.error('[stats] classify:', (e as Error).message))
   const t = tablesFor(traffic)
-  const [k, rec, s, ser, us, ct, acq, ret, stick, fb, h, vit, ed, since, act, excl, classified] =
-    await Promise.all([
-      kpis(w, platform, t),
-      records(w, t, bucket),
-      store(w, platform, t),
-      series(w, platform, t, bucket),
-      usage(w, platform, t),
-      content(w, platform, t),
-      acquisition(w, platform, t),
-      retention(w, platform, t),
-      stickiness(w, platform, t),
-      feedback(w, platform, t),
-      health(w, platform, t),
-      vitals(w, platform),
-      edge(w, platform),
-      trackingSince(),
-      activityTable(w, platform, t, bucket),
-      excludedActivity(w, platform),
-      listClassified(),
-    ])
+  const [
+    k,
+    rec,
+    s,
+    ser,
+    us,
+    ct,
+    acq,
+    ret,
+    stick,
+    fb,
+    h,
+    vit,
+    ed,
+    since,
+    act,
+    excl,
+    classified,
+    beh,
+  ] = await Promise.all([
+    kpis(w, platform, t),
+    records(w, t, bucket),
+    store(w, platform, t),
+    series(w, platform, t, bucket),
+    usage(w, platform, t),
+    content(w, platform, t),
+    acquisition(w, platform, t),
+    retention(w, platform, t),
+    stickiness(w, platform, t),
+    feedback(w, platform, t),
+    health(w, platform, t),
+    vitals(w, platform),
+    edge(w, platform),
+    trackingSince(),
+    activityTable(w, platform, t, bucket),
+    excludedActivity(w, platform),
+    listClassified(),
+    behaviour(w, platform, t),
+  ])
   const day = (d: Date) => d.toISOString().slice(0, 10)
   return {
     generatedAt: new Date().toISOString(),
@@ -1130,6 +1119,7 @@ export async function getStats(o: StatsQuery = {}) {
     health: h,
     vitals: vit,
     edge: ed,
+    behaviour: beh,
     // Usage columns before the first tracked day are unknown, not zero.
     activity: act.map((r) => ({
       ...r,
