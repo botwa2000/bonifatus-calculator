@@ -14,4 +14,18 @@ export async function register() {
   startStoreImports()
   purgeUsage()
   setInterval(purgeUsage, 6 * 60 * 60 * 1000).unref()
+
+  // Store reviewers' demo family: recreated within the hour if a reviewer deletes it.
+  if (process.env.APPREVIEW_PASSWORD) {
+    const { ensureReviewAccounts } = await import('@/lib/review/demo-account')
+    const ensure = () =>
+      ensureReviewAccounts()
+        .then((r) => {
+          if (r.status === 'ok' && (r.rebuilt || r.passwordSynced))
+            console.log('[review] demo accounts', r)
+        })
+        .catch((e) => console.error('[review] demo accounts:', (e as Error).message))
+    ensure()
+    setInterval(ensure, 60 * 60 * 1000).unref()
+  }
 }

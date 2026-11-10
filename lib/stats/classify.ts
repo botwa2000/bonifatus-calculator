@@ -13,6 +13,7 @@
  * class 'real' exists only as a manual override that keeps an account counted.
  */
 import { pool } from '@/lib/db/client'
+import { REVIEW_DEMO_EMAILS } from '@/lib/review/accounts'
 
 export const CLASSES = ['internal', 'review', 'test', 'real'] as const
 export type AccountClass = (typeof CLASSES)[number]
@@ -44,7 +45,8 @@ async function reviewAccounts(): Promise<string[]> {
 export async function autoClassify(force = false): Promise<void> {
   if (!force && Date.now() - lastRun < REFRESH_MS) return
   lastRun = Date.now()
-  const params = [teamLocals(), await reviewAccounts()]
+  // Our own store-review family counts as review whatever App Store Connect says.
+  const params = [teamLocals(), [...(await reviewAccounts()), ...REVIEW_DEMO_EMAILS]]
   const client = await pool.connect()
   try {
     await client.query('BEGIN')
