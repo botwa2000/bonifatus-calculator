@@ -14,6 +14,21 @@ const schema = z.object({
   newPassword: z.string().min(12, 'Password must be at least 12 characters'),
 })
 
+/**
+ * One answer for every failure (unknown email, no code, wrong, expired or used-up code),
+ * so the endpoint can't be used to learn which emails have accounts.
+ */
+function rejected() {
+  return NextResponse.json(
+    {
+      success: false,
+      error: 'Invalid or expired code. Check the code, or request a new one.',
+      code: 'INVALID_CODE',
+    },
+    { status: 400 }
+  )
+}
+
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
@@ -34,10 +49,7 @@ export async function POST(request: NextRequest) {
     // Find user by email
     const [user] = await db.select().from(users).where(eq(users.email, email)).limit(1)
     if (!user) {
-      return NextResponse.json(
-        { success: false, error: 'Invalid or expired code' },
-        { status: 400 }
-      )
+      return rejected()
     }
     const userId = user.id
 
@@ -57,10 +69,7 @@ export async function POST(request: NextRequest) {
       .limit(1)
 
     if (!record) {
-      return NextResponse.json(
-        { success: false, error: 'Invalid or expired code' },
-        { status: 400 }
-      )
+      return rejected()
     }
 
     // Increment attempt count before comparing — prevents brute-force bypass
@@ -69,25 +78,12 @@ export async function POST(request: NextRequest) {
       .set({ attemptCount: record.attemptCount + 1 })
       .where(eq(verificationCodes.id, record.id))
 
-    if (record.attemptCount + 1 > record.maxAttempts) {
-      return NextResponse.json(
-        { success: false, error: 'Too many attempts. Request a new code.' },
-        { status: 400 }
-      )
-    }
-
-    if (record.expiresAt < new Date()) {
-      return NextResponse.json(
-        { success: false, error: 'Code has expired. Request a new one.' },
-        { status: 400 }
-      )
+    if (record.attemptCount + 1 > record.maxAttempts || record.expiresAt < new Date()) {
+      return rejected()
     }
 
     if (record.code !== code) {
-      return NextResponse.json(
-        { success: false, error: 'Invalid or expired code' },
-        { status: 400 }
-      )
+      return rejected()
     }
 
     // Mark code verified

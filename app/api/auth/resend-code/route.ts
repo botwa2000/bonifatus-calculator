@@ -1,19 +1,81 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { NextRequest, NextResponse, after } from 'next/server'
 import { z } from 'zod'
 import { db } from '@/lib/db/client'
 import { users } from '@/drizzle/schema/auth'
 import { userProfiles } from '@/drizzle/schema/users'
 import { verificationCodes } from '@/drizzle/schema/security'
-import { eq, and, isNull, desc, gt } from 'drizzle-orm'
+import { eq, and, isNull, gt } from 'drizzle-orm'
 import { getClientIp } from '@/lib/auth/turnstile'
 import { sendEmail } from '@/lib/email/service'
-import { getVerificationCodeEmail, getPasswordResetCodeEmail } from '@/lib/email/templates'
+import { getVerificationCodeEmail } from '@/lib/email/templates'
 import { generateCode } from '@/lib/auth/generate-code'
+
+const CODE_TTL_MIN = 15
+const RESEND_COOLDOWN_MS = 3 * 60_000
 
 const resendSchema = z.object({
   userId: z.string().uuid('Invalid user ID'),
   purpose: z.enum(['email_verification', 'password_reset']).default('email_verification'),
 })
+
+/**
+ * Mails a new verification code if the id is a pending (unverified) account and the
+ * last code is older than the cooldown. Otherwise does nothing.
+ */
+async function resend(userId: string, ip: string, userAgent: string | null) {
+  const [user] = await db.select().from(users).where(eq(users.id, userId)).limit(1)
+  if (!user || user.emailVerified) return
+
+  const [recent] = await db
+    .select({ id: verificationCodes.id })
+    .from(verificationCodes)
+    .where(
+      and(
+        eq(verificationCodes.userId, userId),
+        eq(verificationCodes.purpose, 'email_verification'),
+        gt(verificationCodes.createdAt, new Date(Date.now() - RESEND_COOLDOWN_MS))
+      )
+    )
+    .limit(1)
+  if (recent) return
+
+  const [profile] = await db
+    .select({ fullName: userProfiles.fullName })
+    .from(userProfiles)
+    .where(eq(userProfiles.id, userId))
+    .limit(1)
+
+  await db
+    .update(verificationCodes)
+    .set({ verifiedAt: new Date() })
+    .where(
+      and(
+        eq(verificationCodes.userId, userId),
+        eq(verificationCodes.purpose, 'email_verification'),
+        isNull(verificationCodes.verifiedAt)
+      )
+    )
+
+  const code = generateCode()
+  await db.insert(verificationCodes).values({
+    userId,
+    email: user.email,
+    code,
+    purpose: 'email_verification',
+    expiresAt: new Date(Date.now() + CODE_TTL_MIN * 60_000),
+    ipAddress: ip,
+    userAgent,
+  })
+
+  const template = getVerificationCodeEmail(code, profile?.fullName || user.email, CODE_TTL_MIN)
+  const sent = await sendEmail({
+    to: user.email,
+    subject: template.subject,
+    text: template.text,
+    html: template.html,
+  })
+  if (!sent) console.error('[resend-code] email not sent', { userId })
+}
 
 export async function POST(request: NextRequest) {
   try {
@@ -37,101 +99,18 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Get user info
-    const [user] = await db.select().from(users).where(eq(users.id, userId)).limit(1)
-    if (!user) {
-      return NextResponse.json({ success: false, error: 'User not found' }, { status: 404 })
-    }
-
-    const [profile] = await db
-      .select({ fullName: userProfiles.fullName })
-      .from(userProfiles)
-      .where(eq(userProfiles.id, userId))
-      .limit(1)
-
-    if (!profile) {
-      return NextResponse.json({ success: false, error: 'User not found' }, { status: 404 })
-    }
-
-    // Check for existing active code
-    const [activeCode] = await db
-      .select()
-      .from(verificationCodes)
-      .where(
-        and(
-          eq(verificationCodes.userId, userId),
-          eq(verificationCodes.purpose, purpose),
-          isNull(verificationCodes.verifiedAt),
-          gt(verificationCodes.expiresAt, new Date())
-        )
-      )
-      .orderBy(desc(verificationCodes.createdAt))
-      .limit(1)
-
-    if (activeCode) {
-      const timeSinceCreated = Date.now() - activeCode.createdAt.getTime()
-      const cooldownMs = 3 * 60 * 1000 // 3 minute cooldown between resends
-      if (timeSinceCreated < cooldownMs) {
-        const secondsRemaining = Math.ceil((cooldownMs - timeSinceCreated) / 1000)
-        return NextResponse.json(
-          {
-            success: false,
-            error: `Please wait ${secondsRemaining} second(s) before requesting a new code.`,
-            expiresAt: activeCode.expiresAt,
-          },
-          { status: 429 }
-        )
-      }
-    }
-
-    // Invalidate old codes
-    await db
-      .update(verificationCodes)
-      .set({ verifiedAt: new Date() })
-      .where(
-        and(
-          eq(verificationCodes.userId, userId),
-          eq(verificationCodes.purpose, purpose),
-          isNull(verificationCodes.verifiedAt)
-        )
-      )
-
-    // Generate new code
-    const code = generateCode()
-    const expiresAt = new Date(Date.now() + 15 * 60 * 1000)
-    const clientIp = getClientIp(request.headers)
-    const userAgent = request.headers.get('user-agent') || undefined
-
-    await db.insert(verificationCodes).values({
-      userId,
-      email: user.email,
-      code,
-      purpose,
-      expiresAt,
-      ipAddress: clientIp || '0.0.0.0',
-      userAgent: userAgent || null,
-    })
-
-    const template = getVerificationCodeEmail(code, profile.fullName, 15)
-
-    const emailSent = await sendEmail({
-      to: user.email,
-      subject: template.subject,
-      text: template.text,
-      html: template.html,
-    })
-
-    if (!emailSent) {
-      return NextResponse.json(
-        { success: false, error: 'Failed to send verification code' },
-        { status: 500 }
-      )
-    }
+    // Same answer whatever the id is (sign-up hands out ids that belong to no account
+    // when the email is already registered), and the work happens after the response.
+    // Within the cooldown nothing is sent; the previous code is still valid then.
+    const ip = getClientIp(request.headers) || '0.0.0.0'
+    const userAgent = request.headers.get('user-agent')
+    after(() =>
+      resend(userId, ip, userAgent).catch((error) => console.error('Resend code error:', error))
+    )
 
     return NextResponse.json({
       success: true,
-      message: 'Verification code sent successfully',
-      expiresAt: expiresAt.toISOString(),
+      message: 'If this sign-up is waiting for confirmation, a new code is on its way.',
     })
   } catch (error) {
     console.error('Resend code error:', error)

@@ -27,6 +27,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   bool _isSubmitting = false;
   bool _biometricAvailable = false;
   String? _error;
+  /// Shown under a rejected email + password: the same help for everyone, because the
+  /// app is never told whether the account exists or was made with Google or Apple.
+  bool _showSignInHelp = false;
 
   @override
   void initState() {
@@ -51,6 +54,30 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     // Never auto-trigger — the user must tap the button explicitly.
   }
 
+  void _showLoginError(Object err) {
+    final l10n = AppLocalizations.of(context)!;
+    String msg;
+    var help = false;
+    if (err is PasswordLoginException) {
+      switch (err.reason) {
+        case PasswordLoginFailure.invalidCredentials:
+          msg = l10n.loginInvalidCredentials;
+          help = true;
+        case PasswordLoginFailure.tooManyAttempts:
+          msg = l10n.loginTooManyAttempts;
+        case PasswordLoginFailure.emailNotVerified:
+          msg = l10n.loginEmailNotVerified;
+        case PasswordLoginFailure.network:
+          msg = l10n.loginNetworkError;
+        case PasswordLoginFailure.server:
+          msg = l10n.loginServerError;
+      }
+    } else {
+      msg = err.toString().replaceFirst('Exception: ', '');
+    }
+    setState(() { _error = msg; _showSignInHelp = help; });
+  }
+
   @override
   void dispose() {
     _emailCtrl.dispose();
@@ -60,7 +87,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
-    setState(() { _error = null; _isSubmitting = true; });
+    setState(() { _error = null; _showSignInHelp = false; _isSubmitting = true; });
     await ref.read(authStateNotifierProvider.notifier).login(
       email: _emailCtrl.text.trim(),
       password: _passCtrl.text,
@@ -69,9 +96,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     // Belt-and-suspenders: read current state after await in case the listener
     // fired but the setState was batched away before taking effect.
     final authState = ref.read(authStateNotifierProvider);
-    if (authState.hasError) {
-      setState(() => _error = authState.error?.toString().replaceFirst('Exception: ', ''));
-    }
+    if (authState.hasError) _showLoginError(authState.error!);
     setState(() => _isSubmitting = false);
   }
 
@@ -80,7 +105,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       setState(() => _error = 'Google Sign-In not configured yet.');
       return;
     }
-    setState(() { _error = null; _isSubmitting = true; });
+    setState(() { _error = null; _showSignInHelp = false; _isSubmitting = true; });
     try {
       // Always sign out first so the account picker appears on every tap,
       // not just the first time. This lets users switch accounts after logout.
@@ -134,7 +159,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   }
 
   Future<void> _loginWithApple() async {
-    setState(() { _error = null; _isSubmitting = true; });
+    setState(() { _error = null; _showSignInHelp = false; _isSubmitting = true; });
     try {
       final credential = await SignInWithApple.getAppleIDCredential(
         scopes: [
@@ -173,7 +198,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   }
 
   Future<void> _loginWithBiometrics() async {
-    setState(() { _error = null; _isSubmitting = true; });
+    setState(() { _error = null; _showSignInHelp = false; _isSubmitting = true; });
     final svc = ref.read(biometricServiceProvider);
     final l10n = AppLocalizations.of(context)!;
     final authed = await svc.authenticate(reason: l10n.settingsBiometricLogin);
@@ -193,9 +218,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     ref.listen(authStateNotifierProvider, (_, next) {
       next.whenOrNull(
         error: (err, _) {
-          if (mounted) {
-            setState(() => _error = err.toString().replaceFirst('Exception: ', ''));
-          }
+          if (mounted) _showLoginError(err);
         },
       );
     });
@@ -233,6 +256,11 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       Expanded(child: Text(_error!, style: theme.textTheme.bodyMedium?.copyWith(color: AppColors.error))),
                     ]),
                   ),
+                  if (_showSignInHelp) ...[
+                    const SizedBox(height: 8),
+                    Text(l10n.loginInvalidCredentialsHelp,
+                      style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant)),
+                  ],
                   const SizedBox(height: 16),
                 ],
 

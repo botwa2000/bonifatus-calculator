@@ -293,6 +293,13 @@ export default function LoginPage() {
               {error && (
                 <div className="bg-error-50 dark:bg-error-900/20 border border-error-200 dark:border-error-800 rounded-lg p-4">
                   <p className="text-sm text-error-600 dark:text-error-400">{error}</p>
+                  {/* Same help for everyone: the server never says whether the account
+                      exists or was created with Google or Apple. */}
+                  {error === t('invalidCredentials') && (
+                    <p className="mt-2 text-sm text-neutral-600 dark:text-neutral-400">
+                      {t('invalidCredentialsHelp')}
+                    </p>
+                  )}
                 </div>
               )}
               {statusMessage && (

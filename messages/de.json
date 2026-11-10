@@ -239,6 +239,7 @@
     "passwordResetSuccess": "Dein Passwort wurde erfolgreich zurückgesetzt. Du kannst dich jetzt mit deinem neuen Passwort anmelden.",
     "backToLogin": "Zurück zur Anmeldung",
     "invalidCredentials": "Ungültige E-Mail-Adresse oder ungültiges Passwort",
+    "invalidCredentialsHelp": "Konto mit Google oder Apple erstellt? Dann nutze diesen Button. Sonst prüfe die E-Mail-Adresse oder setze dein Passwort zurück.",
     "unexpectedError": "Ein unerwarteter Fehler ist aufgetreten. Bitte versuche es erneut.",
     "botProtectionNotConfigured": "Bot-Schutz ist nicht konfiguriert. Bitte versuche es später erneut.",
     "pleaseCheckBox": "Bitte setze das Häkchen, um zu bestätigen, dass du kein Roboter bist.",

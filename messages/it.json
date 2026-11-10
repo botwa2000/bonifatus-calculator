@@ -239,6 +239,7 @@
     "passwordResetSuccess": "La tua password è stata reimpostata con successo. Ora puoi accedere con la nuova password.",
     "backToLogin": "Torna al login",
     "invalidCredentials": "Email o password non validi",
+    "invalidCredentialsHelp": "Hai creato l'account con Google o Apple? Usa quel pulsante. Altrimenti controlla l'email o reimposta la password.",
     "unexpectedError": "Si è verificato un errore imprevisto. Riprova.",
     "botProtectionNotConfigured": "La protezione anti-bot non è configurata. Riprova più tardi.",
     "pleaseCheckBox": "Seleziona la casella per verificare che non sei un robot.",

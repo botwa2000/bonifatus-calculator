@@ -5,6 +5,29 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../../core/constants/app_constants.dart';
 import '../client.dart';
 
+/// Why an email + password sign-in failed. The server answers the same way for an
+/// unknown email, an account without a password and a wrong password, so the app
+/// can't (and must not) tell those apart.
+enum PasswordLoginFailure { invalidCredentials, tooManyAttempts, emailNotVerified, network, server }
+
+class PasswordLoginException implements Exception {
+  final PasswordLoginFailure reason;
+  const PasswordLoginException(this.reason);
+  @override
+  String toString() => 'PasswordLoginException(${reason.name})';
+}
+
+PasswordLoginFailure _loginFailure(DioException e) {
+  final status = e.response?.statusCode;
+  final data = e.response?.data;
+  final code = data is Map ? data['code'] : null;
+  if (status == null) return PasswordLoginFailure.network;
+  if (status == 401 || status == 400) return PasswordLoginFailure.invalidCredentials;
+  if (status == 429) return PasswordLoginFailure.tooManyAttempts;
+  if (status == 403 && code == 'EMAIL_NOT_VERIFIED') return PasswordLoginFailure.emailNotVerified;
+  return PasswordLoginFailure.server;
+}
+
 sealed class GoogleSignInResult {}
 
 class GoogleSignInAuthenticated extends GoogleSignInResult {
@@ -148,7 +171,7 @@ class AuthService {
         email: resp.data['user']?['email'] as String?,
       );
     } on DioException catch (e) {
-      throw Exception(_serverError(e, 'Invalid email or password'));
+      throw PasswordLoginException(_loginFailure(e));
     }
   }
 

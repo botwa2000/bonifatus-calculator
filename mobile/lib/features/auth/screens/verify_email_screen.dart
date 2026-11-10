@@ -51,8 +51,8 @@ class _VerifyEmailScreenState extends ConsumerState<VerifyEmailScreen> {
       String msg = l10n.verifyEmailFailed;
       if (e is DioException) {
         final data = e.response?.data;
-        if (data is Map && data['error'] != null) {
-          msg = data['error'].toString();
+        if (data is Map && data['code'] == 'INVALID_CODE') {
+          msg = l10n.verifyEmailInvalidCode;
         }
       }
       setState(() => _error = msg);

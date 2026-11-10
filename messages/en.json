@@ -239,6 +239,7 @@
     "passwordResetSuccess": "Your password has been reset successfully. You can now sign in with your new password.",
     "backToLogin": "Back to Login",
     "invalidCredentials": "Invalid email or password",
+    "invalidCredentialsHelp": "Created your account with Google or Apple? Use that button instead. Otherwise check the email address, or reset your password.",
     "unexpectedError": "An unexpected error occurred. Please try again.",
     "botProtectionNotConfigured": "Bot protection is not configured. Please try again later.",
     "pleaseCheckBox": "Please check the box to verify you are not a robot.",

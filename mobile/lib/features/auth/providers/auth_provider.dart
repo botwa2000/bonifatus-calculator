@@ -2,7 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../api/services/auth_service.dart';
 
-export '../../../api/services/auth_service.dart' show GoogleSignInResult, GoogleSignInAuthenticated, GoogleSignInNeedsProfile, AppleSignInResult, AppleSignInAuthenticated, AppleSignInNeedsProfile;
+export '../../../api/services/auth_service.dart' show PasswordLoginException, PasswordLoginFailure, GoogleSignInResult, GoogleSignInAuthenticated, GoogleSignInNeedsProfile, AppleSignInResult, AppleSignInAuthenticated, AppleSignInNeedsProfile;
 
 // Re-export AuthSessionState under the shorter name used throughout the app
 typedef AuthState = AuthSessionState;

@@ -22,6 +22,21 @@ interface Options {
 
 type Picked = { resultId: unknown; userId: unknown }
 
+/**
+ * What really happened, for the stats log only, when a response deliberately hides it
+ * (sign-up answers the same way whether or not the email already has an account).
+ * Kept in process memory against the Response object; it never reaches the client.
+ */
+const notes = new WeakMap<Response, { userId?: string | null; outcome?: Outcome }>()
+
+export function noteAction<T extends Response>(
+  res: T,
+  note: { userId?: string | null; outcome?: Outcome }
+): T {
+  notes.set(res, note)
+  return res
+}
+
 export function outcomeOf(status: number): Outcome {
   if (status < 400) return 'ok'
   if (status === 401 || status === 403) return 'denied'
@@ -57,7 +72,9 @@ export function withActionLog<R extends Request>(
         /* non-JSON body: nothing to pick */
       }
     }
-    log(req, user, action, opts, res.status, started, picked)
+    const note = notes.get(res)
+    if (note && note.userId !== undefined) picked.userId = note.userId
+    log(req, user, action, opts, res.status, started, picked, note?.outcome)
     return res
   }
 }
@@ -69,7 +86,8 @@ function log(
   opts: Options,
   status: number,
   started: number,
-  picked: Picked
+  picked: Picked,
+  outcome: Outcome = outcomeOf(status)
 ) {
   const latencyMs = performance.now() - started
   ;(async () => {
@@ -79,7 +97,7 @@ function log(
     const { resultId } = picked
     recordAction(ctx, {
       action,
-      outcome: outcomeOf(status),
+      outcome,
       statusCode: status,
       latencyMs,
       provider: opts.provider ?? null,

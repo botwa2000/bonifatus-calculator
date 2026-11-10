@@ -239,6 +239,7 @@
     "passwordResetSuccess": "Tu contraseña se ha restablecido correctamente. Ahora puedes iniciar sesión con tu nueva contraseña.",
     "backToLogin": "Volver al inicio de sesión",
     "invalidCredentials": "Correo o contraseña incorrectos",
+    "invalidCredentialsHelp": "¿Creaste tu cuenta con Google o Apple? Usa ese botón. Si no, revisa el correo o restablece tu contraseña.",
     "unexpectedError": "Ocurrió un error inesperado. Por favor, inténtalo de nuevo.",
     "botProtectionNotConfigured": "La protección contra bots no está configurada. Por favor, inténtalo más tarde.",
     "pleaseCheckBox": "Por favor, marca la casilla para verificar que no eres un robot.",

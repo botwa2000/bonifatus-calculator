@@ -239,6 +239,7 @@
     "passwordResetSuccess": "Ton mot de passe a été réinitialisé avec succès. Tu peux maintenant te connecter avec ton nouveau mot de passe.",
     "backToLogin": "Retour à la connexion",
     "invalidCredentials": "Adresse e-mail ou mot de passe incorrect",
+    "invalidCredentialsHelp": "Compte créé avec Google ou Apple ? Utilise ce bouton. Sinon, vérifie l'adresse e-mail ou réinitialise ton mot de passe.",
     "unexpectedError": "Une erreur inattendue s'est produite. Réessaie.",
     "botProtectionNotConfigured": "La protection anti-bot n'est pas configurée. Réessaie plus tard.",
     "pleaseCheckBox": "Coche la case pour vérifier que tu n'es pas un robot.",

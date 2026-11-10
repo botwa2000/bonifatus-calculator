@@ -337,3 +337,166 @@ https://bonifatus.com
 
   return { subject, text, html }
 }
+
+/** Shared frame for the account-security notices below. `body` is trusted HTML. */
+function noticeHtml(title: string, body: string): string {
+  return `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>${htmlEscape(title)}</title>
+</head>
+<body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background-color: #f5f5f5;">
+  <table role="presentation" style="width: 100%; border-collapse: collapse;">
+    <tr>
+      <td style="padding: 40px 0; text-align: center;">
+        <table role="presentation" style="width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+          <tr>
+            <td style="padding: 40px 40px 20px; text-align: center; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 8px 8px 0 0;">
+              <h1 style="margin: 0; color: #ffffff; font-size: 28px; font-weight: 600;">Bonifatus</h1>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding: 40px; text-align: left;">
+              <h2 style="margin: 0 0 20px; color: #1a1a1a; font-size: 24px; font-weight: 600;">${htmlEscape(title)}</h2>
+              ${body}
+            </td>
+          </tr>
+          <tr>
+            <td style="padding: 30px 40px; background-color: #f7fafc; border-radius: 0 0 8px 8px; text-align: center;">
+              <p style="margin: 0 0 10px; color: #718096; font-size: 14px;">
+                Best regards,<br>
+                <strong>The Bonifatus Team</strong>
+              </p>
+              <p style="margin: 20px 0 0; color: #a0aec0; font-size: 12px;">
+                Bonifatus - Motivating Academic Excellence<br>
+                <a href="https://bonifatus.com" style="color: #667eea; text-decoration: none;">bonifatus.com</a>
+              </p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>
+  `.trim()
+}
+
+const P = 'margin: 0 0 20px; color: #4a5568; font-size: 16px; line-height: 1.6;'
+const SMALL = 'margin: 20px 0 0; color: #718096; font-size: 14px; line-height: 1.6;'
+
+/** "Google", "Apple", "Google or Apple" from account provider ids. */
+export function providerNames(providers: string[]): string {
+  const names = [...new Set(providers)]
+    .map((p) => (p === 'google' ? 'Google' : p === 'apple' ? 'Apple' : null))
+    .filter((n) => n !== null)
+  return names.length ? names.join(' or ') : 'Google or Apple'
+}
+
+function codeBox(code: string): string {
+  return `
+              <table role="presentation" style="width: 100%; border-collapse: collapse;">
+                <tr>
+                  <td style="padding: 30px; background-color: #f7fafc; border-radius: 8px; text-align: center;">
+                    <div style="font-size: 36px; font-weight: 700; letter-spacing: 8px; color: #667eea; font-family: 'Courier New', monospace;">
+                      ${htmlEscape(code)}
+                    </div>
+                  </td>
+                </tr>
+              </table>`
+}
+
+/**
+ * Sent instead of a verification code when someone registers with an address that
+ * already has an account. The sign-up screen looks the same either way, so only the
+ * mailbox owner learns the account exists.
+ */
+export function getAccountExistsEmail(
+  userName: string,
+  signIn: { hasPassword: boolean; providers: string[] }
+): { subject: string; text: string; html: string } {
+  const subject = 'You already have a Bonifatus account'
+  const how = signIn.hasPassword
+    ? signIn.providers.length
+      ? `Sign in with your password or with ${providerNames(signIn.providers)}.`
+      : 'Sign in with your email and password.'
+    : `Your account uses ${providerNames(signIn.providers)} sign-in, so use that button on the sign-in screen.`
+
+  const text = `
+Hello ${userName},
+
+Someone just tried to create a new Bonifatus account with this email address. You already have an account, so no new one was created.
+
+${how}
+
+Forgot your password? Use "Forgot password" on the sign-in screen and we will email you a reset code.
+
+If this wasn't you, you can ignore this email. Nothing about your account has changed.
+
+Sign in: https://bonifatus.com/login
+
+Best regards,
+The Bonifatus Team
+  `.trim()
+
+  const html = noticeHtml(
+    subject,
+    `
+              <p style="${P}">Hello ${htmlEscape(userName)},</p>
+              <p style="${P}">Someone just tried to create a new Bonifatus account with this email address. You already have an account, so no new one was created.</p>
+              <p style="${P}"><strong>${htmlEscape(how)}</strong></p>
+              <p style="${P}">Forgot your password? Use <em>Forgot password</em> on the sign-in screen and we will email you a reset code.</p>
+              <p style="text-align: center; margin: 30px 0;">
+                <a href="https://bonifatus.com/login" style="display: inline-block; padding: 14px 28px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: #ffffff; text-decoration: none; border-radius: 6px; font-weight: 600; font-size: 16px;">Sign in</a>
+              </p>
+              <p style="${SMALL}">If this wasn't you, you can ignore this email. Nothing about your account has changed.</p>`
+  )
+  return { subject, text, html }
+}
+
+/**
+ * Forgot-password for an account that has no password (created with Google or Apple).
+ * Explains how they sign in, and lets them add a password with the code if they want one.
+ */
+export function getPasswordSetupCodeEmail(
+  code: string,
+  userName: string,
+  providers: string[],
+  expiresInMinutes: number = 15
+): { subject: string; text: string; html: string } {
+  const subject = 'How you sign in to Bonifatus'
+  const via = providerNames(providers)
+  const button = `Continue with ${via.split(' or ')[0]}`
+
+  const text = `
+Hello ${userName},
+
+We received a request to reset your Bonifatus password. Your account doesn't have a password: you created it with ${via}. To sign in, tap "${button}" on the sign-in screen.
+
+If you would also like to sign in with email and password, enter this code to set one:
+
+${code}
+
+This code will expire in ${expiresInMinutes} minutes. You can keep using ${via} either way.
+
+If you didn't request this, you can ignore this email. Nothing about your account has changed.
+
+Best regards,
+The Bonifatus Team
+  `.trim()
+
+  const html = noticeHtml(
+    subject,
+    `
+              <p style="${P}">Hello ${htmlEscape(userName)},</p>
+              <p style="${P}">We received a request to reset your Bonifatus password. Your account doesn't have a password: you created it with <strong>${htmlEscape(via)}</strong>. To sign in, use the <strong>${htmlEscape(button)}</strong> button on the sign-in screen.</p>
+              <p style="${P}">If you would also like to sign in with email and password, enter this code to set one:</p>
+              ${codeBox(code)}
+              <p style="${SMALL}">This code will expire in <strong>${expiresInMinutes} minutes</strong>. You can keep using ${htmlEscape(via)} either way.</p>
+              <p style="${SMALL}">If you didn't request this, you can ignore this email. Nothing about your account has changed.</p>`
+  )
+  return { subject, text, html }
+}

@@ -1,19 +1,24 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { NextRequest, NextResponse, after } from 'next/server'
 import { z } from 'zod'
 import bcrypt from 'bcryptjs'
 import { db } from '@/lib/db/client'
-import { users } from '@/drizzle/schema/auth'
+import { accounts, users } from '@/drizzle/schema/auth'
 import { userProfiles } from '@/drizzle/schema/users'
-import { verificationCodes } from '@/drizzle/schema/security'
-import { eq } from 'drizzle-orm'
+import { rateLimitTracking, verificationCodes } from '@/drizzle/schema/security'
+import { and, desc, eq, gt, isNull } from 'drizzle-orm'
 import { validatePassword } from '@/lib/auth/password-validation'
 import { verifyTurnstileToken, getClientIp } from '@/lib/auth/turnstile'
 import { validateMobileToken } from '@/lib/auth/validate-mobile-token'
 import { logSecurityEvent } from '@/lib/db/queries/security'
 import { sendEmail } from '@/lib/email/service'
-import { getVerificationCodeEmail } from '@/lib/email/templates'
+import { getAccountExistsEmail, getVerificationCodeEmail } from '@/lib/email/templates'
 import { generateCode } from '@/lib/auth/generate-code'
-import { withActionLog } from '@/lib/stats/with-action-log'
+import { noteAction, withActionLog } from '@/lib/stats/with-action-log'
+
+const CODE_TTL_MIN = 15
+const RESEND_COOLDOWN_MS = 3 * 60_000
+/** At most one "you already have an account" email per account per day. */
+const NOTICE_INTERVAL_MS = 24 * 60 * 60_000
 
 const registerSchema = z.object({
   email: z.string().email('Invalid email address'),
@@ -31,6 +36,107 @@ const registerSchema = z.object({
   semesterCount: z.number().int().min(1).max(4).optional(),
   programLength: z.number().int().min(1).max(20).optional(),
 })
+
+async function displayName(userId: string, fallback: string) {
+  const [profile] = await db
+    .select({ fullName: userProfiles.fullName })
+    .from(userProfiles)
+    .where(eq(userProfiles.id, userId))
+    .limit(1)
+  return profile?.fullName || fallback
+}
+
+/** Issues a fresh email-verification code for a pending account and mails it. */
+async function sendVerificationCode(
+  userId: string,
+  email: string,
+  ip: string,
+  userAgent: string | null,
+  opts: { respectCooldown: boolean }
+) {
+  try {
+    if (opts.respectCooldown) {
+      const [recent] = await db
+        .select({ id: verificationCodes.id })
+        .from(verificationCodes)
+        .where(
+          and(
+            eq(verificationCodes.userId, userId),
+            eq(verificationCodes.purpose, 'email_verification'),
+            gt(verificationCodes.createdAt, new Date(Date.now() - RESEND_COOLDOWN_MS))
+          )
+        )
+        .orderBy(desc(verificationCodes.createdAt))
+        .limit(1)
+      if (recent) return
+      await db
+        .update(verificationCodes)
+        .set({ verifiedAt: new Date() })
+        .where(
+          and(
+            eq(verificationCodes.userId, userId),
+            eq(verificationCodes.purpose, 'email_verification'),
+            isNull(verificationCodes.verifiedAt)
+          )
+        )
+    }
+    const code = generateCode()
+    await db.insert(verificationCodes).values({
+      userId,
+      email,
+      code,
+      purpose: 'email_verification',
+      expiresAt: new Date(Date.now() + CODE_TTL_MIN * 60_000),
+      ipAddress: ip,
+      userAgent,
+    })
+    const t = getVerificationCodeEmail(code, await displayName(userId, email), CODE_TTL_MIN)
+    const sent = await sendEmail({ to: email, subject: t.subject, text: t.text, html: t.html })
+    if (!sent) console.error('[register] verification email not sent', { userId })
+  } catch (err) {
+    console.error('[register] sending verification code failed:', (err as Error).message)
+  }
+}
+
+/** Lets the owner of an existing account know someone tried to sign up with their address. */
+async function notifyAccountExists(userId: string, hasPassword: boolean) {
+  try {
+    const identifier = 'register_notice:' + userId
+    const [recent] = await db
+      .select({ id: rateLimitTracking.id })
+      .from(rateLimitTracking)
+      .where(
+        and(
+          eq(rateLimitTracking.identifier, identifier),
+          gt(rateLimitTracking.lastAttemptAt, new Date(Date.now() - NOTICE_INTERVAL_MS))
+        )
+      )
+      .limit(1)
+    if (recent) return
+    await db.delete(rateLimitTracking).where(eq(rateLimitTracking.identifier, identifier))
+    await db
+      .insert(rateLimitTracking)
+      .values({ identifier, actionType: 'register', windowStart: new Date() })
+
+    const [user] = await db
+      .select({ email: users.email })
+      .from(users)
+      .where(eq(users.id, userId))
+      .limit(1)
+    if (!user) return
+    const linked = await db
+      .select({ provider: accounts.provider })
+      .from(accounts)
+      .where(eq(accounts.userId, userId))
+    const t = getAccountExistsEmail(await displayName(userId, 'there'), {
+      hasPassword,
+      providers: linked.map((a) => a.provider),
+    })
+    await sendEmail({ to: user.email, subject: t.subject, text: t.text, html: t.html })
+  } catch (err) {
+    console.error('[register] account-exists notice failed:', (err as Error).message)
+  }
+}
 
 async function handlePost(request: NextRequest) {
   try {
@@ -105,27 +211,41 @@ async function handlePost(request: NextRequest) {
       }
     }
 
-    // Check if email already exists
+    const userAgent = request.headers.get('user-agent') || null
+    const ip = clientIp || '0.0.0.0'
+    const expiresAt = new Date(Date.now() + CODE_TTL_MIN * 60_000)
+    // Hashing happens on every path so the response time doesn't depend on the outcome.
+    const hashedPassword = await bcrypt.hash(password, 12)
+
+    // The response is identical whether or not the address already has an account.
+    // Only what lands in that mailbox differs, and it is sent after the response.
+    const accepted = (userId: string) =>
+      NextResponse.json({ success: true, userId, email, expiresAt: expiresAt.toISOString() })
+
     const [existing] = await db
-      .select({ id: users.id, emailVerified: users.emailVerified })
+      .select({ id: users.id, emailVerified: users.emailVerified, password: users.password })
       .from(users)
       .where(eq(users.email, email))
       .limit(1)
-    if (existing) {
-      if (existing.emailVerified) {
-        return NextResponse.json(
-          { success: false, error: 'Registration failed. Please check your information.' },
-          { status: 400 }
-        )
-      }
-      // Unverified account — delete and allow re-registration
-      await db.delete(users).where(eq(users.email, email))
+
+    if (existing?.emailVerified) {
+      // Tell the owner, not the requester. The id handed back belongs to no account,
+      // so the verify screen simply never accepts a code for it.
+      after(() => notifyAccountExists(existing.id, existing.password !== null))
+      return noteAction(accepted(crypto.randomUUID()), { userId: existing.id, outcome: 'invalid' })
     }
 
-    const hashedPassword = await bcrypt.hash(password, 12)
-    const userId = crypto.randomUUID()
+    if (existing) {
+      // Sign-up started earlier but never confirmed. Keep it as it is: replacing it would
+      // let anyone cancel someone else's pending sign-up, or set its password before the
+      // owner confirms. Send the code again (respecting the resend cooldown) instead.
+      after(() =>
+        sendVerificationCode(existing.id, email, ip, userAgent, { respectCooldown: true })
+      )
+      return accepted(existing.id)
+    }
 
-    // Create user + profile in transaction
+    const userId = crypto.randomUUID()
     await db.transaction(async (tx) => {
       await tx.insert(users).values({
         id: userId,
@@ -150,46 +270,19 @@ async function handlePost(request: NextRequest) {
       await tx.insert(userProfiles).values({ ...profileBase, ...profileExtra } as any)
     })
 
-    // Generate verification code
-    const code = generateCode()
-    const expiresAt = new Date(Date.now() + 15 * 60 * 1000)
-    const userAgent = request.headers.get('user-agent') || undefined
-
-    await db.insert(verificationCodes).values({
-      userId,
-      email,
-      code,
-      purpose: 'email_verification',
-      expiresAt,
-      ipAddress: clientIp || '0.0.0.0',
-      userAgent: userAgent || null,
+    after(async () => {
+      await sendVerificationCode(userId, email, ip, userAgent, { respectCooldown: false })
+      await logSecurityEvent({
+        eventType: 'login_success',
+        severity: 'info',
+        userId,
+        ipAddress: ip,
+        userAgent,
+        metadata: { action: 'registration', role },
+      }).catch((err) => console.error('[register] security log failed:', (err as Error).message))
     })
 
-    // Send verification email
-    const emailTemplate = getVerificationCodeEmail(code, fullName || email, 15)
-    const emailSent = await sendEmail({
-      to: email,
-      subject: emailTemplate.subject,
-      text: emailTemplate.text,
-      html: emailTemplate.html,
-    })
-
-    await logSecurityEvent({
-      eventType: 'login_success',
-      severity: 'info',
-      userId,
-      ipAddress: clientIp || '0.0.0.0',
-      userAgent: userAgent || null,
-      metadata: { action: 'registration', role },
-    })
-
-    return NextResponse.json({
-      success: true,
-      userId,
-      email,
-      verificationEmailSent: emailSent,
-      expiresAt: expiresAt.toISOString(),
-    })
+    return accepted(userId)
   } catch (error) {
     console.error('Registration error:', error)
     return NextResponse.json(

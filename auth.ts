@@ -6,7 +6,8 @@ import { db } from '@/lib/db/client'
 import { eq } from 'drizzle-orm'
 import { users, accounts, sessions, verificationTokens } from '@/drizzle/schema/auth'
 import { userProfiles } from '@/drizzle/schema/users'
-import bcrypt from 'bcryptjs'
+import { passwordSignIn } from '@/lib/auth/credentials'
+import { getClientIp } from '@/lib/auth/turnstile'
 import { dbg, dbgWarn, dbgError } from '@/lib/debug'
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
@@ -48,7 +49,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         email: { label: 'Email', type: 'email' },
         password: { label: 'Password', type: 'password' },
       },
-      async authorize(credentials) {
+      async authorize(credentials, request) {
         dbg('auth', 'authorize called', {
           hasEmail: !!credentials?.email,
           hasPassword: !!credentials?.password,
@@ -63,23 +64,16 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         const password = credentials.password as string
 
         try {
-          const [user] = await db.select().from(users).where(eq(users.email, email)).limit(1)
-
-          if (!user || !user.password) {
-            dbg('auth', 'user not found or no password', { email })
+          const result = await passwordSignIn(email, password, {
+            ip: getClientIp(request.headers) || '0.0.0.0',
+            userAgent: request.headers.get('user-agent'),
+            source: 'web',
+          })
+          if (result.status !== 'ok') {
+            dbg('auth', 'authorize rejected', { status: result.status })
             return null
           }
-
-          const isValid = await bcrypt.compare(password, user.password)
-          if (!isValid) {
-            dbg('auth', 'invalid password', { email })
-            return null
-          }
-
-          if (!user.emailVerified) {
-            dbgWarn('auth', 'email not verified', { email })
-            return null
-          }
+          const { user } = result
 
           dbg('auth', 'authorize success', { email, userId: user.id })
           return {
