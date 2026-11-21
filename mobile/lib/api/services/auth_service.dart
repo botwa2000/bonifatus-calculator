@@ -12,7 +12,9 @@ enum PasswordLoginFailure { invalidCredentials, tooManyAttempts, emailNotVerifie
 
 class PasswordLoginException implements Exception {
   final PasswordLoginFailure reason;
-  const PasswordLoginException(this.reason);
+  /// Set with [PasswordLoginFailure.emailNotVerified]: the account to confirm.
+  final String? userId;
+  const PasswordLoginException(this.reason, {this.userId});
   @override
   String toString() => 'PasswordLoginException(${reason.name})';
 }
@@ -171,7 +173,11 @@ class AuthService {
         email: resp.data['user']?['email'] as String?,
       );
     } on DioException catch (e) {
-      throw PasswordLoginException(_loginFailure(e));
+      final data = e.response?.data;
+      throw PasswordLoginException(
+        _loginFailure(e),
+        userId: data is Map ? data['userId'] as String? : null,
+      );
     }
   }
 

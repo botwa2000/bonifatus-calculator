@@ -463,7 +463,6 @@
   "termTypeAnnual": "Jährlich",
   "nameUnknown": "Unbekannt",
   "gradingSystemGermanDefault": "Deutsch 1–6",
-  "loginOrDivider": "oder",
   "loginContinueWithGoogle": "Mit Google fortfahren",
   "loginContinueWithApple": "Mit Apple fortfahren",
   "googleProfileTitle": "Profil vervollständigen",
@@ -606,7 +605,6 @@
   "scanRatingQuestion": "Wie gut wurden die Noten erkannt?",
   "scanRatingThanks": "Danke für deine Bewertung!",
   "loginInvalidCredentials": "E-Mail-Adresse oder Passwort ist falsch.",
-  "loginInvalidCredentialsHelp": "Konto mit Google oder Apple erstellt? Dann nutze diesen Button. Sonst prüfe die E-Mail-Adresse oder setze dein Passwort über „Passwort vergessen?“ zurück.",
   "loginTooManyAttempts": "Zu viele Anmeldeversuche. Bitte warte 15 Minuten und versuche es erneut.",
   "loginEmailNotVerified": "Bitte bestätige zuerst deine E-Mail-Adresse mit dem Code, den wir dir geschickt haben.",
   "loginNetworkError": "Bonifatus ist nicht erreichbar. Prüfe deine Internetverbindung und versuche es erneut.",
@@ -617,5 +615,14 @@
   "getStartedAddGrade": "Erste Note eintragen",
   "getStartedAddGradeHint": "Test fotografieren oder Note eingeben – dauert 10 Sekunden.",
   "getStartedConnectParent": "Mit Eltern verbinden",
-  "getStartedConnectParentHint": "Deine Eltern installieren Bonifatus und zeigen dir einen QR-Code – scanne ihn in den Einstellungen."
+  "getStartedConnectParentHint": "Deine Eltern installieren Bonifatus und zeigen dir einen QR-Code – scanne ihn in den Einstellungen.",
+  "verifyEmailSendNewCode": "Neuen Code senden",
+  "verifyEmailCodeSent": "Ein neuer Code ist unterwegs. Schau in deinen Posteingang und Spam-Ordner.",
+  "loginOrWithEmail": "oder mit E-Mail",
+  "loginGoogleFailed": "Die Anmeldung mit Google hat nicht geklappt. Bitte versuche es noch einmal.",
+  "loginAppleFailed": "Die Anmeldung mit Apple hat nicht geklappt. Bitte versuche es noch einmal.",
+  "loginHelpUseGoogle": "Mit Google registriert? Nutze oben den Google-Button.",
+  "loginHelpUseGoogleOrApple": "Mit Google oder Apple registriert? Nutze oben den passenden Button.",
+  "loginHelpCreateAccount": "Noch kein Konto? Jetzt erstellen",
+  "loginHelpResetPassword": "Passwort vergessen? Jetzt zurücksetzen"
 }

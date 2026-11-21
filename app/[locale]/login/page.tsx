@@ -2,71 +2,14 @@
 
 import { useEffect, useRef, useState } from 'react'
 import Image from 'next/image'
-import { Link, getPathname, useRouter } from '@/i18n/navigation'
+import { Link, useRouter } from '@/i18n/navigation'
 import { Turnstile } from '@/components/ui/Turnstile'
 import { AppHeader } from '@/components/layout/AppHeader'
-import { useLocale, useTranslations } from 'next-intl'
+import { GoogleSignInButton, OrWithEmailDivider } from '@/components/auth/GoogleSignInButton'
+import { EmailCodeVerification } from '@/components/auth/EmailCodeVerification'
+import { SIGNIN_CODE_RATE_LIMITED, unverifiedUserId } from '@/lib/auth/signin-codes'
+import { useTranslations } from 'next-intl'
 import { dbg, dbgWarn, dbgError } from '@/lib/debug'
-
-function GoogleSignInButton({ label }: { label: string }) {
-  const locale = useLocale()
-  const [loading, setLoading] = useState(false)
-  const handleClick = async () => {
-    setLoading(true)
-    try {
-      const { signIn } = await import('next-auth/react')
-      await signIn('google', { callbackUrl: getPathname({ href: '/dashboard', locale }) })
-    } finally {
-      setLoading(false)
-    }
-  }
-  return (
-    <button
-      type="button"
-      onClick={handleClick}
-      disabled={loading}
-      className="w-full flex items-center justify-center gap-3 px-4 py-3 rounded-lg border border-neutral-300 dark:border-neutral-600 bg-white dark:bg-neutral-700 text-neutral-900 dark:text-white font-semibold text-sm hover:bg-neutral-50 dark:hover:bg-neutral-600 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-sm"
-    >
-      {loading ? (
-        <svg className="w-5 h-5 animate-spin text-neutral-500" fill="none" viewBox="0 0 24 24">
-          <circle
-            className="opacity-25"
-            cx="12"
-            cy="12"
-            r="10"
-            stroke="currentColor"
-            strokeWidth="4"
-          />
-          <path
-            className="opacity-75"
-            fill="currentColor"
-            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
-          />
-        </svg>
-      ) : (
-        <svg className="w-5 h-5" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-          <path
-            d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
-            fill="#4285F4"
-          />
-          <path
-            d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
-            fill="#34A853"
-          />
-          <path
-            d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
-            fill="#FBBC05"
-          />
-          <path
-            d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
-            fill="#EA4335"
-          />
-        </svg>
-      )}
-      {label}
-    </button>
-  )
-}
 
 export default function LoginPage() {
   const router = useRouter()
@@ -78,6 +21,10 @@ export default function LoginPage() {
   const formDataRef = useRef({ email: '', password: '' })
   const [formData, setFormData] = useState({ email: '', password: '' })
   const [error, setError] = useState('')
+  /** A refused email + password: show the same next steps whatever the cause. */
+  const [showSignInHelp, setShowSignInHelp] = useState(false)
+  /** Right password, unconfirmed address: switch to code entry for this account. */
+  const [pendingUserId, setPendingUserId] = useState<string | null>(null)
   const [statusMessage, setStatusMessage] = useState('')
   const [successMessage, setSuccessMessage] = useState('')
   const [loading, setLoading] = useState(false)
@@ -217,8 +164,19 @@ export default function LoginPage() {
         url: result?.url,
       })
       if (result?.error) {
-        dbgWarn('login', 'signIn returned error', { error: result.error })
-        setError(result.error === 'CredentialsSignin' ? t('invalidCredentials') : result.error)
+        dbgWarn('login', 'signIn returned error', { error: result.error, code: result.code })
+        const userId = unverifiedUserId(result.code)
+        if (userId) {
+          setPendingUserId(userId)
+        } else if (result.code === SIGNIN_CODE_RATE_LIMITED) {
+          setError(t('tooManyAttempts'))
+          setShowSignInHelp(true)
+        } else if (result.error === 'CredentialsSignin') {
+          setError(t('invalidCredentials'))
+          setShowSignInHelp(true)
+        } else {
+          setError(t('unexpectedError'))
+        }
         setTurnstileToken('')
         setLoading(false)
         return
@@ -241,6 +199,7 @@ export default function LoginPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
+    setShowSignInHelp(false)
     setStatusMessage('')
     dbg('login', 'handleSubmit', {
       hasToken: Boolean(turnstileToken),
@@ -284,276 +243,306 @@ export default function LoginPage() {
           </div>
 
           <div className="bg-white dark:bg-neutral-800 rounded-2xl shadow-card p-8">
-            <form onSubmit={handleSubmit} className="space-y-6">
-              {successMessage && (
-                <div className="bg-success-50 dark:bg-success-900/20 border border-success-200 dark:border-success-800 rounded-lg p-4">
-                  <p className="text-sm text-success-600 dark:text-success-400">{successMessage}</p>
-                </div>
-              )}
-              {error && (
-                <div className="bg-error-50 dark:bg-error-900/20 border border-error-200 dark:border-error-800 rounded-lg p-4">
-                  <p className="text-sm text-error-600 dark:text-error-400">{error}</p>
-                  {/* Same help for everyone: the server never says whether the account
-                      exists or was created with Google or Apple. */}
-                  {error === t('invalidCredentials') && (
-                    <p className="mt-2 text-sm text-neutral-600 dark:text-neutral-400">
-                      {t('invalidCredentialsHelp')}
-                    </p>
+            {pendingUserId ? (
+              <EmailCodeVerification
+                userId={pendingUserId}
+                email={formDataRef.current.email}
+                password={formDataRef.current.password}
+                sendCodeOnOpen
+                notice={t('emailNotVerifiedNewCode')}
+              />
+            ) : (
+              <>
+                {/* Google first: the quickest way in, no password to forget. */}
+                <GoogleSignInButton label={t('continueWithGoogle')} />
+                <OrWithEmailDivider label={t('orWithEmail')} />
+
+                <form onSubmit={handleSubmit} className="space-y-6">
+                  {successMessage && (
+                    <div className="bg-success-50 dark:bg-success-900/20 border border-success-200 dark:border-success-800 rounded-lg p-4">
+                      <p className="text-sm text-success-600 dark:text-success-400">
+                        {successMessage}
+                      </p>
+                    </div>
                   )}
-                </div>
-              )}
-              {statusMessage && (
-                <div className="bg-primary-50 dark:bg-primary-900/20 border border-primary-200 dark:border-primary-800 rounded-lg p-4 flex items-center gap-2 text-sm text-primary-700 dark:text-primary-200">
-                  <svg
-                    className="w-4 h-4 animate-spin text-primary-500"
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                  >
-                    <circle
-                      className="opacity-25"
-                      cx="12"
-                      cy="12"
-                      r="10"
-                      stroke="currentColor"
-                      strokeWidth="4"
-                    />
-                    <path
-                      className="opacity-75"
-                      fill="currentColor"
-                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                    />
-                  </svg>
-                  <span>{statusMessage}</span>
-                </div>
-              )}
-              {turnstileFailed && (
-                <div className="bg-warning-50 dark:bg-warning-900/20 border border-warning-200 dark:border-warning-800 rounded-lg p-4 text-sm text-warning-700 dark:text-warning-300">
-                  {t('botProtectionUnavailable')}
-                </div>
-              )}
-
-              <div>
-                <Turnstile
-                  key={fallbackVisible.current ? 'turnstile-visible' : 'turnstile-invisible'}
-                  siteKey={siteKey || ''}
-                  executeOnReady={!fallbackVisible.current}
-                  action="login"
-                  size={fallbackVisible.current ? 'normal' : 'invisible'}
-                  onSuccess={(token) => {
-                    dbg('login', 'turnstile onSuccess', { tokenLength: token.length })
-                    setTurnstileToken(token)
-                    setTurnstileLoading(false)
-                    setTurnstileFailed(false)
-                    setError('')
-                    setStatusMessage('')
-                    clearFallbackTimer()
-                    fallbackVisible.current = false
-                    forceRender((v) => v + 1)
-                    turnstileStartRef.current = null
-                    if (pendingSubmitRef.current) {
-                      pendingSubmitRef.current = false
-                      submitLogin(token)
-                    }
-                  }}
-                  onReady={() => {
-                    dbg('login', 'turnstile onReady', { fallbackVisible: fallbackVisible.current })
-                    setTurnstileLoading(false)
-                    turnstileStartRef.current = Date.now()
-                    if (fallbackVisible.current) {
-                      setStatusMessage(t('pleaseCheckBox'))
-                      clearFallbackTimer()
-                      return
-                    }
-                    setStatusMessage(t('securityCheck'))
-                    clearFallbackTimer()
-                    fallbackTimerRef.current = window.setTimeout(() => {
-                      if (!turnstileToken) triggerFallback()
-                    }, fallbackTimeoutMs)
-                  }}
-                  onError={(reason) => {
-                    dbgWarn('login', 'turnstile onError', {
-                      reason,
-                      wasFallbackVisible: fallbackVisible.current,
-                    })
-                    if (fallbackVisible.current) {
-                      setTurnstileFailed(true)
-                      setError('')
-                      setStatusMessage('')
-                      setTurnstileLoading(false)
-                      clearFallbackTimer()
-                      if (pendingSubmitRef.current) {
-                        pendingSubmitRef.current = false
-                        void submitLogin('')
-                      }
-                      return
-                    }
-                    setError(t('securityFailed'))
-                    setTurnstileToken('')
-                    setTurnstileLoading(false)
-                    setStatusMessage(t('pleaseCheckBox'))
-                    clearFallbackTimer()
-                    fallbackVisible.current = true
-                    forceRender((v) => v + 1)
-                    turnstileStartRef.current = null
-                    visibleFallbackTimerRef.current = window.setTimeout(() => {
-                      setTurnstileFailed(true)
-                      setStatusMessage('')
-                      setError('')
-                      if (pendingSubmitRef.current) {
-                        pendingSubmitRef.current = false
-                        void submitLogin('')
-                      }
-                    }, visibleFallbackTimeoutMs)
-                  }}
-                  onExpire={() => {
-                    dbg('login', 'turnstile onExpire — re-verifying')
-                    setTurnstileToken('')
-                    setTurnstileLoading(true)
-                    setStatusMessage(t('reVerifying'))
-                    clearFallbackTimer()
-                    fallbackVisible.current = false
-                    forceRender((v) => v + 1)
-                    turnstileStartRef.current = Date.now()
-                  }}
-                  theme="auto"
-                />
-                {turnstileLoading && (
-                  <p className="text-xs text-neutral-500 dark:text-neutral-400 text-center mt-2">
-                    {t('loadingVerification')}
-                  </p>
-                )}
-              </div>
-
-              <div>
-                <label
-                  htmlFor="email"
-                  className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2"
-                >
-                  {t('emailLabel')}
-                </label>
-                <input
-                  id="email"
-                  name="email"
-                  type="email"
-                  autoComplete="email"
-                  required
-                  value={formData.email}
-                  onFocus={() => syncOnFocus('email')}
-                  onChange={(e) => setFormData((prev) => ({ ...prev, email: e.target.value }))}
-                  className="w-full px-4 py-3 rounded-lg border border-neutral-300 dark:border-neutral-600 bg-white dark:bg-neutral-700 text-neutral-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
-                  placeholder={t('emailPlaceholder')}
-                />
-              </div>
-
-              <div>
-                <label
-                  htmlFor="password"
-                  className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2"
-                >
-                  {t('passwordLabel')}
-                </label>
-                <div className="relative">
-                  <input
-                    id="password"
-                    name="password"
-                    type={showPassword ? 'text' : 'password'}
-                    autoComplete="current-password"
-                    required
-                    value={formData.password}
-                    onFocus={() => syncOnFocus('password')}
-                    onChange={(e) => setFormData((prev) => ({ ...prev, password: e.target.value }))}
-                    className="w-full px-4 py-3 pr-12 rounded-lg border border-neutral-300 dark:border-neutral-600 bg-white dark:bg-neutral-700 text-neutral-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
-                    placeholder={t('passwordPlaceholder')}
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-500 hover:text-neutral-700 dark:text-neutral-400 dark:hover:text-neutral-200 transition-colors"
-                  >
-                    {showPassword ? (
+                  {error && (
+                    <div className="bg-error-50 dark:bg-error-900/20 border border-error-200 dark:border-error-800 rounded-lg p-4">
+                      <p className="text-sm text-error-600 dark:text-error-400">{error}</p>
+                      {/* Same next steps for everyone: the server never says whether the
+                      account exists or was created with Google. */}
+                      {showSignInHelp && (
+                        <ul
+                          data-testid="sign-in-help"
+                          className="mt-3 space-y-2 text-sm text-neutral-700 dark:text-neutral-300"
+                        >
+                          <li>↑ {t('helpUseGoogle')}</li>
+                          <li>
+                            <Link
+                              href="/register"
+                              className="font-semibold text-primary-600 hover:text-primary-500 dark:text-primary-400"
+                            >
+                              {t('helpCreateAccount')}
+                            </Link>
+                          </li>
+                          <li>
+                            <Link
+                              href="/forgot-password"
+                              className="font-semibold text-primary-600 hover:text-primary-500 dark:text-primary-400"
+                            >
+                              {t('helpResetPassword')}
+                            </Link>
+                          </li>
+                        </ul>
+                      )}
+                    </div>
+                  )}
+                  {statusMessage && (
+                    <div className="bg-primary-50 dark:bg-primary-900/20 border border-primary-200 dark:border-primary-800 rounded-lg p-4 flex items-center gap-2 text-sm text-primary-700 dark:text-primary-200">
                       <svg
-                        className="w-5 h-5"
+                        className="w-4 h-4 animate-spin text-primary-500"
+                        xmlns="http://www.w3.org/2000/svg"
                         fill="none"
-                        stroke="currentColor"
                         viewBox="0 0 24 24"
                       >
+                        <circle
+                          className="opacity-25"
+                          cx="12"
+                          cy="12"
+                          r="10"
+                          stroke="currentColor"
+                          strokeWidth="4"
+                        />
                         <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"
+                          className="opacity-75"
+                          fill="currentColor"
+                          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                         />
                       </svg>
-                    ) : (
-                      <svg
-                        className="w-5 h-5"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-                        />
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
-                        />
-                      </svg>
+                      <span>{statusMessage}</span>
+                    </div>
+                  )}
+                  {turnstileFailed && (
+                    <div className="bg-warning-50 dark:bg-warning-900/20 border border-warning-200 dark:border-warning-800 rounded-lg p-4 text-sm text-warning-700 dark:text-warning-300">
+                      {t('botProtectionUnavailable')}
+                    </div>
+                  )}
+
+                  <div>
+                    <Turnstile
+                      key={fallbackVisible.current ? 'turnstile-visible' : 'turnstile-invisible'}
+                      siteKey={siteKey || ''}
+                      executeOnReady={!fallbackVisible.current}
+                      action="login"
+                      size={fallbackVisible.current ? 'normal' : 'invisible'}
+                      onSuccess={(token) => {
+                        dbg('login', 'turnstile onSuccess', { tokenLength: token.length })
+                        setTurnstileToken(token)
+                        setTurnstileLoading(false)
+                        setTurnstileFailed(false)
+                        setError('')
+                        setStatusMessage('')
+                        clearFallbackTimer()
+                        fallbackVisible.current = false
+                        forceRender((v) => v + 1)
+                        turnstileStartRef.current = null
+                        if (pendingSubmitRef.current) {
+                          pendingSubmitRef.current = false
+                          submitLogin(token)
+                        }
+                      }}
+                      onReady={() => {
+                        dbg('login', 'turnstile onReady', {
+                          fallbackVisible: fallbackVisible.current,
+                        })
+                        setTurnstileLoading(false)
+                        turnstileStartRef.current = Date.now()
+                        if (fallbackVisible.current) {
+                          setStatusMessage(t('pleaseCheckBox'))
+                          clearFallbackTimer()
+                          return
+                        }
+                        setStatusMessage(t('securityCheck'))
+                        clearFallbackTimer()
+                        fallbackTimerRef.current = window.setTimeout(() => {
+                          if (!turnstileToken) triggerFallback()
+                        }, fallbackTimeoutMs)
+                      }}
+                      onError={(reason) => {
+                        dbgWarn('login', 'turnstile onError', {
+                          reason,
+                          wasFallbackVisible: fallbackVisible.current,
+                        })
+                        if (fallbackVisible.current) {
+                          setTurnstileFailed(true)
+                          setError('')
+                          setStatusMessage('')
+                          setTurnstileLoading(false)
+                          clearFallbackTimer()
+                          if (pendingSubmitRef.current) {
+                            pendingSubmitRef.current = false
+                            void submitLogin('')
+                          }
+                          return
+                        }
+                        setError(t('securityFailed'))
+                        setTurnstileToken('')
+                        setTurnstileLoading(false)
+                        setStatusMessage(t('pleaseCheckBox'))
+                        clearFallbackTimer()
+                        fallbackVisible.current = true
+                        forceRender((v) => v + 1)
+                        turnstileStartRef.current = null
+                        visibleFallbackTimerRef.current = window.setTimeout(() => {
+                          setTurnstileFailed(true)
+                          setStatusMessage('')
+                          setError('')
+                          if (pendingSubmitRef.current) {
+                            pendingSubmitRef.current = false
+                            void submitLogin('')
+                          }
+                        }, visibleFallbackTimeoutMs)
+                      }}
+                      onExpire={() => {
+                        dbg('login', 'turnstile onExpire — re-verifying')
+                        setTurnstileToken('')
+                        setTurnstileLoading(true)
+                        setStatusMessage(t('reVerifying'))
+                        clearFallbackTimer()
+                        fallbackVisible.current = false
+                        forceRender((v) => v + 1)
+                        turnstileStartRef.current = Date.now()
+                      }}
+                      theme="auto"
+                    />
+                    {turnstileLoading && (
+                      <p className="text-xs text-neutral-500 dark:text-neutral-400 text-center mt-2">
+                        {t('loadingVerification')}
+                      </p>
                     )}
-                  </button>
-                </div>
-              </div>
+                  </div>
 
-              <div className="flex items-center justify-between">
-                <div className="flex items-center">
-                  <input
-                    id="remember-me"
-                    type="checkbox"
-                    className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                  />
-                  <label
-                    htmlFor="remember-me"
-                    className="ml-2 block text-sm text-neutral-700 dark:text-neutral-300"
+                  <div>
+                    <label
+                      htmlFor="email"
+                      className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2"
+                    >
+                      {t('emailLabel')}
+                    </label>
+                    <input
+                      id="email"
+                      name="email"
+                      type="email"
+                      autoComplete="email"
+                      required
+                      value={formData.email}
+                      onFocus={() => syncOnFocus('email')}
+                      onChange={(e) => setFormData((prev) => ({ ...prev, email: e.target.value }))}
+                      className="w-full px-4 py-3 rounded-lg border border-neutral-300 dark:border-neutral-600 bg-white dark:bg-neutral-700 text-neutral-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
+                      placeholder={t('emailPlaceholder')}
+                    />
+                  </div>
+
+                  <div>
+                    <label
+                      htmlFor="password"
+                      className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2"
+                    >
+                      {t('passwordLabel')}
+                    </label>
+                    <div className="relative">
+                      <input
+                        id="password"
+                        name="password"
+                        type={showPassword ? 'text' : 'password'}
+                        autoComplete="current-password"
+                        required
+                        value={formData.password}
+                        onFocus={() => syncOnFocus('password')}
+                        onChange={(e) =>
+                          setFormData((prev) => ({ ...prev, password: e.target.value }))
+                        }
+                        className="w-full px-4 py-3 pr-12 rounded-lg border border-neutral-300 dark:border-neutral-600 bg-white dark:bg-neutral-700 text-neutral-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
+                        placeholder={t('passwordPlaceholder')}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-500 hover:text-neutral-700 dark:text-neutral-400 dark:hover:text-neutral-200 transition-colors"
+                      >
+                        {showPassword ? (
+                          <svg
+                            className="w-5 h-5"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"
+                            />
+                          </svg>
+                        ) : (
+                          <svg
+                            className="w-5 h-5"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                            />
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                            />
+                          </svg>
+                        )}
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center">
+                      <input
+                        id="remember-me"
+                        type="checkbox"
+                        className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                      />
+                      <label
+                        htmlFor="remember-me"
+                        className="ml-2 block text-sm text-neutral-700 dark:text-neutral-300"
+                      >
+                        {t('rememberMe')}
+                      </label>
+                    </div>
+                    <Link
+                      href="/forgot-password"
+                      className="text-sm text-primary-600 hover:text-primary-500 dark:text-primary-400 dark:hover:text-primary-300"
+                    >
+                      {t('forgotPassword')}
+                    </Link>
+                  </div>
+
+                  {/* Secondary to the Google button above: tonal, not the full gradient. */}
+                  <button
+                    type="submit"
+                    disabled={loading}
+                    className="w-full px-6 py-3 bg-primary-100 text-primary-800 dark:bg-primary-900/40 dark:text-primary-100 rounded-lg font-semibold hover:bg-primary-200 dark:hover:bg-primary-900/60 transition-all duration-normal disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    {t('rememberMe')}
-                  </label>
-                </div>
-                <Link
-                  href="/forgot-password"
-                  className="text-sm text-primary-600 hover:text-primary-500 dark:text-primary-400 dark:hover:text-primary-300"
-                >
-                  {t('forgotPassword')}
-                </Link>
-              </div>
+                    {loading ? t('signingIn') : t('signIn')}
+                  </button>
+                </form>
+              </>
+            )}
 
-              <button
-                type="submit"
-                disabled={loading}
-                className="w-full px-6 py-3 bg-gradient-to-r from-primary-600 to-secondary-600 text-white rounded-lg font-semibold shadow-button hover:shadow-lg hover:scale-105 transition-all duration-normal disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
-              >
-                {loading ? t('signingIn') : t('signIn')}
-              </button>
-            </form>
-
-            {/* Google Sign-In */}
-            <div className="mt-6">
-              <div className="flex items-center gap-3 my-4">
-                <div className="flex-1 h-px bg-neutral-200 dark:bg-neutral-700" />
-                <span className="text-xs text-neutral-500 dark:text-neutral-400 uppercase tracking-wide">
-                  {t('orDivider')}
-                </span>
-                <div className="flex-1 h-px bg-neutral-200 dark:bg-neutral-700" />
-              </div>
-              <GoogleSignInButton label={t('continueWithGoogle')} />
-            </div>
-
-            <div className="mt-4 text-center">
+            <div className="mt-6 text-center">
               <p className="text-sm text-neutral-600 dark:text-neutral-400">
                 {t('noAccount')}{' '}
                 <Link

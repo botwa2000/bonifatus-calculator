@@ -10,6 +10,8 @@ class GoogleProfileScreen extends ConsumerStatefulWidget {
   final String email;
   final bool isApple;
   final String? identityToken;
+  /// Role already picked on the sign-up screen ('child' or 'parent'), preselected here.
+  final String? initialRole;
 
   const GoogleProfileScreen({
     super.key,
@@ -18,6 +20,7 @@ class GoogleProfileScreen extends ConsumerStatefulWidget {
     required this.email,
     this.isApple = false,
     this.identityToken,
+    this.initialRole,
   });
 
   @override
@@ -35,6 +38,7 @@ class _GoogleProfileScreenState extends ConsumerState<GoogleProfileScreen> {
   void initState() {
     super.initState();
     _nameCtrl.text = widget.name;
+    if (widget.initialRole == 'child' || widget.initialRole == 'parent') _role = widget.initialRole;
   }
 
   @override

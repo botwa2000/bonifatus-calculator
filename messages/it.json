@@ -239,7 +239,6 @@
     "passwordResetSuccess": "La tua password è stata reimpostata con successo. Ora puoi accedere con la nuova password.",
     "backToLogin": "Torna al login",
     "invalidCredentials": "Email o password non validi",
-    "invalidCredentialsHelp": "Hai creato l'account con Google o Apple? Usa quel pulsante. Altrimenti controlla l'email o reimposta la password.",
     "unexpectedError": "Si è verificato un errore imprevisto. Riprova.",
     "botProtectionNotConfigured": "La protezione anti-bot non è configurata. Riprova più tardi.",
     "pleaseCheckBox": "Seleziona la casella per verificare che non sei un robot.",
@@ -270,7 +269,6 @@
     "dobInvalid": "La data di nascita sembra errata. L'età deve essere compresa tra 5 e 150 anni.",
     "accountCreatedEmailFailed": "Account creato! Tuttavia, non siamo riusciti a inviare l'email di verifica. Usa il pulsante \"Reinvia\" nella schermata successiva.",
     "continueWithGoogle": "Continua con Google",
-    "orDivider": "o",
     "googleProfileRoleChild": "Studente",
     "googleProfileErrorUnexpected": "Si è verificato un errore imprevisto",
     "googleProfileSubmitting": "Configurazione…",
@@ -286,7 +284,13 @@
     "registrationFailed": "Registrazione fallita",
     "verificationFailed": "Verifica fallita",
     "resendFailed": "Reinvio codice fallito",
-    "namePlaceholder": "Il tuo nome completo"
+    "namePlaceholder": "Il tuo nome completo",
+    "orWithEmail": "oppure con email",
+    "helpUseGoogle": "Ti sei registrato con Google? Usa il pulsante Google qui sopra.",
+    "helpCreateAccount": "Non hai ancora un account? Creane uno",
+    "helpResetPassword": "Password dimenticata? Reimpostala",
+    "emailNotVerifiedNewCode": "Il tuo indirizzo email non è ancora confermato. Ti abbiamo appena inviato un nuovo codice.",
+    "tooManyAttempts": "Troppi tentativi di accesso. Attendi 15 minuti e riprova."
   },
   "calculator": {
     "settings": "Impostazioni",

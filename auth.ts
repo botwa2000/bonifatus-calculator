@@ -1,4 +1,4 @@
-import NextAuth from 'next-auth'
+import NextAuth, { CredentialsSignin } from 'next-auth'
 import Credentials from 'next-auth/providers/credentials'
 import Google from 'next-auth/providers/google'
 import { DrizzleAdapter } from '@auth/drizzle-adapter'
@@ -9,6 +9,20 @@ import { userProfiles } from '@/drizzle/schema/users'
 import { passwordSignIn } from '@/lib/auth/credentials'
 import { getClientIp } from '@/lib/auth/turnstile'
 import { dbg, dbgWarn, dbgError } from '@/lib/debug'
+import { logSignIn } from '@/lib/stats/with-action-log'
+import { SIGNIN_CODE_RATE_LIMITED, SIGNIN_CODE_UNVERIFIED } from '@/lib/auth/signin-codes'
+
+/**
+ * A refusal the login page can act on (see lib/auth/signin-codes.ts). An unconfirmed
+ * account carries its id, which the page needs to send a fresh code; that is only
+ * reachable with the correct password. Every other failure stays the generic one.
+ */
+class SignInRefused extends CredentialsSignin {
+  constructor(code: string) {
+    super()
+    this.code = code
+  }
+}
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
   logger: {
@@ -62,6 +76,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
 
         const email = (credentials.email as string).toLowerCase()
         const password = credentials.password as string
+        const started = performance.now()
 
         try {
           const result = await passwordSignIn(email, password, {
@@ -71,9 +86,28 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           })
           if (result.status !== 'ok') {
             dbg('auth', 'authorize rejected', { status: result.status })
+            // Same status codes the app's /api/mobile/auth/signin answers with.
+            logSignIn(request.headers, {
+              provider: 'password',
+              started,
+              ...(result.status === 'invalid'
+                ? { status: 401, reason: result.reason, userId: result.userId }
+                : result.status === 'unverified'
+                  ? { status: 403, reason: 'email_unverified', userId: result.user.id }
+                  : { status: 429, reason: 'rate_limited' }),
+            })
+            if (result.status === 'unverified')
+              throw new SignInRefused(`${SIGNIN_CODE_UNVERIFIED}:${result.user.id}`)
+            if (result.status === 'rate_limited') throw new SignInRefused(SIGNIN_CODE_RATE_LIMITED)
             return null
           }
           const { user } = result
+          logSignIn(request.headers, {
+            provider: 'password',
+            status: 200,
+            userId: user.id,
+            started,
+          })
 
           dbg('auth', 'authorize success', { email, userId: user.id })
           return {
@@ -82,12 +116,31 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
             name: user.name,
           }
         } catch (err) {
+          if (err instanceof SignInRefused) throw err
           dbgError('auth', 'authorize threw', { email, error: String(err) })
+          logSignIn(request.headers, { provider: 'password', status: 500, reason: 'server_error' })
           return null
         }
       },
     }),
   ],
+  events: {
+    // Web Google sign-ins (password ones are logged in authorize above).
+    async signIn({ user, account, isNewUser }) {
+      if (account?.provider !== 'google') return
+      try {
+        const { headers } = await import('next/headers')
+        logSignIn(new Headers(await headers()), {
+          provider: 'google',
+          status: 200,
+          userId: user.id ?? null,
+          reason: isNewUser ? 'new_account' : 'existing',
+        })
+      } catch (err) {
+        dbgWarn('auth', 'google sign-in not logged', { error: String(err) })
+      }
+    },
+  },
   callbacks: {
     async jwt({ token, user, account }) {
       if (user) {

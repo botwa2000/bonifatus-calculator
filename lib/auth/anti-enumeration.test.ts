@@ -94,7 +94,12 @@ describe('passwordSignIn', () => {
     for (const c of cases) {
       vi.mocked(logSecurityEvent).mockClear()
       const { result, compares } = await run(c.user)
-      expect(result).toEqual({ status: 'invalid' })
+      // The reason travels to our logs only; the route must not pass it on (see below).
+      expect(result).toEqual({
+        status: 'invalid',
+        reason: c.reason,
+        userId: c.user ? 'u1' : null,
+      })
       expect(compares).toBe(1)
       expect(vi.mocked(logSecurityEvent).mock.calls[0][0].metadata).toEqual({
         reason: c.reason,
@@ -107,7 +112,31 @@ describe('passwordSignIn', () => {
   it('accepts the right password, and flags an unconfirmed account only then', async () => {
     expect((await run(verifiedUser, 'correct horse battery')).result.status).toBe('ok')
     const pending = { ...verifiedUser, emailVerified: null }
+    vi.mocked(logSecurityEvent).mockClear()
     expect((await run(pending, 'correct horse battery')).result.status).toBe('unverified')
+    // Logged for the stats, under a reason the lockout count ignores.
+    expect(vi.mocked(logSecurityEvent).mock.calls[0][0]).toMatchObject({
+      userId: 'u1',
+      metadata: { reason: 'email_unverified', source: 'mobile' },
+    })
+  })
+
+  it('answers every refused password with the same HTTP response on mobile', async () => {
+    const { POST } = await import('@/app/api/mobile/auth/signin/route')
+    const bodies = new Set<string>()
+    for (const user of [null, { ...verifiedUser, password: null }, verifiedUser]) {
+      h.results.push([{ n: 0 }], [{ n: 0 }], user ? [user] : [])
+      const res = await POST(
+        new NextRequest('http://localhost/api/mobile/auth/signin', {
+          method: 'POST',
+          body: JSON.stringify({ email: 'a@example.com', password: 'wrong guess here' }),
+        })
+      )
+      expect(res.status).toBe(401)
+      bodies.add(await res.text())
+    }
+    expect(bodies.size).toBe(1)
+    expect([...bodies][0]).not.toMatch(/reason|user_not_found|no_password|wrong_password/)
   })
 
   it('throttles per address before looking the address up', async () => {

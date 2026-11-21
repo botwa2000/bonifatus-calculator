@@ -239,7 +239,6 @@
     "passwordResetSuccess": "Dein Passwort wurde erfolgreich zurückgesetzt. Du kannst dich jetzt mit deinem neuen Passwort anmelden.",
     "backToLogin": "Zurück zur Anmeldung",
     "invalidCredentials": "Ungültige E-Mail-Adresse oder ungültiges Passwort",
-    "invalidCredentialsHelp": "Konto mit Google oder Apple erstellt? Dann nutze diesen Button. Sonst prüfe die E-Mail-Adresse oder setze dein Passwort zurück.",
     "unexpectedError": "Ein unerwarteter Fehler ist aufgetreten. Bitte versuche es erneut.",
     "botProtectionNotConfigured": "Bot-Schutz ist nicht konfiguriert. Bitte versuche es später erneut.",
     "pleaseCheckBox": "Bitte setze das Häkchen, um zu bestätigen, dass du kein Roboter bist.",
@@ -270,7 +269,6 @@
     "dobInvalid": "Geburtsdatum scheint nicht korrekt zu sein. Das Alter muss zwischen 5 und 150 liegen.",
     "accountCreatedEmailFailed": "Konto erstellt! Leider gab es ein Problem beim Senden der Bestätigungs-E-Mail. Bitte nutze die Schaltfläche \"Erneut senden\" auf der nächsten Seite.",
     "continueWithGoogle": "Mit Google fortfahren",
-    "orDivider": "oder",
     "googleProfileRoleChild": "Schüler/in",
     "googleProfileErrorUnexpected": "Ein unerwarteter Fehler ist aufgetreten",
     "googleProfileSubmitting": "Einrichten…",
@@ -286,7 +284,13 @@
     "registrationFailed": "Registrierung fehlgeschlagen",
     "verificationFailed": "Verifizierung fehlgeschlagen",
     "resendFailed": "Code konnte nicht erneut gesendet werden",
-    "namePlaceholder": "Ihr vollständiger Name"
+    "namePlaceholder": "Ihr vollständiger Name",
+    "orWithEmail": "oder mit E-Mail",
+    "helpUseGoogle": "Mit Google registriert? Nutze oben den Google-Button.",
+    "helpCreateAccount": "Noch kein Konto? Jetzt erstellen",
+    "helpResetPassword": "Passwort vergessen? Jetzt zurücksetzen",
+    "emailNotVerifiedNewCode": "Deine E-Mail-Adresse ist noch nicht bestätigt. Wir haben dir gerade einen neuen Code geschickt.",
+    "tooManyAttempts": "Zu viele Anmeldeversuche. Bitte warte 15 Minuten und versuche es erneut."
   },
   "calculator": {
     "settings": "Einstellungen",

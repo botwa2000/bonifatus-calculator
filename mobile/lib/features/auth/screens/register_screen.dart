@@ -5,6 +5,8 @@ import 'package:bonifatus_mobile/l10n/app_localizations.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../api/client.dart';
+import '../providers/auth_provider.dart';
+import '../widgets/social_sign_in_buttons.dart';
 
 class RegisterScreen extends ConsumerStatefulWidget {
   const RegisterScreen({super.key});
@@ -24,6 +26,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   bool _obscure = true;
 
   bool _isLoading = false;
+  bool _socialBusy = false;
   String? _error;
 
   @override
@@ -62,9 +65,16 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
         'role': _role,
       });
       final userId = (resp.data as Map?)?['userId'] as String? ?? '';
-      if (mounted) {
-        context.go('/auth/verify-email?email=${Uri.encodeComponent(_emailCtrl.text.trim())}&userId=${Uri.encodeComponent(userId)}&purpose=email_verification');
-      }
+      if (!mounted) return;
+      final email = _emailCtrl.text.trim();
+      final confirmed = await context.push<bool>(
+          '/auth/verify-email?email=${Uri.encodeComponent(email)}'
+          '&userId=${Uri.encodeComponent(userId)}&purpose=email_verification');
+      if (confirmed != true || !mounted) return;
+      // Address confirmed: sign straight in (the router opens the home screen),
+      // as the website does; on any failure the sign-in screen takes over.
+      await ref.read(authStateNotifierProvider.notifier).login(email: email, password: _passCtrl.text);
+      if (mounted && ref.read(authStateNotifierProvider).hasError) context.go('/auth/login');
     } catch (e) {
       String msg = l10n.registerFailed;
       if (e is DioException) {
@@ -127,8 +137,10 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                     obscure: _obscure,
                     onToggle: () => setState(() => _obscure = !_obscure),
                     error: _error,
-                    isLoading: _isLoading,
+                    isLoading: _isLoading || _socialBusy,
                     onNext: _nextStep,
+                    onSocialBusy: (b) => setState(() => _socialBusy = b),
+                    onSocialError: (msg) => setState(() => _error = msg),
                   ),
                 ],
               ),
@@ -237,6 +249,8 @@ class _StepCredentials extends StatelessWidget {
   final bool obscure, isLoading;
   final String? error;
   final VoidCallback onToggle, onNext;
+  final ValueChanged<bool> onSocialBusy;
+  final ValueChanged<String?> onSocialError;
 
   const _StepCredentials({
     required this.emailCtrl,
@@ -248,6 +262,8 @@ class _StepCredentials extends StatelessWidget {
     this.error,
     required this.onToggle,
     required this.onNext,
+    required this.onSocialBusy,
+    required this.onSocialError,
   });
 
   @override
@@ -291,6 +307,16 @@ class _StepCredentials extends StatelessWidget {
           ),
           const SizedBox(height: 16),
         ],
+        // Google (and Apple on iOS) first: no password to choose, no code to confirm.
+        SocialSignInButtons(
+          enabled: !isLoading,
+          role: role,
+          onBusy: onSocialBusy,
+          onError: onSocialError,
+        ),
+        const SizedBox(height: 24),
+        const OrWithEmailDivider(),
+        const SizedBox(height: 16),
         AutofillGroup(
           child: Column(children: [
             TextFormField(
@@ -327,10 +353,16 @@ class _StepCredentials extends StatelessWidget {
           ]),
         ),
         const SizedBox(height: 32),
-        ElevatedButton(
+        // Secondary to the social buttons above.
+        FilledButton.tonal(
+          key: const Key('register-password-submit'),
           onPressed: isLoading ? null : onNext,
+          style: FilledButton.styleFrom(
+            minimumSize: const Size(double.infinity, 56),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          ),
           child: isLoading
-              ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+              ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2))
               : Text(l10n.registerCreateAccountButton),
         ),
         const SizedBox(height: 12),

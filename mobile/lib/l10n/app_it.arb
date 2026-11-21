@@ -463,7 +463,6 @@
   "termTypeAnnual": "Annuale",
   "nameUnknown": "Sconosciuto",
   "gradingSystemGermanDefault": "Tedesco 1–6",
-  "loginOrDivider": "o",
   "loginContinueWithGoogle": "Continua con Google",
   "loginContinueWithApple": "Continua con Apple",
   "googleProfileTitle": "Completa il tuo profilo",
@@ -606,7 +605,6 @@
   "scanRatingQuestion": "Quanto bene sono stati riconosciuti i voti?",
   "scanRatingThanks": "Grazie per la valutazione!",
   "loginInvalidCredentials": "L'email o la password non sono corrette.",
-  "loginInvalidCredentialsHelp": "Hai creato l'account con Google o Apple? Usa quel pulsante. Altrimenti controlla l'email o reimposta la password con «Hai dimenticato la password?».",
   "loginTooManyAttempts": "Troppi tentativi di accesso. Attendi 15 minuti e riprova.",
   "loginEmailNotVerified": "Conferma prima il tuo indirizzo email con il codice che ti abbiamo inviato.",
   "loginNetworkError": "Impossibile raggiungere Bonifatus. Controlla la connessione a internet e riprova.",
@@ -617,5 +615,14 @@
   "getStartedAddGrade": "Aggiungi il tuo primo voto",
   "getStartedAddGradeHint": "Fotografa una verifica o inserisci un voto: 10 secondi.",
   "getStartedConnectParent": "Collega un genitore",
-  "getStartedConnectParentHint": "Il tuo genitore installa Bonifatus e ti mostra un codice QR: scansionalo nelle Impostazioni."
+  "getStartedConnectParentHint": "Il tuo genitore installa Bonifatus e ti mostra un codice QR: scansionalo nelle Impostazioni.",
+  "verifyEmailSendNewCode": "Invia un nuovo codice",
+  "verifyEmailCodeSent": "Un nuovo codice è in arrivo. Controlla la posta in arrivo e lo spam.",
+  "loginOrWithEmail": "oppure con email",
+  "loginGoogleFailed": "L'accesso con Google non è riuscito. Riprova.",
+  "loginAppleFailed": "L'accesso con Apple non è riuscito. Riprova.",
+  "loginHelpUseGoogle": "Ti sei registrato con Google? Usa il pulsante Google qui sopra.",
+  "loginHelpUseGoogleOrApple": "Ti sei registrato con Google o Apple? Usa quel pulsante qui sopra.",
+  "loginHelpCreateAccount": "Non hai ancora un account? Creane uno",
+  "loginHelpResetPassword": "Password dimenticata? Reimpostala"
 }

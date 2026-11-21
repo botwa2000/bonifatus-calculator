@@ -372,6 +372,8 @@ export interface ActionRecord {
   provider?: string | null
   resultId?: string | null
   source?: string | null
+  /** Why it was refused (or which kind of success); server-side only, see migration 0026. */
+  reason?: string | null
 }
 
 /** Record one core-action request. Never throws, never awaited by the caller. */
@@ -380,8 +382,8 @@ export function recordAction(context: RequestContext, a: ActionRecord): void {
     const ctx = await settleTraffic(context, a.outcome === 'ok' && !PASSIVE_ACTIONS.has(a.action))
     await pool.query(
       `INSERT INTO action_log
-         (platform, app_version, install_id, visitor_hash, user_id, action, source, outcome, status_code, latency_ms, provider, result_id, lang, country, traffic)
-       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15)`,
+         (platform, app_version, install_id, visitor_hash, user_id, action, source, outcome, status_code, latency_ms, provider, result_id, lang, country, traffic, reason)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16)`,
       [
         ctx.platform,
         ctx.version,
@@ -398,9 +400,12 @@ export function recordAction(context: RequestContext, a: ActionRecord): void {
         ctx.lang,
         ctx.country,
         ctx.traffic,
+        a.reason ? cleanShort(a.reason) : null,
       ]
     )
-    await touchInstall(ctx)
+    // A refused attempt names the account that was tried, not the one using this
+    // install: only a success may link the install to an account.
+    await touchInstall(a.outcome === 'ok' ? ctx : { ...ctx, userId: null })
   })().catch(logErr('recordAction'))
 }
 

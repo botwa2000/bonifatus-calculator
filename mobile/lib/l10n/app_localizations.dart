@@ -2464,12 +2464,6 @@ abstract class AppLocalizations {
   /// **'German 1–6'**
   String get gradingSystemGermanDefault;
 
-  /// No description provided for @loginOrDivider.
-  ///
-  /// In en, this message translates to:
-  /// **'or'**
-  String get loginOrDivider;
-
   /// No description provided for @loginContinueWithGoogle.
   ///
   /// In en, this message translates to:
@@ -3136,12 +3130,6 @@ abstract class AppLocalizations {
   /// **'Email or password is incorrect.'**
   String get loginInvalidCredentials;
 
-  /// No description provided for @loginInvalidCredentialsHelp.
-  ///
-  /// In en, this message translates to:
-  /// **'Created your account with Google or Apple? Use that button instead. Otherwise check the email address, or reset your password with \"Forgot password?\".'**
-  String get loginInvalidCredentialsHelp;
-
   /// No description provided for @loginTooManyAttempts.
   ///
   /// In en, this message translates to:
@@ -3207,6 +3195,60 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Your parent installs Bonifatus and shows you a QR code — scan it in Settings.'**
   String get getStartedConnectParentHint;
+
+  /// Button on the email-confirmation screen that requests a fresh 6-digit code
+  ///
+  /// In en, this message translates to:
+  /// **'Send a new code'**
+  String get verifyEmailSendNewCode;
+
+  /// Shown after a fresh confirmation code was requested
+  ///
+  /// In en, this message translates to:
+  /// **'A new code is on its way. Check your inbox and spam folder.'**
+  String get verifyEmailCodeSent;
+
+  /// Divider between the Google/Apple buttons and the email + password form
+  ///
+  /// In en, this message translates to:
+  /// **'or with email'**
+  String get loginOrWithEmail;
+
+  /// Google sign-in failed for a reason other than the user cancelling
+  ///
+  /// In en, this message translates to:
+  /// **'Google sign-in didn\'t work. Please try again.'**
+  String get loginGoogleFailed;
+
+  /// Sign in with Apple failed for a reason other than the user cancelling
+  ///
+  /// In en, this message translates to:
+  /// **'Apple sign-in didn\'t work. Please try again.'**
+  String get loginAppleFailed;
+
+  /// First of three next steps after a rejected email + password (Android)
+  ///
+  /// In en, this message translates to:
+  /// **'Signed up with Google? Use the Google button above.'**
+  String get loginHelpUseGoogle;
+
+  /// First of three next steps after a rejected email + password (iOS)
+  ///
+  /// In en, this message translates to:
+  /// **'Signed up with Google or Apple? Use that button above.'**
+  String get loginHelpUseGoogleOrApple;
+
+  /// Second next step after a rejected email + password; opens sign-up
+  ///
+  /// In en, this message translates to:
+  /// **'No account yet? Create one'**
+  String get loginHelpCreateAccount;
+
+  /// Third next step after a rejected email + password; opens password reset
+  ///
+  /// In en, this message translates to:
+  /// **'Forgot your password? Reset it'**
+  String get loginHelpResetPassword;
 }
 
 class _AppLocalizationsDelegate

@@ -620,7 +620,6 @@
   "termTypeAnnual": "Annual",
   "nameUnknown": "Unknown",
   "gradingSystemGermanDefault": "German 1–6",
-  "loginOrDivider": "or",
   "loginContinueWithGoogle": "Continue with Google",
   "loginContinueWithApple": "Continue with Apple",
   "googleProfileTitle": "Complete Your Profile",
@@ -824,7 +823,6 @@
   "scanRatingQuestion": "How well were the grades recognised?",
   "scanRatingThanks": "Thanks for rating!",
   "loginInvalidCredentials": "Email or password is incorrect.",
-  "loginInvalidCredentialsHelp": "Created your account with Google or Apple? Use that button instead. Otherwise check the email address, or reset your password with \"Forgot password?\".",
   "loginTooManyAttempts": "Too many sign-in attempts. Please wait 15 minutes and try again.",
   "loginEmailNotVerified": "Please confirm your email address first, using the code we emailed you.",
   "loginNetworkError": "Couldn't reach Bonifatus. Check your internet connection and try again.",
@@ -835,5 +833,41 @@
   "getStartedAddGrade": "Add your first grade",
   "getStartedAddGradeHint": "Snap a test or enter a grade — takes 10 seconds.",
   "getStartedConnectParent": "Connect a parent",
-  "getStartedConnectParentHint": "Your parent installs Bonifatus and shows you a QR code — scan it in Settings."
+  "getStartedConnectParentHint": "Your parent installs Bonifatus and shows you a QR code — scan it in Settings.",
+  "verifyEmailSendNewCode": "Send a new code",
+  "verifyEmailCodeSent": "A new code is on its way. Check your inbox and spam folder.",
+  "@verifyEmailSendNewCode": {
+    "description": "Button on the email-confirmation screen that requests a fresh 6-digit code"
+  },
+  "@verifyEmailCodeSent": {
+    "description": "Shown after a fresh confirmation code was requested"
+  },
+  "loginOrWithEmail": "or with email",
+  "@loginOrWithEmail": {
+    "description": "Divider between the Google/Apple buttons and the email + password form"
+  },
+  "loginGoogleFailed": "Google sign-in didn't work. Please try again.",
+  "@loginGoogleFailed": {
+    "description": "Google sign-in failed for a reason other than the user cancelling"
+  },
+  "loginAppleFailed": "Apple sign-in didn't work. Please try again.",
+  "@loginAppleFailed": {
+    "description": "Sign in with Apple failed for a reason other than the user cancelling"
+  },
+  "loginHelpUseGoogle": "Signed up with Google? Use the Google button above.",
+  "@loginHelpUseGoogle": {
+    "description": "First of three next steps after a rejected email + password (Android)"
+  },
+  "loginHelpUseGoogleOrApple": "Signed up with Google or Apple? Use that button above.",
+  "@loginHelpUseGoogleOrApple": {
+    "description": "First of three next steps after a rejected email + password (iOS)"
+  },
+  "loginHelpCreateAccount": "No account yet? Create one",
+  "@loginHelpCreateAccount": {
+    "description": "Second next step after a rejected email + password; opens sign-up"
+  },
+  "loginHelpResetPassword": "Forgot your password? Reset it",
+  "@loginHelpResetPassword": {
+    "description": "Third next step after a rejected email + password; opens password reset"
+  }
 }

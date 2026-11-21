@@ -239,7 +239,6 @@
     "passwordResetSuccess": "Tu contraseña se ha restablecido correctamente. Ahora puedes iniciar sesión con tu nueva contraseña.",
     "backToLogin": "Volver al inicio de sesión",
     "invalidCredentials": "Correo o contraseña incorrectos",
-    "invalidCredentialsHelp": "¿Creaste tu cuenta con Google o Apple? Usa ese botón. Si no, revisa el correo o restablece tu contraseña.",
     "unexpectedError": "Ocurrió un error inesperado. Por favor, inténtalo de nuevo.",
     "botProtectionNotConfigured": "La protección contra bots no está configurada. Por favor, inténtalo más tarde.",
     "pleaseCheckBox": "Por favor, marca la casilla para verificar que no eres un robot.",
@@ -270,7 +269,6 @@
     "dobInvalid": "La fecha de nacimiento parece incorrecta. La edad debe estar entre 5 y 150.",
     "accountCreatedEmailFailed": "¡Cuenta creada! Sin embargo, hubo un problema al enviar el correo de verificación. Por favor, usa el botón \"Reenviar\" en la siguiente pantalla.",
     "continueWithGoogle": "Continuar con Google",
-    "orDivider": "o",
     "googleProfileRoleChild": "Estudiante",
     "googleProfileErrorUnexpected": "Ocurrió un error inesperado",
     "googleProfileSubmitting": "Configurando…",
@@ -286,7 +284,13 @@
     "registrationFailed": "Error de registro",
     "verificationFailed": "Error de verificación",
     "resendFailed": "Error al reenviar el código",
-    "namePlaceholder": "Tu nombre completo"
+    "namePlaceholder": "Tu nombre completo",
+    "orWithEmail": "o con correo electrónico",
+    "helpUseGoogle": "¿Te registraste con Google? Usa el botón de Google de arriba.",
+    "helpCreateAccount": "¿Aún no tienes cuenta? Crea una",
+    "helpResetPassword": "¿Olvidaste tu contraseña? Restablécela",
+    "emailNotVerifiedNewCode": "Tu correo aún no está confirmado. Te acabamos de enviar un código nuevo.",
+    "tooManyAttempts": "Demasiados intentos de inicio de sesión. Espera 15 minutos e inténtalo de nuevo."
   },
   "calculator": {
     "settings": "Configuración",

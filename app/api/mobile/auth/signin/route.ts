@@ -6,7 +6,7 @@ import { eq } from 'drizzle-orm'
 import { signMobileToken } from '@/lib/auth/mobile-token'
 import { getClientIp } from '@/lib/auth/turnstile'
 import { passwordSignIn } from '@/lib/auth/credentials'
-import { withActionLog } from '@/lib/stats/with-action-log'
+import { noteAction, withActionLog } from '@/lib/stats/with-action-log'
 
 const schema = z.object({
   email: z.string().email(),
@@ -18,7 +18,10 @@ async function handlePost(request: NextRequest) {
     const body = await request.json()
     const parsed = schema.safeParse(body)
     if (!parsed.success) {
-      return NextResponse.json({ success: false, error: 'Invalid credentials' }, { status: 400 })
+      return noteAction(
+        NextResponse.json({ success: false, error: 'Invalid credentials' }, { status: 400 }),
+        { reason: 'bad_request' }
+      )
     }
 
     const email = parsed.data.email.toLowerCase()
@@ -28,26 +31,42 @@ async function handlePost(request: NextRequest) {
       source: 'mobile',
     })
     if (result.status === 'rate_limited') {
-      return NextResponse.json(
-        {
-          success: false,
-          error: 'Too many failed attempts. Please try again later.',
-          code: 'RATE_LIMITED',
-        },
-        { status: 429 }
+      return noteAction(
+        NextResponse.json(
+          {
+            success: false,
+            error: 'Too many failed attempts. Please try again later.',
+            code: 'RATE_LIMITED',
+          },
+          { status: 429 }
+        ),
+        { reason: 'rate_limited' }
       )
     }
     if (result.status === 'invalid') {
-      return NextResponse.json(
-        { success: false, error: 'Invalid email or password', code: 'INVALID_CREDENTIALS' },
-        { status: 401 }
+      // Same body for every cause; the real one goes to the stats log only.
+      return noteAction(
+        NextResponse.json(
+          { success: false, error: 'Invalid email or password', code: 'INVALID_CREDENTIALS' },
+          { status: 401 }
+        ),
+        { reason: result.reason, userId: result.userId }
       )
     }
-    // Only reachable with the correct password, so it reveals nothing to a guesser.
+    // Only reachable with the correct password, so it reveals nothing to a guesser;
+    // the app needs the id to open code entry and request a fresh code.
     if (result.status === 'unverified') {
-      return NextResponse.json(
-        { success: false, error: 'Email not verified', code: 'EMAIL_NOT_VERIFIED' },
-        { status: 403 }
+      return noteAction(
+        NextResponse.json(
+          {
+            success: false,
+            error: 'Email not verified',
+            code: 'EMAIL_NOT_VERIFIED',
+            userId: result.user.id,
+          },
+          { status: 403 }
+        ),
+        { reason: 'email_unverified', userId: result.user.id }
       )
     }
     const { user } = result

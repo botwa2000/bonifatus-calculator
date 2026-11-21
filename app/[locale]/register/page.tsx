@@ -2,75 +2,16 @@
 
 import { useState } from 'react'
 import Image from 'next/image'
-import { Link, getPathname, useRouter } from '@/i18n/navigation'
+import { Link } from '@/i18n/navigation'
 import { Turnstile } from '@/components/ui/Turnstile'
 import { AppHeader } from '@/components/layout/AppHeader'
-import { useLocale, useTranslations } from 'next-intl'
-
-function GoogleSignInButton({ label }: { label: string }) {
-  const locale = useLocale()
-  const [loading, setLoading] = useState(false)
-  const handleClick = async () => {
-    setLoading(true)
-    try {
-      const { signIn } = await import('next-auth/react')
-      await signIn('google', { callbackUrl: getPathname({ href: '/dashboard', locale }) })
-    } finally {
-      setLoading(false)
-    }
-  }
-  return (
-    <button
-      type="button"
-      onClick={handleClick}
-      disabled={loading}
-      className="w-full flex items-center justify-center gap-3 px-4 py-3 rounded-lg border border-neutral-300 dark:border-neutral-600 bg-white dark:bg-neutral-700 text-neutral-900 dark:text-white font-semibold text-sm hover:bg-neutral-50 dark:hover:bg-neutral-600 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-sm"
-    >
-      {loading ? (
-        <svg className="w-5 h-5 animate-spin text-neutral-500" fill="none" viewBox="0 0 24 24">
-          <circle
-            className="opacity-25"
-            cx="12"
-            cy="12"
-            r="10"
-            stroke="currentColor"
-            strokeWidth="4"
-          />
-          <path
-            className="opacity-75"
-            fill="currentColor"
-            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
-          />
-        </svg>
-      ) : (
-        <svg className="w-5 h-5" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-          <path
-            d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
-            fill="#4285F4"
-          />
-          <path
-            d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
-            fill="#34A853"
-          />
-          <path
-            d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
-            fill="#FBBC05"
-          />
-          <path
-            d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
-            fill="#EA4335"
-          />
-        </svg>
-      )}
-      {label}
-    </button>
-  )
-}
+import { GoogleSignInButton, OrWithEmailDivider } from '@/components/auth/GoogleSignInButton'
+import { EmailCodeVerification } from '@/components/auth/EmailCodeVerification'
+import { useTranslations } from 'next-intl'
 
 type RegistrationStep = 'form' | 'verification'
 
 export default function RegisterPage() {
-  const router = useRouter()
   const t = useTranslations('auth')
   const tCommon = useTranslations('common')
   const [step, setStep] = useState<RegistrationStep>('form')
@@ -80,7 +21,7 @@ export default function RegisterPage() {
     confirmPassword: '',
     role: 'parent' as 'parent' | 'child',
   })
-  const [verificationData, setVerificationData] = useState({ userId: '', code: '' })
+  const [pendingUserId, setPendingUserId] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
   const [turnstileToken, setTurnstileToken] = useState('')
@@ -88,7 +29,6 @@ export default function RegisterPage() {
   const [passwordStrength, setPasswordStrength] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
-  const [resendSuccess, setResendSuccess] = useState(false)
 
   const validatePassword = (password: string) => {
     if (password.length < 12) {
@@ -151,72 +91,8 @@ export default function RegisterPage() {
       if (data.verificationEmailSent === false) {
         setError(t('accountCreatedEmailFailed'))
       }
-      setVerificationData({ ...verificationData, userId: data.userId })
+      setPendingUserId(data.userId)
       setStep('verification')
-      setLoading(false)
-    } catch {
-      setError(t('unexpectedError'))
-      setLoading(false)
-    }
-  }
-
-  const handleVerification = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setError('')
-    setLoading(true)
-    try {
-      const response = await fetch('/api/auth/verify-email', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          userId: verificationData.userId,
-          code: verificationData.code,
-          purpose: 'email_verification',
-        }),
-      })
-      const data = await response.json()
-      if (!response.ok) {
-        setError(data.error || t('verificationFailed'))
-        setLoading(false)
-        return
-      }
-      try {
-        const { signIn } = await import('next-auth/react')
-        const result = await signIn('credentials', {
-          redirect: false,
-          email: formData.email,
-          password: formData.password,
-        })
-        if (result?.ok) {
-          router.push('/dashboard')
-          return
-        }
-      } catch {
-        // Auto-login failed, fall through to login page
-      }
-      router.push('/login?verified=true')
-    } catch {
-      setError(t('unexpectedError'))
-      setLoading(false)
-    }
-  }
-
-  const handleResendCode = async () => {
-    setError('')
-    setLoading(true)
-    try {
-      const response = await fetch('/api/auth/resend-code', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId: verificationData.userId, purpose: 'email_verification' }),
-      })
-      const data = await response.json()
-      if (!response.ok) {
-        setError(data.error || t('resendFailed'))
-        setLoading(false)
-        return
-      }
-      setResendSuccess(true)
       setLoading(false)
     } catch {
       setError(t('unexpectedError'))
@@ -241,83 +117,12 @@ export default function RegisterPage() {
               <p className="text-neutral-600 dark:text-neutral-400">{t('verifyEmail')}</p>
             </div>
             <div className="bg-white dark:bg-neutral-800 rounded-2xl shadow-card p-8">
-              <div className="text-center mb-6">
-                <div className="w-16 h-16 bg-info-100 dark:bg-info-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <svg
-                    className="w-8 h-8 text-info-600 dark:text-info-400"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
-                    />
-                  </svg>
-                </div>
-                <h2 className="text-xl font-semibold text-neutral-900 dark:text-white mb-2">
-                  {t('checkEmail')}
-                </h2>
-                <p className="text-sm text-neutral-600 dark:text-neutral-400">
-                  {t('sentCode')} <strong>{formData.email}</strong>
-                </p>
-              </div>
-              <form onSubmit={handleVerification} className="space-y-6">
-                {error && (
-                  <div className="bg-error-50 dark:bg-error-900/20 border border-error-200 dark:border-error-800 rounded-lg p-4">
-                    <p className="text-sm text-error-600 dark:text-error-400">{error}</p>
-                  </div>
-                )}
-                {resendSuccess && (
-                  <div className="bg-success-50 dark:bg-success-900/20 border border-success-200 dark:border-success-800 rounded-lg p-4">
-                    <p className="text-sm text-success-600 dark:text-success-400">
-                      {t('codeResent')}
-                    </p>
-                  </div>
-                )}
-                <div>
-                  <label
-                    htmlFor="code"
-                    className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2"
-                  >
-                    {t('verificationCode')}
-                  </label>
-                  <input
-                    id="code"
-                    type="text"
-                    required
-                    maxLength={6}
-                    pattern="[0-9]{6}"
-                    value={verificationData.code}
-                    onChange={(e) =>
-                      setVerificationData({ ...verificationData, code: e.target.value })
-                    }
-                    className="w-full px-4 py-3 rounded-lg border-2 border-neutral-300 dark:border-neutral-600 bg-white dark:bg-neutral-700 text-neutral-900 dark:text-white text-center text-2xl tracking-widest focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-normal outline-none"
-                    placeholder="000000"
-                  />
-                </div>
-                <button
-                  type="submit"
-                  disabled={loading || verificationData.code.length !== 6}
-                  className="w-full px-6 py-3 bg-gradient-to-r from-primary-600 to-secondary-600 text-white rounded-lg font-semibold shadow-button hover:shadow-lg hover:scale-105 transition-all duration-normal disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
-                >
-                  {loading ? t('verifying') : t('verifyEmailBtn')}
-                </button>
-              </form>
-              <div className="mt-6 text-center">
-                <p className="text-sm text-neutral-600 dark:text-neutral-400">
-                  {t('noCode')}{' '}
-                  <button
-                    onClick={handleResendCode}
-                    disabled={loading}
-                    className="text-primary-600 hover:text-primary-500 dark:text-primary-400 dark:hover:text-primary-300 font-semibold disabled:opacity-50 transition-colors duration-normal"
-                  >
-                    {t('resend')}
-                  </button>
-                </p>
-              </div>
+              <EmailCodeVerification
+                userId={pendingUserId}
+                email={formData.email}
+                password={formData.password}
+                initialError={error}
+              />
             </div>
           </div>
         </div>
@@ -368,6 +173,10 @@ export default function RegisterPage() {
             <p className="text-neutral-600 dark:text-neutral-400">{t('createAccount')}</p>
           </div>
           <div className="bg-white dark:bg-neutral-800 rounded-2xl shadow-card p-8">
+            {/* Google first: no password to choose, no code to confirm. */}
+            <GoogleSignInButton label={t('continueWithGoogle')} />
+            <OrWithEmailDivider label={t('orWithEmail')} />
+
             <form onSubmit={handleSubmit} className="space-y-6">
               {error && (
                 <div className="bg-error-50 dark:bg-error-900/20 border border-error-200 dark:border-error-800 rounded-lg p-4">
@@ -524,7 +333,7 @@ export default function RegisterPage() {
               <button
                 type="submit"
                 disabled={loading || !turnstileToken}
-                className="w-full px-6 py-3 bg-gradient-to-r from-primary-600 to-secondary-600 text-white rounded-lg font-semibold shadow-button hover:shadow-lg hover:scale-105 transition-all duration-normal disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+                className="w-full px-6 py-3 bg-primary-100 text-primary-800 dark:bg-primary-900/40 dark:text-primary-100 rounded-lg font-semibold hover:bg-primary-200 dark:hover:bg-primary-900/60 transition-all duration-normal disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {loading
                   ? t('creatingAccount')
@@ -534,19 +343,7 @@ export default function RegisterPage() {
               </button>
             </form>
 
-            {/* Google Sign-In */}
-            <div className="mt-6">
-              <div className="flex items-center gap-3 my-4">
-                <div className="flex-1 h-px bg-neutral-200 dark:bg-neutral-700" />
-                <span className="text-xs text-neutral-500 dark:text-neutral-400 uppercase tracking-wide">
-                  {t('orDivider')}
-                </span>
-                <div className="flex-1 h-px bg-neutral-200 dark:bg-neutral-700" />
-              </div>
-              <GoogleSignInButton label={t('continueWithGoogle')} />
-            </div>
-
-            <div className="mt-4 text-center">
+            <div className="mt-6 text-center">
               <p className="text-sm text-neutral-600 dark:text-neutral-400">
                 {t('hasAccount')}{' '}
                 <Link

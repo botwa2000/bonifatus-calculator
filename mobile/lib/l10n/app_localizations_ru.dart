@@ -1321,9 +1321,6 @@ class AppLocalizationsRu extends AppLocalizations {
   String get gradingSystemGermanDefault => 'Немецкая 1–6';
 
   @override
-  String get loginOrDivider => 'или';
-
-  @override
   String get loginContinueWithGoogle => 'Войти через Google';
 
   @override
@@ -1686,10 +1683,6 @@ class AppLocalizationsRu extends AppLocalizations {
   String get loginInvalidCredentials => 'Неверная почта или пароль.';
 
   @override
-  String get loginInvalidCredentialsHelp =>
-      'Создали аккаунт через Google или Apple? Используйте эту кнопку. Иначе проверьте адрес почты или сбросьте пароль через «Забыли пароль?».';
-
-  @override
   String get loginTooManyAttempts =>
       'Слишком много попыток входа. Подождите 15 минут и попробуйте снова.';
 
@@ -1710,23 +1703,55 @@ class AppLocalizationsRu extends AppLocalizations {
       'Неверный или просроченный код. Проверьте код и попробуйте снова.';
 
   @override
-  String get getStartedTitle => 'Let\'s earn your first reward 🎯';
+  String get getStartedTitle => 'Заработайте первую награду 🎯';
 
   @override
   String get getStartedBody =>
-      'Two steps and Bonifatus starts counting your grades:';
+      'Два шага — и Bonifatus начнёт считать ваши оценки:';
 
   @override
-  String get getStartedAddGrade => 'Add your first grade';
+  String get getStartedAddGrade => 'Добавить первую оценку';
 
   @override
   String get getStartedAddGradeHint =>
-      'Snap a test or enter a grade — takes 10 seconds.';
+      'Сфотографируйте контрольную или введите оценку — это займёт 10 секунд.';
 
   @override
-  String get getStartedConnectParent => 'Connect a parent';
+  String get getStartedConnectParent => 'Подключить родителя';
 
   @override
   String get getStartedConnectParentHint =>
-      'Your parent installs Bonifatus and shows you a QR code — scan it in Settings.';
+      'Родитель устанавливает Bonifatus и показывает вам QR-код — отсканируйте его в настройках.';
+
+  @override
+  String get verifyEmailSendNewCode => 'Отправить новый код';
+
+  @override
+  String get verifyEmailCodeSent =>
+      'Новый код уже в пути. Проверьте входящие и папку «Спам».';
+
+  @override
+  String get loginOrWithEmail => 'или по электронной почте';
+
+  @override
+  String get loginGoogleFailed =>
+      'Не удалось войти через Google. Попробуйте ещё раз.';
+
+  @override
+  String get loginAppleFailed =>
+      'Не удалось войти через Apple. Попробуйте ещё раз.';
+
+  @override
+  String get loginHelpUseGoogle =>
+      'Регистрировались через Google? Нажмите кнопку Google выше.';
+
+  @override
+  String get loginHelpUseGoogleOrApple =>
+      'Регистрировались через Google или Apple? Нажмите эту кнопку выше.';
+
+  @override
+  String get loginHelpCreateAccount => 'Ещё нет аккаунта? Создайте его';
+
+  @override
+  String get loginHelpResetPassword => 'Забыли пароль? Сбросьте его';
 }

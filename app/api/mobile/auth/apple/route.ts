@@ -5,7 +5,7 @@ import { userProfiles } from '@/drizzle/schema/users'
 import { eq, and } from 'drizzle-orm'
 import { signMobileToken } from '@/lib/auth/mobile-token'
 import { createPublicKey, createVerify } from 'node:crypto'
-import { withActionLog } from '@/lib/stats/with-action-log'
+import { noteAction, withActionLog } from '@/lib/stats/with-action-log'
 
 const BUNDLE_ID = 'dev.bonifatus.gradecalc'
 
@@ -82,10 +82,20 @@ async function handlePost(request: NextRequest) {
     }
 
     if (!identityToken) {
-      return NextResponse.json({ error: 'identityToken required' }, { status: 400 })
+      return noteAction(NextResponse.json({ error: 'identityToken required' }, { status: 400 }), {
+        reason: 'missing_token',
+      })
     }
 
-    const appleUser = await verifyAppleIdentityToken(identityToken)
+    let appleUser: Awaited<ReturnType<typeof verifyAppleIdentityToken>>
+    try {
+      appleUser = await verifyAppleIdentityToken(identityToken)
+    } catch (err) {
+      console.warn('[mobile/auth/apple] token rejected:', (err as Error).message)
+      return noteAction(NextResponse.json({ error: 'Authentication failed' }, { status: 401 }), {
+        reason: 'token_invalid',
+      })
+    }
 
     // Look up by linked Apple account first
     const [existingAccount] = await db
@@ -95,6 +105,7 @@ async function handlePost(request: NextRequest) {
       .limit(1)
 
     let userId: string | null = existingAccount?.userId ?? null
+    let created = false
 
     if (!userId && appleUser.email) {
       // Try to link to an existing email account
@@ -121,23 +132,31 @@ async function handlePost(request: NextRequest) {
 
     if (!userId) {
       if (!appleUser.email) {
-        return NextResponse.json(
-          { error: 'Could not retrieve your email from Apple. Please sign in again.' },
-          { status: 400 }
+        return noteAction(
+          NextResponse.json(
+            { error: 'Could not retrieve your email from Apple. Please sign in again.' },
+            { status: 400 }
+          ),
+          { reason: 'no_email' }
         )
       }
 
       // Brand-new user — need role + DOB before creating profile
       if (!role || !fullName || !dateOfBirth) {
-        return NextResponse.json({
-          status: 'needs_profile',
-          name: fullName ?? '',
-          email: appleUser.email,
-        })
+        return noteAction(
+          NextResponse.json({
+            status: 'needs_profile',
+            name: fullName ?? '',
+            email: appleUser.email,
+          }),
+          { reason: 'needs_profile' }
+        )
       }
 
       if (role !== 'parent' && role !== 'child') {
-        return NextResponse.json({ error: 'Invalid role' }, { status: 400 })
+        return noteAction(NextResponse.json({ error: 'Invalid role' }, { status: 400 }), {
+          reason: 'bad_role',
+        })
       }
 
       const email = appleUser.email.toLowerCase()
@@ -162,6 +181,7 @@ async function handlePost(request: NextRequest) {
         dateOfBirth,
       })
       userId = newId
+      created = true
     }
 
     const [profile] = await db
@@ -171,11 +191,14 @@ async function handlePost(request: NextRequest) {
       .limit(1)
 
     if (!profile) {
-      return NextResponse.json({
-        status: 'needs_profile',
-        name: fullName ?? '',
-        email: appleUser.email ?? '',
-      })
+      return noteAction(
+        NextResponse.json({
+          status: 'needs_profile',
+          name: fullName ?? '',
+          email: appleUser.email ?? '',
+        }),
+        { reason: 'needs_profile' }
+      )
     }
 
     const [user] = await db.select().from(users).where(eq(users.id, userId)).limit(1)
@@ -186,20 +209,24 @@ async function handlePost(request: NextRequest) {
       email: user?.email ?? '',
     })
 
-    return NextResponse.json({
-      success: true,
-      accessToken: token,
-      user: {
-        id: userId,
-        email: user?.email ?? '',
-        name: user?.name ?? profile.fullName,
-        role: profile.role,
-      },
-    })
+    return noteAction(
+      NextResponse.json({
+        success: true,
+        accessToken: token,
+        user: {
+          id: userId,
+          email: user?.email ?? '',
+          name: user?.name ?? profile.fullName,
+          role: profile.role,
+        },
+      }),
+      { reason: created ? 'new_account' : 'existing' }
+    )
   } catch (err) {
     console.error('[mobile/auth/apple]', err)
-    const message = err instanceof Error ? err.message : 'Authentication failed'
-    return NextResponse.json({ error: message }, { status: 401 })
+    return noteAction(NextResponse.json({ error: 'Authentication failed' }, { status: 500 }), {
+      reason: 'server_error',
+    })
   }
 }
 

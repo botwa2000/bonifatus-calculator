@@ -1332,9 +1332,6 @@ class AppLocalizationsFr extends AppLocalizations {
   String get gradingSystemGermanDefault => 'Allemand 1–6';
 
   @override
-  String get loginOrDivider => 'ou';
-
-  @override
   String get loginContinueWithGoogle => 'Continuer avec Google';
 
   @override
@@ -1701,10 +1698,6 @@ class AppLocalizationsFr extends AppLocalizations {
       'L\'adresse e-mail ou le mot de passe est incorrect.';
 
   @override
-  String get loginInvalidCredentialsHelp =>
-      'Compte créé avec Google ou Apple ? Utilise ce bouton. Sinon, vérifie l\'adresse e-mail ou réinitialise ton mot de passe via « Mot de passe oublié ? ».';
-
-  @override
   String get loginTooManyAttempts =>
       'Trop de tentatives de connexion. Attends 15 minutes puis réessaie.';
 
@@ -1743,4 +1736,36 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get getStartedConnectParentHint =>
       'Ton parent installe Bonifatus et te montre un code QR – scanne-le dans Réglages.';
+
+  @override
+  String get verifyEmailSendNewCode => 'Envoyer un nouveau code';
+
+  @override
+  String get verifyEmailCodeSent =>
+      'Un nouveau code est en route. Vérifie ta boîte de réception et tes spams.';
+
+  @override
+  String get loginOrWithEmail => 'ou avec une adresse e-mail';
+
+  @override
+  String get loginGoogleFailed =>
+      'La connexion avec Google n\'a pas fonctionné. Réessaie.';
+
+  @override
+  String get loginAppleFailed =>
+      'La connexion avec Apple n\'a pas fonctionné. Réessaie.';
+
+  @override
+  String get loginHelpUseGoogle =>
+      'Inscrit avec Google ? Utilise le bouton Google ci-dessus.';
+
+  @override
+  String get loginHelpUseGoogleOrApple =>
+      'Inscrit avec Google ou Apple ? Utilise ce bouton ci-dessus.';
+
+  @override
+  String get loginHelpCreateAccount => 'Pas encore de compte ? Crée-en un';
+
+  @override
+  String get loginHelpResetPassword => 'Mot de passe oublié ? Réinitialise-le';
 }

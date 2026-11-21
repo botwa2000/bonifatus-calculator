@@ -463,7 +463,6 @@
   "termTypeAnnual": "Anual",
   "nameUnknown": "Desconocido",
   "gradingSystemGermanDefault": "Alemán 1–6",
-  "loginOrDivider": "o",
   "loginContinueWithGoogle": "Continuar con Google",
   "loginContinueWithApple": "Continuar con Apple",
   "googleProfileTitle": "Completa tu perfil",
@@ -606,7 +605,6 @@
   "scanRatingQuestion": "¿Qué tal se reconocieron las notas?",
   "scanRatingThanks": "¡Gracias por valorar!",
   "loginInvalidCredentials": "El correo o la contraseña no son correctos.",
-  "loginInvalidCredentialsHelp": "¿Creaste tu cuenta con Google o Apple? Usa ese botón. Si no, revisa el correo o restablece tu contraseña con «¿Olvidaste tu contraseña?».",
   "loginTooManyAttempts": "Demasiados intentos de inicio de sesión. Espera 15 minutos e inténtalo de nuevo.",
   "loginEmailNotVerified": "Primero confirma tu correo con el código que te enviamos.",
   "loginNetworkError": "No se puede conectar con Bonifatus. Revisa tu conexión a internet e inténtalo de nuevo.",
@@ -617,5 +615,14 @@
   "getStartedAddGrade": "Añade tu primera nota",
   "getStartedAddGradeHint": "Fotografía un examen o introduce una nota: 10 segundos.",
   "getStartedConnectParent": "Conecta a tu madre o padre",
-  "getStartedConnectParentHint": "Tu madre o padre instala Bonifatus y te muestra un código QR: escanéalo en Ajustes."
+  "getStartedConnectParentHint": "Tu madre o padre instala Bonifatus y te muestra un código QR: escanéalo en Ajustes.",
+  "verifyEmailSendNewCode": "Enviar un código nuevo",
+  "verifyEmailCodeSent": "Te hemos enviado un código nuevo. Revisa tu bandeja de entrada y la carpeta de spam.",
+  "loginOrWithEmail": "o con correo electrónico",
+  "loginGoogleFailed": "No se pudo iniciar sesión con Google. Inténtalo de nuevo.",
+  "loginAppleFailed": "No se pudo iniciar sesión con Apple. Inténtalo de nuevo.",
+  "loginHelpUseGoogle": "¿Te registraste con Google? Usa el botón de Google de arriba.",
+  "loginHelpUseGoogleOrApple": "¿Te registraste con Google o Apple? Usa ese botón de arriba.",
+  "loginHelpCreateAccount": "¿Aún no tienes cuenta? Crea una",
+  "loginHelpResetPassword": "¿Olvidaste tu contraseña? Restablécela"
 }

@@ -24,15 +24,15 @@ type Picked = { resultId: unknown; userId: unknown }
 
 /**
  * What really happened, for the stats log only, when a response deliberately hides it
- * (sign-up answers the same way whether or not the email already has an account).
+ * (sign-up and sign-in answer the same way whether or not the email has an account).
  * Kept in process memory against the Response object; it never reaches the client.
+ *   userId  the account the request was about (on a refused sign-in: the one tried)
+ *   reason  why it was refused, or which kind of success (see migration 0026)
  */
-const notes = new WeakMap<Response, { userId?: string | null; outcome?: Outcome }>()
+type Note = { userId?: string | null; outcome?: Outcome; reason?: string }
+const notes = new WeakMap<Response, Note>()
 
-export function noteAction<T extends Response>(
-  res: T,
-  note: { userId?: string | null; outcome?: Outcome }
-): T {
+export function noteAction<T extends Response>(res: T, note: Note): T {
   notes.set(res, note)
   return res
 }
@@ -74,7 +74,7 @@ export function withActionLog<R extends Request>(
     }
     const note = notes.get(res)
     if (note && note.userId !== undefined) picked.userId = note.userId
-    log(req, user, action, opts, res.status, started, picked, note?.outcome)
+    log(req, user, action, opts, res.status, started, picked, note?.outcome, note?.reason)
     return res
   }
 }
@@ -87,7 +87,8 @@ function log(
   status: number,
   started: number,
   picked: Picked,
-  outcome: Outcome = outcomeOf(status)
+  outcome: Outcome = outcomeOf(status),
+  reason: string | null = null
 ) {
   const latencyMs = performance.now() - started
   ;(async () => {
@@ -104,6 +105,35 @@ function log(
       resultId:
         typeof resultId === 'string' || typeof resultId === 'number' ? String(resultId) : null,
       source: req.headers.get('x-source'),
+      reason,
     })
   })().catch((err) => console.error('[usage] action log failed:', (err as Error).message))
+}
+
+/**
+ * Sign-ins that don't go through a route handler of ours (NextAuth on the web): the
+ * same action_log row withActionLog writes for the app's /api/mobile/auth/* routes.
+ */
+export function logSignIn(
+  headers: Headers,
+  r: {
+    provider: 'password' | 'google' | 'apple'
+    status: number
+    reason?: string | null
+    userId?: string | null
+    started?: number
+  }
+) {
+  ;(async () => {
+    const ctx = await requestContext(headers, { userId: r.userId ?? null })
+    recordAction(ctx, {
+      action: 'signin',
+      outcome: outcomeOf(r.status),
+      statusCode: r.status,
+      latencyMs: r.started == null ? 0 : performance.now() - r.started,
+      provider: r.provider,
+      reason: r.reason ?? null,
+      source: headers.get('x-source'),
+    })
+  })().catch((err) => console.error('[usage] sign-in log failed:', (err as Error).message))
 }

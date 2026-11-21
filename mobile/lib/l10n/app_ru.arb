@@ -1,9 +1,7 @@
 {
   "@@locale": "ru",
   "@@last_modified": "2026-07-09T00:00:00.000000",
-
   "appName": "Bonifatus",
-
   "loginWelcomeBack": "С возвращением",
   "loginSignInSubtitle": "Войдите в свой аккаунт",
   "loginEmailLabel": "Электронная почта",
@@ -15,7 +13,6 @@
   "loginBiometricButton": "Войти биометрически",
   "loginNoAccountPrompt": "Нет аккаунта? ",
   "loginSignUpLink": "Зарегистрироваться",
-
   "registerStep1Title": "Как вас зовут?",
   "registerStep1Subtitle": "Так вас будут видеть другие.",
   "registerFullNameLabel": "Полное имя",
@@ -37,7 +34,6 @@
   "registerPasswordsDoNotMatch": "Пароли не совпадают",
   "registerPasswordTooShort": "Пароль должен содержать не менее 12 символов",
   "registerFailed": "Регистрация не удалась. Попробуйте снова.",
-
   "forgotPasswordAppBarTitle": "Сброс пароля",
   "forgotPasswordStep1Title": "Забыли пароль?",
   "forgotPasswordStep1Subtitle": "Введите почту, и мы отправим код для сброса.",
@@ -50,13 +46,11 @@
   "forgotPasswordResetButton": "Сбросить пароль",
   "forgotPasswordResendCode": "Отправить код повторно",
   "forgotPasswordUpdatedSnackbar": "Пароль обновлён! Войдите с новым паролем.",
-
   "verifyEmailAppBarTitle": "Подтверждение почты",
   "verifyEmailTitle": "Проверьте почту",
   "verifyEmailSubtitle": "Введите 6-значный код, отправленный на\n{email}",
   "verifyEmailButton": "Подтвердить",
   "verifyEmailFailed": "Подтверждение не удалось. Попробуйте снова.",
-
   "onboardingSkip": "Пропустить",
   "onboardingNext": "Далее",
   "onboardingGetStarted": "Начать",
@@ -68,7 +62,6 @@
   "onboardingPage2Body": "Сфотографируй любую школьную работу с оценкой. Приложение само распознает предмет и оценку.",
   "onboardingPage3Title": "Следите за успехами\nвместе",
   "onboardingPage3Body": "Родители и ученики видят одну и ту же информацию — оценки, бонусы и динамику со временем.",
-
   "settingsTitle": "Настройки",
   "settingsSectionPreferences": "Предпочтения",
   "settingsSectionAccount": "Аккаунт",
@@ -144,7 +137,6 @@
   "settingsTierBelowLabel": "Неудовлетворительно (Оценка 5–6)",
   "settingsFailedToLoadChildren": "Не удалось загрузить детей",
   "settingsNoChildrenConnected": "Дети не подключены",
-
   "dashboardHiName": "Привет, {name} 👋",
   "dashboardSubtitle": "Отслеживайте оценки, зарабатывайте награды",
   "dashboardThisWeek": "На этой неделе",
@@ -155,7 +147,6 @@
   "dashboardNoNotesYet": "Оценок пока нет",
   "dashboardCouldNotLoadResults": "Не удалось загрузить результаты",
   "dashboardNoSavedResultsYet": "Сохранённых результатов пока нет",
-
   "calculatorTitle": "Калькулятор оценок",
   "calculatorGradingSystem": "Система оценивания",
   "calculatorClass": "Класс",
@@ -182,7 +173,6 @@
   "calculatorTierSatisfactory": "Удовлетворительно",
   "calculatorTierBelow": "Ниже порога",
   "calculatorSettingsTooltip": "Настройки",
-
   "notesTitle": "Оценки",
   "notesNoNotesYet": "Оценок пока нет",
   "notesTapToCaptureFirst": "Нажмите + чтобы добавить первую оценку",
@@ -196,7 +186,6 @@
   "notesCancel": "Отмена",
   "notesThisWeek": "На этой неделе",
   "notesLastWeek": "На прошлой неделе",
-
   "noteDetailTitle": "Детали оценки",
   "noteDetailCouldNotLoad": "Не удалось загрузить оценку",
   "noteDetailNotFound": "Оценка не найдена",
@@ -213,7 +202,6 @@
   "noteDetailDeleteConfirm": "Вы уверены, что хотите удалить эту оценку? Это действие нельзя отменить.",
   "noteDetailDelete": "Удалить",
   "noteDetailCancel": "Отмена",
-
   "captureTitle": "Добавить оценку",
   "capturePositionGrade": "Расположите оценку так, чтобы она была чётко видна",
   "captureChooseFromGallery": "Выбрать из галереи",
@@ -227,7 +215,6 @@
   "captureSelectSubjectAndGrade": "Выберите предмет и оценку",
   "captureSaveGrade": "Сохранить оценку",
   "captureCancel": "Отмена",
-
   "cycleSummaryTitle": "Итоги цикла",
   "cycleSummaryCouldNotLoad": "Не удалось загрузить оценки",
   "cycleSummaryWeekly": "Понедельно",
@@ -235,14 +222,12 @@
   "cycleSummaryNoGrades": "Оценок за этот период нет",
   "cycleSummaryPositive": "Положительный",
   "cycleSummaryNet": "Итог",
-
   "resultsTitle": "Сохранённые результаты",
   "resultsFailedToLoad": "Не удалось загрузить результаты",
   "resultsRetry": "Повторить",
   "resultsNoResults": "Сохранённых результатов пока нет",
   "resultsUseCalculator": "Используйте калькулятор, чтобы сохранить первый результат за полугодие.",
   "resultsOpenCalculator": "Открыть калькулятор",
-
   "termDetailTitle": "Результат за полугодие",
   "termDetailCouldNotLoad": "Не удалось загрузить полугодие",
   "termDetailNotFound": "Полугодие не найдено",
@@ -250,7 +235,6 @@
   "termDetailBonus": "Бонус",
   "termDetailSubjects": "Предметы",
   "termDetailSubjectBreakdown": "Разбивка по предметам",
-
   "insightsTitle": "Аналитика",
   "insightsFailedToLoad": "Не удалось загрузить аналитику",
   "insightsRetry": "Повторить",
@@ -273,7 +257,6 @@
   "insightsTierGood": "Хорошо (1,5–2,4)",
   "insightsTierOk": "Удовл. (2,5–3,4)",
   "insightsTierBelow": "Неудовл. (3,5+)",
-
   "parentDashboardHiName": "Привет, {name}",
   "parentDashboardOverview": "Обзор ваших детей",
   "parentDashboardSummary": "Сводка",
@@ -284,7 +267,6 @@
   "parentDashboardNoChildrenConnected": "Детей пока не подключено.\nПерейдите на вкладку «Дети», чтобы добавить.",
   "parentDashboardRecentGrade": "Последняя оценка",
   "parentDashboardCouldNotLoadChildren": "Не удалось загрузить данные детей",
-
   "childrenTitle": "Дети",
   "childrenNoChildrenConnected": "Дети не подключены",
   "childrenShareQrHint": "Поделитесь QR-кодом приглашения, чтобы подключить ученика",
@@ -295,7 +277,6 @@
   "childrenRetry": "Повторить",
   "childrenClose": "Закрыть",
   "childrenFailedToLoad": "Не удалось загрузить детей",
-
   "childDetailTitle": "Данные ребёнка",
   "childDetailCouldNotLoad": "Не удалось загрузить данные",
   "childDetailNotFound": "Ребёнок не найден",
@@ -310,7 +291,6 @@
   "childDetailSettled": "Выплачено",
   "childDetailBonus": "Бонус",
   "childDetailStatus": "Статус",
-
   "rewardsTitle": "Награды",
   "rewardsTabQuickGrades": "Быстрые оценки",
   "rewardsTabGrades": "Оценки",
@@ -332,19 +312,24 @@
   "rewardsSectionNotesWeek": "Заметки — {weekRange}",
   "@rewardsSectionNotesWeek": {
     "placeholders": {
-      "weekRange": { "type": "String" }
+      "weekRange": {
+        "type": "String"
+      }
     }
   },
   "rewardsGroupSettleBonusFor": "Выплатить {label} для {childName}",
   "@rewardsGroupSettleBonusFor": {
     "placeholders": {
-      "label": { "type": "String" },
-      "childName": { "type": "String" }
+      "label": {
+        "type": "String"
+      },
+      "childName": {
+        "type": "String"
+      }
     }
   },
   "childrenSearchPlaceholder": "Поиск детей...",
   "insightsFilterAll": "Все",
-
   "parentInsightsTitle": "Аналитика",
   "parentInsightsFailedToLoad": "Не удалось загрузить аналитику",
   "parentInsightsRetry": "Повторить",
@@ -363,7 +348,9 @@
   "insightsDaysAgo": "{days}д назад",
   "@insightsDaysAgo": {
     "placeholders": {
-      "days": { "type": "int" }
+      "days": {
+        "type": "int"
+      }
     }
   },
   "insightsNote": "запись",
@@ -371,32 +358,39 @@
   "rewardsSettleAmount": "Выплатить · {pts} пт",
   "@rewardsSettleAmount": {
     "placeholders": {
-      "pts": { "type": "num" }
+      "pts": {
+        "type": "num"
+      }
     }
   },
-
   "navHome": "Главная",
   "navCalculator": "Калькулятор",
-
   "parentDashboardChildSubtitle": "{count} оценок · {pts} Б ожидает",
   "@parentDashboardChildSubtitle": {
     "placeholders": {
-      "count": { "type": "int" },
-      "pts": { "type": "num" }
+      "count": {
+        "type": "int"
+      },
+      "pts": {
+        "type": "num"
+      }
     }
   },
-
   "homeActionCenterSubtitle": "Вот что требует вашего внимания",
   "homeUnsettledBannerTitle": "{pts} Б готовы к выплате",
   "@homeUnsettledBannerTitle": {
     "placeholders": {
-      "pts": { "type": "num" }
+      "pts": {
+        "type": "num"
+      }
     }
   },
   "homeUnsettledBannerSub": "{count} неоплаченных позиций",
   "@homeUnsettledBannerSub": {
     "placeholders": {
-      "count": { "type": "int" }
+      "count": {
+        "type": "int"
+      }
     }
   },
   "homeGoToInsights": "Перейти к аналитике",
@@ -404,7 +398,6 @@
   "homeActiveTodaySection": "Активны сегодня",
   "homeActiveTodayEmpty": "Нет активности за последние 24 часа",
   "homeAllSettledUp": "Всё выплачено!",
-
   "termDetailDeleteTitle": "Удалить результат",
   "termDetailDeleteConfirm": "Вы уверены, что хотите удалить этот результат? Это действие нельзя отменить.",
   "termDetailDelete": "Удалить",
@@ -412,7 +405,6 @@
   "termDetailEditGrade": "Изменить оценку",
   "termSettledBadge": "Оплачено",
   "termOpenBadge": "Открыто",
-
   "calculatorLabelHint": "напр. Итоговый экзамен",
   "studentNotesCount": "{count, plural, =1{{count} запись} few{{count} записи} other{{count} записей}}",
   "calculatorNoSubjectsMatch": "Нет предметов, соответствующих \"{query}\"",
@@ -448,18 +440,21 @@
   "captureNGradesDetected": "{count, plural, =0{Оценки не обнаружены} =1{Обнаружена {count} оценка} few{Обнаружено {count} оценки} other{Обнаружено {count} оценок}}",
   "@captureNGradesDetected": {
     "placeholders": {
-      "count": { "type": "int" }
+      "count": {
+        "type": "int"
+      }
     }
   },
   "captureAddEntry": "Добавить запись",
   "captureSaveAll": "Сохранить {count}",
   "@captureSaveAll": {
     "placeholders": {
-      "count": { "type": "int" }
+      "count": {
+        "type": "int"
+      }
     }
   },
   "captureSelectSubject": "Нажмите для выбора",
-
   "termTypeSemester1": "Семестр 1",
   "termTypeSemester2": "Семестр 2",
   "termTypeTrimester1": "Триместр 1",
@@ -468,25 +463,20 @@
   "termTypeAnnual": "Годовой",
   "nameUnknown": "Неизвестно",
   "gradingSystemGermanDefault": "Немецкая 1–6",
-
-  "loginOrDivider": "или",
   "loginContinueWithGoogle": "Войти через Google",
   "loginContinueWithApple": "Войти через Apple",
   "googleProfileTitle": "Заполните профиль",
   "googleProfileSubtitle": "Ещё несколько деталей для начала.",
   "googleProfileRoleRequired": "Пожалуйста, выберите роль",
-
   "registerPasswordHelper": "Минимум 12 символов",
   "aboutDescription": "Bonifatus превращает школьные оценки в семейные награды. Ученики зарабатывают бонусные баллы за хорошие оценки, родители устанавливают награды.",
   "aboutPrivacyPolicy": "Политика конфиденциальности",
   "aboutTermsOfService": "Условия использования",
-
   "settingsSectionConnectedChildren": "Подключённые дети",
   "settingsChildBirthday": "Дата рождения",
   "settingsChildSchool": "Школа",
   "settingsChildNotSpecified": "Не указано",
   "settingsChildStats": "{grades} оценок · {pts} баллов · {pending} ожидает",
-
   "settleTitle": "Расчёт",
   "settleTabPending": "Ожидает",
   "settleTabHistory": "История",
@@ -520,16 +510,32 @@
   "insightsWorstSubject": "Нужно улучшить",
   "insightsStreak": "Активная серия",
   "insightsStreakWeeks": "{count}н.",
-  "@insightsStreakWeeks": { "placeholders": { "count": { "type": "int" } } },
+  "@insightsStreakWeeks": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "insightsBestGrade": "Лучшая оценка",
   "insightsWorstGrade": "Низшая оценка",
   "insightsNoStreak": "Начни серию!",
   "homeChildPts": "{pts} бал.",
-  "@homeChildPts": { "placeholders": { "pts": { "type": "num" } } },
+  "@homeChildPts": {
+    "placeholders": {
+      "pts": {
+        "type": "num"
+      }
+    }
+  },
   "homeChildGrades": "{count} оц.",
-  "@homeChildGrades": { "placeholders": { "count": { "type": "int" } } }
-,
-
+  "@homeChildGrades": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "profileSchoolTown": "Город школы",
   "profileSchoolTownPlaceholder": "напр., Мюнхен",
   "profileSchoolName": "Название школы",
@@ -550,7 +556,6 @@
   "settingsSectionSchool": "Школьная информация",
   "settingsSchoolInfo": "Школа и система оценок",
   "settingsSchoolInfoDesc": "Настройте школьные данные для точного расчёта бонусов",
-
   "filterAll": "Все",
   "filterNotes": "Оценки",
   "filterTestReports": "Отчёты",
@@ -558,33 +563,31 @@
   "filterUnsettled": "Ожидает",
   "filterGradeType": "Тип оценки",
   "filterStatusLabel": "Статус",
-
   "profileCompleteBanner": "Настройте профиль",
   "profileCompleteBannerBody": "Добавьте школу и систему оценок для лучшего отслеживания и предзаполненных отчётов.",
   "profileCompleteAction": "В Настройки",
   "settingsGradingSystem": "Система оценок",
   "settingsGradingSystemHint": "Используется по умолчанию в калькуляторе и отчётах.",
-
   "registerTermsHint": "Создавая аккаунт, вы принимаете наши Условия использования.",
-
   "profileSetupCount": "{completed} из {total} заполнено",
   "@profileSetupCount": {
     "placeholders": {
-      "completed": {"type": "int"},
-      "total": {"type": "int"}
+      "completed": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
     }
   },
   "profileSetupItemName": "Ваше имя",
   "profileSetupItemBirthday": "День рождения",
   "profileSetupItemSchool": "Школа",
   "profileSetupItemGrading": "Система оценок",
-
   "parentNamePromptTitle": "Добавьте ваше имя",
   "parentNamePromptBody": "Чтобы дети могли вас найти",
-
   "settingsValueNotSet": "Не указано",
   "settingsBirthdayLabel": "День рождения",
-
   "settingsSendFeedback": "Отправить отзыв",
   "feedbackTitle": "Оценить Bonifatus",
   "feedbackSubtitle": "Как вам Bonifatus? Ваша оценка сразу попадёт к нашей команде.",
@@ -602,10 +605,24 @@
   "scanRatingQuestion": "Насколько хорошо распознаны оценки?",
   "scanRatingThanks": "Спасибо за оценку!",
   "loginInvalidCredentials": "Неверная почта или пароль.",
-  "loginInvalidCredentialsHelp": "Создали аккаунт через Google или Apple? Используйте эту кнопку. Иначе проверьте адрес почты или сбросьте пароль через «Забыли пароль?».",
   "loginTooManyAttempts": "Слишком много попыток входа. Подождите 15 минут и попробуйте снова.",
   "loginEmailNotVerified": "Сначала подтвердите адрес почты кодом, который мы вам отправили.",
   "loginNetworkError": "Не удаётся связаться с Bonifatus. Проверьте подключение к интернету и попробуйте снова.",
   "loginServerError": "На нашей стороне что-то пошло не так. Попробуйте ещё раз чуть позже.",
-  "verifyEmailInvalidCode": "Неверный или просроченный код. Проверьте код и попробуйте снова."
+  "verifyEmailInvalidCode": "Неверный или просроченный код. Проверьте код и попробуйте снова.",
+  "verifyEmailSendNewCode": "Отправить новый код",
+  "verifyEmailCodeSent": "Новый код уже в пути. Проверьте входящие и папку «Спам».",
+  "getStartedTitle": "Заработайте первую награду 🎯",
+  "getStartedBody": "Два шага — и Bonifatus начнёт считать ваши оценки:",
+  "getStartedAddGrade": "Добавить первую оценку",
+  "getStartedAddGradeHint": "Сфотографируйте контрольную или введите оценку — это займёт 10 секунд.",
+  "getStartedConnectParent": "Подключить родителя",
+  "getStartedConnectParentHint": "Родитель устанавливает Bonifatus и показывает вам QR-код — отсканируйте его в настройках.",
+  "loginOrWithEmail": "или по электронной почте",
+  "loginGoogleFailed": "Не удалось войти через Google. Попробуйте ещё раз.",
+  "loginAppleFailed": "Не удалось войти через Apple. Попробуйте ещё раз.",
+  "loginHelpUseGoogle": "Регистрировались через Google? Нажмите кнопку Google выше.",
+  "loginHelpUseGoogleOrApple": "Регистрировались через Google или Apple? Нажмите эту кнопку выше.",
+  "loginHelpCreateAccount": "Ещё нет аккаунта? Создайте его",
+  "loginHelpResetPassword": "Забыли пароль? Сбросьте его"
 }

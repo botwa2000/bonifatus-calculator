@@ -91,6 +91,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             idToken: data['idToken']!,
             name: data['name']!,
             email: data['email']!,
+            initialRole: data['role'],
           );
         },
       ),
@@ -104,6 +105,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             identityToken: data['identityToken']!,
             name: data['name']!,
             email: data['email']!,
+            initialRole: data['role'],
           );
         },
       ),
@@ -115,6 +117,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           userId: state.uri.queryParameters['userId'] ?? '',
           email: state.uri.queryParameters['email'] ?? '',
           purpose: state.uri.queryParameters['purpose'] ?? 'email_verification',
+          sendCodeOnOpen: state.uri.queryParameters['resend'] == '1',
         ),
       ),
 

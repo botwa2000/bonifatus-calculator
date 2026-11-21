@@ -5,7 +5,8 @@
  * has an account. Every failure (no account, account without a password, wrong
  * password, too many attempts) produces the same answer, and every attempt costs
  * one bcrypt comparison, so response time does not give it away either.
- * The real reason is only written to security_events for our own analysis.
+ * The real reason is only written to security_events and the stats log for our
+ * own analysis; it is returned to the caller for that purpose, never to the client.
  */
 import bcrypt from 'bcryptjs'
 import { createHash } from 'node:crypto'
@@ -38,10 +39,14 @@ export function emailKey(email: string) {
 
 export type FailureReason = 'user_not_found' | 'no_password' | 'wrong_password'
 
+/** Right password, address not confirmed yet. Logged, but never counts toward a lockout. */
+const UNVERIFIED = 'email_unverified'
+
 export type PasswordSignIn =
   | { status: 'ok'; user: typeof users.$inferSelect }
   | { status: 'unverified'; user: typeof users.$inferSelect }
-  | { status: 'invalid' }
+  /** `reason` and `userId` are for our logs only; the client must get the same answer for all. */
+  | { status: 'invalid'; reason: FailureReason; userId: string | null }
   | { status: 'rate_limited' }
 
 async function recentFailures(where: SQL) {
@@ -52,6 +57,7 @@ async function recentFailures(where: SQL) {
       and(
         where,
         eq(securityEvents.eventType, 'login_failure'),
+        sql`coalesce(${securityEvents.eventMetadata}->>'reason', '') <> ${UNVERIFIED}`,
         gt(securityEvents.createdAt, new Date(Date.now() - WINDOW_MS))
       )
     )
@@ -76,8 +82,20 @@ export async function passwordSignIn(
 
   const [user] = await db.select().from(users).where(eq(users.email, email)).limit(1)
   const ok = await checkPassword(password, user?.password)
-  if (user && ok)
-    return user.emailVerified ? { status: 'ok', user } : { status: 'unverified', user }
+  if (user && ok) {
+    if (user.emailVerified) return { status: 'ok', user }
+    await logSecurityEvent({
+      eventType: 'login_failure',
+      severity: 'info',
+      userId: user.id,
+      ipAddress: ctx.ip,
+      userAgent: ctx.userAgent,
+      metadata: { reason: UNVERIFIED, source: ctx.source, emailKey: key },
+    }).catch((err) =>
+      console.error('[auth] failed to log unverified sign-in:', (err as Error).message)
+    )
+    return { status: 'unverified', user }
+  }
 
   const reason: FailureReason = !user
     ? 'user_not_found'
@@ -92,5 +110,5 @@ export async function passwordSignIn(
     userAgent: ctx.userAgent,
     metadata: { reason, source: ctx.source, emailKey: key },
   }).catch((err) => console.error('[auth] failed to log login failure:', (err as Error).message))
-  return { status: 'invalid' }
+  return { status: 'invalid', reason, userId: user?.id ?? null }
 }

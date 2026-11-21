@@ -239,7 +239,6 @@
     "passwordResetSuccess": "Your password has been reset successfully. You can now sign in with your new password.",
     "backToLogin": "Back to Login",
     "invalidCredentials": "Invalid email or password",
-    "invalidCredentialsHelp": "Created your account with Google or Apple? Use that button instead. Otherwise check the email address, or reset your password.",
     "unexpectedError": "An unexpected error occurred. Please try again.",
     "botProtectionNotConfigured": "Bot protection is not configured. Please try again later.",
     "pleaseCheckBox": "Please check the box to verify you are not a robot.",
@@ -270,7 +269,6 @@
     "dobInvalid": "Date of birth looks incorrect. Age must be between 5 and 150.",
     "accountCreatedEmailFailed": "Account created! However, we had trouble sending the verification email. Please use the \"Resend\" button on the next screen.",
     "continueWithGoogle": "Continue with Google",
-    "orDivider": "or",
     "googleProfileRoleChild": "Student",
     "googleProfileErrorUnexpected": "An unexpected error occurred",
     "googleProfileSubmitting": "Setting up…",
@@ -286,7 +284,13 @@
     "registrationFailed": "Registration failed",
     "verificationFailed": "Verification failed",
     "resendFailed": "Failed to resend code",
-    "namePlaceholder": "Your full name"
+    "namePlaceholder": "Your full name",
+    "orWithEmail": "or with email",
+    "helpUseGoogle": "Signed up with Google? Use the Google button above.",
+    "helpCreateAccount": "No account yet? Create one",
+    "helpResetPassword": "Forgot your password? Reset it",
+    "emailNotVerifiedNewCode": "Your email address isn’t confirmed yet. We’ve just sent you a new code.",
+    "tooManyAttempts": "Too many sign-in attempts. Please wait 15 minutes and try again."
   },
   "calculator": {
     "settings": "Settings",

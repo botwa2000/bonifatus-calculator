@@ -1,17 +1,14 @@
-import 'package:flutter/foundation.dart' show kDebugMode, defaultTargetPlatform;
-import 'package:sign_in_with_apple/sign_in_with_apple.dart';
+import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:bonifatus_mobile/l10n/app_localizations.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:google_sign_in/google_sign_in.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/constants/app_constants.dart';
 import '../../../api/services/biometric_service.dart';
 import '../providers/auth_provider.dart';
+import '../widgets/social_sign_in_buttons.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
@@ -25,11 +22,17 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   final _passCtrl = TextEditingController();
   bool _obscure = true;
   bool _isSubmitting = false;
+  bool _socialBusy = false;
   bool _biometricAvailable = false;
   String? _error;
-  /// Shown under a rejected email + password: the same help for everyone, because the
-  /// app is never told whether the account exists or was made with Google or Apple.
+  /// Shown under a rejected email + password: the same next steps for everyone, because
+  /// the app is never told whether the account exists or was made with Google or Apple.
   bool _showSignInHelp = false;
+  /// Set while code entry is open for an unconfirmed sign-in, so the second error
+  /// report (listener + post-await check) doesn't open it again.
+  bool _openingVerify = false;
+
+  bool get _busy => _isSubmitting || _socialBusy;
 
   @override
   void initState() {
@@ -55,6 +58,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   }
 
   void _showLoginError(Object err) {
+    if (_openingVerify || !mounted) return;
     final l10n = AppLocalizations.of(context)!;
     String msg;
     var help = false;
@@ -66,6 +70,13 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         case PasswordLoginFailure.tooManyAttempts:
           msg = l10n.loginTooManyAttempts;
         case PasswordLoginFailure.emailNotVerified:
+          // Right password, address not confirmed yet: go straight to code entry
+          // with a fresh code, the one from sign-up may have expired.
+          final userId = err.userId;
+          if (userId != null && userId.isNotEmpty) {
+            _confirmThenSignIn(userId);
+            return;
+          }
           msg = l10n.loginEmailNotVerified;
         case PasswordLoginFailure.network:
           msg = l10n.loginNetworkError;
@@ -76,6 +87,17 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       msg = err.toString().replaceFirst('Exception: ', '');
     }
     setState(() { _error = msg; _showSignInHelp = help; });
+  }
+
+  /// Code entry on top of this screen; once the address is confirmed, sign in with the
+  /// email and password still in the form, so nobody has to type them again.
+  Future<void> _confirmThenSignIn(String userId) async {
+    _openingVerify = true;
+    final confirmed = await context.push<bool>(
+        '/auth/verify-email?email=${Uri.encodeComponent(_emailCtrl.text.trim())}'
+        '&userId=${Uri.encodeComponent(userId)}&purpose=email_verification&resend=1');
+    _openingVerify = false;
+    if (confirmed == true && mounted) await _submit();
   }
 
   @override
@@ -98,103 +120,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     final authState = ref.read(authStateNotifierProvider);
     if (authState.hasError) _showLoginError(authState.error!);
     setState(() => _isSubmitting = false);
-  }
-
-  Future<void> _loginWithGoogle() async {
-    if (AppConstants.googleWebClientId.isEmpty) {
-      setState(() => _error = 'Google Sign-In not configured yet.');
-      return;
-    }
-    setState(() { _error = null; _showSignInHelp = false; _isSubmitting = true; });
-    try {
-      // Always sign out first so the account picker appears on every tap,
-      // not just the first time. This lets users switch accounts after logout.
-      await GoogleSignIn.instance.signOut();
-      final account = await GoogleSignIn.instance.authenticate();
-      debugPrint('[GoogleSignIn] authenticate() result: $account');
-      final auth = account.authentication;
-      final idToken = auth.idToken;
-      debugPrint('[GoogleSignIn] idToken null=${idToken == null}');
-      if (idToken == null || !mounted) {
-        setState(() { _error = 'Could not get Google token — SHA-1 certificate may not be registered in Google Cloud Console.'; _isSubmitting = false; });
-        return;
-      }
-      final result = await ref.read(authStateNotifierProvider.notifier).loginWithGoogle(idToken: idToken);
-      if (!mounted) return;
-      if (result is GoogleSignInNeedsProfile) {
-        context.push('/auth/google-profile', extra: {
-          'idToken': idToken,
-          'name': result.name,
-          'email': result.email,
-        });
-      }
-    } on GoogleSignInException catch (e) {
-      debugPrint('[GoogleSignIn] GoogleSignInException code=${e.code} description=${e.description}');
-      if (e.code == GoogleSignInExceptionCode.canceled) {
-        // User cancelled — stay silent
-        return;
-      }
-      if (mounted) {
-        setState(() => _error = e.description ?? 'Google Sign-In error');
-      }
-    } on PlatformException catch (e) {
-      debugPrint('[GoogleSignIn] PlatformException code=${e.code} message=${e.message} details=${e.details}');
-      if (mounted) {
-        final details = e.details?.toString() ?? '';
-        final String msg;
-        if (e.code == 'sign_in_failed' && (details.contains('10') || details.contains('DEVELOPER_ERROR'))) {
-          msg = 'Google Sign-In: app signing certificate not registered. Contact support.';
-        } else if (e.code == 'sign_in_failed') {
-          msg = 'Google Sign-In failed. Please try again.';
-        } else {
-          msg = e.message ?? 'Google Sign-In error (${e.code})';
-        }
-        setState(() => _error = msg);
-      }
-    } catch (e) {
-      if (mounted) setState(() => _error = e.toString().replaceFirst('Exception: ', ''));
-    } finally {
-      if (mounted) setState(() => _isSubmitting = false);
-    }
-  }
-
-  Future<void> _loginWithApple() async {
-    setState(() { _error = null; _showSignInHelp = false; _isSubmitting = true; });
-    try {
-      final credential = await SignInWithApple.getAppleIDCredential(
-        scopes: [
-          AppleIDAuthorizationScopes.email,
-          AppleIDAuthorizationScopes.fullName,
-        ],
-      );
-      final identityToken = credential.identityToken;
-      if (identityToken == null || !mounted) {
-        setState(() { _error = 'Could not get Apple token. Please try again.'; _isSubmitting = false; });
-        return;
-      }
-      final givenName = credential.givenName ?? '';
-      final familyName = credential.familyName ?? '';
-      final name = [givenName, familyName].where((s) => s.isNotEmpty).join(' ');
-
-      final result = await ref.read(authStateNotifierProvider.notifier).loginWithApple(
-        identityToken: identityToken,
-      );
-      if (!mounted) return;
-      if (result is AppleSignInNeedsProfile) {
-        context.push('/auth/apple-profile', extra: {
-          'identityToken': identityToken,
-          'name': name,
-          'email': result.email,
-        });
-      }
-    } on SignInWithAppleAuthorizationException catch (e) {
-      if (e.code == AuthorizationErrorCode.canceled) return;
-      if (mounted) setState(() => _error = e.message);
-    } catch (e) {
-      if (mounted) setState(() => _error = e.toString().replaceFirst('Exception: ', ''));
-    } finally {
-      if (mounted) setState(() => _isSubmitting = false);
-    }
   }
 
   Future<void> _loginWithBiometrics() async {
@@ -231,9 +156,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
           child: Form(
             key: _formKey,
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                const SizedBox(height: 32),
+                const SizedBox(height: 24),
                 Center(
                   child: Image.asset('assets/images/logo.png', width: 72, height: 72),
                 ),
@@ -241,28 +166,39 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 Text(l10n.loginWelcomeBack, style: theme.textTheme.displayLarge?.copyWith(color: theme.colorScheme.onSurface)),
                 const SizedBox(height: 8),
                 Text(l10n.loginSignInSubtitle, style: theme.textTheme.bodyLarge?.copyWith(color: theme.colorScheme.onSurfaceVariant)),
-                const SizedBox(height: 40),
+                const SizedBox(height: 32),
 
                 if (_error != null) ...[
-                  Container(
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: AppColors.tierBelowLight,
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Row(children: [
-                      const Icon(Icons.error_outline, color: AppColors.error, size: 18),
-                      const SizedBox(width: 8),
-                      Expanded(child: Text(_error!, style: theme.textTheme.bodyMedium?.copyWith(color: AppColors.error))),
-                    ]),
-                  ),
+                  _ErrorBox(message: _error!),
                   if (_showSignInHelp) ...[
-                    const SizedBox(height: 8),
-                    Text(l10n.loginInvalidCredentialsHelp,
-                      style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant)),
+                    const SizedBox(height: 4),
+                    _SignInHelp(
+                      onCreateAccount: () => context.go('/auth/register'),
+                      onResetPassword: () => context.push('/auth/forgot-password'),
+                    ),
                   ],
                   const SizedBox(height: 16),
                 ],
+
+                if (_biometricAvailable) ...[
+                  ElevatedButton.icon(
+                    onPressed: _busy ? null : _loginWithBiometrics,
+                    icon: const Icon(Icons.fingerprint_rounded),
+                    label: Text(l10n.loginBiometricButton),
+                  ),
+                  const SizedBox(height: 12),
+                ],
+
+                // Google (and Apple on iOS) first: the quickest way in, no password to forget.
+                SocialSignInButtons(
+                  enabled: !_busy,
+                  onBusy: (b) => setState(() => _socialBusy = b),
+                  onError: (msg) => setState(() { _error = msg; _showSignInHelp = false; }),
+                ),
+
+                const SizedBox(height: 24),
+                const OrWithEmailDivider(),
+                const SizedBox(height: 16),
 
                 AutofillGroup(
                   child: Column(
@@ -303,7 +239,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     ],
                   ),
                 ),
-                const SizedBox(height: 12),
                 Align(
                   alignment: Alignment.centerRight,
                   child: TextButton(
@@ -312,7 +247,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   ),
                 ),
                 if (kDebugMode) ...[
-                  const SizedBox(height: 8),
                   Row(children: [
                     Expanded(child: OutlinedButton(
                       onPressed: () { _emailCtrl.text = 'alexander.perel+maxim@gmail.com'; _passCtrl.text = 'TestMaxim2026'; },
@@ -324,82 +258,24 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       child: const Text('[Dev] Maxima'),
                     )),
                   ]),
+                  const SizedBox(height: 8),
                 ],
-                const SizedBox(height: 24),
-                ElevatedButton(
-                  onPressed: _isSubmitting ? null : _submit,
+                const SizedBox(height: 8),
+                // Secondary to the social buttons above: tonal, not the full primary fill.
+                FilledButton.tonal(
+                  key: const Key('login-password-submit'),
+                  onPressed: _busy ? null : _submit,
+                  style: FilledButton.styleFrom(
+                    minimumSize: const Size(double.infinity, 56),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  ),
                   child: _isSubmitting
-                      ? const SizedBox(height: 20, width: 20,
-                          child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                      ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2))
                       : Text(l10n.loginSignInButton),
                 ),
 
-                if (_biometricAvailable) ...[
-                  const SizedBox(height: 12),
-                  OutlinedButton.icon(
-                    onPressed: _isSubmitting ? null : _loginWithBiometrics,
-                    icon: const Icon(Icons.fingerprint_rounded),
-                    label: Text(l10n.loginBiometricButton),
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: AppColors.primary,
-                      side: const BorderSide(color: AppColors.primary),
-                      minimumSize: const Size(double.infinity, 56),
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                    ),
-                  ),
-                ],
-
-                const SizedBox(height: 16),
-                Row(children: [
-                  const Expanded(child: Divider()),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 12),
-                    child: Text(l10n.loginOrDivider, style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant)),
-                  ),
-                  const Expanded(child: Divider()),
-                ]),
-                const SizedBox(height: 16),
-                OutlinedButton.icon(
-                  onPressed: _isSubmitting ? null : _loginWithGoogle,
-                  icon: SvgPicture.asset('assets/images/google_logo.svg', width: 20, height: 20),
-                  label: Text(l10n.loginContinueWithGoogle,
-                    style: theme.textTheme.labelLarge?.copyWith(
-                      color: theme.colorScheme.onSurface,
-                      fontWeight: FontWeight.w600,
-                    )),
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: theme.colorScheme.onSurface,
-                    side: BorderSide(color: theme.colorScheme.outline),
-                    minimumSize: const Size(double.infinity, 56),
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                    backgroundColor: theme.colorScheme.surface,
-                  ),
-                ),
-                if (defaultTargetPlatform == TargetPlatform.iOS ||
-                    const bool.fromEnvironment('SCREENSHOT_MODE')) ...[
-                  const SizedBox(height: 12),
-                  OutlinedButton.icon(
-                    onPressed: _isSubmitting ? null : _loginWithApple,
-                    icon: const Icon(Icons.apple, size: 22),
-                    label: Text(l10n.loginContinueWithApple,
-                      style: theme.textTheme.labelLarge?.copyWith(
-                        color: theme.colorScheme.onSurface,
-                        fontWeight: FontWeight.w600,
-                      )),
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: theme.colorScheme.onSurface,
-                      side: BorderSide(color: theme.colorScheme.outline),
-                      minimumSize: const Size(double.infinity, 56),
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                      backgroundColor: theme.colorScheme.surface,
-                    ),
-                  ),
-                ],
                 const SizedBox(height: 24),
-                Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+                Wrap(alignment: WrapAlignment.center, crossAxisAlignment: WrapCrossAlignment.center, children: [
                   Text(l10n.loginNoAccountPrompt, style: theme.textTheme.bodyMedium),
                   TextButton(
                     onPressed: () => context.go('/auth/register'),
@@ -412,5 +288,64 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         ),
       ),
     );
+  }
+}
+
+class _ErrorBox extends StatelessWidget {
+  final String message;
+  const _ErrorBox({required this.message});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Container(
+      key: const Key('login-error'),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: AppColors.tierBelowLight,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Row(children: [
+        const Icon(Icons.error_outline, color: AppColors.error, size: 18),
+        const SizedBox(width: 8),
+        Expanded(child: Text(message, style: theme.textTheme.bodyMedium?.copyWith(color: AppColors.error))),
+      ]),
+    );
+  }
+}
+
+/// The three ways forward after a rejected email + password, identical for every cause.
+class _SignInHelp extends StatelessWidget {
+  final VoidCallback onCreateAccount;
+  final VoidCallback onResetPassword;
+  const _SignInHelp({required this.onCreateAccount, required this.onResetPassword});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context)!;
+    final muted = theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.onSurfaceVariant);
+    Widget action(Key key, IconData icon, String label, VoidCallback onTap) => TextButton.icon(
+          key: key,
+          onPressed: onTap,
+          icon: Icon(icon, size: 20),
+          label: Text(label, textAlign: TextAlign.start),
+          style: TextButton.styleFrom(alignment: Alignment.centerLeft),
+        );
+    return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+      Padding(
+        padding: const EdgeInsets.fromLTRB(12, 8, 12, 4),
+        child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Icon(Icons.arrow_upward_rounded, size: 20, color: theme.colorScheme.onSurfaceVariant),
+          const SizedBox(width: 8),
+          Expanded(child: Text(
+            appleSignInOffered ? l10n.loginHelpUseGoogleOrApple : l10n.loginHelpUseGoogle,
+            style: muted,
+          )),
+        ]),
+      ),
+      action(const Key('login-help-register'), Icons.person_add_alt_1_outlined, l10n.loginHelpCreateAccount, onCreateAccount),
+      action(const Key('login-help-reset'), Icons.lock_reset_outlined, l10n.loginHelpResetPassword, onResetPassword),
+    ]);
   }
 }

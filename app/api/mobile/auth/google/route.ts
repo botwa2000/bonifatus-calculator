@@ -4,7 +4,7 @@ import { users, accounts } from '@/drizzle/schema/auth'
 import { userProfiles } from '@/drizzle/schema/users'
 import { eq, and } from 'drizzle-orm'
 import { signMobileToken } from '@/lib/auth/mobile-token'
-import { withActionLog } from '@/lib/stats/with-action-log'
+import { noteAction, withActionLog } from '@/lib/stats/with-action-log'
 
 interface GoogleTokenInfo {
   sub: string
@@ -47,10 +47,20 @@ async function handlePost(request: NextRequest) {
     }
 
     if (!idToken) {
-      return NextResponse.json({ error: 'idToken required' }, { status: 400 })
+      return noteAction(NextResponse.json({ error: 'idToken required' }, { status: 400 }), {
+        reason: 'missing_token',
+      })
     }
 
-    const googleUser = await verifyGoogleToken(idToken)
+    let googleUser: Awaited<ReturnType<typeof verifyGoogleToken>>
+    try {
+      googleUser = await verifyGoogleToken(idToken)
+    } catch (err) {
+      console.warn('[mobile/auth/google] token rejected:', (err as Error).message)
+      return noteAction(NextResponse.json({ error: 'Authentication failed' }, { status: 401 }), {
+        reason: 'token_invalid',
+      })
+    }
     const email = googleUser.email.toLowerCase()
 
     // Look up by linked Google account first
@@ -61,6 +71,7 @@ async function handlePost(request: NextRequest) {
       .limit(1)
 
     let userId: string | null = existingAccount?.userId ?? null
+    let created = false
 
     if (!userId) {
       // Fall back to email match (links Google to an existing email/password account)
@@ -87,16 +98,21 @@ async function handlePost(request: NextRequest) {
     if (!userId) {
       // Brand-new user — need role + DOB before we can create the profile
       if (!role || !fullName || !dateOfBirth) {
-        return NextResponse.json({
-          status: 'needs_profile',
-          name: googleUser.name,
-          email: googleUser.email,
-          picture: googleUser.picture,
-        })
+        return noteAction(
+          NextResponse.json({
+            status: 'needs_profile',
+            name: googleUser.name,
+            email: googleUser.email,
+            picture: googleUser.picture,
+          }),
+          { reason: 'needs_profile' }
+        )
       }
 
       if (role !== 'parent' && role !== 'child') {
-        return NextResponse.json({ error: 'Invalid role' }, { status: 400 })
+        return noteAction(NextResponse.json({ error: 'Invalid role' }, { status: 400 }), {
+          reason: 'bad_role',
+        })
       }
 
       const newId = crypto.randomUUID()
@@ -120,6 +136,7 @@ async function handlePost(request: NextRequest) {
         dateOfBirth,
       })
       userId = newId
+      created = true
     }
 
     const [profile] = await db
@@ -130,12 +147,15 @@ async function handlePost(request: NextRequest) {
 
     if (!profile) {
       // Linked account but profile missing — ask for profile data
-      return NextResponse.json({
-        status: 'needs_profile',
-        name: googleUser.name,
-        email: googleUser.email,
-        picture: googleUser.picture,
-      })
+      return noteAction(
+        NextResponse.json({
+          status: 'needs_profile',
+          name: googleUser.name,
+          email: googleUser.email,
+          picture: googleUser.picture,
+        }),
+        { reason: 'needs_profile' }
+      )
     }
 
     const [user] = await db.select().from(users).where(eq(users.id, userId)).limit(1)
@@ -145,20 +165,24 @@ async function handlePost(request: NextRequest) {
       email,
     })
 
-    return NextResponse.json({
-      success: true,
-      accessToken: token,
-      user: {
-        id: userId,
-        email,
-        name: user?.name ?? profile.fullName,
-        role: profile.role,
-      },
-    })
+    return noteAction(
+      NextResponse.json({
+        success: true,
+        accessToken: token,
+        user: {
+          id: userId,
+          email,
+          name: user?.name ?? profile.fullName,
+          role: profile.role,
+        },
+      }),
+      { reason: created ? 'new_account' : 'existing' }
+    )
   } catch (err) {
     console.error('[mobile/auth/google]', err)
-    const message = err instanceof Error ? err.message : 'Authentication failed'
-    return NextResponse.json({ error: message }, { status: 401 })
+    return noteAction(NextResponse.json({ error: 'Authentication failed' }, { status: 500 }), {
+      reason: 'server_error',
+    })
   }
 }
 
