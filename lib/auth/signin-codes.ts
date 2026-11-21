@@ -14,3 +14,30 @@ export function unverifiedUserId(code: string | null | undefined): string | null
   const id = code.slice(prefix.length)
   return /^[0-9a-f-]{36}$/i.test(id) ? id : null
 }
+
+/** Auth.js error types that only the Google (OAuth) flow raises → action_log.reason. */
+const GOOGLE_FAILURES: Record<string, string> = {
+  OAuthCallbackError: 'oauth_callback',
+  OAuthAccountNotLinked: 'oauth_account_not_linked',
+  OAuthSignInError: 'oauth_sign_in',
+  OAuthProfileParseError: 'oauth_profile',
+  InvalidCheck: 'invalid_check',
+}
+
+/** Refusal reason of a failed Google sign-in, or null when the error is not one. */
+export function googleFailureReason(error: unknown): string | null {
+  const e = error as {
+    type?: string
+    cause?: { provider?: string; parameters?: URLSearchParams }
+  } | null
+  if (!e?.type) return null
+  if (GOOGLE_FAILURES[e.type]) return GOOGLE_FAILURES[e.type]
+  // Errors in the OAuth callback (state check, an error answer from Google) arrive
+  // wrapped, with the provider on the cause.
+  if (e.type === 'CallbackRouteError' && e.cause?.provider === 'google') {
+    const answer =
+      e.cause.parameters instanceof URLSearchParams ? e.cause.parameters.get('error') : null
+    return answer === 'access_denied' ? 'oauth_cancelled' : 'oauth_callback'
+  }
+  return null
+}

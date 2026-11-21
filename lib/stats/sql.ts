@@ -28,6 +28,10 @@ export const q = async <T = Record<string, unknown>>(text: string, params: unkno
   (await pool.query(text, params)).rows as T[]
 export type Row = Record<string, unknown>
 
+/** Same day expression everywhere, truncated to the bucket held in parameter $n. */
+export const per = (col: string, n: number) =>
+  `date_trunc($${n}, (${col} AT TIME ZONE 'UTC')::date::timestamp)::date::text`
+
 /** Platform filter on parameter $3: all | web | ios | android. */
 export const P = `($3 = 'all' OR platform = $3)`
 

@@ -4,7 +4,7 @@ Single source for the App Store "App Privacy" answers, the Google Play "Data saf
 the iOS privacy manifest (`mobile/ios/Runner/PrivacyInfo.xcprivacy`) and the privacy policy
 (`messages/*.json` → `privacy`, `cookiePolicy`). Change them together.
 
-Last reviewed: 2026-10-31 (first-party usage statistics + Firebase Analytics flags).
+Last reviewed: 2026-11-21 (sign-in refusal reasons; see the end). Before: 2026-10-31 (first-party usage statistics + Firebase Analytics flags).
 
 ## What the apps collect
 
@@ -60,3 +60,14 @@ No data is sold or used for advertising; nothing is used for tracking across app
 - With consent: Google Analytics 4 (`_ga`, `_ga_<ID>`; Google Signals and ad personalization off) and a random
   ID in localStorage (`bonifatus-usage-id`) for our own statistics.
 - Without consent: our own statistics count visits with a daily-rotating salted hash; nothing is stored on the device.
+
+## Reviewed 2026-11-21: sign-in refusal reasons, activation funnel, Search Console
+
+No new data field and no change to the store answers:
+
+- `action_log.reason` (migration 0026) is a finer **outcome** of a sign-in attempt that was already recorded
+  ("features used and their outcome" above), e.g. `wrong_password`, `email_unverified`, `token_invalid`. It is a
+  fixed code chosen by the server, never text from the user, and it has the same retention as the row.
+- The activation funnel and landing-page panels on `/admin/stats` only combine rows that are already stored.
+- Google Search Console data (migration 0027: clicks, impressions, position and index status per public page) is
+  about our pages, not about visitors; it identifies no one.

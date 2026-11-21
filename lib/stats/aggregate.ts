@@ -16,7 +16,9 @@
  */
 import { autoClassify, listClassified } from '@/lib/stats/classify'
 import { behaviour } from '@/lib/stats/behaviour'
-import { int, P, q, tablesFor, uid, type Row, type Tables } from '@/lib/stats/sql'
+import { funnels } from '@/lib/stats/funnel'
+import { searchConsole } from '@/lib/stats/search-console'
+import { int, P, per, q, tablesFor, uid, type Row, type Tables } from '@/lib/stats/sql'
 
 // Periods: calendar (day, week = Mon–Sun, month — around the anchor date `at`,
 // default today), rolling (7d, 30d, 90d, 12m — ending today), ytd, and custom
@@ -124,13 +126,9 @@ function dayList(w: Window): string[] {
 }
 
 /** Start days of the buckets a window touches, oldest first. */
-const bucketList = (w: Window, bucket: Bucket) => [
+export const bucketList = (w: Window, bucket: Bucket) => [
   ...new Set(dayList(w).map((d) => bucketStart(d, bucket))),
 ]
-
-// Same day expression everywhere, truncated to the bucket held in parameter $n.
-const per = (col: string, n: number) =>
-  `date_trunc($${n}, (${col} AT TIME ZONE 'UTC')::date::timestamp)::date::text`
 
 function fold(days: string[], rows: Row[], key: string, by = 'platform') {
   const m: Record<string, Record<string, number>> = {}
@@ -1071,6 +1069,8 @@ export async function getStats(o: StatsQuery = {}) {
     excl,
     classified,
     beh,
+    fun,
+    gsc,
   ] = await Promise.all([
     kpis(w, platform, t),
     records(w, t, bucket),
@@ -1090,6 +1090,8 @@ export async function getStats(o: StatsQuery = {}) {
     excludedActivity(w, platform),
     listClassified(),
     behaviour(w, platform, t),
+    funnels(w, platform, t, bucketList(w, bucket), bucket),
+    searchConsole(w),
   ])
   const day = (d: Date) => d.toISOString().slice(0, 10)
   return {
@@ -1120,6 +1122,10 @@ export async function getStats(o: StatsQuery = {}) {
     vitals: vit,
     edge: ed,
     behaviour: beh,
+    signin: fun.denials,
+    activation: fun.activation,
+    landing: fun.landing,
+    searchConsole: gsc,
     // Usage columns before the first tracked day are unknown, not zero.
     activity: act.map((r) => ({
       ...r,

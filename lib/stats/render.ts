@@ -311,7 +311,8 @@ const DASHBOARD_JS = String.raw`
   var COL = { web: "var(--web)", ios: "var(--ios)", android: "var(--android)", app: "var(--app)",
     parent: "var(--parent)", child: "var(--child)", quick: "var(--quick)", term: "var(--term)", settlement: "var(--settlement)" };
   var NAME = { web: "Web", ios: "iOS", android: "Android", app: "App (old build)", parent: "Parents", child: "Children",
-    quick: "Single grades", term: "Report cards", settlement: "Settlements" };
+    quick: "Single grades", term: "Report cards", settlement: "Settlements", password: "Email + password", google: "Google", apple: "Apple" };
+  COL.password = "var(--web)"; COL.google = "var(--ios)"; COL.apple = "var(--android)";
   var ACTION = { grade_quick_save: "Grade added", grade_term_save: "Report card saved", grade_term_update: "Report card edited",
     report_scan: "Report card scanned", calculator_preview: "Bonus calculated", settlement_create: "Settlement paid",
     invite_create: "Invite code created", invite_redeem: "Invite redeemed", signup: "Sign-up", signin: "App sign-in",
@@ -754,6 +755,69 @@ const DASHBOARD_JS = String.raw`
       '<select name="class"><option value="internal">Team</option><option value="test">Test</option><option value="review">Store review</option><option value="real">Real user</option><option value="auto">Automatic</option></select>' +
       '<button class="btn" type="submit">Save</button><span class="muted" id="classifyMsg"></span></form>' +
       '<p class="muted" style="margin-top:8px;font-size:.78rem">Automatic: Google Play reviewers (name.12345@gmail.com), Test Lab robots, the App Review demo account, test addresses, the team and their linked family. Store review and test devices are also recognised by their network; this browser is marked as the team\'s when you sign in here.</p>')) + "</div>");
+
+    // ── Sign-up & sign-in
+    html.push(section("Sign-up &amp; sign-in", "Devices, not people: an app install, or a web visitor (one per day unless they accepted cookies). Steps after the first are counted up to now, so a device from this period that signs up next week still counts."));
+    var sg = d.signin, provRows = sg.providers.filter(function (x) { return x.attempts; });
+    var refusedTotal = sg.providers.reduce(function (s, x) { return s + x.refused; }, 0);
+    html.push('<div class="grid">' +
+      card("Sign-in refusals", (refusedTotal ? stacked(sg.days, keysIn(sg.days, ["password", "google", "apple"])) + legend(keysIn(sg.days, ["password", "google", "apple"])) : '<p class="muted">No refused sign-in in this range.</p>') +
+        table([
+          { h: "Method", f: function (r) { return NAME[r.provider]; } },
+          { h: "Attempts", n: 1, f: function (r) { return fmt(r.attempts); } },
+          { h: "Refused", n: 1, f: function (r) { return fmt(r.refused) + ' <span class="muted">' + pct(r.refusedShare) + "</span>"; } },
+          { h: "Devices refused", n: 1, f: function (r) { return fmt(r.people); } },
+          { h: "Never got in", n: 1, f: function (r) { return r.stuck ? '<span class="bad">' + fmt(r.stuck) + "</span>" : "0"; } }
+        ], provRows, "No sign-in attempts in this range."),
+        "per " + d.bucket + ", by sign-in method · never got in = refused and no successful sign-in from that device since") +
+      card("Why sign-ins were refused", table([
+          { h: "Reason", f: function (r) { return esc(r.label); } },
+          { h: "Password", n: 1, f: function (r) { return r.password ? fmt(r.password) : '<span class="muted">0</span>'; } },
+          { h: "Google", n: 1, f: function (r) { return r.google ? fmt(r.google) : '<span class="muted">0</span>'; } },
+          { h: "Apple", n: 1, f: function (r) { return r.apple ? fmt(r.apple) : '<span class="muted">0</span>'; } },
+          { h: "Total", n: 1, f: function (r) { return "<b>" + fmt(r.total) + "</b>"; } }
+        ], sg.reasons, "No refused sign-in in this range."), "what the server saw; the person is shown one generic message") +
+      "</div>");
+
+    var av = d.activation;
+    html.push('<div class="grid">' + wide(card("Activation funnel", av.rows.length ? '<div class="tw stick"><table><tr><th>Step</th>' +
+        av.rows.map(function (r) { return '<th class="n">' + (r.platform === "all" ? "All" : dot(r.platform) + esc(NAME[r.platform] || r.platform)) + "</th>"; }).join("") + "</tr>" +
+        av.steps.map(function (s, i) {
+          return "<tr><td>" + esc(s.label) + "</td>" + av.rows.map(function (r) {
+            var c = r.steps[i];
+            if (c.n == null) return '<td class="n muted" title="the website has no onboarding">n/a</td>';
+            var rate = c.stepRate == null ? "" : ' <span class="' + (c.stepRate < 0.3 ? "bad" : "muted") + '" title="of the step before">' + pct(c.stepRate) + "</span>";
+            return '<td class="n">' + fmt(c.n) + rate + "</td>";
+          }).join("") + "</tr>";
+        }).join("") + "</table></div>" : '<p class="muted">No new device in this range.</p>',
+        "new devices first seen in this period, per platform · % = of the step before (red below 30%) · registration and account include Google / Apple sign-ups · grade, settlement and family count the account's linked family too")) + "</div>");
+
+    var ld = d.landing;
+    if (d.platform === "all" || d.platform === "web") html.push('<div class="grid">' + wide(card("Landing pages → sign-up", table([
+        { h: "Entry page", f: function (r) { return esc(r.page); } },
+        { h: "Visits", n: 1, f: function (r) { return fmt(r.visits); } },
+        { h: "Started sign-up", n: 1, f: function (r) { return fmt(r.started) + ' <span class="muted">' + pct(r.visits ? r.started / r.visits : null) + "</span>"; } },
+        { h: "Account created", n: 1, f: function (r) { return r.created ? '<span class="ok">' + fmt(r.created) + "</span>" : '<span class="muted">0</span>'; } }
+      ], ld.rows, "No web visits in this range."), "first page of each visit (one device, one day) · started = opened the sign-up page or began a Google sign-up the same day · " + fmt(ld.visits) + " visits")) + "</div>");
+
+    var gs = d.searchConsole;
+    var gscBody;
+    if (!gs.status) gscBody = '<p class="muted">Not imported yet — it runs with the nightly store import (↻ Store import runs it now).</p>';
+    else if (!gs.connected && !gs.rows.some(function (r) { return r.checkedAt; })) gscBody = '<p class="bad">Not connected: ' + esc(gs.status.detail) + "</p>";
+    else gscBody = (gs.connected ? "" : '<p class="bad">Last import failed: ' + esc(gs.status.detail) + "</p>") +
+      '<div class="tiles">' + tile("Clicks", fmt(gs.site.clicks), "whole site") + tile("Impressions", fmt(gs.site.impressions), "whole site") +
+      tile("Avg position", gs.site.position == null ? "—" : gs.site.position.toFixed(1), gs.site.lastDay ? "data up to " + esc(gs.site.lastDay) : "") + "</div>" +
+      '<div class="stick">' + table([
+        { h: "Page", f: function (r) { return '<a href="' + esc(r.url) + '" target="_blank" rel="noopener">' + esc(r.page) + "</a>"; } },
+        { h: "Clicks", n: 1, f: function (r) { return fmt(r.clicks); } },
+        { h: "Impressions", n: 1, f: function (r) { return fmt(r.impressions); } },
+        { h: "Avg pos.", n: 1, f: function (r) { return r.position == null ? "—" : r.position.toFixed(1); } },
+        { h: "Indexed", f: function (r) {
+            if (!r.verdict) return '<span class="muted">not checked</span>';
+            return '<span class="' + (r.verdict === "PASS" ? "ok" : "bad") + '" title="' + attr((r.coverage || "") + (r.lastCrawl ? "\nlast crawl " + r.lastCrawl.slice(0, 10) : "")) + '">' + esc(r.coverage || r.verdict) + "</span>";
+          } }
+      ], gs.rows, "No tracked page.") + "</div>";
+    html.push('<div class="grid">' + wide(card("Google Search", gscBody, "Search Console · Ratgeber pages and the grade calculator, every language they exist in · Google reports with 2–3 days delay · index status checked nightly")) + "</div>");
 
     // ── Accounts & data (records)
     var t = rec.totals, a = rec.activation;

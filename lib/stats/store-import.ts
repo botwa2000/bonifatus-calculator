@@ -12,6 +12,8 @@
  *   Android reviews   Play Developer API reviews.list          PLAY_SERVICE_ACCOUNT_JSON
  *   Android installs, ratings, reviews history, acquisition
  *                     Play bulk reports in Cloud Storage       + PLAY_REPORTS_BUCKET
+ *   Web search        Search Console (performance + index)    PLAY_SERVICE_ACCOUNT_JSON, granted
+ *                                                              Restricted access to the property
  *
  * Runs daily at 04:30 UTC under a Postgres advisory lock so only one replica
  * imports; POST /api/admin/usage-stats {action:"import"} runs it on demand.
@@ -19,6 +21,8 @@
 import crypto from 'node:crypto'
 import zlib from 'node:zlib'
 import { pool } from '@/lib/db/client'
+import { PRODUCTION_URL } from '@/lib/site'
+import { trackedPageUrls } from '@/lib/stats/search-console'
 
 const IOS_APP_ID = process.env.APP_STORE_APPLE_ID || '6745130824'
 const ANDROID_PACKAGE = 'com.bonifatus.app'
@@ -436,9 +440,16 @@ function playSa(): ServiceAccount | null {
   }
 }
 
-let googleToken = { value: '', exp: 0 }
-async function googleAccessToken(sa: ServiceAccount) {
-  if (googleToken.value && googleToken.exp > Date.now() + 60_000) return googleToken.value
+const PLAY_SCOPES =
+  'https://www.googleapis.com/auth/androidpublisher https://www.googleapis.com/auth/devstorage.read_only https://www.googleapis.com/auth/playdeveloperreporting'
+const GSC_SCOPE = 'https://www.googleapis.com/auth/webmasters.readonly'
+
+// One cached token per scope set: Search Console is asked for on its own, so a
+// missing Search Console grant can never break the Play feeds.
+const googleTokens = new Map<string, { value: string; exp: number }>()
+async function googleAccessToken(sa: ServiceAccount, scope = PLAY_SCOPES) {
+  const cached = googleTokens.get(scope)
+  if (cached && cached.exp > Date.now() + 60_000) return cached.value
   const now = Math.floor(Date.now() / 1000)
   const assertion = signJwt(
     { alg: 'RS256', typ: 'JWT' },
@@ -447,8 +458,7 @@ async function googleAccessToken(sa: ServiceAccount) {
       aud: 'https://oauth2.googleapis.com/token',
       iat: now,
       exp: now + 3600,
-      scope:
-        'https://www.googleapis.com/auth/androidpublisher https://www.googleapis.com/auth/devstorage.read_only https://www.googleapis.com/auth/playdeveloperreporting',
+      scope,
     },
     sa.private_key
   )
@@ -461,8 +471,11 @@ async function googleAccessToken(sa: ServiceAccount) {
     }),
   })
   if (r.status !== 200) throw new Error(`Google OAuth: HTTP ${r.status} ${r.text.slice(0, 200)}`)
-  googleToken = { value: r.body.access_token, exp: Date.now() + r.body.expires_in * 1000 }
-  return googleToken.value
+  googleTokens.set(scope, {
+    value: r.body.access_token,
+    exp: Date.now() + r.body.expires_in * 1000,
+  })
+  return r.body.access_token as string
 }
 
 async function importPlayReviews() {
@@ -876,6 +889,118 @@ async function importCfTraffic() {
   return `${groups.length} days of edge traffic`
 }
 
+// ── Google Search Console (read-only) ───────────────────────────────────────
+// Same service account as Play, granted "Restricted" access to the Search Console
+// property (docs/STATS-SEARCH-CONSOLE.md). Scope webmasters.readonly: it can read
+// search performance and inspect URLs, never change anything.
+async function gscSite(token: string, sa: ServiceAccount): Promise<string> {
+  const r = await fetchJson('https://www.googleapis.com/webmasters/v3/sites', {
+    headers: { Authorization: `Bearer ${token}` },
+  })
+  if (r.status === 403 && /has not been used|is disabled/i.test(r.text)) {
+    const m = /project[= ](\d+)/.exec(r.text)
+    throw new Error(
+      `Search Console API is off — enable it: https://console.developers.google.com/apis/api/searchconsole.googleapis.com/overview${m ? `?project=${m[1]}` : ''}`
+    )
+  }
+  if (r.status !== 200)
+    throw new Error(`Search Console sites: HTTP ${r.status} ${r.text.slice(0, 200)}`)
+  const sites = (
+    (r.body?.siteEntry ?? []) as { siteUrl: string; permissionLevel: string }[]
+  ).filter((s) => s.permissionLevel !== 'siteUnverifiedUser')
+  const host = new URL(PRODUCTION_URL).hostname
+  const want = process.env.GSC_SITE_URL
+  const site =
+    (want && sites.find((s) => s.siteUrl === want)) ||
+    sites.find((s) => s.siteUrl === `sc-domain:${host}`) ||
+    sites.find((s) => s.siteUrl.replace(/\/+$/, '') === PRODUCTION_URL)
+  if (!site)
+    throw new Error(
+      `no access to the ${host} property yet — add ${sa.client_email} in Search Console → Settings → Users and permissions (Restricted)`
+    )
+  return site.siteUrl
+}
+
+async function importSearchConsole() {
+  const sa = playSa()
+  if (!sa) throw new Error('PLAY_SERVICE_ACCOUNT_JSON is not valid')
+  const token = await googleAccessToken(sa, GSC_SCOPE)
+  const site = await gscSite(token, sa)
+  const auth = { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' }
+
+  // Performance per page and day for the last 30 days (fresh days included, and
+  // overwritten on the next nights as Google finalises them).
+  let rows = 0
+  for (let startRow = 0; ; startRow += 25_000) {
+    const r = await fetchJson(
+      `https://www.googleapis.com/webmasters/v3/sites/${encodeURIComponent(site)}/searchAnalytics/query`,
+      {
+        method: 'POST',
+        headers: auth,
+        body: JSON.stringify({
+          startDate: daysAgo(30),
+          endDate: daysAgo(0),
+          dimensions: ['date', 'page'],
+          dataState: 'all',
+          rowLimit: 25_000,
+          startRow,
+        }),
+      }
+    )
+    if (r.status !== 200)
+      throw new Error(`Search Analytics: HTTP ${r.status} ${r.text.slice(0, 200)}`)
+    const list = (r.body?.rows ?? []) as {
+      keys: [string, string]
+      clicks: number
+      impressions: number
+      position: number
+    }[]
+    for (const x of list) {
+      await pool.query(
+        `INSERT INTO gsc_pages (day, page, clicks, impressions, position_sum) VALUES ($1, $2, $3, $4, $5)
+         ON CONFLICT (day, page) DO UPDATE SET clicks = EXCLUDED.clicks,
+           impressions = EXCLUDED.impressions, position_sum = EXCLUDED.position_sum`,
+        [
+          x.keys[0],
+          x.keys[1].slice(0, 500),
+          Math.round(x.clicks),
+          Math.round(x.impressions),
+          x.position * x.impressions,
+        ]
+      )
+    }
+    rows += list.length
+    if (list.length < 25_000) break
+  }
+
+  // Index status of the pages we watch (URL Inspection: 2,000 a day, 600 a minute).
+  let inspected = 0
+  let indexed = 0
+  for (const url of trackedPageUrls()) {
+    const r = await fetchJson(
+      'https://searchconsole.googleapis.com/v1/urlInspection/index:inspect',
+      {
+        method: 'POST',
+        headers: auth,
+        body: JSON.stringify({ inspectionUrl: url, siteUrl: site }),
+      }
+    )
+    if (r.status !== 200)
+      throw new Error(`URL Inspection: HTTP ${r.status} ${r.text.slice(0, 200)}`)
+    const s = r.body?.inspectionResult?.indexStatusResult ?? {}
+    await pool.query(
+      `INSERT INTO gsc_index (page, checked_at, verdict, coverage, last_crawl) VALUES ($1, NOW(), $2, $3, $4)
+       ON CONFLICT (page) DO UPDATE SET checked_at = NOW(), verdict = EXCLUDED.verdict,
+         coverage = EXCLUDED.coverage, last_crawl = EXCLUDED.last_crawl`,
+      [url, s.verdict ?? null, s.coverageState ?? null, s.lastCrawlTime ?? null]
+    )
+    inspected++
+    if (s.verdict === 'PASS') indexed++
+    await sleep(250)
+  }
+  return `${rows} page-days, ${indexed}/${inspected} tracked pages indexed (${site})`
+}
+
 // ── orchestration ─────────────────────────────────────────────────────────────
 type Ready = true | string
 export const SOURCES: { id: string; needs: () => Ready; run: () => Promise<string> }[] = [
@@ -923,6 +1048,13 @@ export const SOURCES: { id: string; needs: () => Ready; run: () => Promise<strin
       !!process.env.CF_ANALYTICS_TOKEN ||
       'CF_ANALYTICS_TOKEN (Cloudflare API token: Zone → Analytics → Read)',
     run: importCfTraffic,
+  },
+  {
+    id: 'search_console',
+    needs: () =>
+      !!process.env.PLAY_SERVICE_ACCOUNT_JSON ||
+      'PLAY_SERVICE_ACCOUNT_JSON (service account with Restricted access to the Search Console property)',
+    run: importSearchConsole,
   },
   // Last: ~10 minutes (≈20 lookups/min across ~175 storefronts).
   { id: 'ios_ratings', needs: () => true, run: importIosRatings },

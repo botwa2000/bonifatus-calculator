@@ -10,7 +10,11 @@ import { passwordSignIn } from '@/lib/auth/credentials'
 import { getClientIp } from '@/lib/auth/turnstile'
 import { dbg, dbgWarn, dbgError } from '@/lib/debug'
 import { logSignIn } from '@/lib/stats/with-action-log'
-import { SIGNIN_CODE_RATE_LIMITED, SIGNIN_CODE_UNVERIFIED } from '@/lib/auth/signin-codes'
+import {
+  googleFailureReason,
+  SIGNIN_CODE_RATE_LIMITED,
+  SIGNIN_CODE_UNVERIFIED,
+} from '@/lib/auth/signin-codes'
 
 /**
  * A refusal the login page can act on (see lib/auth/signin-codes.ts). An unconfirmed
@@ -24,10 +28,24 @@ class SignInRefused extends CredentialsSignin {
   }
 }
 
+async function logGoogleFailure(reason: string) {
+  try {
+    const { headers } = await import('next/headers')
+    logSignIn(new Headers(await headers()), { provider: 'google', status: 401, reason })
+  } catch (err) {
+    dbgWarn('auth', 'google sign-in failure not logged', { error: String(err) })
+  }
+}
+
 export const { handlers, auth, signIn, signOut } = NextAuth({
   logger: {
-    error: (code, ...message) => {
-      console.error('[auth:error]', code, ...message)
+    error: (error) => {
+      console.error('[auth:error]', error)
+      // A web Google sign-in that failed before our callbacks ran (cancelled at
+      // Google, state cookie lost, account not linkable): the refusal row the
+      // password and app sign-ins already write, so /admin/stats sees all three.
+      const reason = googleFailureReason(error)
+      if (reason) void logGoogleFailure(reason)
     },
     warn: (code) => {
       console.warn('[auth:warn]', code)
