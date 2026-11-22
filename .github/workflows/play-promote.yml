@@ -1,0 +1,39 @@
+name: Play — roll out an uploaded build (manual)
+# Rolls out a build that flutter-release.yml already uploaded (for example the
+# draft left by submit_for_review=false) to a Play track, with the release notes
+# in mobile/store/play-whatsnew. Committing the edit sends it to Google's review.
+# Run only on Alex's explicit go:
+#   gh workflow run play-promote.yml -f version_code=1084 -f track=production
+
+on:
+  workflow_dispatch:
+    inputs:
+      version_code:
+        description: 'versionCode already uploaded to Play'
+        required: true
+        type: string
+      track:
+        description: 'Track to roll out to'
+        required: true
+        default: 'production'
+        type: choice
+        options:
+          - internal
+          - alpha
+          - beta
+          - production
+
+jobs:
+  promote:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Roll out ${{ inputs.version_code }} to ${{ inputs.track }}
+        env:
+          PLAY_RELEASE_SA_JSON: ${{ secrets.GCLOUD_SERVICE_ACCOUNT_CREDENTIALS }}
+          VERSION_CODE: ${{ inputs.version_code }}
+          TRACK: ${{ inputs.track }}
+        run: node scripts/play/promote.mjs "$VERSION_CODE" "$TRACK"
