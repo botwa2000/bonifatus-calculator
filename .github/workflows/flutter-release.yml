@@ -3,6 +3,9 @@ name: Flutter — Store Release (manual, Claude-triggered)
 # explicit user approval:
 #   POST /repos/botwa2000/bonifatus-calculator/actions/workflows/flutter-release.yml/dispatches
 #   { "ref": "main", "inputs": { "platform": "both", "track": "internal" } }
+# submit_for_review (default false) uploads without sending anything to review:
+# Android lands on the track as a draft release, iOS lands in TestFlight only.
+# Rerun with submit_for_review=true (or submit in the consoles) once approved.
 
 on:
   workflow_dispatch:
@@ -26,6 +29,11 @@ on:
           - alpha
           - beta
           - production
+      submit_for_review:
+        description: 'Send to store review (false: Play draft + TestFlight only)'
+        required: true
+        default: false
+        type: boolean
 
 jobs:
   android:
@@ -100,8 +108,9 @@ jobs:
           tracks: ${{ inputs.track }}
           # Release notes per language (same text as mobile/store/whats_new.json for iOS)
           whatsNewDirectory: mobile/store/play-whatsnew
-          status: completed
-          changesNotSentForReview: false
+          # Without submit_for_review: a draft release, nothing sent to review.
+          status: ${{ inputs.submit_for_review && 'completed' || 'draft' }}
+          changesNotSentForReview: ${{ !inputs.submit_for_review }}
 
   ios-trigger:
     if: ${{ always() && (inputs.platform == 'ios' || (inputs.platform == 'both' && needs.android.result == 'success')) }}
@@ -126,17 +135,20 @@ jobs:
           CM_CERT_KEY: ${{ secrets.CM_CERTIFICATE_PRIVATE_KEY }}
           MOBILE_APP_SECRET: ${{ secrets.MOBILE_APP_SECRET }}
           GOOGLE_WEB_CLIENT_ID: ${{ secrets.GOOGLE_WEB_CLIENT_ID }}
+          SUBMIT_FOR_REVIEW: ${{ inputs.submit_for_review }}
         run: |
           payload=$(jq -n \
             --arg appId "$CM_APP_ID" \
             --arg certKey "$CM_CERT_KEY" \
             --arg mobileSecret "$MOBILE_APP_SECRET" \
             --arg googleClientId "$GOOGLE_WEB_CLIENT_ID" \
+            --arg submit "$SUBMIT_FOR_REVIEW" \
             '{appId: $appId, workflowId: "flutter-release", branch: "main",
               environment: {variables: {
                 CM_CERTIFICATE_PRIVATE_KEY: $certKey,
                 MOBILE_APP_SECRET: $mobileSecret,
-                GOOGLE_WEB_CLIENT_ID: $googleClientId
+                GOOGLE_WEB_CLIENT_ID: $googleClientId,
+                SUBMIT_FOR_REVIEW: $submit
               }}}')
           resp=$(curl -s -w "\n%{http_code}" -X POST \
             -H "x-auth-token: $CM_TOKEN" \
@@ -150,8 +162,9 @@ jobs:
           build_id=$(echo "$body" | jq -r '.buildId')
           echo "BUILD_ID=$build_id" >> "$GITHUB_ENV"
           echo "iOS build queued: https://codemagic.io/app/$CM_APP_ID/build/$build_id"
-      # The iOS build uploads and submits for App Store review inside Codemagic;
-      # wait for it so a failed upload turns this run red instead of passing silently.
+      # The iOS build uploads inside Codemagic (TestFlight only, or submitted for
+      # App Store review with submit_for_review); wait for it so a failed upload
+      # turns this run red instead of passing silently.
       - name: Wait for Codemagic build
         timeout-minutes: 330  # the free Codemagic M2 queue alone can take 2h+
         env:
@@ -161,7 +174,13 @@ jobs:
             status=$(curl -s -H "x-auth-token: $CM_TOKEN" "https://api.codemagic.io/builds/$BUILD_ID" | jq -r '.build.status')
             echo "$(date -u +%H:%M:%S) Codemagic build $BUILD_ID: $status"
             case "$status" in
-              finished) echo "iOS build uploaded and submitted for App Store review"; exit 0 ;;
+              finished)
+                if [ "${{ inputs.submit_for_review }}" = "true" ]; then
+                  echo "iOS build uploaded and submitted for App Store review"
+                else
+                  echo "iOS build uploaded to TestFlight; not submitted for review"
+                fi
+                exit 0 ;;
               failed|canceled|timeout|skipped|warning) echo "::error::Codemagic iOS build $status"; exit 1 ;;
             esac
             sleep 60

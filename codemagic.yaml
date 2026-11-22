@@ -3,9 +3,10 @@ workflows:
   # Triggered by the GitHub Actions ios-trigger job via the Codemagic API.
   # CM_CERTIFICATE_PRIVATE_KEY is injected at trigger time from the GitHub
   # secret — not stored in Codemagic.
-  # Uploads the build and submits it for App Store review (released
-  # automatically after approval). The marketing version comes from App Store
-  # Connect, never from a pubspec bump — see scripts/asc/ios_release.py.
+  # Uploads the build to App Store Connect (TestFlight). Only with
+  # SUBMIT_FOR_REVIEW=true (the GitHub input submit_for_review) is it also
+  # submitted for App Store review (released automatically after approval).
+  # The marketing version comes from App Store Connect, never from a pubspec bump — see scripts/asc/ios_release.py.
   # Update mobile/store/whats_new.json before each release.
   flutter-release:
     name: Bonifatus Flutter iOS — App Store
@@ -45,7 +46,7 @@ workflows:
           IOS_VERSION=$($PY scripts/asc/ios_release.py version)
           echo "IOS_VERSION=$IOS_VERSION" >> $CM_ENV
           $PY scripts/asc/ios_release.py localizations "$CM_BUILD_DIR/whats_new_localizations.json"
-          echo ">>> will build and submit iOS version ${IOS_VERSION}"
+          echo ">>> will build iOS version ${IOS_VERSION} (submit for review: ${SUBMIT_FOR_REVIEW:-false})"
 
       - name: Get Flutter dependencies
         script: |
@@ -93,17 +94,26 @@ workflows:
             --dart-define=MOBILE_APP_SECRET="${MOBILE_APP_SECRET}" \
             --export-options-plist="$CM_BUILD_DIR/export_options.plist" 2>&1 | tee "$CM_BUILD_DIR/flutter_build_ipa.log"
 
-      - name: Upload and submit for App Store review
+      - name: Upload to App Store Connect (submit for review only if asked)
         script: |
           set -o pipefail
-          app-store-connect publish \
-            --path "$FLUTTER_APP_DIR"/build/ios/ipa/*.ipa \
-            --app-store \
-            --version-string "${IOS_VERSION}" \
-            --release-type AFTER_APPROVAL \
-            --app-store-version-localizations @file:"$CM_BUILD_DIR/whats_new_localizations.json" \
-            --cancel-previous-submissions \
-            --max-build-processing-wait 30 2>&1 | tee "$CM_BUILD_DIR/asc_publish.log"
+          if [ "${SUBMIT_FOR_REVIEW:-false}" = "true" ]; then
+            echo ">>> uploading ${IOS_VERSION} (${BUILD_CODE}) and submitting for App Store review"
+            app-store-connect publish \
+              --path "$FLUTTER_APP_DIR"/build/ios/ipa/*.ipa \
+              --app-store \
+              --version-string "${IOS_VERSION}" \
+              --release-type AFTER_APPROVAL \
+              --app-store-version-localizations @file:"$CM_BUILD_DIR/whats_new_localizations.json" \
+              --cancel-previous-submissions \
+              --max-build-processing-wait 30 2>&1 | tee "$CM_BUILD_DIR/asc_publish.log"
+          else
+            # Plain upload: the build appears in TestFlight for internal testers.
+            # No --app-store and no --testflight (that one requests beta review).
+            echo ">>> uploading ${IOS_VERSION} (${BUILD_CODE}) to TestFlight only; no review submission"
+            app-store-connect publish \
+              --path "$FLUTTER_APP_DIR"/build/ios/ipa/*.ipa 2>&1 | tee "$CM_BUILD_DIR/asc_publish.log"
+          fi
 
     artifacts:
       - mobile/build/ios/ipa/*.ipa
