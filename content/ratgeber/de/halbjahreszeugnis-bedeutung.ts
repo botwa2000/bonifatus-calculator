@@ -26,31 +26,70 @@ const body: RatgeberBody = {
       blocks: [
         {
           type: 'p',
-          text: 'Einen bundesweit einheitlichen Termin gibt es nicht. Für die folgenden Länder haben wir den Termin im Schuljahr 2026/27 in einer amtlichen Festlegung des Kultusministeriums geprüft:',
+          text: 'Einen bundesweit einheitlichen Termin gibt es nicht. Wir haben für alle 16 Länder die amtlichen Quellen geprüft – Erlasse und Terminpläne der Kultusministerien und das Landesrecht. Manche Länder legen einen Tag fest, andere eine Regel, aus der sich der Tag ergibt. Drei Länder haben für 2026/27 keinen landesweiten Termin veröffentlicht; dort nennen wir auch keinen.',
         },
         {
           type: 'table',
-          head: ['Land', 'Termin 2027'],
+          head: ['Land', 'Halbjahreszeugnis 2026/27'],
           rows: [
-            ['Niedersachsen', 'Freitag, 29. Januar[^4]'],
-            ['Sachsen', 'Freitag, 5. Februar[^3]'],
-            ['Nordrhein-Westfalen', 'Freitag, 12. Februar[^5]'],
-            ['Bayern', 'Freitag, 19. Februar[^2]'],
+            ['Berlin', 'Freitag, 29. Januar 2027[^9]'],
+            ['Brandenburg', 'Freitag, 29. Januar 2027[^10]'],
+            ['Bremen', 'Freitag, 29. Januar 2027[^11]'],
+            ['Niedersachsen', 'Freitag, 29. Januar 2027[^4]'],
+            [
+              'Saarland',
+              'Freitag, 29. Januar 2027 (Gymnasien und Gemeinschaftsschulen ab Klasse 5)[^12]',
+            ],
+            ['Sachsen-Anhalt', 'Freitag, 29. Januar 2027[^13]'],
+            ['Rheinland-Pfalz', 'Freitag, 29. Januar 2027 – Regel: letzter Freitag im Januar[^14]'],
+            [
+              'Schleswig-Holstein',
+              'Freitag, 29. Januar 2027 – Regel: letzter Freitag vor dem Halbjahresende am 31. Januar[^15][^16]',
+            ],
+            [
+              'Hessen',
+              'in der Regel Freitag, 29. Januar 2027 – letzter Unterrichtstag vor dem ersten Montag im Februar[^17]',
+            ],
+            ['Sachsen', 'Freitag, 5. Februar 2027[^3]'],
+            [
+              'Baden-Württemberg',
+              'in der Regel zwischen 1. und 10. Februar 2027; den Tag legt die Schule fest[^19]',
+            ],
+            ['Nordrhein-Westfalen', 'Freitag, 12. Februar 2027[^5]'],
+            ['Bayern', 'Freitag, 19. Februar 2027[^2]'],
+            [
+              'Hamburg',
+              'kein landesweiter Termin veröffentlicht (Halbjahrespause: Freitag, 29. Januar 2027)[^20]',
+            ],
+            [
+              'Mecklenburg-Vorpommern',
+              'kein landesweiter Termin veröffentlicht (Winterferien ab 8. Februar 2027)[^22]',
+            ],
+            [
+              'Thüringen',
+              'legt das Bildungsministerium fest; für 2026/27 haben wir keine Veröffentlichung gefunden[^21]',
+            ],
           ],
-          note: 'Stand: November 2026. Maßgeblich ist der Termin, den die Schule nennt.',
+          note: 'Stand: 22. November 2026. Maßgeblich ist der Termin, den die Schule nennt.',
         },
         {
           type: 'ul',
           items: [
             '**Niedersachsen:** Danach folgen am 1. und 2. Februar die Halbjahresferien.[^4]',
+            '**Berlin:** Der Unterricht endet an diesem Tag nach der dritten Stunde. In der Kursphase der gymnasialen Oberstufe endet das Halbjahr schon vor den Weihnachtsferien; die Zeugnisse tragen dort das Datum 22. Dezember 2026 oder 6. Januar 2027.[^9]',
+            '**Brandenburg:** Der Kalender des Bildungsministeriums nennt den 29. Januar für die Ausgabe der Grundschulgutachten, der Halbjahreszeugnisse und der Anmeldeformulare für den Übergang in Klasse 7.[^10]',
+            '**Saarland:** In der Hauptphase der gymnasialen Oberstufe gibt es die Halbjahreszeugnisse schon am 18. Dezember 2026.[^12]',
+            '**Schleswig-Holstein:** Die Zeugnisverordnung formuliert eine Soll-Regel; Abweichungen sind möglich.[^15]',
+            '**Hessen:** Weil die Sommerferien 2027 schon am 28. Juni beginnen[^18], darf das Kultusministerium einen früheren landeseinheitlichen Termin festlegen.[^17] Eine solche Festlegung für 2026/27 haben wir nicht gefunden.',
             '**Sachsen:** An diesem Tag werden Halbjahreszeugnisse und Halbjahresinformationen ausgegeben.[^3]',
+            '**Baden-Württemberg:** Ein Halbjahreszeugnis gibt es nur in Abschlussklassen; die Klasse 4 der Grundschule erhält eine Halbjahresinformation.[^19]',
             '**Nordrhein-Westfalen:** Grundschulen geben die Zeugnisse zwischen dem 8. und 12. Februar aus.[^5]',
             '**Bayern:** In der Jahrgangsstufe 4 gibt es statt des Zwischenzeugnisses schon am 22. Januar eine Zwischeninformation.[^2]',
           ],
         },
         {
           type: 'p',
-          text: 'Für die übrigen zwölf Länder haben wir bis zum Stand dieses Artikels keine amtliche Festlegung gefunden, die wir zitieren können. Im Internet kursierende Termine widersprechen sich zum Teil. Verlässlich ist der Terminplan Ihrer Schule. Zur Orientierung: Wann in Ihrem Land die Winterferien liegen, zeigt der Ferienkalender der Kultusministerkonferenz.[^6]',
+          text: 'Für Hamburg, Mecklenburg-Vorpommern und Thüringen schätzen wir keinen Termin: Im Internet kursierende Daten widersprechen sich, und eine amtliche Festlegung lag uns nicht vor. Verlässlich ist der Terminplan Ihrer Schule. Wann in Ihrem Land die Winterferien liegen, zeigt der Ferienkalender der Kultusministerkonferenz.[^6]',
         },
       ],
     },
@@ -135,7 +174,7 @@ const body: RatgeberBody = {
     {
       question: 'Wann gibt es 2027 Halbjahreszeugnisse?',
       answer:
-        'Das hängt vom Land ab: In Niedersachsen am 29. Januar, in Sachsen am 5. Februar, in Nordrhein-Westfalen am 12. Februar und in Bayern am 19. Februar 2027. In den übrigen Ländern nennt die Schule den Termin.',
+        'Das hängt vom Land ab. Am Freitag, 29. Januar 2027 in Berlin, Brandenburg, Bremen, Niedersachsen, Rheinland-Pfalz, dem Saarland, Sachsen-Anhalt und Schleswig-Holstein, in der Regel auch in Hessen. In Sachsen am 5. Februar, in Baden-Württemberg zwischen dem 1. und 10. Februar, in Nordrhein-Westfalen am 12. Februar und in Bayern am 19. Februar. Für Hamburg, Mecklenburg-Vorpommern und Thüringen ist kein landesweiter Termin veröffentlicht; dort nennt die Schule den Tag.',
     },
     {
       question: 'Was ist ein „blauer Brief“?',
@@ -180,6 +219,62 @@ const body: RatgeberBody = {
     {
       text: 'Schulgesetz für das Land Nordrhein-Westfalen (SchulG), § 44 Abs. 2 – Information und Beratung.',
       url: 'https://bass.schule.nrw/6043.htm#1-1p44',
+    },
+    {
+      text: 'Senatsverwaltung für Bildung, Jugend und Familie Berlin: Änderung der Ferienordnung für das Land Berlin von 2024/2025 bis 2029/2030 vom 30.08.2024, Nr. 3 (Schuljahr 2026/2027).',
+      url: 'https://www.berlin.de/sen/bjf/service/kalender/ferien/ferienordnung-des-landes-berlin-2024_2025-bis-2029_2030.pdf',
+    },
+    {
+      text: 'Ministerium für Bildung, Jugend und Sport Brandenburg: Schuljahreskalender.',
+      url: 'https://mbjs-fachportal.brandenburg.de/bildung/infos-fuer-schulen/schuljahreskalender.html',
+    },
+    {
+      text: 'Verordnung über die Ferien für die Schulen der Stadtgemeinden Bremen und Bremerhaven für die Schuljahre 2024/2025 bis 2029/2030 vom 1. November 2022 (Brem.GBl. 2022, 871), § 9.',
+      url: 'https://www.transparenz.bremen.de/metainformationen/verordnung-ueber-die-ferien-fuer-die-schulender-stadtgemeinden-bremen-und-bremerhaven-fuer-die-schuljahre-2024-2025-bis-2029-2030-vom-1-november-2022-186886?template=20_gp_ifg_meta_detail_d',
+    },
+    {
+      text: 'Ministerium für Bildung und Kultur Saarland: Terminplanung für das Schuljahr 2026/2027 (Gymnasien und Gemeinschaftsschulen), Nr. 7.',
+      url: 'https://www.saarland.de/SharedDocs/Downloads/DE/mbk/Bildungsserver/allgemeine-informationen/Termine_Gymnasien-Gemeinschaftsschulen.pdf?__blob=publicationFile&v=22',
+    },
+    {
+      text: 'Ministerium für Bildung Sachsen-Anhalt: Ferientermine 2024 bis 2030 (Schuljahr 2026/2027).',
+      url: 'https://mb.sachsen-anhalt.de/api/media/Ferientermine_2024_bis_2030.pdf?collection=document',
+    },
+    {
+      text: 'Schulordnung für die öffentlichen Grundschulen Rheinland-Pfalz, § 40 Abs. 1; ebenso Übergreifende Schulordnung, § 58.',
+      url: 'https://landesrecht.rlp.de/bsrp/document/jlr-NNLRP00005A37NN00000000079',
+    },
+    {
+      text: 'Zeugnisverordnung Schleswig-Holstein (ZVO) vom 18. Juni 2018, § 8 Abs. 5.',
+      url: 'https://www.gesetze-rechtsprechung.sh.juris.de/perma?d=jlr-NNLSH00002BC4NN00000000020',
+    },
+    {
+      text: 'Ferienverordnung Schleswig-Holstein 2024/25 bis 2030/31 vom 2. September 2022, § 1 Abs. 4.',
+      url: 'https://www.gesetze-rechtsprechung.sh.juris.de/perma?d=jlr-NNLSH000032C8NN00000000002',
+    },
+    {
+      text: 'Verordnung zur Gestaltung des Schulverhältnisses (VOGSV) Hessen, § 62 Abs. 1, i. d. F. v. 20.07.2023.',
+      url: 'https://www.rv.hessenrecht.hessen.de/perma?d=hevr-SchulVerhGVHE2011V10P62',
+    },
+    {
+      text: 'Hessisches Kultusministerium: Ferientermine (Schuljahr 2026/2027).',
+      url: 'https://kultus.hessen.de/schulsystem/ferien/ferientermine',
+    },
+    {
+      text: 'Notenbildungsverordnung Baden-Württemberg (NVO), § 3 Abs. 2 und 4, gültig ab 05.02.2025.',
+      url: 'https://www.landesrecht-bw.de/perma?d=jlr-NNLBW00007BBDNN00000000016',
+    },
+    {
+      text: 'Behörde für Schule und Berufsbildung Hamburg: Ferienordnung für die Schuljahre 2024/25 bis 2029/30.',
+      url: 'https://dokumente.hamburg.de/resource/blob/134372/5bc131bdd36a604f67b361d21f7df37e/ferienordnung-hamburg-2024-2030-data.pdf',
+    },
+    {
+      text: 'Thüringer Schulordnung (ThürSchulO), § 60 Abs. 2, gültig ab 01.08.2025.',
+      url: 'https://landesrecht.thueringen.de/bsth/document/jlr-NNLTH0000384ENN00000000302',
+    },
+    {
+      text: 'Landesregierung Mecklenburg-Vorpommern: Ferientermine (Schuljahr 2026/2027).',
+      url: 'https://land-mv.de/seite/ferientermine',
     },
   ],
   related: ['schlechtes-zeugnis-was-tun', 'zeugnis-gespraech-fuehren', 'zeugnisgeld'],

@@ -90,7 +90,7 @@ export const RATGEBER_INDEX: readonly RatgeberMeta[] = [
     description:
       'Das Halbjahreszeugnis ist keine Versetzungsentscheidung. Was es aussagt, wann es 2027 in welchem Bundesland ausgegeben wird und in welchen Fällen es doch Gewicht hat – etwa in Klasse 4.',
     publishedAt: '2026-11-09',
-    updatedAt: '2026-11-09',
+    updatedAt: '2026-11-22',
     readingTimeMinutes: 6,
   },
   {
