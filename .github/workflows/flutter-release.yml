@@ -109,8 +109,10 @@ jobs:
           # Release notes per language (same text as mobile/store/whats_new.json for iOS)
           whatsNewDirectory: mobile/store/play-whatsnew
           # Without submit_for_review: a draft release, nothing sent to review.
+          # A draft release is never reviewed until someone rolls it out. Do not set
+          # changesNotSentForReview: this app is not on managed publishing, and
+          # Google refuses the commit with it ("must not be set").
           status: ${{ inputs.submit_for_review && 'completed' || 'draft' }}
-          changesNotSentForReview: ${{ !inputs.submit_for_review }}
 
   ios-trigger:
     if: ${{ always() && (inputs.platform == 'ios' || (inputs.platform == 'both' && needs.android.result == 'success')) }}
