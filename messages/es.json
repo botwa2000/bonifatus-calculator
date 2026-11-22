@@ -1402,7 +1402,12 @@
     "sourcesTitle": "Fuentes",
     "readArticle": "Leer artículo",
     "relatedTitle": "Más guías",
-    "breadcrumbLabel": "Ruta de navegación"
+    "breadcrumbLabel": "Ruta de navegación",
+    "allArticles": "Todas las guías",
+    "teaserIntro": "Premios por el boletín, notas de mitad de curso, premiar sin dinero: respuestas fundamentadas para padres, con fuentes.",
+    "germanTitle": "Guías para padres (en alemán)",
+    "germanText": "Nuestras guías detalladas sobre premios por las notas, la paga y la motivación están disponibles por ahora en alemán.",
+    "germanLink": "Leer las guías en alemán"
   },
   "invite": {
     "metaTitle": "Invitación para conectar",

@@ -1402,7 +1402,12 @@
     "sourcesTitle": "Sources",
     "readArticle": "Read article",
     "relatedTitle": "More advice",
-    "breadcrumbLabel": "Breadcrumb"
+    "breadcrumbLabel": "Breadcrumb",
+    "allArticles": "All advice articles",
+    "teaserIntro": "Report-card money, mid-year reports, rewarding without money: well-sourced answers for parents.",
+    "germanTitle": "Advice for parents (in German)",
+    "germanText": "Our in-depth guides on report-card rewards, pocket money and motivation are currently available in German.",
+    "germanLink": "Read the guides in German"
   },
   "invite": {
     "metaTitle": "Invitation to connect",

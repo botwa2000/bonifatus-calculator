@@ -159,7 +159,7 @@ const body: RatgeberBody = {
       url: 'https://doi.org/10.1037/0033-2909.125.6.627',
     },
   ],
-  related: ['taschengeld-tabelle', 'schulnoten-belohnen'],
+  related: ['zeugnisgeld-hoehe-nach-klasse', 'schulnoten-belohnen', 'zeugnis-gespraech-fuehren'],
 }
 
 export default body

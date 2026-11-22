@@ -1,7 +1,11 @@
 'use client'
 
-import { DemoCalculator } from '@/components/demo-calculator'
+import { DemoCalculator, type CalculatorConfig } from '@/components/demo-calculator'
 
-export function GradeRewardCalculatorClient() {
-  return <DemoCalculator allowSample isDemo />
+export function GradeRewardCalculatorClient({
+  initialConfig,
+}: {
+  initialConfig?: CalculatorConfig
+}) {
+  return <DemoCalculator allowSample isDemo initialConfig={initialConfig} />
 }

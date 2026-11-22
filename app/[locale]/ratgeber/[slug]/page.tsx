@@ -5,6 +5,7 @@ import { Link } from '@/i18n/navigation'
 import { auth } from '@/auth'
 import { AppHeader } from '@/components/layout/AppHeader'
 import { Breadcrumbs } from '@/components/ratgeber/Breadcrumbs'
+import { Footer } from '@/components/layout/Footer'
 import { RatgeberBlocks } from '@/components/ratgeber/RatgeberBlocks'
 import { RichText, plainText, sourceAnchor } from '@/components/ratgeber/RichText'
 import { JsonLd, articleJsonLd, breadcrumbJsonLd, faqPageJsonLd } from '@/components/seo/JsonLd'
@@ -201,9 +202,16 @@ export default async function RatgeberArticlePage({ params }: { params: Params }
                 </li>
               ))}
             </ul>
+            <Link
+              href="/ratgeber"
+              className="mt-6 inline-block text-sm font-semibold text-primary-600 dark:text-primary-400 hover:underline"
+            >
+              {t('allArticles')} →
+            </Link>
           </aside>
         )}
       </main>
+      <Footer />
     </div>
   )
 }

@@ -1402,7 +1402,12 @@
     "sourcesTitle": "Fonti",
     "readArticle": "Leggi l’articolo",
     "relatedTitle": "Altri consigli",
-    "breadcrumbLabel": "Percorso di navigazione"
+    "breadcrumbLabel": "Percorso di navigazione",
+    "allArticles": "Tutti i consigli",
+    "teaserIntro": "Soldi per la pagella, pagella di metà anno, premiare senza soldi: risposte fondate per i genitori, con fonti.",
+    "germanTitle": "Consigli per i genitori (in tedesco)",
+    "germanText": "Le nostre guide approfondite su premi per la pagella, paghetta e motivazione sono per ora disponibili in tedesco.",
+    "germanLink": "Leggi le guide in tedesco"
   },
   "invite": {
     "metaTitle": "Invito a collegarsi",

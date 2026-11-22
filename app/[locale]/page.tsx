@@ -4,6 +4,7 @@ import { buildAlternates } from '@/lib/seo/alternates'
 import { JsonLd, webApplicationJsonLd } from '@/components/seo/JsonLd'
 import Image from 'next/image'
 import { DemoSection } from '@/components/demo-section'
+import { loadPublicCalculatorConfig } from '@/lib/calculator/public-config'
 import { HeroCta } from '@/components/hero-cta'
 import { DemoLinkButton } from '@/components/demo-link-button'
 import { CompoundGrowthWidget } from '@/components/widgets/CompoundGrowthWidget'
@@ -11,6 +12,8 @@ import { Link } from '@/i18n/navigation'
 import { auth } from '@/auth'
 import { AppHeader } from '@/components/layout/AppHeader'
 import { AppStoreBadges } from '@/components/app-store-badges'
+import { Footer } from '@/components/layout/Footer'
+import { RatgeberTeaser } from '@/components/ratgeber/RatgeberTeaser'
 
 export const dynamic = 'force-dynamic'
 
@@ -35,9 +38,8 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
   const session = await auth()
   const isAuthed = Boolean(session?.user)
   const t = await getTranslations('home')
-  const tNav = await getTranslations('nav')
-  const tCommon = await getTranslations('common')
   const tSeo = await getTranslations('seo')
+  const calculatorConfig = await loadPublicCalculatorConfig()
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary-50 via-white to-secondary-50 dark:from-neutral-900 dark:via-neutral-800 dark:to-neutral-900">
@@ -85,7 +87,7 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
         </div>
       </section>
 
-      <DemoSection />
+      <DemoSection initialConfig={calculatorConfig} />
 
       {/* Features Section */}
       <section
@@ -399,6 +401,20 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
         </div>
       </section>
 
+      {/* Ratgeber (only in locales that have articles) */}
+      <RatgeberTeaser
+        fallback={false}
+        slugs={[
+          'zeugnisgeld',
+          'halbjahreszeugnis-bedeutung',
+          'schlechtes-zeugnis-was-tun',
+          'zeugnis-gespraech-fuehren',
+          'belohnen-ohne-geld',
+          'taschengeld-tabelle',
+        ]}
+        className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-16"
+      />
+
       {/* FAQ Teaser */}
       <section id="faq" className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
         <div className="text-center mb-8">
@@ -429,115 +445,7 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
         </div>
       </section>
 
-      {/* Footer */}
-      <footer className="border-t bg-white dark:bg-neutral-900 mt-20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-          <div className="grid md:grid-cols-4 gap-8">
-            <div className="col-span-2">
-              <div className="flex items-center gap-3 mb-4">
-                <Image
-                  src="/images/logo-icon.svg"
-                  alt="Bonifatus"
-                  width={36}
-                  height={36}
-                  className="rounded-full"
-                />
-                <h2 className="text-xl font-bold bg-gradient-to-r from-primary-600 to-secondary-600 bg-clip-text text-transparent">
-                  Bonifatus
-                </h2>
-              </div>
-              <p className="text-neutral-600 dark:text-neutral-400 mb-4">
-                {t('footerDescription')}
-              </p>
-              <p className="text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">
-                {t('footerGetApp')}
-              </p>
-              <AppStoreBadges />
-            </div>
-            <div>
-              <h3 className="font-semibold text-neutral-900 dark:text-white mb-4">
-                {t('footerProduct')}
-              </h3>
-              <ul className="space-y-2 text-neutral-600 dark:text-neutral-400">
-                <li>
-                  <a
-                    href="#features"
-                    className="hover:text-primary-600 dark:hover:text-blue-400 transition-colors"
-                  >
-                    {tNav('features')}
-                  </a>
-                </li>
-                <li>
-                  <a
-                    href="#benefits"
-                    className="hover:text-primary-600 dark:hover:text-blue-400 transition-colors"
-                  >
-                    {tNav('benefits')}
-                  </a>
-                </li>
-                <li>
-                  <Link
-                    href="/faq"
-                    className="hover:text-primary-600 dark:hover:text-blue-400 transition-colors"
-                  >
-                    {t('footerFaq')}
-                  </Link>
-                </li>
-              </ul>
-            </div>
-            <div>
-              <h3 className="font-semibold text-neutral-900 dark:text-white mb-4">
-                {t('footerCompany')}
-              </h3>
-              <ul className="space-y-2 text-neutral-600 dark:text-neutral-400">
-                <li>
-                  <Link
-                    href="/about"
-                    className="hover:text-primary-600 dark:hover:text-blue-400 transition-colors"
-                  >
-                    {t('footerAbout')}
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    href="/privacy"
-                    className="hover:text-primary-600 dark:hover:text-blue-400 transition-colors"
-                  >
-                    {t('footerPrivacy')}
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    href="/terms"
-                    className="hover:text-primary-600 dark:hover:text-blue-400 transition-colors"
-                  >
-                    {t('footerTerms')}
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    href="/cookies"
-                    className="hover:text-primary-600 dark:hover:text-blue-400 transition-colors"
-                  >
-                    {t('footerCookies')}
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    href="/contact"
-                    className="hover:text-primary-600 dark:hover:text-blue-400 transition-colors"
-                  >
-                    {t('footerContact')}
-                  </Link>
-                </li>
-              </ul>
-            </div>
-          </div>
-          <div className="border-t mt-8 pt-8 text-center text-neutral-600 dark:text-neutral-400 text-sm">
-            <p>{tCommon('copyright')}</p>
-          </div>
-        </div>
-      </footer>
+      <Footer />
     </div>
   )
 }

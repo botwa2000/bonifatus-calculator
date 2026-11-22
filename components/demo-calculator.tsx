@@ -60,7 +60,7 @@ type TermTypeConfig = {
   types: Array<{ code: string; group: string; name: Record<string, string> }>
 } | null
 
-type CalculatorConfig = {
+export type CalculatorConfig = {
   gradingSystems: GradingSystem[]
   bonusFactorDefaults: Factor[]
   subjects: Subject[]
@@ -268,6 +268,8 @@ function guessCountryCode() {
 }
 
 type DemoCalculatorProps = {
+  /** Config loaded on the server: the form renders in the server HTML, with no fetch on mount. */
+  initialConfig?: CalculatorConfig
   allowSample?: boolean
   isDemo?: boolean // Demo mode: weights are fixed at 1 and not editable
   onSaved?: (payload: {
@@ -293,6 +295,7 @@ export function DemoCalculator({
   isDemo = true,
   onSaved,
   initialData,
+  initialConfig,
 }: DemoCalculatorProps = {}) {
   const locale = useLocale()
   const router = useRouter()
@@ -318,14 +321,16 @@ export function DemoCalculator({
   const [subjectsOpen, setSubjectsOpen] = useState(true)
   const [resultsOpen, setResultsOpen] = useState(true)
 
-  const [config, setConfig] = useState<CalculatorConfig>({
-    gradingSystems: [],
-    bonusFactorDefaults: [],
-    subjects: [],
-    categories: [],
-    termTypes: null,
-  })
-  const [loading, setLoading] = useState(true)
+  const [config, setConfig] = useState<CalculatorConfig>(
+    initialConfig ?? {
+      gradingSystems: [],
+      bonusFactorDefaults: [],
+      subjects: [],
+      categories: [],
+      termTypes: null,
+    }
+  )
+  const [loading, setLoading] = useState(!initialConfig)
   const [error, setError] = useState<string | null>(null)
   const [userEmail, setUserEmail] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
@@ -387,42 +392,53 @@ export function DemoCalculator({
   )
 
   useEffect(() => {
+    // Pick the grading system: the one being edited, the visitor's saved default,
+    // a guess from the browser's country, else the first.
+    function applyConfig(data: CalculatorConfig) {
+      const countryGuess = guessCountryCode()
+      const storedDefault =
+        typeof window !== 'undefined' ? localStorage.getItem(defaultSystemKey) : null
+      const countrySuggested = countryGuess
+        ? data.gradingSystems.find(
+            (gs: GradingSystem) =>
+              (gs.countryCode || '').toUpperCase() === (countryGuess || '').toUpperCase()
+          )?.id
+        : undefined
+      if (storedDefault) {
+        setPreferredSystemId(storedDefault)
+      }
+      if (countrySuggested) {
+        setSuggestedSystemId(countrySuggested)
+      }
+      const resolvedSystemId =
+        initialData?.gradingSystemId ||
+        storedDefault ||
+        countrySuggested ||
+        data.gradingSystems[0]?.id
+      if (resolvedSystemId) {
+        setSelectedSystemId(resolvedSystemId)
+      }
+    }
+
     async function loadConfig() {
+      if (initialConfig) {
+        applyConfig(initialConfig)
+        return
+      }
       try {
         const res = await fetch('/api/config/calculator')
         if (!res.ok) throw new Error('Failed to load calculator config')
         const data = await res.json()
         if (!data.success) throw new Error(data.error || 'Failed to load calculator config')
-        const countryGuess = guessCountryCode()
-        const storedDefault =
-          typeof window !== 'undefined' ? localStorage.getItem(defaultSystemKey) : null
-        setConfig({
+        const loaded: CalculatorConfig = {
           gradingSystems: data.gradingSystems || [],
           bonusFactorDefaults: data.bonusFactorDefaults || [],
           subjects: data.subjects || [],
           categories: data.categories || [],
           termTypes: data.termTypes || null,
-        })
-        const countrySuggested = countryGuess
-          ? data.gradingSystems?.find(
-              (gs: GradingSystem) =>
-                (gs.countryCode || '').toUpperCase() === (countryGuess || '').toUpperCase()
-            )?.id
-          : undefined
-        if (storedDefault) {
-          setPreferredSystemId(storedDefault)
         }
-        if (countrySuggested) {
-          setSuggestedSystemId(countrySuggested)
-        }
-        const resolvedSystemId =
-          initialData?.gradingSystemId ||
-          storedDefault ||
-          countrySuggested ||
-          data.gradingSystems?.[0]?.id
-        if (resolvedSystemId) {
-          setSelectedSystemId(resolvedSystemId)
-        }
+        setConfig(loaded)
+        applyConfig(loaded)
       } catch (err) {
         console.error('[calculator] config load failed', err)
         setError('load-failed')

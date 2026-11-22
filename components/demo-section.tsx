@@ -1,10 +1,10 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { DemoCalculator } from './demo-calculator'
+import { DemoCalculator, type CalculatorConfig } from './demo-calculator'
 import { useTranslations } from 'next-intl'
 
-export function DemoSection() {
+export function DemoSection({ initialConfig }: { initialConfig?: CalculatorConfig } = {}) {
   const t = useTranslations('home')
   const [open, setOpen] = useState(true)
   const sectionId = 'demo-calculator'
@@ -60,7 +60,7 @@ export function DemoSection() {
             {open ? t('hideDemo') : t('tryDemo')}
           </button>
         </div>
-        {open && <DemoCalculator />}
+        {open && <DemoCalculator initialConfig={initialConfig} />}
       </div>
     </section>
   )

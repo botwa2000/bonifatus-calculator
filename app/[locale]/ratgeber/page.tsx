@@ -8,6 +8,7 @@ import { Breadcrumbs } from '@/components/ratgeber/Breadcrumbs'
 import { JsonLd, breadcrumbJsonLd } from '@/components/seo/JsonLd'
 import { buildAlternates } from '@/lib/seo/alternates'
 import { getRatgeberIndex } from '@/content/ratgeber/index'
+import { Footer } from '@/components/layout/Footer'
 
 type Params = Promise<{ locale: string }>
 
@@ -71,6 +72,7 @@ export default async function RatgeberHubPage({ params }: { params: Params }) {
           ))}
         </ul>
       </main>
+      <Footer />
     </div>
   )
 }

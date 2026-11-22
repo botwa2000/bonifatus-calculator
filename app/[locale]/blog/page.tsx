@@ -5,6 +5,7 @@ import { getAllPosts } from '@/content/blog/registry'
 import { auth } from '@/auth'
 import type { Metadata } from 'next'
 import { buildAlternates } from '@/lib/seo/alternates'
+import { Footer } from '@/components/layout/Footer'
 
 export async function generateMetadata({
   params,
@@ -76,6 +77,7 @@ export default async function BlogIndexPage({ params }: { params: Promise<{ loca
           ))}
         </div>
       </main>
+      <Footer />
     </div>
   )
 }

@@ -1402,7 +1402,12 @@
     "sourcesTitle": "Sources",
     "readArticle": "Lire l’article",
     "relatedTitle": "Autres conseils",
-    "breadcrumbLabel": "Fil d’Ariane"
+    "breadcrumbLabel": "Fil d’Ariane",
+    "allArticles": "Tous les conseils",
+    "teaserIntro": "Argent pour le bulletin, bulletin de mi-année, récompenser sans argent : des réponses sourcées pour les parents.",
+    "germanTitle": "Conseils aux parents (en allemand)",
+    "germanText": "Nos guides détaillés sur les récompenses pour le bulletin, l’argent de poche et la motivation sont pour l’instant disponibles en allemand.",
+    "germanLink": "Lire les guides en allemand"
   },
   "invite": {
     "metaTitle": "Invitation à se connecter",

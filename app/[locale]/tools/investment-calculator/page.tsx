@@ -5,6 +5,7 @@ import { auth } from '@/auth'
 import type { Metadata } from 'next'
 import { buildAlternates } from '@/lib/seo/alternates'
 import { InvestmentCalculatorClient } from './InvestmentCalculatorClient'
+import { Footer } from '@/components/layout/Footer'
 
 export async function generateMetadata({
   params,
@@ -65,6 +66,7 @@ export default async function InvestmentCalculatorPage({
           </Link>
         </div>
       </main>
+      <Footer />
     </div>
   )
 }

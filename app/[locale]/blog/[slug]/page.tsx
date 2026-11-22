@@ -7,6 +7,7 @@ import { auth } from '@/auth'
 import { notFound } from 'next/navigation'
 import type { Metadata } from 'next'
 import { buildAlternates } from '@/lib/seo/alternates'
+import { Footer } from '@/components/layout/Footer'
 
 export async function generateStaticParams() {
   const slugs = getAllSlugs()
@@ -221,6 +222,7 @@ export default async function BlogPostPage({
           </Link>
         </div>
       </main>
+      <Footer />
     </div>
   )
 }

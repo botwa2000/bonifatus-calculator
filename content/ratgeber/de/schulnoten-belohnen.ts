@@ -180,7 +180,7 @@ const body: RatgeberBody = {
       url: 'https://www.dji.de/fileadmin/user_upload/dasdji/publikationen/Broschueren_2025/Expertise_Taschengeld_ChaburskyLangmeyer2025_aktualisiert.pdf',
     },
   ],
-  related: ['zeugnisgeld', 'taschengeld-tabelle'],
+  related: ['zeugnisgeld', 'belohnen-ohne-geld', 'taschengeld-tabelle'],
 }
 
 export default body

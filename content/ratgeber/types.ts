@@ -7,6 +7,8 @@ export interface RatgeberMeta {
   locale: string
   /** H1 and <title> (the layout appends " | Bonifatus"). */
   title: string
+  /** Few-word label for navigation (footer). */
+  shortTitle: string
   /** Meta description and the teaser on the hub page. */
   description: string
   publishedAt: string

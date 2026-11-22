@@ -4,6 +4,7 @@ import { AppHeader } from '@/components/layout/AppHeader'
 import { auth } from '@/auth'
 import type { Metadata } from 'next'
 import { buildAlternates } from '@/lib/seo/alternates'
+import { Footer } from '@/components/layout/Footer'
 
 export async function generateMetadata({
   params,
@@ -222,6 +223,7 @@ export default async function AppsComparisonPage({
           </Link>
         </div>
       </main>
+      <Footer />
     </div>
   )
 }

@@ -8,6 +8,7 @@ export const RATGEBER_INDEX: readonly RatgeberMeta[] = [
   {
     slug: 'zeugnisgeld',
     locale: 'de',
+    shortTitle: 'Zeugnisgeld',
     title: 'Zeugnisgeld: Wie viel Geld für welche Note ist fair?',
     description:
       'Wie verbreitet Zeugnisgeld ist, welcher Betrag angemessen ist – und warum eine Regel, die vor dem Zeugnistag steht, besser funktioniert als jede Verhandlung danach. Mit Rechenbeispiel.',
@@ -18,6 +19,7 @@ export const RATGEBER_INDEX: readonly RatgeberMeta[] = [
   {
     slug: 'taschengeld-tabelle',
     locale: 'de',
+    shortTitle: 'Taschengeld-Tabelle 2025',
     title: 'Taschengeld-Tabelle 2025: Wie viel Taschengeld in welchem Alter?',
     description:
       'Die aktuellen Taschengeld-Empfehlungen des Deutschen Jugendinstituts (DJI) nach Alter, das neue Budgetgeld ab 12 – und warum Belohnungen für Noten nicht ins Taschengeld gehören.',
@@ -28,6 +30,7 @@ export const RATGEBER_INDEX: readonly RatgeberMeta[] = [
   {
     slug: 'schulnoten-belohnen',
     locale: 'de',
+    shortTitle: 'Schulnoten belohnen',
     title: 'Schulnoten belohnen – ja oder nein? Was die Forschung wirklich sagt',
     description:
       'Geld für gute Noten: Was Studien zu Belohnungen und Motivation zeigen, warum die Einwände ernst zu nehmen sind – und wann ein transparentes System trotzdem hilft.',
@@ -38,6 +41,7 @@ export const RATGEBER_INDEX: readonly RatgeberMeta[] = [
   {
     slug: 'zeugnisgeld-hoehe-nach-klasse',
     locale: 'de',
+    shortTitle: 'Zeugnisgeld nach Klasse',
     title: 'Zeugnisgeld nach Klasse: Wie sich der Betrag mit dem Alter ändern sollte',
     description:
       'Grundschule, Mittelstufe, Oberstufe: Warum ein fester Betrag pro Note nicht mitwächst, was Kinder in welchem Alter motiviert und wie Sie eine Zeugnisregel mitwachsen lassen.',
@@ -48,6 +52,7 @@ export const RATGEBER_INDEX: readonly RatgeberMeta[] = [
   {
     slug: 'belohnen-ohne-geld',
     locale: 'de',
+    shortTitle: 'Belohnen ohne Geld',
     title: 'Belohnen ohne Geld: Was statt Zeugnisgeld wirklich wirkt',
     description:
       'Die meisten Eltern geben zum Zeugnis kein Geld. Was stattdessen wirkt – Lob, gemeinsame Zeit, Mitbestimmung – und warum ein versprochenes Geschenk dem Zeugnisgeld ähnlicher ist, als es aussieht.',
@@ -58,6 +63,7 @@ export const RATGEBER_INDEX: readonly RatgeberMeta[] = [
   {
     slug: 'geschwister-gerechtigkeit',
     locale: 'de',
+    shortTitle: 'Geschwister gerecht belohnen',
     title: 'Geschwister gerecht belohnen: Gleiche Regel oder gleicher Maßstab?',
     description:
       '„Warum bekommt sie mehr als ich?“ Was die Forschung über Gerechtigkeit zwischen Geschwistern zeigt, warum gleiche Beträge nicht automatisch fair sind – und wann eine Drei mehr wert ist als eine Eins.',
@@ -68,6 +74,7 @@ export const RATGEBER_INDEX: readonly RatgeberMeta[] = [
   {
     slug: 'schlechtes-zeugnis-was-tun',
     locale: 'de',
+    shortTitle: 'Schlechtes Zeugnis',
     title: 'Schlechtes Zeugnis: Was Eltern jetzt tun können – und was besser nicht',
     description:
       'Ein schlechtes Zeugnis ist eine Momentaufnahme, kein Urteil über Ihr Kind. Was die Forschung über Strafen und Druck zeigt, welche Fragen helfen, die Ursache zu finden – und wann Sie sich Unterstützung holen sollten.',
@@ -78,6 +85,7 @@ export const RATGEBER_INDEX: readonly RatgeberMeta[] = [
   {
     slug: 'halbjahreszeugnis-bedeutung',
     locale: 'de',
+    shortTitle: 'Halbjahreszeugnis',
     title: 'Halbjahreszeugnis: Was es bedeutet – und was nicht (mit Terminen 2027)',
     description:
       'Das Halbjahreszeugnis ist keine Versetzungsentscheidung. Was es aussagt, wann es 2027 in welchem Bundesland ausgegeben wird und in welchen Fällen es doch Gewicht hat – etwa in Klasse 4.',
@@ -88,6 +96,7 @@ export const RATGEBER_INDEX: readonly RatgeberMeta[] = [
   {
     slug: 'zeugnis-gespraech-fuehren',
     locale: 'de',
+    shortTitle: 'Das Zeugnisgespräch',
     title: 'Das Zeugnisgespräch: So sprechen Sie mit Ihrem Kind über das Zeugnis',
     description:
       'Wie Sie am Zeugnistag reagieren, prägt mehr als die Noten selbst. Welches Lob wirkt, wie Sie über schwache Noten sprechen, was Sie besser lassen – mit Leitfaden für das Gespräch.',

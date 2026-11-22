@@ -187,7 +187,7 @@ const body: RatgeberBody = {
       url: 'https://www.gesetze-im-internet.de/bgb/__110.html',
     },
   ],
-  related: ['zeugnisgeld', 'schulnoten-belohnen'],
+  related: ['zeugnisgeld', 'zeugnisgeld-hoehe-nach-klasse', 'schulnoten-belohnen'],
 }
 
 export default body

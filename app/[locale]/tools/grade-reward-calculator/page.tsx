@@ -1,6 +1,8 @@
 import { setRequestLocale, getTranslations } from 'next-intl/server'
 import { Link } from '@/i18n/navigation'
-import { RelatedRatgeber } from '@/components/ratgeber/RelatedRatgeber'
+import { RatgeberTeaser } from '@/components/ratgeber/RatgeberTeaser'
+import { Footer } from '@/components/layout/Footer'
+import { loadPublicCalculatorConfig } from '@/lib/calculator/public-config'
 import { AppHeader } from '@/components/layout/AppHeader'
 import { JsonLd, webApplicationJsonLd } from '@/components/seo/JsonLd'
 import { auth } from '@/auth'
@@ -33,6 +35,7 @@ export default async function GradeRewardCalculatorPage({
   const isAuthed = Boolean(session?.user)
   const t = await getTranslations('tools')
   const tSeo = await getTranslations('seo')
+  const config = await loadPublicCalculatorConfig()
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary-50 via-white to-secondary-50 dark:from-neutral-900 dark:via-neutral-800 dark:to-neutral-900">
@@ -61,10 +64,18 @@ export default async function GradeRewardCalculatorPage({
         </div>
 
         <div className="bg-white dark:bg-neutral-800/50 rounded-2xl p-8 shadow-card">
-          <GradeRewardCalculatorClient />
+          <GradeRewardCalculatorClient initialConfig={config} />
         </div>
 
-        <RelatedRatgeber slug="zeugnisgeld" />
+        <RatgeberTeaser
+          slugs={[
+            'zeugnisgeld',
+            'zeugnisgeld-hoehe-nach-klasse',
+            'schulnoten-belohnen',
+            'belohnen-ohne-geld',
+          ]}
+          className="mt-12"
+        />
 
         {/* CTA */}
         <div className="mt-12 bg-gradient-to-r from-primary-600 to-secondary-600 rounded-2xl p-8 text-white text-center">
@@ -78,6 +89,7 @@ export default async function GradeRewardCalculatorPage({
           </Link>
         </div>
       </main>
+      <Footer />
     </div>
   )
 }

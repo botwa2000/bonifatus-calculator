@@ -1402,7 +1402,12 @@
     "sourcesTitle": "Quellen",
     "readArticle": "Weiterlesen",
     "relatedTitle": "Weitere Ratgeber",
-    "breadcrumbLabel": "Navigationspfad"
+    "breadcrumbLabel": "Navigationspfad",
+    "allArticles": "Alle Ratgeber-Artikel",
+    "teaserIntro": "Zeugnisgeld, Halbjahreszeugnis, Belohnen ohne Geld: fundierte Antworten für Eltern, mit Quellen.",
+    "germanTitle": "Ratgeber für Eltern (auf Deutsch)",
+    "germanText": "Unsere ausführlichen Ratgeber zu Zeugnisgeld, Taschengeld und Motivation gibt es bisher auf Deutsch.",
+    "germanLink": "Ratgeber auf Deutsch lesen"
   },
   "invite": {
     "metaTitle": "Einladung zum Verbinden",
