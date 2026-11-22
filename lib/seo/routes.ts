@@ -63,6 +63,20 @@ const STATIC_PAGES: readonly PublicPage[] = [
     priority: 0.9,
   },
   {
+    path: '/tools/zeugnisgeld-rechner',
+    lastModified: '2026-11-22',
+    changeFrequency: 'monthly',
+    priority: 0.9,
+    locales: ['de'],
+  },
+  {
+    path: '/tools/notendurchschnitt-rechner',
+    lastModified: '2026-11-22',
+    changeFrequency: 'monthly',
+    priority: 0.8,
+    locales: ['de'],
+  },
+  {
     path: '/tools/allowance-calculator',
     lastModified: '2026-10-09',
     changeFrequency: 'monthly',

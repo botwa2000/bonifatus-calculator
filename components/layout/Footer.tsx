@@ -3,6 +3,7 @@ import { Link } from '@/i18n/navigation'
 import { AppStoreBadges } from '@/components/app-store-badges'
 import { useLocale, useTranslations } from 'next-intl'
 import { getRatgeberIndex, getRatgeberMeta, ratgeberLocales } from '@/content/ratgeber/index'
+import { getLocalTools } from '@/content/tools/index'
 
 // Articles linked from every page's footer in the Ratgeber locale.
 const FOOTER_RATGEBER = [
@@ -25,6 +26,7 @@ export function Footer() {
   const footerArticles = FOOTER_RATGEBER.map((s) => getRatgeberMeta(locale, s)).filter(
     (a): a is NonNullable<typeof a> => Boolean(a)
   )
+  const localTools = getLocalTools(locale)
   const linkClass = 'hover:text-primary-600 dark:hover:text-blue-400 transition-colors'
 
   return (
@@ -90,6 +92,13 @@ export function Footer() {
                   {tTools('indexTitle')}
                 </Link>
               </li>
+              {localTools.map((tool) => (
+                <li key={tool.path}>
+                  <Link href={tool.path} className={linkClass}>
+                    {tool.name}
+                  </Link>
+                </li>
+              ))}
               <li>
                 <Link
                   href="/blog"

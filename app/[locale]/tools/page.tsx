@@ -5,6 +5,7 @@ import { auth } from '@/auth'
 import type { Metadata } from 'next'
 import { buildAlternates } from '@/lib/seo/alternates'
 import { Footer } from '@/components/layout/Footer'
+import { getLocalTools } from '@/content/tools/index'
 
 export async function generateMetadata({
   params,
@@ -54,6 +55,7 @@ export default async function ToolsPage({ params }: { params: Promise<{ locale: 
   const isAuthed = Boolean(session?.user)
   const t = await getTranslations('tools')
   const tSeo = await getTranslations('seo')
+  const localTools = getLocalTools(locale)
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary-50 via-white to-secondary-50 dark:from-neutral-900 dark:via-neutral-800 dark:to-neutral-900">
@@ -68,6 +70,23 @@ export default async function ToolsPage({ params }: { params: Promise<{ locale: 
             {t('indexSubtitle')}
           </p>
         </div>
+
+        {localTools.length > 0 && (
+          <div className="grid sm:grid-cols-2 gap-8 mb-8">
+            {localTools.map((tool) => (
+              <Link
+                key={tool.path}
+                href={tool.path}
+                className="block p-8 rounded-2xl bg-gradient-to-br from-secondary-50 to-secondary-100 dark:from-secondary-900/20 dark:to-secondary-800/20 hover:shadow-xl transition-all duration-200 hover:-translate-y-1"
+              >
+                <h2 className="text-xl font-bold text-neutral-900 dark:text-white mb-2">
+                  {tool.name}
+                </h2>
+                <p className="text-neutral-600 dark:text-neutral-300 text-sm">{tool.description}</p>
+              </Link>
+            ))}
+          </div>
+        )}
 
         <div className="grid sm:grid-cols-3 gap-8">
           {TOOLS.map((tool) => (

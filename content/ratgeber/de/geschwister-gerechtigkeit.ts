@@ -136,9 +136,9 @@ const body: RatgeberBody = {
   ],
   cta: {
     title: 'Eine Regel für alle Kinder durchrechnen',
-    text: 'Geben Sie die Zeugnisse Ihrer Kinder nacheinander in den kostenlosen Noten-Belohnungsrechner ein – mit der jeweiligen Klassenstufe – und prüfen Sie, ob das Ergebnis für alle stimmig ist. Ohne Anmeldung.',
-    button: 'Zum Noten-Belohnungsrechner',
-    href: '/tools/grade-reward-calculator',
+    text: 'Geben Sie die Zeugnisse Ihrer Kinder nacheinander in den kostenlosen Zeugnisgeld-Rechner ein und vergleichen Sie die Regeln: pro Note oder pro Verbesserung. So sehen Sie, ob das Ergebnis für alle stimmig ist. Ohne Anmeldung.',
+    button: 'Zum Zeugnisgeld-Rechner',
+    href: '/tools/zeugnisgeld-rechner',
   },
   faqs: [
     {

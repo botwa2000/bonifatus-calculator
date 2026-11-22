@@ -42,7 +42,12 @@ export interface RatgeberSource {
 export interface RatgeberArticle extends RatgeberMeta {
   intro: string[]
   sections: RatgeberSection[]
-  cta: { title: string; text: string; button: string; href: '/tools/grade-reward-calculator' }
+  cta: {
+    title: string
+    text: string
+    button: string
+    href: '/tools/grade-reward-calculator' | '/tools/zeugnisgeld-rechner'
+  }
   faqs: Array<{ question: string; answer: string }>
   /** Numbered in order; cited in text as [^1], [^2], … */
   sources: RatgeberSource[]

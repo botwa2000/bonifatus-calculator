@@ -9,6 +9,7 @@ import { JsonLd, breadcrumbJsonLd } from '@/components/seo/JsonLd'
 import { buildAlternates } from '@/lib/seo/alternates'
 import { getRatgeberIndex } from '@/content/ratgeber/index'
 import { Footer } from '@/components/layout/Footer'
+import { getLocalTools } from '@/content/tools/index'
 
 type Params = Promise<{ locale: string }>
 
@@ -31,6 +32,7 @@ export default async function RatgeberHubPage({ params }: { params: Params }) {
   if (articles.length === 0) notFound()
 
   const session = await auth()
+  const localTools = getLocalTools(locale)
   const t = await getTranslations('ratgeber')
   const crumbs = [
     { name: t('breadcrumbHome'), path: '/' },
@@ -71,6 +73,28 @@ export default async function RatgeberHubPage({ params }: { params: Params }) {
             </li>
           ))}
         </ul>
+
+        {localTools.length > 0 && (
+          <section className="mt-12">
+            <ul className="grid sm:grid-cols-2 gap-4">
+              {localTools.map((tool) => (
+                <li key={tool.path}>
+                  <Link
+                    href={tool.path}
+                    className="block h-full rounded-xl border border-neutral-200 dark:border-neutral-700 bg-white/70 dark:bg-neutral-800/50 p-5 hover:border-primary-400 hover:shadow-md transition-all"
+                  >
+                    <p className="font-semibold text-neutral-900 dark:text-white mb-1">
+                      {tool.name}
+                    </p>
+                    <p className="text-sm text-neutral-600 dark:text-neutral-300">
+                      {tool.description}
+                    </p>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
       </main>
       <Footer />
     </div>

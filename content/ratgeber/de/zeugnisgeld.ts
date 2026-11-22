@@ -119,9 +119,9 @@ const body: RatgeberBody = {
   ],
   cta: {
     title: 'Ihre Regel an einem echten Zeugnis ausprobieren',
-    text: 'Geben Sie die Noten eines Zeugnisses in den kostenlosen Noten-Belohnungsrechner ein und sehen Sie, welche Belohnung sich ergibt – für deutsche Noten und weitere Notensysteme, ohne Anmeldung.',
-    button: 'Zum Noten-Belohnungsrechner',
-    href: '/tools/grade-reward-calculator',
+    text: 'Wählen Sie im kostenlosen Zeugnisgeld-Rechner eine Regel – pro Note, pro Verbesserung oder pauschal, mit Obergrenze – und sehen Sie, wie viel sich für ein echtes Zeugnis ergibt. Ohne Anmeldung.',
+    button: 'Zum Zeugnisgeld-Rechner',
+    href: '/tools/zeugnisgeld-rechner',
   },
   faqs: [
     {
