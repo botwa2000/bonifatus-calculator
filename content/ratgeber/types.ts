@@ -45,8 +45,10 @@ export interface RatgeberArticle extends RatgeberMeta {
   cta: {
     title: string
     text: string
+    /** Sign-up button; it always goes to /register. */
     button: string
-    href: '/tools/grade-reward-calculator' | '/tools/zeugnisgeld-rechner'
+    /** Plain link under the button: try the rule in a calculator first, no account needed. */
+    tool: { href: '/tools/grade-reward-calculator' | '/tools/zeugnisgeld-rechner'; label: string }
   }
   faqs: Array<{ question: string; answer: string }>
   /** Numbered in order; cited in text as [^1], [^2], … */

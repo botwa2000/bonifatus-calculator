@@ -6,6 +6,7 @@ import {
   entryPath,
   shapeActivation,
   shapeDenials,
+  trackedLandingTotal,
   type StepId,
 } from '@/lib/stats/funnel'
 import { isTrackedPath, trackedPageUrls } from '@/lib/stats/search-console'
@@ -153,11 +154,33 @@ describe('landing pages and Search Console pages', () => {
     expect(isTrackedPath('/ratgeber')).toBe(true)
     expect(isTrackedPath('/ratgeber/zeugnisgeld')).toBe(true)
     expect(isTrackedPath('/tools/grade-reward-calculator')).toBe(true)
+    expect(isTrackedPath('/tools/zeugnisgeld-rechner')).toBe(true)
+    expect(isTrackedPath('/tools/notendurchschnitt-rechner')).toBe(true)
+    expect(isTrackedPath('/tools/allowance-calculator')).toBe(false)
     expect(isTrackedPath('/faq')).toBe(false)
     const urls = trackedPageUrls()
     expect(urls).toContain('https://bonifatus.com/de/ratgeber')
     expect(urls).toContain('https://bonifatus.com/de/tools/grade-reward-calculator')
     expect(urls.every((u) => u.startsWith('https://bonifatus.com/'))).toBe(true)
     expect(new Set(urls).size).toBe(urls.length)
+  })
+  it('sums the landing funnel over the Ratgeber and its calculators only', () => {
+    const r = (page: string, visits: number, started: number, created: number) => ({
+      page,
+      visits,
+      started,
+      created,
+    })
+    expect(
+      trackedLandingTotal([
+        r('/de/ratgeber', 4, 1, 0),
+        r('/de/ratgeber/zeugnisgeld', 10, 2, 1),
+        r('/de/tools/zeugnisgeld-rechner', 5, 1, 1),
+        r('/ru/tools/grade-reward-calculator', 3, 0, 0),
+        r('/de', 50, 9, 3),
+        r('/de/tools/allowance-calculator', 7, 1, 0),
+        r('/', 2, 0, 0),
+      ])
+    ).toEqual({ visits: 22, started: 4, created: 2 })
   })
 })

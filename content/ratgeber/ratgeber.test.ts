@@ -57,7 +57,7 @@ describe.each(articles.map((a) => [a.slug, a] as const))('article %s', (_slug, a
     for (const text of texts) {
       for (const m of text.matchAll(/\]\((\/[^)\s]*)\)/g)) expect(registered).toContain(m[1])
     }
-    expect(registered).toContain(article.cta.href)
+    expect(registered).toContain(article.cta.tool.href)
   })
 
   it('uses https sources and has exactly one CTA block', () => {

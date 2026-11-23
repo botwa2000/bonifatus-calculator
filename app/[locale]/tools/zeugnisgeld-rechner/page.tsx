@@ -6,6 +6,7 @@ import { auth } from '@/auth'
 import { AppHeader } from '@/components/layout/AppHeader'
 import { Footer } from '@/components/layout/Footer'
 import { RatgeberTeaser } from '@/components/ratgeber/RatgeberTeaser'
+import { SignupCta } from '@/components/ratgeber/SignupCta'
 import { RichText, plainText } from '@/components/ratgeber/RichText'
 import { JsonLd, faqPageJsonLd, webApplicationJsonLd } from '@/components/seo/JsonLd'
 import { buildAlternates } from '@/lib/seo/alternates'
@@ -74,16 +75,7 @@ export default async function ZeugnisgeldRechnerPage({ params }: { params: Param
         </p>
 
         {/* Next step: keep the rule */}
-        <div className="mt-12 bg-gradient-to-r from-primary-600 to-secondary-600 rounded-2xl p-8 text-white">
-          <h2 className="text-xl font-bold mb-2">{copy.cta.title}</h2>
-          <p className="opacity-90 mb-6">{copy.cta.text}</p>
-          <Link
-            href="/register"
-            className="inline-block px-8 py-3 bg-white text-primary-600 rounded-lg font-semibold hover:shadow-xl transition-all"
-          >
-            {copy.cta.button}
-          </Link>
-        </div>
+        <SignupCta {...copy.cta} as="h2" className="mt-12" />
 
         {copy.sections.map((section) => (
           <section key={section.id} id={section.id} className="mt-14">

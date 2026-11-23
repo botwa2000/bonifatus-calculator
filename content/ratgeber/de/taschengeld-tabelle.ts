@@ -141,10 +141,13 @@ const body: RatgeberBody = {
     },
   ],
   cta: {
-    title: 'Notenbonus getrennt vom Taschengeld planen',
-    text: 'Mit dem kostenlosen Noten-Belohnungsrechner sehen Sie, welche Belohnung sich aus einem Zeugnis ergibt – ohne Anmeldung und ohne das Taschengeld anzutasten.',
-    button: 'Zum Noten-Belohnungsrechner',
-    href: '/tools/grade-reward-calculator',
+    title: 'Den Notenbonus getrennt vom Taschengeld führen',
+    text: 'In Bonifatus sammelt Ihr Kind Punkte für seine Noten, nach einer Regel, die Sie festlegen. Sie rechnen ab, wann Sie wollen, und sehen jederzeit, was verdient und was schon ausgezahlt ist – das Taschengeld bleibt unberührt.',
+    button: 'Kostenlos registrieren',
+    tool: {
+      href: '/tools/grade-reward-calculator',
+      label: 'Erst ohne Anmeldung ausprobieren: Noten-Belohnungsrechner',
+    },
   },
   faqs: [
     {

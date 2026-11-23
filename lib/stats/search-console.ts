@@ -6,9 +6,16 @@ import { PRODUCTION_URL } from '@/lib/site'
 import { PUBLIC_PAGES, pageLocales } from '@/lib/seo/routes'
 import { int, q } from '@/lib/stats/sql'
 
-/** Paths whose index status is checked every night: every Ratgeber page and the calculator. */
+/** The calculators that the Ratgeber links to (growth plan B3/B4). */
+const TRACKED_TOOLS = new Set([
+  '/tools/grade-reward-calculator',
+  '/tools/zeugnisgeld-rechner',
+  '/tools/notendurchschnitt-rechner',
+])
+
+/** Paths whose index status is checked every night: every Ratgeber page and its calculators. */
 export const isTrackedPath = (path: string) =>
-  path === '/ratgeber' || path.startsWith('/ratgeber/') || path === '/tools/grade-reward-calculator'
+  path === '/ratgeber' || path.startsWith('/ratgeber/') || TRACKED_TOOLS.has(path)
 
 /** Absolute production URLs of the tracked pages, in each locale the page exists in. */
 export function trackedPageUrls(): string[] {

@@ -100,4 +100,10 @@ export const notendurchschnittCopy = {
       url: 'https://www.km.bayern.de/lernen/ubertritt-und-bildungswege/uebertritt',
     },
   ],
+
+  cta: {
+    title: 'Jedes Zeugnis speichern statt neu rechnen',
+    text: 'In Bonifatus trägt Ihr Kind seine Noten ein oder scannt das Zeugnis. Den Durchschnitt mit Fachgewichtung rechnet Bonifatus selbst, Sie sehen den Verlauf über die Halbjahre, und gute Noten bringen Punkte nach einer Regel, die Sie festlegen.',
+    button: 'Kostenlos registrieren',
+  },
 } as const

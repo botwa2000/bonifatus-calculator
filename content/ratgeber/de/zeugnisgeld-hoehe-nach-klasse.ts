@@ -110,10 +110,13 @@ const body: RatgeberBody = {
     },
   ],
   cta: {
-    title: 'Sehen, was eine Regel in jeder Klasse ergibt',
-    text: 'Geben Sie Klassenstufe und Noten in den kostenlosen Noten-Belohnungsrechner ein und vergleichen Sie, wie sich dieselbe Regel in Klasse 5 und in Klasse 10 auswirkt. Ohne Anmeldung.',
-    button: 'Zum Noten-Belohnungsrechner',
-    href: '/tools/grade-reward-calculator',
+    title: 'Eine Regel, die mit der Klasse mitwächst',
+    text: 'In Bonifatus gewichten Sie Noten nach Klassenstufe, sodass dieselbe Regel in Klasse 5 und in Klasse 10 passt. Ihr Kind trägt seine Noten ein oder scannt das Zeugnis, und Bonifatus rechnet nach Ihrer Regel.',
+    button: 'Kostenlos registrieren',
+    tool: {
+      href: '/tools/grade-reward-calculator',
+      label: 'Erst ohne Anmeldung ausprobieren: Noten-Belohnungsrechner',
+    },
   },
   faqs: [
     {

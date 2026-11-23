@@ -1407,7 +1407,10 @@
     "teaserIntro": "Report-card money, mid-year reports, rewarding without money: well-sourced answers for parents.",
     "germanTitle": "Advice for parents (in German)",
     "germanText": "Our in-depth guides on report-card rewards, pocket money and motivation are currently available in German.",
-    "germanLink": "Read the guides in German"
+    "germanLink": "Read the guides in German",
+    "hubCtaTitle": "Keep your rule for good grades",
+    "hubCtaText": "In Bonifatus you decide what each grade is worth. Your child enters their grades or scans the report card, and Bonifatus works it out by your rule – for every child, with an overview of everything already paid out.",
+    "hubCtaButton": "Sign up free"
   },
   "invite": {
     "metaTitle": "Invitation to connect",

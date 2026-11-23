@@ -1407,7 +1407,10 @@
     "teaserIntro": "Zeugnisgeld, Halbjahreszeugnis, Belohnen ohne Geld: fundierte Antworten für Eltern, mit Quellen.",
     "germanTitle": "Ratgeber für Eltern (auf Deutsch)",
     "germanText": "Unsere ausführlichen Ratgeber zu Zeugnisgeld, Taschengeld und Motivation gibt es bisher auf Deutsch.",
-    "germanLink": "Ratgeber auf Deutsch lesen"
+    "germanLink": "Ratgeber auf Deutsch lesen",
+    "hubCtaTitle": "Ihre Regel für gute Noten festhalten",
+    "hubCtaText": "In Bonifatus legen Sie fest, was jede Note wert ist. Ihr Kind trägt seine Noten ein oder scannt das Zeugnis, und Bonifatus rechnet nach Ihrer Regel – für jedes Kind, mit Übersicht über alles, was schon ausgezahlt wurde.",
+    "hubCtaButton": "Kostenlos registrieren"
   },
   "invite": {
     "metaTitle": "Einladung zum Verbinden",

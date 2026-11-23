@@ -1,8 +1,8 @@
 import { getFormatter, getTranslations } from 'next-intl/server'
-import { Link } from '@/i18n/navigation'
 import { DJI_ALLOWANCE_TABLE, type AllowanceEntry } from '@/lib/tools/allowance-table'
 import type { RatgeberArticle, RatgeberBlock } from '@/content/ratgeber/types'
 import { RichText } from './RichText'
+import { SignupCta } from './SignupCta'
 
 const tableClass = 'w-full text-sm'
 const thClass =
@@ -68,18 +68,7 @@ async function DjiAllowanceTable({ note }: { note?: string }) {
 }
 
 function Cta({ cta }: { cta: RatgeberArticle['cta'] }) {
-  return (
-    <aside className="my-10 rounded-2xl bg-gradient-to-r from-primary-600 to-secondary-600 p-6 sm:p-8 text-white">
-      <p className="text-lg font-bold mb-2">{cta.title}</p>
-      <p className="opacity-90 mb-5">{cta.text}</p>
-      <Link
-        href={cta.href}
-        className="inline-block px-6 py-3 bg-white text-primary-700 rounded-lg font-semibold hover:shadow-xl transition-all"
-      >
-        {cta.button}
-      </Link>
-    </aside>
-  )
+  return <SignupCta {...cta} className="my-10" />
 }
 
 export function RatgeberBlocks({

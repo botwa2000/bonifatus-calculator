@@ -1407,7 +1407,10 @@
     "teaserIntro": "Argent pour le bulletin, bulletin de mi-année, récompenser sans argent : des réponses sourcées pour les parents.",
     "germanTitle": "Conseils aux parents (en allemand)",
     "germanText": "Nos guides détaillés sur les récompenses pour le bulletin, l’argent de poche et la motivation sont pour l’instant disponibles en allemand.",
-    "germanLink": "Lire les guides en allemand"
+    "germanLink": "Lire les guides en allemand",
+    "hubCtaTitle": "Enregistrez votre règle pour les bonnes notes",
+    "hubCtaText": "Dans Bonifatus, vous décidez de la valeur de chaque note. Votre enfant saisit ses notes ou scanne son bulletin, et Bonifatus calcule selon votre règle, pour chaque enfant, avec un aperçu de tout ce qui a déjà été versé.",
+    "hubCtaButton": "Inscription gratuite"
   },
   "invite": {
     "metaTitle": "Invitation à se connecter",

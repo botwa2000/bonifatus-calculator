@@ -118,10 +118,13 @@ const body: RatgeberBody = {
     },
   ],
   cta: {
-    title: 'Ihre Regel an einem echten Zeugnis ausprobieren',
-    text: 'Wählen Sie im kostenlosen Zeugnisgeld-Rechner eine Regel – pro Note, pro Verbesserung oder pauschal, mit Obergrenze – und sehen Sie, wie viel sich für ein echtes Zeugnis ergibt. Ohne Anmeldung.',
-    button: 'Zum Zeugnisgeld-Rechner',
-    href: '/tools/zeugnisgeld-rechner',
+    title: 'Als Regel Ihrer Familie in Bonifatus speichern',
+    text: 'In Bonifatus legen Sie fest, was jede Note wert ist. Ihr Kind trägt seine Noten ein oder scannt das Zeugnis, und Bonifatus rechnet nach Ihrer Regel – für jedes Kind, mit Übersicht über alles, was schon ausgezahlt wurde.',
+    button: 'Kostenlos registrieren',
+    tool: {
+      href: '/tools/zeugnisgeld-rechner',
+      label: 'Erst ohne Anmeldung ausprobieren: Zeugnisgeld-Rechner',
+    },
   },
   faqs: [
     {

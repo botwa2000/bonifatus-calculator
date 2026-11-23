@@ -112,10 +112,13 @@ const body: RatgeberBody = {
     },
   ],
   cta: {
-    title: 'Punkte statt Euro',
-    text: 'Der kostenlose Noten-Belohnungsrechner rechnet in Punkten. Ob ein Punkt einen Euro, eine Viertelstunde gemeinsame Zeit oder gar nichts Bestimmtes bedeutet, entscheiden Sie. Ohne Anmeldung.',
-    button: 'Zum Noten-Belohnungsrechner',
-    href: '/tools/grade-reward-calculator',
+    title: 'Punkte, die nicht Geld sein müssen',
+    text: 'In Bonifatus legen Sie fest, wie viele Punkte jede Note bringt. Ihr Kind trägt seine Noten ein oder scannt das Zeugnis, und die Punkte sammeln sich. Was sie wert sind – Euro, gemeinsame Zeit oder ein Ausflug –, entscheiden Sie beim Abrechnen.',
+    button: 'Kostenlos registrieren',
+    tool: {
+      href: '/tools/grade-reward-calculator',
+      label: 'Erst ohne Anmeldung ausprobieren: Noten-Belohnungsrechner',
+    },
   },
   faqs: [
     {

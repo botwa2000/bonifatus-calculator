@@ -160,10 +160,13 @@ const body: RatgeberBody = {
     },
   ],
   cta: {
-    title: 'Eine Regel für das Jahreszeugnis vereinbaren',
-    text: 'Mit dem kostenlosen Noten-Belohnungsrechner geben Sie das Halbjahreszeugnis ein und sehen, was eine Regel ergeben würde – als Grundlage für eine Vereinbarung bis zum Sommer. Ohne Anmeldung.',
-    button: 'Zum Noten-Belohnungsrechner',
-    href: '/tools/grade-reward-calculator',
+    title: 'Die Regel bis zum Jahreszeugnis festhalten',
+    text: 'In Bonifatus speichern Sie die Regel, die Sie nach dem Halbjahreszeugnis vereinbart haben. Ihr Kind trägt Noten ein oder scannt das Zeugnis, und im Sommer sehen Sie beide, was sich seit dem Halbjahr verändert hat.',
+    button: 'Kostenlos registrieren',
+    tool: {
+      href: '/tools/grade-reward-calculator',
+      label: 'Erst ohne Anmeldung ausprobieren: Noten-Belohnungsrechner',
+    },
   },
   faqs: [
     {

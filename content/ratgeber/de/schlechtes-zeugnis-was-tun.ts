@@ -131,10 +131,13 @@ const body: RatgeberBody = {
     },
   ],
   cta: {
-    title: 'Verbesserung sichtbar machen',
-    text: 'Wenn Sie für das nächste Halbjahr eine Regel vereinbaren möchten, die Fortschritte zählt statt nur Einsen: Im kostenlosen Noten-Belohnungsrechner sehen Sie vorab, was eine solche Regel bei einem echten Zeugnis ergibt. Ohne Anmeldung.',
-    button: 'Zum Noten-Belohnungsrechner',
-    href: '/tools/grade-reward-calculator',
+    title: 'Fortschritte sichtbar machen',
+    text: 'In Bonifatus trägt Ihr Kind jede Note ein oder scannt das Zeugnis. Sie sehen den Verlauf über die Halbjahre und belohnen nach einer Regel, die Sie festlegen – auch für Verbesserungen, nicht nur für Einsen.',
+    button: 'Kostenlos registrieren',
+    tool: {
+      href: '/tools/grade-reward-calculator',
+      label: 'Erst ohne Anmeldung ausprobieren: Noten-Belohnungsrechner',
+    },
   },
   faqs: [
     {

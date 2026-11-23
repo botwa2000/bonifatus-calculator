@@ -131,10 +131,13 @@ const body: RatgeberBody = {
     },
   ],
   cta: {
-    title: 'Erst rechnen, dann vereinbaren',
-    text: 'Mit dem kostenlosen Noten-Belohnungsrechner sehen Sie, was eine Regel bei einem echten Zeugnis ergibt – bevor Sie sie mit Ihrem Kind besprechen. Ohne Anmeldung.',
-    button: 'Zum Noten-Belohnungsrechner',
-    href: '/tools/grade-reward-calculator',
+    title: 'Ihre Regel in Bonifatus speichern',
+    text: 'In Bonifatus legen Sie fest, was jede Note wert ist. Ihr Kind trägt seine Noten ein oder scannt das Zeugnis, und Bonifatus rechnet nach Ihrer Regel – mit Übersicht über alles, was schon ausgezahlt wurde.',
+    button: 'Kostenlos registrieren',
+    tool: {
+      href: '/tools/grade-reward-calculator',
+      label: 'Erst ohne Anmeldung ausprobieren: Noten-Belohnungsrechner',
+    },
   },
   faqs: [
     {

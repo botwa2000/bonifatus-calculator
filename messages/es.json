@@ -1407,7 +1407,10 @@
     "teaserIntro": "Premios por el boletín, notas de mitad de curso, premiar sin dinero: respuestas fundamentadas para padres, con fuentes.",
     "germanTitle": "Guías para padres (en alemán)",
     "germanText": "Nuestras guías detalladas sobre premios por las notas, la paga y la motivación están disponibles por ahora en alemán.",
-    "germanLink": "Leer las guías en alemán"
+    "germanLink": "Leer las guías en alemán",
+    "hubCtaTitle": "Guarda tu regla para las buenas notas",
+    "hubCtaText": "En Bonifatus decides cuánto vale cada nota. Tu hijo introduce sus notas o escanea el boletín, y Bonifatus calcula según tu regla, para cada hijo y con un resumen de todo lo que ya se ha pagado.",
+    "hubCtaButton": "Regístrate gratis"
   },
   "invite": {
     "metaTitle": "Invitación para conectar",

@@ -5,6 +5,7 @@ import { Link } from '@/i18n/navigation'
 import { auth } from '@/auth'
 import { AppHeader } from '@/components/layout/AppHeader'
 import { Breadcrumbs } from '@/components/ratgeber/Breadcrumbs'
+import { SignupCta } from '@/components/ratgeber/SignupCta'
 import { JsonLd, breadcrumbJsonLd } from '@/components/seo/JsonLd'
 import { buildAlternates } from '@/lib/seo/alternates'
 import { getRatgeberIndex } from '@/content/ratgeber/index'
@@ -73,6 +74,14 @@ export default async function RatgeberHubPage({ params }: { params: Params }) {
             </li>
           ))}
         </ul>
+
+        <SignupCta
+          title={t('hubCtaTitle')}
+          text={t('hubCtaText')}
+          button={t('hubCtaButton')}
+          as="h2"
+          className="mt-12"
+        />
 
         {localTools.length > 0 && (
           <section className="mt-12">

@@ -135,10 +135,13 @@ const body: RatgeberBody = {
     },
   ],
   cta: {
-    title: 'Eine Regel für alle Kinder durchrechnen',
-    text: 'Geben Sie die Zeugnisse Ihrer Kinder nacheinander in den kostenlosen Zeugnisgeld-Rechner ein und vergleichen Sie die Regeln: pro Note oder pro Verbesserung. So sehen Sie, ob das Ergebnis für alle stimmig ist. Ohne Anmeldung.',
-    button: 'Zum Zeugnisgeld-Rechner',
-    href: '/tools/zeugnisgeld-rechner',
+    title: 'Eine Regel für alle Kinder speichern',
+    text: 'In Bonifatus gilt Ihre Regel für jedes Kind, und Klassenstufe und Halbjahr fließen nach festen Faktoren ein. Jedes Kind trägt seine Noten selbst ein oder scannt das Zeugnis; Sie sehen für alle Kinder, was verdient und was schon ausgezahlt ist.',
+    button: 'Kostenlos registrieren',
+    tool: {
+      href: '/tools/zeugnisgeld-rechner',
+      label: 'Erst ohne Anmeldung ausprobieren: Zeugnisgeld-Rechner',
+    },
   },
   faqs: [
     {

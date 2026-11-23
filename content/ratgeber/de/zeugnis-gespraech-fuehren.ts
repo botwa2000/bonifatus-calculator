@@ -119,10 +119,13 @@ const body: RatgeberBody = {
     },
   ],
   cta: {
-    title: 'Die Regel für das nächste Zeugnis gemeinsam festlegen',
-    text: 'Im kostenlosen Noten-Belohnungsrechner sehen Sie und Ihr Kind, was eine Regel bei einem echten Zeugnis ergibt – auch mit Bonus für Verbesserungen. Ohne Anmeldung.',
-    button: 'Zum Noten-Belohnungsrechner',
-    href: '/tools/grade-reward-calculator',
+    title: 'Die vereinbarte Regel festhalten',
+    text: 'Was Sie im Zeugnisgespräch vereinbart haben, speichern Sie in Bonifatus als Regel Ihrer Familie. Ihr Kind trägt Noten ein oder scannt das Zeugnis und sieht selbst, was es verdient hat – auch für Verbesserungen.',
+    button: 'Kostenlos registrieren',
+    tool: {
+      href: '/tools/grade-reward-calculator',
+      label: 'Erst ohne Anmeldung ausprobieren: Noten-Belohnungsrechner',
+    },
   },
   faqs: [
     {

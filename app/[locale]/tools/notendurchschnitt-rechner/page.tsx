@@ -6,6 +6,7 @@ import { auth } from '@/auth'
 import { AppHeader } from '@/components/layout/AppHeader'
 import { Footer } from '@/components/layout/Footer'
 import { RatgeberTeaser } from '@/components/ratgeber/RatgeberTeaser'
+import { SignupCta } from '@/components/ratgeber/SignupCta'
 import { RichText, plainText, sourceAnchor } from '@/components/ratgeber/RichText'
 import { JsonLd, faqPageJsonLd, webApplicationJsonLd } from '@/components/seo/JsonLd'
 import { buildAlternates } from '@/lib/seo/alternates'
@@ -69,6 +70,8 @@ export default async function NotendurchschnittPage({ params }: { params: Params
         <div className="bg-white dark:bg-neutral-800/50 rounded-2xl p-6 sm:p-8 shadow-card">
           <NotendurchschnittRechner />
         </div>
+
+        <SignupCta {...copy.cta} as="h2" className="mt-12" />
 
         {copy.sections.map((section) => (
           <section key={section.id} id={section.id} className="mt-14">

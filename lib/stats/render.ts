@@ -798,7 +798,7 @@ const DASHBOARD_JS = String.raw`
         { h: "Visits", n: 1, f: function (r) { return fmt(r.visits); } },
         { h: "Started sign-up", n: 1, f: function (r) { return fmt(r.started) + ' <span class="muted">' + pct(r.visits ? r.started / r.visits : null) + "</span>"; } },
         { h: "Account created", n: 1, f: function (r) { return r.created ? '<span class="ok">' + fmt(r.created) + "</span>" : '<span class="muted">0</span>'; } }
-      ], ld.rows, "No web visits in this range."), "first page of each visit (one device, one day) · started = opened the sign-up page or began a Google sign-up the same day · " + fmt(ld.visits) + " visits")) + "</div>");
+      ], ld.rows, "No web visits in this range."), "first page of each visit (one device, one day) · started = opened the sign-up page or began a Google sign-up the same day · " + fmt(ld.visits) + " visits · <b>Ratgeber + its calculators</b>: " + fmt(ld.tracked.visits) + " visits → " + fmt(ld.tracked.started) + " started (" + pct(ld.tracked.visits ? ld.tracked.started / ld.tracked.visits : null) + ") → " + fmt(ld.tracked.created) + " accounts")) + "</div>");
 
     var gs = d.searchConsole;
     var gscBody;

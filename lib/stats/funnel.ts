@@ -10,6 +10,7 @@
  * unit-tested in funnel.test.ts.
  */
 import { int, per, q, type Row, type Tables } from '@/lib/stats/sql'
+import { isTrackedPath } from '@/lib/stats/search-console'
 
 /** Device key shared by usage_events and action_log rows. */
 const DEV = `COALESCE(install_id, visitor_hash)`
@@ -304,7 +305,7 @@ async function activation(w: { from: Date; to: Date }, p: string, t: Tables) {
 export const entryPath = (s: string) => (s.length > 1 ? s.replace(/\/+$/, '') : s)
 
 async function landingPages(w: { from: Date; to: Date }, p: string, t: Tables) {
-  if (p !== 'all' && p !== 'web') return { rows: [], visits: 0 }
+  if (p !== 'all' && p !== 'web') return { rows: [], visits: 0, tracked: trackedLandingTotal([]) }
   // A visit = one device on one UTC day; its entry page is the first page view.
   // Started = opened the register page later that day, or began a sign-up or a
   // Google sign-in. Created = a new account that day: a successful sign-up or new
@@ -350,7 +351,28 @@ async function landingPages(w: { from: Date; to: Date }, p: string, t: Tables) {
     m.set(page, x)
   }
   const list = [...m.values()].sort((a, b) => b.visits - a.visits || b.started - a.started)
-  return { rows: list.slice(0, 40), visits: list.reduce((s, r) => s + r.visits, 0) }
+  return {
+    rows: list.slice(0, 40),
+    visits: list.reduce((s, r) => s + r.visits, 0),
+    tracked: trackedLandingTotal(list),
+  }
+}
+
+/** "/de/ratgeber/x" → "/ratgeber/x"; "/de" → "/". */
+const stripLocale = (page: string) => page.replace(/^\/[a-z]{2}(?=\/|$)/, '') || '/'
+
+/** Visits that landed on a Ratgeber page or one of its calculators, summed (growth plan B5). */
+export function trackedLandingTotal(
+  rows: Array<{ page: string; visits: number; started: number; created: number }>
+) {
+  const t = { visits: 0, started: 0, created: 0 }
+  for (const r of rows) {
+    if (!isTrackedPath(stripLocale(r.page))) continue
+    t.visits += r.visits
+    t.started += r.started
+    t.created += r.created
+  }
+  return t
 }
 
 export async function funnels(

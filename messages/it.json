@@ -1407,7 +1407,10 @@
     "teaserIntro": "Soldi per la pagella, pagella di metà anno, premiare senza soldi: risposte fondate per i genitori, con fonti.",
     "germanTitle": "Consigli per i genitori (in tedesco)",
     "germanText": "Le nostre guide approfondite su premi per la pagella, paghetta e motivazione sono per ora disponibili in tedesco.",
-    "germanLink": "Leggi le guide in tedesco"
+    "germanLink": "Leggi le guide in tedesco",
+    "hubCtaTitle": "Salva la tua regola per i bei voti",
+    "hubCtaText": "In Bonifatus decidi tu quanto vale ogni voto. Tuo figlio inserisce i voti o scansiona la pagella, e Bonifatus calcola secondo la tua regola, per ogni figlio, con una panoramica di tutto ciò che è già stato pagato.",
+    "hubCtaButton": "Registrati gratis"
   },
   "invite": {
     "metaTitle": "Invito a collegarsi",
