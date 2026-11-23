@@ -1,14 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:qr_flutter/qr_flutter.dart';
 import 'package:bonifatus_mobile/l10n/app_localizations.dart';
 import '../../../../core/theme/app_colors.dart';
-import '../../../../api/services/connection_service.dart';
-import '../../../../models/invite_code.dart';
 import '../../../../models/child_data.dart';
 import '../../providers/children_provider.dart';
 import '../../../../utils/format_utils.dart';
+import '../widgets/invite_child_dialog.dart';
 
 enum _TypeFilter { all, notes, reports }
 enum _StatusFilter { all, unsettled, settled }
@@ -221,169 +219,7 @@ class _ChildrenScreenState extends ConsumerState<ChildrenScreen> {
   }
 
   void _showInviteDialog(BuildContext context, WidgetRef ref) {
-    showDialog<void>(
-      context: context,
-      builder: (ctx) => _InviteDialog(ref: ref),
-    );
-  }
-}
-
-class _InviteDialog extends StatefulWidget {
-  final WidgetRef ref;
-  const _InviteDialog({required this.ref});
-
-  @override
-  State<_InviteDialog> createState() => _InviteDialogState();
-}
-
-class _InviteDialogState extends State<_InviteDialog> {
-  InviteCode? _invite;
-  bool _loading = true;
-  String? _error;
-
-  @override
-  void initState() {
-    super.initState();
-    _loadInvite();
-  }
-
-  Future<void> _loadInvite() async {
-    try {
-      final service = widget.ref.read(connectionServiceProvider);
-      final invite = await service.createInvite();
-      if (mounted) {
-        setState(() {
-          _invite = invite;
-          _loading = false;
-        });
-      }
-    } catch (e) {
-      if (mounted) {
-        setState(() {
-          _error = e.toString();
-          _loading = false;
-        });
-      }
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
-    final inviteUrl = _invite != null
-        ? 'https://bonifatus.com/invite?code=${_invite!.code}'
-        : null;
-
-    return Dialog(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-      child: Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              l10n.childrenInviteStudent,
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.w700,
-                color: Theme.of(context).colorScheme.onSurface,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              l10n.childrenScanCodeHint,
-              style: TextStyle(fontSize: 13, color: Theme.of(context).colorScheme.onSurfaceVariant),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 20),
-            if (_loading)
-              const SizedBox(
-                height: 200,
-                child: Center(
-                    child:
-                        CircularProgressIndicator(color: AppColors.primary)),
-              )
-            else if (_error != null)
-              SizedBox(
-                height: 120,
-                child: Center(
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const Icon(Icons.error_outline,
-                          color: AppColors.error, size: 32),
-                      const SizedBox(height: 8),
-                      Text(l10n.childrenFailedToCreateInvite,
-                          style: const TextStyle(color: AppColors.error)),
-                      const SizedBox(height: 8),
-                      TextButton(
-                        onPressed: () {
-                          setState(() {
-                            _loading = true;
-                            _error = null;
-                          });
-                          _loadInvite();
-                        },
-                        child: Text(l10n.childrenRetry),
-                      ),
-                    ],
-                  ),
-                ),
-              )
-            else ...[
-              QrImageView(
-                data: inviteUrl!,
-                size: 200,
-                backgroundColor: Colors.white,
-              ),
-              const SizedBox(height: 16),
-              Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-                decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.surfaceContainerHighest,
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Column(
-                  children: [
-                    Text(
-                      AppLocalizations.of(context)!.childrenInviteCode(_invite!.code),
-                      style: const TextStyle(
-                        fontSize: 22,
-                        fontWeight: FontWeight.w800,
-                        color: AppColors.primary,
-                        letterSpacing: 6,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      inviteUrl,
-                      style: TextStyle(
-                          fontSize: 10, color: Theme.of(context).colorScheme.onSurfaceVariant),
-                      textAlign: TextAlign.center,
-                    ),
-                  ],
-                ),
-              ),
-            ],
-            const SizedBox(height: 20),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: () => Navigator.of(context).pop(),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primary,
-                  foregroundColor: AppColors.white,
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10)),
-                ),
-                child: Text(l10n.childrenClose),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
+    showInviteChildDialog(context, ref, source: InviteSource.children);
   }
 }
 

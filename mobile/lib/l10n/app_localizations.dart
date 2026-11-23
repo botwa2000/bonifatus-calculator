@@ -1684,12 +1684,6 @@ abstract class AppLocalizations {
   /// **'Children Overview'**
   String get parentDashboardChildrenOverview;
 
-  /// No description provided for @parentDashboardNoChildrenConnected.
-  ///
-  /// In en, this message translates to:
-  /// **'No children connected yet.\nGo to Children tab to add one.'**
-  String get parentDashboardNoChildrenConnected;
-
   /// No description provided for @parentDashboardRecentGrade.
   ///
   /// In en, this message translates to:
@@ -1731,12 +1725,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Invite a Student'**
   String get childrenInviteStudent;
-
-  /// No description provided for @childrenScanCodeHint.
-  ///
-  /// In en, this message translates to:
-  /// **'Ask the student to scan this code in their app'**
-  String get childrenScanCodeHint;
 
   /// No description provided for @childrenFailedToCreateInvite.
   ///
@@ -3249,6 +3237,60 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Forgot your password? Reset it'**
   String get loginHelpResetPassword;
+
+  /// Parent home, no child linked yet: title of the invite card
+  ///
+  /// In en, this message translates to:
+  /// **'Connect your child'**
+  String get inviteCardTitle;
+
+  /// Parent home, no child linked yet: why to invite
+  ///
+  /// In en, this message translates to:
+  /// **'Your child enters grades in their own app and you see them here. Send an invite – it takes a minute.'**
+  String get inviteCardBody;
+
+  /// Parent home: opens the invite QR / share dialog
+  ///
+  /// In en, this message translates to:
+  /// **'Invite my child'**
+  String get inviteCardButton;
+
+  /// Invite dialog: under the title, above the QR code
+  ///
+  /// In en, this message translates to:
+  /// **'Let your child scan this code in their app, or send the link.'**
+  String get inviteDialogHint;
+
+  /// Invite dialog: opens the system share sheet with the invite link
+  ///
+  /// In en, this message translates to:
+  /// **'Send invite'**
+  String get inviteShareButton;
+
+  /// Invite dialog: copies the invite link
+  ///
+  /// In en, this message translates to:
+  /// **'Copy link'**
+  String get inviteCopyLink;
+
+  /// SnackBar after the invite link was copied
+  ///
+  /// In en, this message translates to:
+  /// **'Link copied'**
+  String get inviteLinkCopied;
+
+  /// Subject line when the invite is shared by email
+  ///
+  /// In en, this message translates to:
+  /// **'Bonifatus invite'**
+  String get inviteShareSubject;
+
+  /// Text sent to the child; url = invite link, code = 6-digit code
+  ///
+  /// In en, this message translates to:
+  /// **'Join me on Bonifatus! Open {url} or enter the code {code} in the Bonifatus app. The code is valid for 15 minutes.'**
+  String inviteShareMessage(String url, String code);
 }
 
 class _AppLocalizationsDelegate

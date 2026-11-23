@@ -264,7 +264,6 @@
   "parentDashboardPending": "Ожидает",
   "parentDashboardGrades": "Оценки",
   "parentDashboardChildrenOverview": "Обзор детей",
-  "parentDashboardNoChildrenConnected": "Детей пока не подключено.\nПерейдите на вкладку «Дети», чтобы добавить.",
   "parentDashboardRecentGrade": "Последняя оценка",
   "parentDashboardCouldNotLoadChildren": "Не удалось загрузить данные детей",
   "childrenTitle": "Дети",
@@ -272,7 +271,6 @@
   "childrenShareQrHint": "Поделитесь QR-кодом приглашения, чтобы подключить ученика",
   "childrenShowInviteQr": "Показать QR приглашения",
   "childrenInviteStudent": "Пригласить ученика",
-  "childrenScanCodeHint": "Попросите ученика отсканировать этот код в своём приложении",
   "childrenFailedToCreateInvite": "Не удалось создать приглашение",
   "childrenRetry": "Повторить",
   "childrenClose": "Закрыть",
@@ -624,5 +622,14 @@
   "loginHelpUseGoogle": "Регистрировались через Google? Нажмите кнопку Google выше.",
   "loginHelpUseGoogleOrApple": "Регистрировались через Google или Apple? Нажмите эту кнопку выше.",
   "loginHelpCreateAccount": "Ещё нет аккаунта? Создайте его",
-  "loginHelpResetPassword": "Забыли пароль? Сбросьте его"
+  "loginHelpResetPassword": "Забыли пароль? Сбросьте его",
+  "inviteCardTitle": "Подключи ребёнка",
+  "inviteCardBody": "Ребёнок вводит оценки в своём приложении, а ты видишь их здесь. Отправь приглашение — это займёт минуту.",
+  "inviteCardButton": "Пригласить ребёнка",
+  "inviteDialogHint": "Пусть ребёнок отсканирует этот код в своём приложении, или отправь ему ссылку.",
+  "inviteShareButton": "Отправить приглашение",
+  "inviteCopyLink": "Копировать ссылку",
+  "inviteLinkCopied": "Ссылка скопирована",
+  "inviteShareSubject": "Приглашение в Bonifatus",
+  "inviteShareMessage": "Присоединяйся ко мне в Bonifatus! Открой {url} или введи код {code} в приложении Bonifatus. Код действует 15 минут."
 }

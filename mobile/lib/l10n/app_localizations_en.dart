@@ -835,10 +835,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get parentDashboardChildrenOverview => 'Children Overview';
 
   @override
-  String get parentDashboardNoChildrenConnected =>
-      'No children connected yet.\nGo to Children tab to add one.';
-
-  @override
   String get parentDashboardRecentGrade => 'Recent grade';
 
   @override
@@ -860,10 +856,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get childrenInviteStudent => 'Invite a Student';
-
-  @override
-  String get childrenScanCodeHint =>
-      'Ask the student to scan this code in their app';
 
   @override
   String get childrenFailedToCreateInvite => 'Failed to create invite';
@@ -1744,4 +1736,35 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get loginHelpResetPassword => 'Forgot your password? Reset it';
+
+  @override
+  String get inviteCardTitle => 'Connect your child';
+
+  @override
+  String get inviteCardBody =>
+      'Your child enters grades in their own app and you see them here. Send an invite – it takes a minute.';
+
+  @override
+  String get inviteCardButton => 'Invite my child';
+
+  @override
+  String get inviteDialogHint =>
+      'Let your child scan this code in their app, or send the link.';
+
+  @override
+  String get inviteShareButton => 'Send invite';
+
+  @override
+  String get inviteCopyLink => 'Copy link';
+
+  @override
+  String get inviteLinkCopied => 'Link copied';
+
+  @override
+  String get inviteShareSubject => 'Bonifatus invite';
+
+  @override
+  String inviteShareMessage(String url, String code) {
+    return 'Join me on Bonifatus! Open $url or enter the code $code in the Bonifatus app. The code is valid for 15 minutes.';
+  }
 }

@@ -320,7 +320,6 @@
   "parentDashboardPending": "Pending",
   "parentDashboardGrades": "Grades",
   "parentDashboardChildrenOverview": "Children Overview",
-  "parentDashboardNoChildrenConnected": "No children connected yet.\nGo to Children tab to add one.",
   "parentDashboardRecentGrade": "Recent grade",
   "parentDashboardCouldNotLoadChildren": "Could not load children data",
   "childrenTitle": "Children",
@@ -328,7 +327,6 @@
   "childrenShareQrHint": "Share an invite QR code to connect with a student",
   "childrenShowInviteQr": "Show Invite QR",
   "childrenInviteStudent": "Invite a Student",
-  "childrenScanCodeHint": "Ask the student to scan this code in their app",
   "childrenFailedToCreateInvite": "Failed to create invite",
   "childrenRetry": "Retry",
   "childrenClose": "Close",
@@ -869,5 +867,49 @@
   "loginHelpResetPassword": "Forgot your password? Reset it",
   "@loginHelpResetPassword": {
     "description": "Third next step after a rejected email + password; opens password reset"
+  },
+  "inviteCardTitle": "Connect your child",
+  "@inviteCardTitle": {
+    "description": "Parent home, no child linked yet: title of the invite card"
+  },
+  "inviteCardBody": "Your child enters grades in their own app and you see them here. Send an invite – it takes a minute.",
+  "@inviteCardBody": {
+    "description": "Parent home, no child linked yet: why to invite"
+  },
+  "inviteCardButton": "Invite my child",
+  "@inviteCardButton": {
+    "description": "Parent home: opens the invite QR / share dialog"
+  },
+  "inviteDialogHint": "Let your child scan this code in their app, or send the link.",
+  "@inviteDialogHint": {
+    "description": "Invite dialog: under the title, above the QR code"
+  },
+  "inviteShareButton": "Send invite",
+  "@inviteShareButton": {
+    "description": "Invite dialog: opens the system share sheet with the invite link"
+  },
+  "inviteCopyLink": "Copy link",
+  "@inviteCopyLink": {
+    "description": "Invite dialog: copies the invite link"
+  },
+  "inviteLinkCopied": "Link copied",
+  "@inviteLinkCopied": {
+    "description": "SnackBar after the invite link was copied"
+  },
+  "inviteShareSubject": "Bonifatus invite",
+  "@inviteShareSubject": {
+    "description": "Subject line when the invite is shared by email"
+  },
+  "inviteShareMessage": "Join me on Bonifatus! Open {url} or enter the code {code} in the Bonifatus app. The code is valid for 15 minutes.",
+  "@inviteShareMessage": {
+    "description": "Text sent to the child; url = invite link, code = 6-digit code",
+    "placeholders": {
+      "url": {
+        "type": "String"
+      },
+      "code": {
+        "type": "String"
+      }
+    }
   }
 }

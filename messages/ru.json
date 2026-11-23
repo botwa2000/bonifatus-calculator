@@ -797,7 +797,15 @@
     "statusPending": "Ожидает",
     "statusCompleted": "Завершено",
     "statusFailed": "Ошибка",
-    "statusCancelled": "Отменено"
+    "statusCancelled": "Отменено",
+    "inviteCardTitle": "Подключи ребёнка",
+    "inviteCardBody": "Ребёнок вводит оценки в своём приложении, а ты видишь их здесь. Отправь приглашение — это займёт минуту.",
+    "inviteShare": "Отправить приглашение",
+    "inviteCopyLink": "Копировать ссылку",
+    "inviteLinkCopied": "Ссылка скопирована",
+    "inviteShareTitle": "Приглашение в Bonifatus",
+    "inviteShareText": "Присоединяйся ко мне в Bonifatus! Открой {url} или введи код {code} в приложении Bonifatus. Код действует 15 минут.",
+    "inviteFailed": "Не удалось создать приглашение. Попробуй ещё раз."
   },
   "admin": {
     "dashboardTitle": "Панель администратора",

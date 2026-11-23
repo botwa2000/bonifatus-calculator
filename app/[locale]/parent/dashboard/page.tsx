@@ -8,6 +8,7 @@ import { GradeTrendChart } from '@/components/charts'
 import { InvestmentPreviewCard } from '@/components/widgets/InvestmentPreviewCard'
 import { BonusIcon } from '@/components/ui'
 import { ProfileCompletionBanner } from '@/components/profile/ProfileCompletionBanner'
+import { InviteChildCard } from '@/components/parent/InviteChildCard'
 
 export default function ParentDashboardPage() {
   const t = useTranslations('parent')
@@ -22,6 +23,7 @@ export default function ParentDashboardPage() {
     recentActivity,
     combinedBonus,
     handleCreateInvite,
+    activeInvites,
   } = useParentData()
 
   return (
@@ -71,15 +73,7 @@ export default function ParentDashboardPage() {
             {loading ? (
               <p className="text-sm text-neutral-500">{tc('loading')}</p>
             ) : !hasConnections ? (
-              <div className="rounded-xl border border-dashed border-neutral-300 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-900/60 px-4 py-6 text-center space-y-3">
-                <p className="text-sm text-neutral-600 dark:text-neutral-300">{t('noChildren')}</p>
-                <button
-                  onClick={() => handleCreateInvite()}
-                  className="inline-flex justify-center rounded-lg bg-gradient-to-r from-primary-600 to-secondary-600 px-4 py-2 text-sm font-semibold text-white shadow-button"
-                >
-                  {t('generateInvite')}
-                </button>
-              </div>
+              <InviteChildCard existing={activeInvites[0] ?? null} onCreate={handleCreateInvite} />
             ) : (
               <div className="space-y-3">
                 {connections.map((conn) => {
@@ -149,12 +143,12 @@ export default function ParentDashboardPage() {
 
           {/* Quick Actions */}
           <div className="flex flex-wrap gap-3">
-            <button
-              onClick={() => handleCreateInvite()}
+            <Link
+              href="/parent/children"
               className="rounded-lg border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 px-4 py-2 text-sm font-semibold text-neutral-800 dark:text-white hover:border-primary-400 shadow-sm"
             >
               {t('inviteChild')}
-            </button>
+            </Link>
             <Link
               href="/parent/insights"
               className="rounded-lg border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 px-4 py-2 text-sm font-semibold text-neutral-800 dark:text-white hover:border-primary-400 shadow-sm"

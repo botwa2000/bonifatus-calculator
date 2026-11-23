@@ -797,7 +797,15 @@
     "statusPending": "En attente",
     "statusCompleted": "Terminé",
     "statusFailed": "Échoué",
-    "statusCancelled": "Annulé"
+    "statusCancelled": "Annulé",
+    "inviteCardTitle": "Connecte ton enfant",
+    "inviteCardBody": "Ton enfant saisit ses notes dans sa propre app et tu les vois ici. Envoie-lui une invitation, cela prend une minute.",
+    "inviteShare": "Envoyer l'invitation",
+    "inviteCopyLink": "Copier le lien",
+    "inviteLinkCopied": "Lien copié",
+    "inviteShareTitle": "Invitation à Bonifatus",
+    "inviteShareText": "Rejoins-moi sur Bonifatus ! Ouvre {url} ou saisis le code {code} dans l’app Bonifatus. Le code est valable 15 minutes.",
+    "inviteFailed": "L'invitation n'a pas pu être créée. Réessaie."
   },
   "admin": {
     "dashboardTitle": "Tableau de bord admin",

@@ -797,7 +797,15 @@
     "statusPending": "Ausstehend",
     "statusCompleted": "Abgeschlossen",
     "statusFailed": "Fehlgeschlagen",
-    "statusCancelled": "Storniert"
+    "statusCancelled": "Storniert",
+    "inviteCardTitle": "Verbinde dein Kind",
+    "inviteCardBody": "Dein Kind trägt seine Noten in der eigenen App ein, und du siehst sie hier. Schick ihm eine Einladung – das dauert eine Minute.",
+    "inviteShare": "Einladung senden",
+    "inviteCopyLink": "Link kopieren",
+    "inviteLinkCopied": "Link kopiert",
+    "inviteShareTitle": "Einladung zu Bonifatus",
+    "inviteShareText": "Komm zu Bonifatus! Öffne {url} oder gib in der Bonifatus-App den Code {code} ein. Der Code gilt 15 Minuten.",
+    "inviteFailed": "Die Einladung konnte nicht erstellt werden. Bitte versuche es noch einmal."
   },
   "admin": {
     "dashboardTitle": "Admin-Dashboard",

@@ -264,7 +264,6 @@
   "parentDashboardPending": "Pendiente",
   "parentDashboardGrades": "Notas",
   "parentDashboardChildrenOverview": "Visión general de hijos",
-  "parentDashboardNoChildrenConnected": "Todavía no hay hijos conectados.\nVe a la pestaña Hijos para añadir uno.",
   "parentDashboardRecentGrade": "Nota reciente",
   "parentDashboardCouldNotLoadChildren": "No se pudieron cargar los datos de los hijos",
   "childrenTitle": "Hijos",
@@ -272,7 +271,6 @@
   "childrenShareQrHint": "Comparte un código QR de invitación para conectar a un estudiante",
   "childrenShowInviteQr": "Mostrar QR de invitación",
   "childrenInviteStudent": "Invitar estudiante",
-  "childrenScanCodeHint": "Pide al estudiante que escanee este código en su app",
   "childrenFailedToCreateInvite": "No se pudo crear la invitación",
   "childrenRetry": "Reintentar",
   "childrenClose": "Cerrar",
@@ -624,5 +622,14 @@
   "loginHelpUseGoogle": "¿Te registraste con Google? Usa el botón de Google de arriba.",
   "loginHelpUseGoogleOrApple": "¿Te registraste con Google o Apple? Usa ese botón de arriba.",
   "loginHelpCreateAccount": "¿Aún no tienes cuenta? Crea una",
-  "loginHelpResetPassword": "¿Olvidaste tu contraseña? Restablécela"
+  "loginHelpResetPassword": "¿Olvidaste tu contraseña? Restablécela",
+  "inviteCardTitle": "Conecta a tu hijo",
+  "inviteCardBody": "Tu hijo introduce sus notas en su propia app y tú las ves aquí. Envíale una invitación: tarda un minuto.",
+  "inviteCardButton": "Invitar a mi hijo",
+  "inviteDialogHint": "Deja que tu hijo escanee este código en su app o envíale el enlace.",
+  "inviteShareButton": "Enviar invitación",
+  "inviteCopyLink": "Copiar enlace",
+  "inviteLinkCopied": "Enlace copiado",
+  "inviteShareSubject": "Invitación a Bonifatus",
+  "inviteShareMessage": "¡Únete a mí en Bonifatus! Abre {url} o introduce el código {code} en la app de Bonifatus. El código es válido durante 15 minutos."
 }

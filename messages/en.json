@@ -797,7 +797,15 @@
     "statusPending": "Pending",
     "statusCompleted": "Completed",
     "statusFailed": "Failed",
-    "statusCancelled": "Cancelled"
+    "statusCancelled": "Cancelled",
+    "inviteCardTitle": "Connect your child",
+    "inviteCardBody": "Your child enters grades in their own app and you see them here. Send an invite – it takes a minute.",
+    "inviteShare": "Send invite",
+    "inviteCopyLink": "Copy link",
+    "inviteLinkCopied": "Link copied",
+    "inviteShareTitle": "Bonifatus invite",
+    "inviteShareText": "Join me on Bonifatus! Open {url} or enter the code {code} in the Bonifatus app. The code is valid for 15 minutes.",
+    "inviteFailed": "The invite could not be created. Please try again."
   },
   "admin": {
     "dashboardTitle": "Admin Dashboard",

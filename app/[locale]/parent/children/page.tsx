@@ -672,6 +672,7 @@ export default function ParentChildrenPage() {
                 <button
                   onClick={() => {
                     navigator.clipboard?.writeText(activeCode.code)
+                    window.bonifatusTrack?.('invite_share', { mode: 'copy', source: 'children' })
                     setMessage(t('codeCopied'))
                   }}
                   className="flex-1 rounded-lg border border-neutral-300 dark:border-neutral-700 px-3 py-2 text-sm font-semibold text-neutral-800 dark:text-white"

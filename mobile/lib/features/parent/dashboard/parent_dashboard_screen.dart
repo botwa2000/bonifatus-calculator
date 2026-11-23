@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:bonifatus_mobile/l10n/app_localizations.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../auth/providers/auth_provider.dart';
 import '../providers/children_provider.dart';
+import '../children/widgets/invite_child_dialog.dart';
 import '../../../../models/child_data.dart';
 import '../../../../utils/format_utils.dart';
 import '../../../../utils/term_type_utils.dart';
@@ -169,6 +171,89 @@ class _Header extends StatelessWidget {
       );
 }
 
+// ── no child linked yet ───────────────────────────────────────────────────────
+
+/// Shown while no child is linked. The first time a parent account reaches
+/// this card (in practice: right after sign-up, whichever way they signed up)
+/// the invite dialog opens by itself, once per account and device.
+class _InviteChildCard extends ConsumerStatefulWidget {
+  const _InviteChildCard();
+
+  @override
+  ConsumerState<_InviteChildCard> createState() => _InviteChildCardState();
+}
+
+class _InviteChildCardState extends ConsumerState<_InviteChildCard> {
+  static String _promptKey(String userId) => 'invite_prompt_shown_v1_$userId';
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) => _promptOnce());
+  }
+
+  Future<void> _promptOnce() async {
+    final userId = ref.read(authStateNotifierProvider).value?.userId;
+    if (userId == null) return;
+    final prefs = await SharedPreferences.getInstance();
+    if (prefs.getBool(_promptKey(userId)) ?? false) return;
+    await prefs.setBool(_promptKey(userId), true);
+    if (!mounted) return;
+    await showInviteChildDialog(context, ref, source: InviteSource.firstRun);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final cs = Theme.of(context).colorScheme;
+    return Container(
+      margin: const EdgeInsets.fromLTRB(20, 24, 20, 0),
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: cs.surfaceContainerLow,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: AppColors.primary.withValues(alpha: 0.25)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            width: 48,
+            height: 48,
+            decoration: const BoxDecoration(color: AppColors.primaryLight, shape: BoxShape.circle),
+            child: const Icon(Icons.family_restroom_rounded, color: AppColors.primary),
+          ),
+          const SizedBox(height: 14),
+          Text(
+            l10n.inviteCardTitle,
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: cs.onSurface),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            l10n.inviteCardBody,
+            style: TextStyle(fontSize: 14, height: 1.4, color: cs.onSurfaceVariant),
+          ),
+          const SizedBox(height: 16),
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton.icon(
+              onPressed: () => showInviteChildDialog(context, ref, source: InviteSource.home),
+              icon: const Icon(Icons.qr_code_rounded),
+              label: Text(l10n.inviteCardButton),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primary,
+                foregroundColor: AppColors.white,
+                padding: const EdgeInsets.symmetric(vertical: 14),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 // ── action center ─────────────────────────────────────────────────────────────
 
 class _ActionCenter extends ConsumerWidget {
@@ -179,21 +264,7 @@ class _ActionCenter extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context)!;
 
-    if (children.isEmpty) {
-      return Padding(
-        padding: const EdgeInsets.fromLTRB(20, 40, 20, 0),
-        child: Center(
-          child: Text(
-            l10n.parentDashboardNoChildrenConnected,
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              color: Theme.of(context).colorScheme.onSurfaceVariant,
-              fontSize: 14,
-            ),
-          ),
-        ),
-      );
-    }
+    if (children.isEmpty) return const _InviteChildCard();
 
     final allUnsettled = children
         .expand((c) => c.grades
