@@ -1775,6 +1775,71 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String inviteShareMessage(String url, String code) {
-    return 'Присоединяйся ко мне в Bonifatus! Открой $url или введи код $code в приложении Bonifatus. Код действует 15 минут.';
+    return 'Присоединяйся ко мне в Bonifatus! Открой $url или введи код $code в приложении Bonifatus. Код действует один раз в течение 7 дней.';
   }
+
+  @override
+  String inviteValidUntil(String date) {
+    return 'Одноразовый · действует до $date';
+  }
+
+  @override
+  String get inviteRevoke => 'Отозвать код';
+
+  @override
+  String get inviteRevoked =>
+      'Код отозван. Старый код и ссылка больше не действуют.';
+
+  @override
+  String get inviteRevokeFailed =>
+      'Не удалось отозвать код. Попробуйте ещё раз.';
+
+  @override
+  String get inviteNewCode => 'Создать новый код';
+
+  @override
+  String get settingsEnterInviteCode => 'Ввести код';
+
+  @override
+  String get settingsEnterInviteCodeTitle => 'Введи код родителей';
+
+  @override
+  String get settingsEnterInviteCodeHint =>
+      'Введи код из приглашения родителей, например ABCDE-12345.';
+
+  @override
+  String get settingsInviteCodeLabel => 'Код приглашения';
+
+  @override
+  String get settingsInviteCodeIncomplete => 'В коде 10 букв и цифр.';
+
+  @override
+  String get settingsConnectButton => 'Подключить';
+
+  @override
+  String get redeemErrorInvalid =>
+      'Такого кода нет. Проверь его и попробуй ещё раз.';
+
+  @override
+  String get redeemErrorUsed =>
+      'Этот код уже использован. Попроси у родителей новый.';
+
+  @override
+  String get redeemErrorRevoked => 'Родители отменили этот код. Попроси новый.';
+
+  @override
+  String get redeemErrorExpired =>
+      'Срок действия кода истёк. Попроси у родителей новый.';
+
+  @override
+  String redeemErrorRateLimited(int minutes) {
+    return 'Слишком много неверных кодов. Попробуй снова через $minutes мин.';
+  }
+
+  @override
+  String get redeemErrorBusy => 'Попробуй ещё раз через минуту.';
+
+  @override
+  String get redeemErrorGeneric =>
+      'Не удалось подключиться. Проверь интернет и попробуй ещё раз.';
 }

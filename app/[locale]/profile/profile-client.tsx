@@ -5,6 +5,7 @@ import { Link, useRouter } from '@/i18n/navigation'
 import Image from 'next/image'
 import { signOut } from 'next-auth/react'
 import { useTranslations, useLocale } from 'next-intl'
+import { formatInviteCode, normalizeInviteCode } from '@/lib/connections/invite-code'
 import { resolveLocalized } from '@/lib/i18n'
 
 type ThemeChoice = 'light' | 'dark' | 'system'
@@ -126,7 +127,10 @@ export default function ProfileClient({
   // Connections
   const [connections, setConnections] = useState<ParentConnection[]>([])
   const [connectionsLoading, setConnectionsLoading] = useState(true)
-  const [connectCode, setConnectCode] = useState(initialConnectCode ?? '')
+  const [connectCode, setConnectCode] = useState(() => {
+    const code = normalizeInviteCode(initialConnectCode)
+    return code ? formatInviteCode(code) : ''
+  })
   const [redeeming, setRedeeming] = useState(false)
   const [removingId, setRemovingId] = useState<string | null>(null)
 
@@ -382,13 +386,36 @@ export default function ProfileClient({
     }
   }
 
+  const redeemError = (data: { errorCode?: string; retryAfterSeconds?: number }) => {
+    switch (data.errorCode) {
+      case 'invalid':
+        return t('redeemInvalid')
+      case 'used':
+        return t('redeemUsed')
+      case 'revoked':
+        return t('redeemRevoked')
+      case 'expired':
+        return t('redeemExpired')
+      case 'rate_limited':
+        return t('redeemRateLimited', {
+          minutes: Math.max(1, Math.ceil((data.retryAfterSeconds ?? 60) / 60)),
+        })
+      case 'busy':
+        return t('redeemBusy')
+      default:
+        return tc('error')
+    }
+  }
+
   const handleRedeem = async () => {
+    const code = normalizeInviteCode(connectCode)
+    if (!code) return
     setRedeeming(true)
     try {
       const res = await fetch('/api/connections/redeem', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ code: connectCode.trim() }),
+        body: JSON.stringify({ code }),
       })
       const data = await res.json()
       if (data.success) {
@@ -399,7 +426,7 @@ export default function ProfileClient({
         if (listData.success)
           setConnections(role === 'child' ? listData.asChild || [] : listData.asParent || [])
       } else {
-        showStatus(data.error || tc('error'), 'error')
+        showStatus(redeemError(data), 'error')
       }
     } catch {
       showStatus(tc('error'), 'error')
@@ -929,14 +956,18 @@ export default function ProfileClient({
                 <div className="flex gap-2">
                   <input
                     value={connectCode}
-                    onChange={(e) => setConnectCode(e.target.value)}
-                    maxLength={6}
-                    placeholder="123456"
-                    className={`flex-1 ${inputClass} text-center text-lg tracking-widest`}
+                    onChange={(e) => setConnectCode(e.target.value.toUpperCase())}
+                    maxLength={13}
+                    placeholder="ABCDE-12345"
+                    aria-label={t('inviteCodeLabel')}
+                    autoCapitalize="characters"
+                    autoComplete="off"
+                    spellCheck={false}
+                    className={`flex-1 min-w-0 ${inputClass} text-center text-lg font-mono tracking-wider`}
                   />
                   <button
                     onClick={handleRedeem}
-                    disabled={redeeming || connectCode.trim().length !== 6}
+                    disabled={redeeming || !normalizeInviteCode(connectCode)}
                     className={btnPrimary}
                   >
                     {redeeming ? '...' : tc('save')}

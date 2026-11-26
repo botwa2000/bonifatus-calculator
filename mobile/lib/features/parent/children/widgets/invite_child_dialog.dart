@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:bonifatus_mobile/l10n/app_localizations.dart';
@@ -8,6 +9,7 @@ import '../../../../api/services/connection_service.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/usage/usage_service.dart';
 import '../../../../models/invite_code.dart';
+import '../../../../utils/invite_code.dart';
 
 /// Where the invite dialog was opened from; sent with `invite_share` so
 /// /admin/stats can tell the first-run prompt from the parent's own taps.
@@ -21,7 +23,8 @@ extension on InviteSource {
       };
 }
 
-/// Creates a fresh invite code and shows it as QR, code and shareable link.
+/// Shows the parent's live invite (the server reuses it until it is redeemed, revoked or
+/// 7 days old) as QR, code and shareable link; the parent can revoke it and make a new one.
 Future<void> showInviteChildDialog(
   BuildContext context,
   WidgetRef ref, {
@@ -50,6 +53,8 @@ class _InviteChildDialogState extends State<_InviteChildDialog> {
   InviteCode? _invite;
   bool _loading = true;
   bool _failed = false;
+  bool _revoked = false;
+  bool _revoking = false;
 
   @override
   void initState() {
@@ -61,6 +66,7 @@ class _InviteChildDialogState extends State<_InviteChildDialog> {
     setState(() {
       _loading = true;
       _failed = false;
+      _revoked = false;
     });
     try {
       final invite = await widget.ref.read(connectionServiceProvider).createInvite();
@@ -80,13 +86,33 @@ class _InviteChildDialogState extends State<_InviteChildDialog> {
     }
   }
 
+  Future<void> _revoke(InviteCode invite) async {
+    final l10n = AppLocalizations.of(context)!;
+    setState(() => _revoking = true);
+    try {
+      await widget.ref.read(connectionServiceProvider).revokeInvite(invite.id);
+      if (!mounted) return;
+      setState(() {
+        _invite = null;
+        _revoked = true;
+        _revoking = false;
+      });
+    } catch (_) {
+      if (!mounted) return;
+      setState(() => _revoking = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(l10n.inviteRevokeFailed), backgroundColor: AppColors.error),
+      );
+    }
+  }
+
   Future<void> _share(BuildContext buttonContext, String url, String code) async {
     final l10n = AppLocalizations.of(context)!;
     // iPad needs an anchor for the share popover.
     final box = buttonContext.findRenderObject() as RenderBox?;
     final origin = box == null ? null : box.localToGlobal(Offset.zero) & box.size;
     final result = await SharePlus.instance.share(ShareParams(
-      text: l10n.inviteShareMessage(url, code),
+      text: l10n.inviteShareMessage(url, formatInviteCode(code)),
       subject: l10n.inviteShareSubject,
       sharePositionOrigin: origin,
     ));
@@ -108,6 +134,7 @@ class _InviteChildDialogState extends State<_InviteChildDialog> {
     final l10n = AppLocalizations.of(context)!;
     final cs = Theme.of(context).colorScheme;
     final invite = _invite;
+    final locale = Localizations.localeOf(context).languageCode;
     final url = invite == null ? null : inviteUrl(Localizations.localeOf(context).languageCode, invite.code);
 
     return Dialog(
@@ -128,7 +155,36 @@ class _InviteChildDialogState extends State<_InviteChildDialog> {
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 20),
-            if (_loading)
+            if (_revoked)
+              SizedBox(
+                height: 160,
+                child: Center(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.block_rounded, color: cs.onSurfaceVariant, size: 32),
+                      const SizedBox(height: 8),
+                      Text(
+                        l10n.inviteRevoked,
+                        textAlign: TextAlign.center,
+                        style: TextStyle(color: cs.onSurface),
+                      ),
+                      const SizedBox(height: 12),
+                      ElevatedButton.icon(
+                        onPressed: _load,
+                        icon: const Icon(Icons.refresh_rounded),
+                        label: Text(l10n.inviteNewCode),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.primary,
+                          foregroundColor: AppColors.white,
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              )
+            else if (_loading)
               const SizedBox(
                 height: 200,
                 child: Center(child: CircularProgressIndicator(color: AppColors.primary)),
@@ -159,16 +215,27 @@ class _InviteChildDialogState extends State<_InviteChildDialog> {
                   color: cs.surfaceContainerHighest,
                   borderRadius: BorderRadius.circular(10),
                 ),
-                child: Text(
-                  l10n.childrenInviteCode(invite.code),
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(
-                    fontSize: 22,
-                    fontWeight: FontWeight.w800,
-                    color: AppColors.primary,
-                    letterSpacing: 6,
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: SelectableText(
+                    formatInviteCode(invite.code),
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.w800,
+                      color: AppColors.primary,
+                      letterSpacing: 2,
+                      fontFeatures: [FontFeature.tabularFigures()],
+                    ),
                   ),
                 ),
+              ),
+              const SizedBox(height: 6),
+              Text(
+                l10n.inviteValidUntil(
+                    DateFormat.yMMMd(locale).add_Hm().format(invite.expiresAt.toLocal())),
+                textAlign: TextAlign.center,
+                style: TextStyle(fontSize: 12, color: cs.onSurfaceVariant),
               ),
               const SizedBox(height: 16),
               SizedBox(
@@ -199,6 +266,16 @@ class _InviteChildDialogState extends State<_InviteChildDialog> {
                     padding: const EdgeInsets.symmetric(vertical: 12),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                   ),
+                ),
+              ),
+              const SizedBox(height: 4),
+              SizedBox(
+                width: double.infinity,
+                child: TextButton.icon(
+                  onPressed: _revoking ? null : () => _revoke(invite),
+                  icon: const Icon(Icons.block_rounded, size: 18),
+                  label: Text(l10n.inviteRevoke),
+                  style: TextButton.styleFrom(foregroundColor: AppColors.error),
                 ),
               ),
             ],

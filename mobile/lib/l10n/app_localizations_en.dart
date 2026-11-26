@@ -1765,6 +1765,73 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String inviteShareMessage(String url, String code) {
-    return 'Join me on Bonifatus! Open $url or enter the code $code in the Bonifatus app. The code is valid for 15 minutes.';
+    return 'Join me on Bonifatus! Open $url or enter the code $code in the Bonifatus app. The code works once and is valid for 7 days.';
   }
+
+  @override
+  String inviteValidUntil(String date) {
+    return 'Works once · valid until $date';
+  }
+
+  @override
+  String get inviteRevoke => 'Revoke code';
+
+  @override
+  String get inviteRevoked =>
+      'Code revoked. The old code and link no longer work.';
+
+  @override
+  String get inviteRevokeFailed =>
+      'The code could not be revoked. Please try again.';
+
+  @override
+  String get inviteNewCode => 'Create new code';
+
+  @override
+  String get settingsEnterInviteCode => 'Enter code';
+
+  @override
+  String get settingsEnterInviteCodeTitle => 'Enter your parent’s code';
+
+  @override
+  String get settingsEnterInviteCodeHint =>
+      'Type the code from your parent’s invite, for example ABCDE-12345.';
+
+  @override
+  String get settingsInviteCodeLabel => 'Invite code';
+
+  @override
+  String get settingsInviteCodeIncomplete =>
+      'The code has 10 letters and numbers.';
+
+  @override
+  String get settingsConnectButton => 'Connect';
+
+  @override
+  String get redeemErrorInvalid =>
+      'This code doesn’t exist. Check it and try again.';
+
+  @override
+  String get redeemErrorUsed =>
+      'This code was already used. Ask your parent for a new one.';
+
+  @override
+  String get redeemErrorRevoked =>
+      'Your parent cancelled this code. Ask for a new one.';
+
+  @override
+  String get redeemErrorExpired =>
+      'This code has expired. Ask your parent for a new one.';
+
+  @override
+  String redeemErrorRateLimited(int minutes) {
+    return 'Too many wrong codes. Please try again in $minutes min.';
+  }
+
+  @override
+  String get redeemErrorBusy => 'Please try again in a moment.';
+
+  @override
+  String get redeemErrorGeneric =>
+      'Couldn’t connect. Check your internet connection and try again.';
 }

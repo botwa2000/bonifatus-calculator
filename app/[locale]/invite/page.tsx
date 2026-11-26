@@ -6,6 +6,7 @@ import { auth } from '@/auth'
 import { getUserProfile } from '@/lib/auth/session'
 import { AppHeader } from '@/components/layout/AppHeader'
 import { AppStoreBadges } from '@/components/app-store-badges'
+import { formatInviteCode, normalizeInviteCode } from '@/lib/connections/invite-code'
 
 // Landing page for the parent's invite QR code / link (https://bonifatus.com/invite?code=…),
 // e.g. when the code is scanned with the phone's camera instead of inside the app.
@@ -22,9 +23,10 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 }
 
 export default async function InvitePage({ params, searchParams }: Props) {
-  const [{ locale }, { code }] = await Promise.all([params, searchParams])
+  const [{ locale }, { code: rawCode }] = await Promise.all([params, searchParams])
   setRequestLocale(locale)
-  if (!code || !/^\d{6}$/.test(code)) notFound()
+  const code = normalizeInviteCode(rawCode)
+  if (!code) notFound()
 
   const session = await auth()
   const profile = session?.user ? await getUserProfile() : null
@@ -50,8 +52,8 @@ export default async function InvitePage({ params, searchParams }: Props) {
 
         <div className="mb-8 rounded-2xl bg-white dark:bg-neutral-800 shadow-card px-6 py-5">
           <p className="text-sm text-neutral-500 dark:text-neutral-400 mb-1">{t('codeLabel')}</p>
-          <p className="text-4xl font-extrabold tracking-[0.3em] text-primary-600 dark:text-primary-400 tabular-nums">
-            {code}
+          <p className="font-mono text-3xl sm:text-4xl font-extrabold tracking-wider text-primary-600 dark:text-primary-400 break-all">
+            {formatInviteCode(code)}
           </p>
         </div>
 

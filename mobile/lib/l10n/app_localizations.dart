@@ -3286,11 +3286,119 @@ abstract class AppLocalizations {
   /// **'Bonifatus invite'**
   String get inviteShareSubject;
 
-  /// Text sent to the child; url = invite link, code = 6-digit code
+  /// Text sent to the child; url = invite link, code = 10-character code shown as ABCDE-FGHJK
   ///
   /// In en, this message translates to:
-  /// **'Join me on Bonifatus! Open {url} or enter the code {code} in the Bonifatus app. The code is valid for 15 minutes.'**
+  /// **'Join me on Bonifatus! Open {url} or enter the code {code} in the Bonifatus app. The code works once and is valid for 7 days.'**
   String inviteShareMessage(String url, String code);
+
+  /// Invite dialog: under the code; date = expiry date and time
+  ///
+  /// In en, this message translates to:
+  /// **'Works once · valid until {date}'**
+  String inviteValidUntil(String date);
+
+  /// Invite dialog: cancels the shown code so it stops working
+  ///
+  /// In en, this message translates to:
+  /// **'Revoke code'**
+  String get inviteRevoke;
+
+  /// Invite dialog after revoking
+  ///
+  /// In en, this message translates to:
+  /// **'Code revoked. The old code and link no longer work.'**
+  String get inviteRevoked;
+
+  /// Invite dialog: revoking failed
+  ///
+  /// In en, this message translates to:
+  /// **'The code could not be revoked. Please try again.'**
+  String get inviteRevokeFailed;
+
+  /// Invite dialog after revoking: creates a new code
+  ///
+  /// In en, this message translates to:
+  /// **'Create new code'**
+  String get inviteNewCode;
+
+  /// Child settings: opens the sheet to type the parent invite code
+  ///
+  /// In en, this message translates to:
+  /// **'Enter code'**
+  String get settingsEnterInviteCode;
+
+  /// Title of the sheet where the child types the invite code
+  ///
+  /// In en, this message translates to:
+  /// **'Enter your parent’s code'**
+  String get settingsEnterInviteCodeTitle;
+
+  /// Under the title of the enter-code sheet
+  ///
+  /// In en, this message translates to:
+  /// **'Type the code from your parent’s invite, for example ABCDE-12345.'**
+  String get settingsEnterInviteCodeHint;
+
+  /// Label of the invite code text field
+  ///
+  /// In en, this message translates to:
+  /// **'Invite code'**
+  String get settingsInviteCodeLabel;
+
+  /// Validation: the typed code is not 10 valid characters
+  ///
+  /// In en, this message translates to:
+  /// **'The code has 10 letters and numbers.'**
+  String get settingsInviteCodeIncomplete;
+
+  /// Enter-code sheet: submits the code
+  ///
+  /// In en, this message translates to:
+  /// **'Connect'**
+  String get settingsConnectButton;
+
+  /// Redeem failed: code does not exist
+  ///
+  /// In en, this message translates to:
+  /// **'This code doesn’t exist. Check it and try again.'**
+  String get redeemErrorInvalid;
+
+  /// Redeem failed: code already used
+  ///
+  /// In en, this message translates to:
+  /// **'This code was already used. Ask your parent for a new one.'**
+  String get redeemErrorUsed;
+
+  /// Redeem failed: parent revoked the code
+  ///
+  /// In en, this message translates to:
+  /// **'Your parent cancelled this code. Ask for a new one.'**
+  String get redeemErrorRevoked;
+
+  /// Redeem failed: code older than 7 days
+  ///
+  /// In en, this message translates to:
+  /// **'This code has expired. Ask your parent for a new one.'**
+  String get redeemErrorExpired;
+
+  /// Redeem refused after too many wrong codes; minutes until the next try
+  ///
+  /// In en, this message translates to:
+  /// **'Too many wrong codes. Please try again in {minutes} min.'**
+  String redeemErrorRateLimited(int minutes);
+
+  /// Redeem refused: another attempt is still running
+  ///
+  /// In en, this message translates to:
+  /// **'Please try again in a moment.'**
+  String get redeemErrorBusy;
+
+  /// Redeem failed: network or server error
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn’t connect. Check your internet connection and try again.'**
+  String get redeemErrorGeneric;
 }
 
 class _AppLocalizationsDelegate

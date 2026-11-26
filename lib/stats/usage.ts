@@ -84,7 +84,7 @@ export function platformOf(h: Headers): Platform {
 }
 
 /** Install ID of a native request: X-Device-ID, else the device part of the mobile token. */
-function nativeInstallId(h: Headers): string | null {
+export function nativeInstallId(h: Headers): string | null {
   const direct = cleanInstallId(header(h, 'x-device-id'))
   if (direct) return direct
   const token = header(h, 'x-mobile-client-token')

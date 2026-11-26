@@ -1789,6 +1789,73 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String inviteShareMessage(String url, String code) {
-    return 'Rejoins-moi sur Bonifatus ! Ouvre $url ou saisis le code $code dans l’app Bonifatus. Le code est valable 15 minutes.';
+    return 'Rejoins-moi sur Bonifatus ! Ouvre $url ou saisis le code $code dans l’app Bonifatus. Le code ne fonctionne qu’une fois et reste valable 7 jours.';
   }
+
+  @override
+  String inviteValidUntil(String date) {
+    return 'Usage unique · valable jusqu’au $date';
+  }
+
+  @override
+  String get inviteRevoke => 'Révoquer le code';
+
+  @override
+  String get inviteRevoked =>
+      'Code révoqué. L’ancien code et le lien ne fonctionnent plus.';
+
+  @override
+  String get inviteRevokeFailed =>
+      'Le code n’a pas pu être révoqué. Veuillez réessayer.';
+
+  @override
+  String get inviteNewCode => 'Créer un nouveau code';
+
+  @override
+  String get settingsEnterInviteCode => 'Saisir le code';
+
+  @override
+  String get settingsEnterInviteCodeTitle => 'Saisis le code de tes parents';
+
+  @override
+  String get settingsEnterInviteCodeHint =>
+      'Tape le code de l’invitation de tes parents, par exemple ABCDE-12345.';
+
+  @override
+  String get settingsInviteCodeLabel => 'Code d’invitation';
+
+  @override
+  String get settingsInviteCodeIncomplete =>
+      'Le code comporte 10 lettres et chiffres.';
+
+  @override
+  String get settingsConnectButton => 'Connecter';
+
+  @override
+  String get redeemErrorInvalid =>
+      'Ce code n’existe pas. Vérifie-le et réessaie.';
+
+  @override
+  String get redeemErrorUsed =>
+      'Ce code a déjà été utilisé. Demande un nouveau code à tes parents.';
+
+  @override
+  String get redeemErrorRevoked =>
+      'Tes parents ont annulé ce code. Demande-en un nouveau.';
+
+  @override
+  String get redeemErrorExpired =>
+      'Ce code a expiré. Demande un nouveau code à tes parents.';
+
+  @override
+  String redeemErrorRateLimited(int minutes) {
+    return 'Trop de codes erronés. Réessaie dans $minutes min.';
+  }
+
+  @override
+  String get redeemErrorBusy => 'Réessaie dans un instant.';
+
+  @override
+  String get redeemErrorGeneric =>
+      'Connexion impossible. Vérifie ta connexion internet et réessaie.';
 }

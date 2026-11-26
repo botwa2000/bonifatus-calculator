@@ -570,14 +570,14 @@
     "inviteChild": "Invite a child",
     "creating": "Creating...",
     "generateCode": "Generate code",
-    "shareCode": "Share this 6-digit code with your child. It expires {date}.",
+    "shareCode": "Share this code with your child. It works once and expires {date}.",
     "copyCode": "Copy code",
     "newCode": "New code",
     "codeCopied": "Code copied to clipboard.",
     "newInviteGenerated": "New invite generated.",
     "generateCodeOrQr": "Generate a code or QR to quickly link a child. They can enter the code on their profile page.",
     "howToConnect": "How to connect",
-    "step1": "Tap Generate code to create a 6-digit invite.",
+    "step1": "Tap Generate code to create an invite.",
     "step2": "Share the code or QR with your child.",
     "step3": "The child opens their Profile & Connections page and enters the code.",
     "step4": "Once linked, you can see their saved test results here.",
@@ -804,8 +804,11 @@
     "inviteCopyLink": "Copy link",
     "inviteLinkCopied": "Link copied",
     "inviteShareTitle": "Bonifatus invite",
-    "inviteShareText": "Join me on Bonifatus! Open {url} or enter the code {code} in the Bonifatus app. The code is valid for 15 minutes.",
-    "inviteFailed": "The invite could not be created. Please try again."
+    "inviteShareText": "Join me on Bonifatus! Open {url} or enter the code {code} in the Bonifatus app. The code works once and is valid for 7 days.",
+    "inviteFailed": "The invite could not be created. Please try again.",
+    "revokeInvite": "Revoke",
+    "inviteRevoked": "Invite revoked. The code no longer works.",
+    "revokeFailed": "The invite could not be revoked. Please try again."
   },
   "admin": {
     "dashboardTitle": "Admin Dashboard",
@@ -1191,7 +1194,14 @@
     "termFinal": "Final",
     "termQuarterly": "Quarterly",
     "termTrimester": "Trimester",
-    "classLabel": "Class {num}"
+    "classLabel": "Class {num}",
+    "inviteCodeLabel": "Invite code from your parent",
+    "redeemInvalid": "This code doesn't exist. Check it and try again.",
+    "redeemUsed": "This code was already used. Ask your parent for a new one.",
+    "redeemRevoked": "Your parent cancelled this code. Ask for a new one.",
+    "redeemExpired": "This code has expired. Ask your parent for a new one.",
+    "redeemRateLimited": "Too many wrong codes. Please try again in {minutes} min.",
+    "redeemBusy": "Please try again in a moment."
   },
   "about": {
     "title": "About Bonifatus",
@@ -1427,7 +1437,7 @@
     "codeLabel": "Invite code",
     "loginButton": "Log in and connect",
     "registerButton": "Create a student account",
-    "appHint": "Using the app? Open Settings, tap “Scan QR” and scan your parent’s code.",
+    "appHint": "Using the app? Open Settings, then scan your parent’s QR code or enter the code.",
     "parentTitle": "This invite is for a student",
     "parentText": "Invite codes connect a student account to a parent. Show this code or QR code to your child so they can confirm it in their account.",
     "dashboardButton": "Go to your dashboard"

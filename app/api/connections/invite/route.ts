@@ -3,18 +3,31 @@ import { z } from 'zod'
 import { requireAuthApi, getUserProfile } from '@/lib/auth/session'
 import { db } from '@/lib/db/client'
 import { parentChildInvites } from '@/drizzle/schema/relationships'
-import { eq, and } from 'drizzle-orm'
-import { generateCode } from '@/lib/auth/generate-code'
-import { withActionLog } from '@/lib/stats/with-action-log'
+import { eq, and, gt, desc } from 'drizzle-orm'
+import { generateInviteCode, INVITE_VALIDITY_MS } from '@/lib/connections/invite-code'
+import { noteAction, withActionLog } from '@/lib/stats/with-action-log'
 
+/**
+ * A parent has at most one live invite. Opening the invite dialog again returns it, so
+ * the link already sent keeps working and live codes don't pile up for guessers.
+ * `replace: true` revokes it and issues a new one ("New code").
+ * Older apps send `expiresInMinutes`; it is ignored (validity is always 7 days).
+ */
 const schema = z.object({
-  expiresInMinutes: z
-    .number()
-    .int()
-    .min(1)
-    .max(60 * 24 * 7)
-    .optional(),
+  replace: z.boolean().optional(),
+  expiresInMinutes: z.number().optional(),
 })
+
+const returning = {
+  id: parentChildInvites.id,
+  code: parentChildInvites.code,
+  expiresAt: parentChildInvites.expiresAt,
+  status: parentChildInvites.status,
+}
+
+function isUniqueViolation(error: unknown) {
+  return error instanceof Error && 'code' in error && (error as { code: string }).code === '23505'
+}
 
 async function handlePost(request: NextRequest) {
   const user = await requireAuthApi()
@@ -28,7 +41,7 @@ async function handlePost(request: NextRequest) {
   }
 
   const body = await request.json().catch(() => ({}))
-  const parsed = schema.safeParse(body)
+  const parsed = schema.safeParse(body ?? {})
   if (!parsed.success) {
     return NextResponse.json(
       { success: false, error: 'Invalid payload', details: parsed.error.issues },
@@ -36,39 +49,49 @@ async function handlePost(request: NextRequest) {
     )
   }
 
-  const expiresInMinutes = Math.min(parsed.data.expiresInMinutes ?? 15, 15)
-
-  // best-effort uniqueness: retry up to 5 times
-  let code = generateCode()
-  for (let i = 0; i < 5; i += 1) {
-    const [existing] = await db
-      .select({ id: parentChildInvites.id })
-      .from(parentChildInvites)
-      .where(and(eq(parentChildInvites.code, code), eq(parentChildInvites.status, 'pending')))
-      .limit(1)
-    if (!existing) break
-    code = generateCode()
-  }
-
-  const expiresAt = new Date(Date.now() + expiresInMinutes * 60 * 1000)
+  const live = and(
+    eq(parentChildInvites.parentId, profile.id),
+    eq(parentChildInvites.status, 'pending'),
+    gt(parentChildInvites.expiresAt, new Date())
+  )
 
   try {
-    const [invite] = await db
-      .insert(parentChildInvites)
-      .values({
-        parentId: profile.id,
-        code,
-        status: 'pending',
-        expiresAt,
-      })
-      .returning({
-        id: parentChildInvites.id,
-        code: parentChildInvites.code,
-        expiresAt: parentChildInvites.expiresAt,
-        status: parentChildInvites.status,
-      })
+    if (parsed.data.replace) {
+      await db.update(parentChildInvites).set({ status: 'cancelled' }).where(live)
+    } else {
+      const [existing] = await db
+        .select(returning)
+        .from(parentChildInvites)
+        .where(live)
+        .orderBy(desc(parentChildInvites.createdAt))
+        .limit(1)
+      if (existing) {
+        return noteAction(NextResponse.json({ success: true, invite: existing, reused: true }), {
+          reason: 'reused',
+        })
+      }
+    }
 
-    return NextResponse.json({ success: true, invite }, { status: 200 })
+    const expiresAt = new Date(Date.now() + INVITE_VALIDITY_MS)
+    // 50-bit codes practically never collide; the unique index catches it if one does.
+    for (let attempt = 0; ; attempt += 1) {
+      try {
+        const [invite] = await db
+          .insert(parentChildInvites)
+          .values({
+            parentId: profile.id,
+            code: generateInviteCode(),
+            status: 'pending',
+            expiresAt,
+          })
+          .returning(returning)
+        return noteAction(NextResponse.json({ success: true, invite, reused: false }), {
+          reason: parsed.data.replace ? 'replaced' : 'new',
+        })
+      } catch (error) {
+        if (!isUniqueViolation(error) || attempt >= 2) throw error
+      }
+    }
   } catch (error) {
     console.error('Create invite error:', error)
     return NextResponse.json({ success: false, error: 'Failed to create invite' }, { status: 500 })

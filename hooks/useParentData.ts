@@ -226,6 +226,23 @@ export function useParentData() {
     }
   }, [])
 
+  /** Cancels a pending invite; the card shows the result in the parent's language. */
+  const handleRevokeInvite = useCallback(async (inviteId: string) => {
+    try {
+      const res = await fetch('/api/connections/invite/revoke', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ inviteId }),
+      })
+      const data = await res.json()
+      if (!res.ok || !data.success) return false
+      setInvites((prev) => prev.map((i) => (i.id === inviteId ? { ...i, status: 'cancelled' } : i)))
+      return true
+    } catch {
+      return false
+    }
+  }, [])
+
   const handleRemove = useCallback(async (relationshipId: string) => {
     setError(null)
     setMessage(null)
@@ -280,6 +297,7 @@ export function useParentData() {
     allChildTerms,
     loadConnections,
     handleCreateInvite,
+    handleRevokeInvite,
     handleRemove,
     activeInvites,
     hasConnections,

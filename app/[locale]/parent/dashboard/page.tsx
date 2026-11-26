@@ -23,6 +23,7 @@ export default function ParentDashboardPage() {
     recentActivity,
     combinedBonus,
     handleCreateInvite,
+    handleRevokeInvite,
     activeInvites,
   } = useParentData()
 
@@ -73,7 +74,11 @@ export default function ParentDashboardPage() {
             {loading ? (
               <p className="text-sm text-neutral-500">{tc('loading')}</p>
             ) : !hasConnections ? (
-              <InviteChildCard existing={activeInvites[0] ?? null} onCreate={handleCreateInvite} />
+              <InviteChildCard
+                existing={activeInvites[0] ?? null}
+                onCreate={handleCreateInvite}
+                onRevoke={handleRevokeInvite}
+              />
             ) : (
               <div className="space-y-3">
                 {connections.map((conn) => {

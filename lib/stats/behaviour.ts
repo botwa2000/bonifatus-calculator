@@ -77,6 +77,7 @@ export const ACTION_LABELS: Record<string, string> = {
   settlement_create: 'Settlement paid',
   invite_create: 'Invite code created',
   invite_redeem: 'Invite redeemed',
+  invite_revoke: 'Invite revoked',
   signup: 'Sign-up',
   signin: 'Sign-in',
   invite_share: 'Invite shared',

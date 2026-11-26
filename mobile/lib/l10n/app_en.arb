@@ -900,9 +900,9 @@
   "@inviteShareSubject": {
     "description": "Subject line when the invite is shared by email"
   },
-  "inviteShareMessage": "Join me on Bonifatus! Open {url} or enter the code {code} in the Bonifatus app. The code is valid for 15 minutes.",
+  "inviteShareMessage": "Join me on Bonifatus! Open {url} or enter the code {code} in the Bonifatus app. The code works once and is valid for 7 days.",
   "@inviteShareMessage": {
-    "description": "Text sent to the child; url = invite link, code = 6-digit code",
+    "description": "Text sent to the child; url = invite link, code = 10-character code shown as ABCDE-FGHJK",
     "placeholders": {
       "url": {
         "type": "String"
@@ -911,5 +911,87 @@
         "type": "String"
       }
     }
+  },
+  "inviteValidUntil": "Works once · valid until {date}",
+  "@inviteValidUntil": {
+    "description": "Invite dialog: under the code; date = expiry date and time",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "inviteRevoke": "Revoke code",
+  "@inviteRevoke": {
+    "description": "Invite dialog: cancels the shown code so it stops working"
+  },
+  "inviteRevoked": "Code revoked. The old code and link no longer work.",
+  "@inviteRevoked": {
+    "description": "Invite dialog after revoking"
+  },
+  "inviteRevokeFailed": "The code could not be revoked. Please try again.",
+  "@inviteRevokeFailed": {
+    "description": "Invite dialog: revoking failed"
+  },
+  "inviteNewCode": "Create new code",
+  "@inviteNewCode": {
+    "description": "Invite dialog after revoking: creates a new code"
+  },
+  "settingsEnterInviteCode": "Enter code",
+  "@settingsEnterInviteCode": {
+    "description": "Child settings: opens the sheet to type the parent invite code"
+  },
+  "settingsEnterInviteCodeTitle": "Enter your parent’s code",
+  "@settingsEnterInviteCodeTitle": {
+    "description": "Title of the sheet where the child types the invite code"
+  },
+  "settingsEnterInviteCodeHint": "Type the code from your parent’s invite, for example ABCDE-12345.",
+  "@settingsEnterInviteCodeHint": {
+    "description": "Under the title of the enter-code sheet"
+  },
+  "settingsInviteCodeLabel": "Invite code",
+  "@settingsInviteCodeLabel": {
+    "description": "Label of the invite code text field"
+  },
+  "settingsInviteCodeIncomplete": "The code has 10 letters and numbers.",
+  "@settingsInviteCodeIncomplete": {
+    "description": "Validation: the typed code is not 10 valid characters"
+  },
+  "settingsConnectButton": "Connect",
+  "@settingsConnectButton": {
+    "description": "Enter-code sheet: submits the code"
+  },
+  "redeemErrorInvalid": "This code doesn’t exist. Check it and try again.",
+  "@redeemErrorInvalid": {
+    "description": "Redeem failed: code does not exist"
+  },
+  "redeemErrorUsed": "This code was already used. Ask your parent for a new one.",
+  "@redeemErrorUsed": {
+    "description": "Redeem failed: code already used"
+  },
+  "redeemErrorRevoked": "Your parent cancelled this code. Ask for a new one.",
+  "@redeemErrorRevoked": {
+    "description": "Redeem failed: parent revoked the code"
+  },
+  "redeemErrorExpired": "This code has expired. Ask your parent for a new one.",
+  "@redeemErrorExpired": {
+    "description": "Redeem failed: code older than 7 days"
+  },
+  "redeemErrorRateLimited": "Too many wrong codes. Please try again in {minutes} min.",
+  "@redeemErrorRateLimited": {
+    "description": "Redeem refused after too many wrong codes; minutes until the next try",
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "redeemErrorBusy": "Please try again in a moment.",
+  "@redeemErrorBusy": {
+    "description": "Redeem refused: another attempt is still running"
+  },
+  "redeemErrorGeneric": "Couldn’t connect. Check your internet connection and try again.",
+  "@redeemErrorGeneric": {
+    "description": "Redeem failed: network or server error"
   }
 }

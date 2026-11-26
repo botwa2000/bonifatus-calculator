@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
@@ -16,6 +17,7 @@ import '../../providers/calculator_config_provider.dart';
 import '../../../../core/constants/app_constants.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../../core/feedback/feedback_ui.dart';
+import '../../../../utils/invite_code.dart';
 
 class StudentSettingsScreen extends ConsumerStatefulWidget {
   final bool autoOpenSchool;
@@ -425,12 +427,20 @@ class _StudentSettingsScreenState extends ConsumerState<StudentSettingsScreen> {
 
     return _Card(children: [
       if (_parentConnections.isEmpty)
-        _SettingsTile(
-          icon: Icons.people_outline_rounded,
-          label: l10n.settingsNoParentsConnected,
-          trailing: _scanQrButton(context),
-          onTap: () => _showQrScannerSheet(context),
-        )
+        ...[
+          _SettingsTile(
+            icon: Icons.people_outline_rounded,
+            label: l10n.settingsNoParentsConnected,
+            trailing: _scanQrButton(context),
+            onTap: () => _showQrScannerSheet(context),
+          ),
+          Divider(height: 1, indent: 56, color: Theme.of(context).colorScheme.outlineVariant),
+          _SettingsTile(
+            icon: Icons.keyboard_rounded,
+            label: l10n.settingsEnterInviteCode,
+            onTap: () => _showEnterCodeSheet(context),
+          ),
+        ]
       else ...[
         ..._parentConnections.asMap().entries.map((entry) {
           final cs = Theme.of(context).colorScheme;
@@ -453,6 +463,12 @@ class _StudentSettingsScreenState extends ConsumerState<StudentSettingsScreen> {
           icon: Icons.qr_code_scanner_rounded,
           label: l10n.settingsAddAnotherParent,
           onTap: () => _showQrScannerSheet(context),
+        ),
+        Divider(height: 1, indent: 56, color: Theme.of(context).colorScheme.outlineVariant),
+        _SettingsTile(
+          icon: Icons.keyboard_rounded,
+          label: l10n.settingsEnterInviteCode,
+          onTap: () => _showEnterCodeSheet(context),
         ),
       ],
     ]);
@@ -735,36 +751,132 @@ class _StudentSettingsScreenState extends ConsumerState<StudentSettingsScreen> {
                 controller: controller,
                 onDetect: (capture) async {
                   if (redeemed || capture.barcodes.isEmpty) return;
-                  final raw = capture.barcodes.first.rawValue ?? '';
-                  String code = raw.trim();
-                  if (code.contains('code=')) {
-                    code = Uri.tryParse(code)?.queryParameters['code'] ?? code;
-                  }
-                  if (!RegExp(r'^\d{6}$').hasMatch(code)) return;
+                  final code = normalizeInviteCode(capture.barcodes.first.rawValue ?? '');
+                  if (code == null) return;
                   redeemed = true;
                   controller.dispose();
                   if (ctx.mounted) Navigator.of(ctx).pop();
-                  try {
-                    await ref.read(connectionServiceProvider).redeemCode(code);
-                    _loadConnections();
-                    if (context.mounted) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text(l10n.settingsParentConnected), backgroundColor: AppColors.tierBest),
-                      );
-                    }
-                  } catch (e) {
-                    redeemed = false;
-                    if (context.mounted) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text(AppLocalizations.of(context)!.genericFailedError(e.toString())), backgroundColor: AppColors.error),
-                      );
-                    }
-                  }
+                  final error = await _redeem(code);
+                  if (!context.mounted) return;
+                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                    content: Text(error ?? l10n.settingsParentConnected),
+                    backgroundColor: error == null ? AppColors.tierBest : AppColors.error,
+                  ));
                 },
               ),
             ),
           ),
         ]),
+      ),
+    );
+  }
+
+  /// Redeems [code]; null on success, else the message for the child.
+  Future<String?> _redeem(String code) async {
+    final l10n = AppLocalizations.of(context)!;
+    try {
+      await ref.read(connectionServiceProvider).redeemCode(code);
+      _loadConnections();
+      return null;
+    } on RedeemException catch (e) {
+      return switch (e.reason) {
+        RedeemFailure.invalid => l10n.redeemErrorInvalid,
+        RedeemFailure.used => l10n.redeemErrorUsed,
+        RedeemFailure.revoked => l10n.redeemErrorRevoked,
+        RedeemFailure.expired => l10n.redeemErrorExpired,
+        RedeemFailure.rateLimited =>
+          l10n.redeemErrorRateLimited(((e.retryAfter?.inSeconds ?? 60) / 60).ceil().clamp(1, 1440)),
+        RedeemFailure.busy => l10n.redeemErrorBusy,
+        RedeemFailure.network || RedeemFailure.server => l10n.redeemErrorGeneric,
+      };
+    } catch (_) {
+      return l10n.redeemErrorGeneric;
+    }
+  }
+
+  void _showEnterCodeSheet(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final codeCtrl = TextEditingController();
+    final formKey = GlobalKey<FormState>();
+    bool busy = false;
+    String? error;
+
+    showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setSheetState) {
+          Future<void> submit() async {
+            if (busy || !formKey.currentState!.validate()) return;
+            setSheetState(() {
+              busy = true;
+              error = null;
+            });
+            final result = await _redeem(normalizeInviteCode(codeCtrl.text)!);
+            if (!ctx.mounted) return;
+            if (result == null) {
+              Navigator.of(ctx).pop();
+              if (context.mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text(l10n.settingsParentConnected), backgroundColor: AppColors.tierBest),
+                );
+              }
+            } else {
+              setSheetState(() {
+                busy = false;
+                error = result;
+              });
+            }
+          }
+
+          return Padding(
+            padding: EdgeInsets.only(bottom: MediaQuery.of(ctx).viewInsets.bottom, left: 24, right: 24, top: 24),
+            child: Form(
+              key: formKey,
+              child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
+                Text(l10n.settingsEnterInviteCodeTitle,
+                    style: TextStyle(fontSize: 17, fontWeight: FontWeight.w700, color: Theme.of(ctx).colorScheme.onSurface)),
+                const SizedBox(height: 6),
+                Text(l10n.settingsEnterInviteCodeHint,
+                    style: TextStyle(fontSize: 13, color: Theme.of(ctx).colorScheme.onSurfaceVariant)),
+                const SizedBox(height: 16),
+                TextFormField(
+                  key: const Key('inviteCodeField'),
+                  controller: codeCtrl,
+                  autofocus: true,
+                  textCapitalization: TextCapitalization.characters,
+                  autocorrect: false,
+                  enableSuggestions: false,
+                  maxLength: 13,
+                  inputFormatters: [
+                    FilteringTextInputFormatter.allow(RegExp(r'[0-9A-Za-z\- ]')),
+                    TextInputFormatter.withFunction((_, v) => v.copyWith(text: v.text.toUpperCase())),
+                  ],
+                  style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w700, letterSpacing: 2),
+                  decoration: InputDecoration(
+                    labelText: l10n.settingsInviteCodeLabel,
+                    hintText: 'ABCDE-12345',
+                    border: const OutlineInputBorder(),
+                    errorText: error,
+                    errorMaxLines: 3,
+                  ),
+                  onChanged: (_) {
+                    if (error != null) setSheetState(() => error = null);
+                  },
+                  onFieldSubmitted: (_) => submit(),
+                  validator: (v) => normalizeInviteCode(v ?? '') == null ? l10n.settingsInviteCodeIncomplete : null,
+                ),
+                const SizedBox(height: 12),
+                SizedBox(
+                  width: double.infinity,
+                  child: _SaveButton(label: l10n.settingsConnectButton, onPressed: busy ? null : submit),
+                ),
+                const SizedBox(height: 24),
+              ]),
+            ),
+          );
+        },
       ),
     );
   }

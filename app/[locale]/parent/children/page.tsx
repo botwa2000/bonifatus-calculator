@@ -7,6 +7,7 @@ import { useLocale } from 'next-intl'
 import { resolveLocalized } from '@/lib/i18n'
 import { formatTermType } from '@/lib/format-term-type'
 import { bonusColorClass } from '@/lib/utils/grade-helpers'
+import { formatInviteCode } from '@/lib/connections/invite-code'
 
 const QRCode = dynamic(() => import('qrcode.react').then((mod) => mod.QRCodeSVG), { ssr: false })
 
@@ -97,6 +98,7 @@ export default function ParentChildrenPage() {
   const [creating, setCreating] = useState(false)
   const [activeCode, setActiveCode] = useState<Invite | null>(null)
   const [removingId, setRemovingId] = useState<string | null>(null)
+  const [revokingId, setRevokingId] = useState<string | null>(null)
   const [nowMs, setNowMs] = useState(() => Date.now())
   const [gradeSummaries, setGradeSummaries] = useState<Record<string, ChildGradeSummary>>({})
   const [gradePreviews, setGradePreviews] = useState<Record<string, TermPreview[]>>({})
@@ -206,23 +208,53 @@ export default function ParentChildrenPage() {
     loadConnections()
   }, [])
 
-  const handleCreateInvite = async () => {
+  /** Returns the live invite, or with `replace` revokes it and issues a new one. */
+  const handleCreateInvite = async (replace = false) => {
     setCreating(true)
     setError(null)
     setMessage(null)
     try {
-      const res = await fetch('/api/connections/invite', { method: 'POST' })
+      const res = await fetch('/api/connections/invite', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ replace }),
+      })
       const data = await res.json()
-      if (!res.ok || !data.success) {
-        throw new Error(data.error || 'Failed to create invite')
-      }
+      if (!res.ok || !data.success) throw new Error('create failed')
       setActiveCode(data.invite)
-      setInvites((prev) => [data.invite, ...prev])
-      setMessage(t('newInviteGenerated'))
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to create invite')
+      setInvites((prev) => [
+        data.invite,
+        ...prev
+          .filter((i) => i.id !== data.invite.id)
+          .map((i) => (replace && i.status === 'pending' ? { ...i, status: 'cancelled' } : i)),
+      ])
+      if (!data.reused) setMessage(t('newInviteGenerated'))
+    } catch {
+      setError(t('inviteFailed'))
     } finally {
       setCreating(false)
+    }
+  }
+
+  const handleRevoke = async (inviteId: string) => {
+    setRevokingId(inviteId)
+    setError(null)
+    setMessage(null)
+    try {
+      const res = await fetch('/api/connections/invite/revoke', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ inviteId }),
+      })
+      const data = await res.json()
+      if (!res.ok || !data.success) throw new Error('revoke failed')
+      setInvites((prev) => prev.map((i) => (i.id === inviteId ? { ...i, status: 'cancelled' } : i)))
+      setActiveCode((cur) => (cur?.id === inviteId ? null : cur))
+      setMessage(t('inviteRevoked'))
+    } catch {
+      setError(t('revokeFailed'))
+    } finally {
+      setRevokingId(null)
     }
   }
 
@@ -355,7 +387,7 @@ export default function ParentChildrenPage() {
               <div className="rounded-xl border border-dashed border-neutral-300 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-900/60 px-4 py-6 space-y-3 text-center">
                 <p className="text-sm text-neutral-600 dark:text-neutral-300">{t('noChildren')}</p>
                 <button
-                  onClick={handleCreateInvite}
+                  onClick={() => handleCreateInvite(false)}
                   disabled={creating}
                   className="inline-flex justify-center rounded-lg bg-gradient-to-r from-primary-600 to-secondary-600 px-4 py-2 text-sm font-semibold text-white shadow-button disabled:opacity-60"
                 >
@@ -627,14 +659,20 @@ export default function ParentChildrenPage() {
                     className="flex items-center justify-between rounded-lg border border-neutral-100 dark:border-neutral-800 px-3 py-2 text-sm"
                   >
                     <div>
-                      <p className="font-semibold text-neutral-900 dark:text-white">
-                        {t('codeLabel', { code: invite.code })}
+                      <p className="font-semibold font-mono text-neutral-900 dark:text-white">
+                        {t('codeLabel', { code: formatInviteCode(invite.code) })}
                       </p>
                       <p className="text-xs text-neutral-500">
-                        {t('expires', { date: new Date(invite.expiresAt).toLocaleString() })}
+                        {t('expires', { date: new Date(invite.expiresAt).toLocaleString(locale) })}
                       </p>
                     </div>
-                    <span className="text-xs text-neutral-500">{invite.status}</span>
+                    <button
+                      onClick={() => handleRevoke(invite.id)}
+                      disabled={revokingId === invite.id}
+                      className="rounded-lg border border-error-300 dark:border-error-800 px-3 py-1 text-xs font-semibold text-error-700 dark:text-error-300 hover:bg-error-50 dark:hover:bg-error-900/30 disabled:opacity-60"
+                    >
+                      {t('revokeInvite')}
+                    </button>
                   </div>
                 ))}
               </div>
@@ -648,7 +686,7 @@ export default function ParentChildrenPage() {
               {t('inviteChild')}
             </h2>
             <button
-              onClick={handleCreateInvite}
+              onClick={() => handleCreateInvite(false)}
               disabled={creating}
               className="px-3 py-1.5 rounded-lg bg-gradient-to-r from-primary-600 to-secondary-600 text-white text-sm font-semibold shadow-button disabled:opacity-60"
             >
@@ -658,20 +696,23 @@ export default function ParentChildrenPage() {
           {activeCode ? (
             <div className="space-y-3">
               <div className="text-sm text-neutral-600 dark:text-neutral-300">
-                {t('shareCode', { date: new Date(activeCode.expiresAt).toLocaleString() })}
+                {t('shareCode', { date: new Date(activeCode.expiresAt).toLocaleString(locale) })}
               </div>
-              <div className="text-4xl font-bold tracking-widest text-center text-primary-600 dark:text-primary-300">
-                {activeCode.code}
+              <div className="font-mono text-3xl font-bold tracking-wider text-center text-primary-600 dark:text-primary-300">
+                {formatInviteCode(activeCode.code)}
               </div>
               <div className="flex items-center justify-center">
                 <div className="rounded-xl border border-neutral-200 dark:border-neutral-800 p-3 bg-white">
-                  <QRCode value={activeCode.code} size={160} />
+                  <QRCode
+                    value={`${window.location.origin}/${locale}/invite?code=${activeCode.code}`}
+                    size={160}
+                  />
                 </div>
               </div>
               <div className="flex gap-2">
                 <button
                   onClick={() => {
-                    navigator.clipboard?.writeText(activeCode.code)
+                    navigator.clipboard?.writeText(formatInviteCode(activeCode.code))
                     window.bonifatusTrack?.('invite_share', { mode: 'copy', source: 'children' })
                     setMessage(t('codeCopied'))
                   }}
@@ -680,7 +721,7 @@ export default function ParentChildrenPage() {
                   {t('copyCode')}
                 </button>
                 <button
-                  onClick={handleCreateInvite}
+                  onClick={() => handleCreateInvite(true)}
                   disabled={creating}
                   className="flex-1 rounded-lg border border-neutral-300 dark:border-neutral-700 px-3 py-2 text-sm font-semibold text-neutral-800 dark:text-white"
                 >

@@ -4,11 +4,14 @@ import { useEffect, useState } from 'react'
 import { useLocale, useTranslations } from 'next-intl'
 import { QRCodeSVG } from 'qrcode.react'
 import type { Invite } from '@/hooks/useParentData'
+import { formatInviteCode } from '@/lib/connections/invite-code'
 
 type Props = {
   /** Newest pending, unexpired invite, if the parent already has one. */
   existing: Invite | null
   onCreate: () => Promise<Invite | null>
+  /** Cancels the invite so the code stops working; false if that failed. */
+  onRevoke: (inviteId: string) => Promise<boolean>
 }
 
 /**
@@ -16,23 +19,27 @@ type Props = {
  * The parent lands here right after sign-up, so this is the first thing they see.
  * Sharing or copying the link sends `invite_share` (/admin/stats → Family invites).
  */
-export function InviteChildCard({ existing, onCreate }: Props) {
+export function InviteChildCard({ existing, onCreate, onRevoke }: Props) {
   const t = useTranslations('parent')
   const locale = useLocale()
   const [created, setCreated] = useState<Invite | null>(null)
   const [busy, setBusy] = useState(false)
   const [failed, setFailed] = useState(false)
   const [copied, setCopied] = useState(false)
+  const [revoked, setRevoked] = useState<string | null>(null)
+  const [status, setStatus] = useState<'revoked' | 'revokeFailed' | null>(null)
   // Known only in the browser; set after mount so server and client HTML match.
   const [canShare, setCanShare] = useState(false)
   useEffect(() => setCanShare(typeof navigator.share === 'function'), [])
 
-  const invite = created ?? existing
+  const candidate = created ?? existing
+  const invite = candidate && candidate.id !== revoked ? candidate : null
   const url = invite ? `${window.location.origin}/${locale}/invite?code=${invite.code}` : ''
 
   const create = async () => {
     setBusy(true)
     setFailed(false)
+    setStatus(null)
     const inv = await onCreate()
     setBusy(false)
     if (inv) setCreated(inv)
@@ -42,12 +49,25 @@ export function InviteChildCard({ existing, onCreate }: Props) {
   const track = (mode: 'share' | 'copy') =>
     window.bonifatusTrack?.('invite_share', { mode, source: 'home' })
 
+  const revoke = async () => {
+    if (!invite) return
+    setBusy(true)
+    const ok = await onRevoke(invite.id)
+    setBusy(false)
+    if (ok) {
+      setRevoked(invite.id)
+      setCreated(null)
+      setCopied(false)
+    }
+    setStatus(ok ? 'revoked' : 'revokeFailed')
+  }
+
   const share = async () => {
     if (!invite) return
     try {
       await navigator.share({
         title: t('inviteShareTitle'),
-        text: t('inviteShareText', { url, code: invite.code }),
+        text: t('inviteShareText', { url, code: formatInviteCode(invite.code) }),
       })
       track('share')
     } catch {
@@ -80,8 +100,8 @@ export function InviteChildCard({ existing, onCreate }: Props) {
             <QRCodeSVG value={url} size={140} />
           </div>
           <div className="flex-1 space-y-3">
-            <p className="text-3xl font-bold tracking-widest text-primary-700 dark:text-primary-300">
-              {invite.code}
+            <p className="font-mono text-2xl sm:text-3xl font-bold tracking-wider text-primary-700 dark:text-primary-300">
+              {formatInviteCode(invite.code)}
             </p>
             <p className="text-xs text-neutral-500 dark:text-neutral-400">
               {t('shareCode', { date: new Date(invite.expiresAt).toLocaleString(locale) })}
@@ -101,6 +121,13 @@ export function InviteChildCard({ existing, onCreate }: Props) {
               >
                 {copied ? t('inviteLinkCopied') : t('inviteCopyLink')}
               </button>
+              <button
+                onClick={revoke}
+                disabled={busy}
+                className="rounded-lg px-4 py-2 text-sm font-semibold text-error-700 dark:text-error-300 hover:bg-error-50 dark:hover:bg-error-900/30 disabled:opacity-60"
+              >
+                {t('revokeInvite')}
+              </button>
             </div>
           </div>
         </div>
@@ -112,6 +139,19 @@ export function InviteChildCard({ existing, onCreate }: Props) {
         >
           {busy ? t('generating') : t('inviteChild')}
         </button>
+      )}
+
+      {status && (
+        <p
+          role={status === 'revokeFailed' ? 'alert' : 'status'}
+          className={
+            status === 'revokeFailed'
+              ? 'text-sm text-error-700 dark:text-error-300'
+              : 'text-sm text-neutral-600 dark:text-neutral-300'
+          }
+        >
+          {t(status === 'revoked' ? 'inviteRevoked' : 'revokeFailed')}
+        </p>
       )}
 
       {failed && (

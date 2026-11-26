@@ -10,6 +10,7 @@ export const securityEventTypeEnum = pgEnum('security_event_type', [
   'account_lockout',
   'rate_limit_exceeded',
   'unauthorized_access_attempt',
+  'invite_redeem_failure',
 ])
 export const eventSeverityEnum = pgEnum('event_severity', ['info', 'warning', 'critical'])
 export const rateLimitActionEnum = pgEnum('rate_limit_action', [

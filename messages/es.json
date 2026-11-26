@@ -570,14 +570,14 @@
     "inviteChild": "Invitar a un hijo/a",
     "creating": "Creando...",
     "generateCode": "Generar código",
-    "shareCode": "Comparte este código de 6 dígitos con tu hijo/a. Expira {date}.",
+    "shareCode": "Comparte este código con tu hijo. Funciona una vez y caduca el {date}.",
     "copyCode": "Copiar código",
     "newCode": "Nuevo código",
     "codeCopied": "Código copiado al portapapeles.",
     "newInviteGenerated": "Nueva invitación generada.",
     "generateCodeOrQr": "Genera un código o QR para vincular rápidamente a un hijo/a. Pueden ingresar el código en su página de perfil.",
     "howToConnect": "Cómo conectarse",
-    "step1": "Toca Generar código para crear una invitación de 6 dígitos.",
+    "step1": "Toca Generar código para crear una invitación.",
     "step2": "Comparte el código o QR con tu hijo/a.",
     "step3": "El hijo/a abre su página de Perfil y conexiones e ingresa el código.",
     "step4": "Una vez vinculados, puedes ver sus resultados de exámenes guardados aquí.",
@@ -804,8 +804,11 @@
     "inviteCopyLink": "Copiar enlace",
     "inviteLinkCopied": "Enlace copiado",
     "inviteShareTitle": "Invitación a Bonifatus",
-    "inviteShareText": "¡Únete a mí en Bonifatus! Abre {url} o introduce el código {code} en la app de Bonifatus. El código es válido durante 15 minutos.",
-    "inviteFailed": "No se pudo crear la invitación. Inténtalo de nuevo."
+    "inviteShareText": "¡Únete a mí en Bonifatus! Abre {url} o introduce el código {code} en la app Bonifatus. El código funciona una vez y es válido durante 7 días.",
+    "inviteFailed": "No se pudo crear la invitación. Inténtalo de nuevo.",
+    "revokeInvite": "Revocar",
+    "inviteRevoked": "Invitación revocada. El código ya no funciona.",
+    "revokeFailed": "No se pudo revocar la invitación. Inténtalo de nuevo."
   },
   "admin": {
     "dashboardTitle": "Panel de administración",
@@ -1191,7 +1194,14 @@
     "termFinal": "Evaluación final",
     "termQuarterly": "Informe trimestral",
     "termTrimester": "Trimestre",
-    "classLabel": "Clase {num}"
+    "classLabel": "Clase {num}",
+    "inviteCodeLabel": "Código de invitación de tus padres",
+    "redeemInvalid": "Este código no existe. Revísalo e inténtalo de nuevo.",
+    "redeemUsed": "Este código ya se ha usado. Pide uno nuevo a tus padres.",
+    "redeemRevoked": "Tus padres han cancelado este código. Pide uno nuevo.",
+    "redeemExpired": "Este código ha caducado. Pide uno nuevo a tus padres.",
+    "redeemRateLimited": "Demasiados códigos incorrectos. Inténtalo de nuevo en {minutes} min.",
+    "redeemBusy": "Inténtalo de nuevo en un momento."
   },
   "about": {
     "title": "Acerca de Bonifatus",
@@ -1427,7 +1437,7 @@
     "codeLabel": "Código de invitación",
     "loginButton": "Iniciar sesión y conectar",
     "registerButton": "Crear cuenta de estudiante",
-    "appHint": "¿Usas la app? Abre Ajustes, toca «Escanear QR» y escanea el código de tu padre o madre.",
+    "appHint": "¿Usas la app? Abre Ajustes y escanea el código QR de tus padres o introduce el código.",
     "parentTitle": "Esta invitación es para un estudiante",
     "parentText": "Los códigos de invitación conectan una cuenta de estudiante con un padre o madre. Muestra este código o código QR a tu hijo para que lo confirme en su cuenta.",
     "dashboardButton": "Ir al panel"

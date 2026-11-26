@@ -1,7 +1,7 @@
 import { db } from '@/lib/db/client'
 import { parentChildRelationships, parentChildInvites } from '@/drizzle/schema/relationships'
 import { userProfiles } from '@/drizzle/schema/users'
-import { eq, and, or, gt, lt } from 'drizzle-orm'
+import { eq, and, or, gt, lt, desc } from 'drizzle-orm'
 
 export async function getRelationshipsForUser(userId: string) {
   const relationships = await db
@@ -40,7 +40,6 @@ export async function getRelationshipsForUser(userId: string) {
 
 export async function getActiveInvites(parentId: string) {
   const now = new Date()
-  const cutoff = new Date(Date.now() - 16 * 60 * 1000)
 
   return db
     .select()
@@ -49,16 +48,14 @@ export async function getActiveInvites(parentId: string) {
       and(
         eq(parentChildInvites.parentId, parentId),
         eq(parentChildInvites.status, 'pending'),
-        gt(parentChildInvites.expiresAt, now),
-        gt(parentChildInvites.createdAt, cutoff)
+        gt(parentChildInvites.expiresAt, now)
       )
     )
-    .orderBy(parentChildInvites.expiresAt)
+    .orderBy(desc(parentChildInvites.createdAt))
 }
 
 export async function expireOldInvites(parentId: string) {
   const now = new Date()
-  const cutoff = new Date(Date.now() - 16 * 60 * 1000)
 
   await db
     .update(parentChildInvites)
@@ -67,7 +64,7 @@ export async function expireOldInvites(parentId: string) {
       and(
         eq(parentChildInvites.parentId, parentId),
         eq(parentChildInvites.status, 'pending'),
-        or(lt(parentChildInvites.expiresAt, now), lt(parentChildInvites.createdAt, cutoff))
+        lt(parentChildInvites.expiresAt, now)
       )
     )
 }

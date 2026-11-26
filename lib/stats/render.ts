@@ -315,7 +315,7 @@ const DASHBOARD_JS = String.raw`
   COL.password = "var(--web)"; COL.google = "var(--ios)"; COL.apple = "var(--android)";
   var ACTION = { grade_quick_save: "Grade added", grade_term_save: "Report card saved", grade_term_update: "Report card edited",
     report_scan: "Report card scanned", calculator_preview: "Bonus calculated", settlement_create: "Settlement paid",
-    invite_create: "Invite code created", invite_redeem: "Invite redeemed", signup: "Sign-up", signin: "App sign-in",
+    invite_create: "Invite code created", invite_redeem: "Invite redeemed", invite_revoke: "Invite revoked", signup: "Sign-up", signin: "App sign-in",
     market_fetch: "Market data loaded" };
   var CLASS = { review: "Store review", test: "Test devices & accounts", internal: "Team", real: "Counted (override)",
     unengaged: "Left without interacting", bot: "Bots" };

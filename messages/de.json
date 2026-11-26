@@ -570,14 +570,14 @@
     "inviteChild": "Kind einladen",
     "creating": "Wird erstellt...",
     "generateCode": "Code erstellen",
-    "shareCode": "Teile diesen 6-stelligen Code mit deinem Kind. Er läuft ab am {date}.",
+    "shareCode": "Gib diesen Code deinem Kind. Er funktioniert einmal und läuft am {date} ab.",
     "copyCode": "Code kopieren",
     "newCode": "Neuer Code",
     "codeCopied": "Code in die Zwischenablage kopiert.",
     "newInviteGenerated": "Neue Einladung erstellt.",
     "generateCodeOrQr": "Erstelle einen Code oder QR, um schnell ein Kind zu verknüpfen. Das Kind kann den Code auf seiner Profilseite eingeben.",
     "howToConnect": "So verbindest du dich",
-    "step1": "Tippe auf Code erstellen, um eine 6-stellige Einladung zu generieren.",
+    "step1": "Tippe auf „Code erstellen“, um eine Einladung zu erstellen.",
     "step2": "Teile den Code oder QR mit deinem Kind.",
     "step3": "Das Kind öffnet seine Profil- & Verbindungsseite und gibt den Code ein.",
     "step4": "Nach der Verknüpfung kannst du die gespeicherten Testergebnisse hier einsehen.",
@@ -804,8 +804,11 @@
     "inviteCopyLink": "Link kopieren",
     "inviteLinkCopied": "Link kopiert",
     "inviteShareTitle": "Einladung zu Bonifatus",
-    "inviteShareText": "Komm zu Bonifatus! Öffne {url} oder gib in der Bonifatus-App den Code {code} ein. Der Code gilt 15 Minuten.",
-    "inviteFailed": "Die Einladung konnte nicht erstellt werden. Bitte versuche es noch einmal."
+    "inviteShareText": "Mach mit bei Bonifatus! Öffne {url} oder gib in der Bonifatus-App den Code {code} ein. Der Code funktioniert einmal und gilt 7 Tage.",
+    "inviteFailed": "Die Einladung konnte nicht erstellt werden. Bitte versuche es noch einmal.",
+    "revokeInvite": "Widerrufen",
+    "inviteRevoked": "Einladung widerrufen. Der Code funktioniert nicht mehr.",
+    "revokeFailed": "Die Einladung konnte nicht widerrufen werden. Bitte versuche es erneut."
   },
   "admin": {
     "dashboardTitle": "Admin-Dashboard",
@@ -1191,7 +1194,14 @@
     "termFinal": "Abschlusszeugnis",
     "termQuarterly": "Quartalszeugnis",
     "termTrimester": "Trimesterzeugnis",
-    "classLabel": "Klasse {num}"
+    "classLabel": "Klasse {num}",
+    "inviteCodeLabel": "Einladungscode von deinen Eltern",
+    "redeemInvalid": "Diesen Code gibt es nicht. Prüfe ihn und versuche es erneut.",
+    "redeemUsed": "Dieser Code wurde schon benutzt. Bitte deine Eltern um einen neuen.",
+    "redeemRevoked": "Deine Eltern haben diesen Code widerrufen. Bitte um einen neuen.",
+    "redeemExpired": "Dieser Code ist abgelaufen. Bitte deine Eltern um einen neuen.",
+    "redeemRateLimited": "Zu viele falsche Codes. Bitte versuche es in {minutes} Min. erneut.",
+    "redeemBusy": "Bitte versuche es gleich noch einmal."
   },
   "about": {
     "title": "Über Bonifatus",
@@ -1427,7 +1437,7 @@
     "codeLabel": "Einladungscode",
     "loginButton": "Anmelden und verbinden",
     "registerButton": "Schülerkonto erstellen",
-    "appHint": "Du nutzt die App? Öffne die Einstellungen, tippe auf „QR scannen“ und scanne den Code deiner Eltern.",
+    "appHint": "Du nutzt die App? Öffne die Einstellungen und scanne den QR-Code deiner Eltern oder gib den Code ein.",
     "parentTitle": "Diese Einladung ist für ein Schülerkonto",
     "parentText": "Mit Einladungscodes verbindet sich ein Schülerkonto mit einem Elternkonto. Zeige diesen Code oder QR-Code deinem Kind, damit es die Verbindung in seinem Konto bestätigt.",
     "dashboardButton": "Zum Dashboard"

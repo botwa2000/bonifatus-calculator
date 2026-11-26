@@ -11,6 +11,7 @@ export async function logSecurityEvent(params: {
     | 'account_lockout'
     | 'rate_limit_exceeded'
     | 'unauthorized_access_attempt'
+    | 'invite_redeem_failure'
   severity?: 'info' | 'warning' | 'critical'
   userId?: string | null
   ipAddress: string
