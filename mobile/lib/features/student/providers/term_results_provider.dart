@@ -1,10 +1,14 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../auth/providers/auth_provider.dart';
 import '../../../api/services/grade_service.dart';
 import '../../../models/term_result.dart';
 
 class TermResultsNotifier extends AsyncNotifier<List<TermResult>> {
   @override
-  Future<List<TermResult>> build() => _fetch();
+  Future<List<TermResult>> build() {
+    ref.watch(currentUserIdProvider);
+    return _fetch();
+  }
 
   Future<List<TermResult>> _fetch() {
     final service = ref.read(gradeServiceProvider);

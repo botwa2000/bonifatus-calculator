@@ -1,10 +1,14 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../auth/providers/auth_provider.dart';
 import '../../../api/services/grade_service.dart';
 import '../../../models/quick_grade.dart';
 
 class QuickGradesNotifier extends AsyncNotifier<List<QuickGrade>> {
   @override
-  Future<List<QuickGrade>> build() => _fetch();
+  Future<List<QuickGrade>> build() {
+    ref.watch(currentUserIdProvider);
+    return _fetch();
+  }
 
   Future<List<QuickGrade>> _fetch() {
     final service = ref.read(gradeServiceProvider);

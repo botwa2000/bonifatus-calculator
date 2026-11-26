@@ -10,6 +10,7 @@ import '../../../../models/child_data.dart';
 import '../../../../api/services/connection_service.dart';
 import '../../../../utils/term_type_utils.dart';
 import '../../../../utils/format_utils.dart';
+import '../../../auth/providers/auth_provider.dart';
 
 List<ChildTermResult> _demoTermResults() => [
       ChildTermResult(
@@ -43,6 +44,7 @@ List<ChildTermResult> _demoTermResults() => [
 
 final childTermResultsProvider =
     FutureProvider.family<List<ChildTermResult>, String>((ref, childId) async {
+  ref.watch(currentUserIdProvider);
   if (kIsWeb && kDebugMode) return _demoTermResults();
   final service = ref.read(connectionServiceProvider);
   return service.fetchChildTermResults(childId);

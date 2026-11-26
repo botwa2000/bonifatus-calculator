@@ -95,3 +95,10 @@ class AuthStateNotifier extends AsyncNotifier<AuthState> {
 
 final authStateNotifierProvider =
     AsyncNotifierProvider<AuthStateNotifier, AuthState>(AuthStateNotifier.new);
+
+/// The signed-in account's id, or null when signed out. Every provider that holds one
+/// account's data watches it, so it is rebuilt when the account changes: signing out and
+/// in as someone else on the same device never shows the previous account's data.
+final currentUserIdProvider = Provider<String?>(
+  (ref) => ref.watch(authStateNotifierProvider.select((auth) => auth.value?.userId)),
+);

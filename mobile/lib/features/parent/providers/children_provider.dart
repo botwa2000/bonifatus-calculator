@@ -4,6 +4,7 @@ import '../../../api/services/connection_service.dart';
 import '../../../api/services/grade_service.dart';
 import '../../../models/child_data.dart';
 import '../../../models/settlement_package.dart';
+import '../../auth/providers/auth_provider.dart';
 
 List<ChildWithGrades> _demoChildren() => [
       ChildWithGrades(
@@ -38,6 +39,7 @@ class ChildrenQuickGradesNotifier
     extends AsyncNotifier<List<ChildWithGrades>> {
   @override
   Future<List<ChildWithGrades>> build() {
+    ref.watch(currentUserIdProvider);
     if (kIsWeb && kDebugMode) return Future.value(_demoChildren());
     return _fetch();
   }
@@ -61,6 +63,7 @@ final childrenQuickGradesProvider =
 class SettlementsNotifier extends AsyncNotifier<List<SettlementRecord>> {
   @override
   Future<List<SettlementRecord>> build() {
+    ref.watch(currentUserIdProvider);
     if (kIsWeb && kDebugMode) return Future.value([]);
     return _fetch();
   }
@@ -83,6 +86,7 @@ final settlementsProvider =
 class ChildProfilesNotifier extends AsyncNotifier<List<ChildProfile>> {
   @override
   Future<List<ChildProfile>> build() {
+    ref.watch(currentUserIdProvider);
     if (kIsWeb && kDebugMode) return Future.value([]);
     return ref.read(connectionServiceProvider).fetchChildProfiles();
   }
@@ -104,6 +108,7 @@ class SettlementPackagesNotifier
     extends AsyncNotifier<List<SettlementPackage>> {
   @override
   Future<List<SettlementPackage>> build() {
+    ref.watch(currentUserIdProvider);
     if (kIsWeb && kDebugMode) return Future.value([]);
     return ref.read(gradeServiceProvider).fetchSettlementPackages();
   }
@@ -124,6 +129,7 @@ final settlementPackagesProvider =
 class SettlementPeriodUnitNotifier extends AsyncNotifier<String> {
   @override
   Future<String> build() {
+    ref.watch(currentUserIdProvider);
     if (kIsWeb && kDebugMode) return Future.value('monthly');
     return ref.read(gradeServiceProvider).fetchSettlementPeriodUnit();
   }
