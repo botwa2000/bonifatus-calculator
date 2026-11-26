@@ -1,6 +1,9 @@
 class SettlementPackageItem {
   final String id;
+  /// English (or first) name; older servers send only this.
   final String? subjectName;
+  /// Every translation of the subject name ({de: Physik, en: Physics, …}).
+  final Map<String, String> subjectNames;
   final String? gradeValue;
   final String? gradeQualityTier;
   final double bonusPoints;
@@ -10,6 +13,7 @@ class SettlementPackageItem {
   const SettlementPackageItem({
     required this.id,
     this.subjectName,
+    this.subjectNames = const {},
     this.gradeValue,
     this.gradeQualityTier,
     required this.bonusPoints,
@@ -21,6 +25,8 @@ class SettlementPackageItem {
     return SettlementPackageItem(
       id: json['id'] as String,
       subjectName: json['subjectName'] as String?,
+      subjectNames: (json['subjectNames'] as Map<String, dynamic>? ?? const {})
+          .map((k, v) => MapEntry(k, v.toString())),
       gradeValue: json['gradeValue'] as String?,
       gradeQualityTier: json['gradeQualityTier'] as String?,
       bonusPoints: ((json['bonusPoints']) as num?)?.toDouble() ?? 0.0,
@@ -28,6 +34,10 @@ class SettlementPackageItem {
       source: json['source'] as String? ?? 'notes',
     );
   }
+
+  /// The subject in the app's language, else the English name, else [fallback].
+  String localizedName(String locale, {required String fallback}) =>
+      subjectNames[locale] ?? subjectName ?? fallback;
 }
 
 class SettlementPackage {

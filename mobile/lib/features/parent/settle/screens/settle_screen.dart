@@ -747,7 +747,7 @@ class _ItemRow extends StatelessWidget {
           const SizedBox(width: 10),
           Expanded(
             child: Text(
-              item.subjectName ?? l10n.subjectFallback,
+              item.localizedName(Localizations.localeOf(context).languageCode, fallback: l10n.subjectFallback),
               style: TextStyle(fontSize: 14, color: cs.onSurface),
             ),
           ),

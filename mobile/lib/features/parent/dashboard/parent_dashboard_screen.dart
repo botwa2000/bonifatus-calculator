@@ -525,7 +525,7 @@ class _QuickSettleCard extends ConsumerWidget {
                 Text(
                   grade.gradeSource == 'calculator'
                       ? localizeTermLabel(l10n, grade.rawTermType ?? '', grade.termSchoolYear ?? '', grade.termName)
-                      : (grade.subjectName ?? l10n.subjectFallback),
+                      : grade.localizedName(Localizations.localeOf(context).languageCode, fallback: l10n.subjectFallback),
                   style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600),
                 ),
               ],

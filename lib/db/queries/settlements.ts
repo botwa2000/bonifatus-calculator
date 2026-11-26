@@ -106,9 +106,27 @@ export async function getSettlementsForChild(childId: string) {
     .limit(100)
 }
 
+/** subjects.name is a JSON map of translations ({ de: 'Physik', en: 'Physics', … }). */
+function subjectNameFields(
+  raw: unknown
+): Pick<SettlementPackageItem, 'subjectName' | 'subjectNames'> {
+  if (typeof raw === 'string') return { subjectName: raw, subjectNames: null }
+  if (!raw || typeof raw !== 'object') return { subjectName: null, subjectNames: null }
+  const names = Object.fromEntries(
+    Object.entries(raw as Record<string, unknown>)
+      .filter(([, v]) => v !== null && v !== undefined)
+      .map(([k, v]) => [k, String(v)])
+  )
+  const first = names['en'] ?? names['de'] ?? Object.values(names)[0] ?? null
+  return { subjectName: first, subjectNames: names }
+}
+
 export type SettlementPackageItem = {
   id: string
+  /** English (or first available) name; kept for app versions before 2.0.6. */
   subjectName: string | null
+  /** Every translation of the subject name, so apps show it in the user's language. */
+  subjectNames: Record<string, string> | null
   gradeValue: string | null
   gradeQualityTier: string | null
   bonusPoints: number
@@ -281,16 +299,9 @@ export async function getSettlementPackages(
     }
 
     const items: SettlementPackageItem[] = rows.map((r) => {
-      const nameRaw = r.subjectName as unknown
-      let name: string | null = null
-      if (typeof nameRaw === 'string') name = nameRaw
-      else if (nameRaw && typeof nameRaw === 'object') {
-        const nm = nameRaw as Record<string, unknown>
-        name = (nm['en'] ?? nm['de'] ?? Object.values(nm)[0])?.toString() ?? null
-      }
       return {
         id: r.id,
-        subjectName: name,
+        ...subjectNameFields(r.subjectName),
         gradeValue: r.gradeValue,
         gradeQualityTier: r.gradeQualityTier,
         bonusPoints: (r.bonusPoints ?? 0) as number,
@@ -354,16 +365,9 @@ export async function getSettlementPackages(
     const bounds = getPeriodBounds(key, periodUnit)
 
     const items: SettlementPackageItem[] = rows.map((r) => {
-      const nameRaw = r.subjectName as unknown
-      let name: string | null = null
-      if (typeof nameRaw === 'string') name = nameRaw
-      else if (nameRaw && typeof nameRaw === 'object') {
-        const nm = nameRaw as Record<string, unknown>
-        name = (nm['en'] ?? nm['de'] ?? Object.values(nm)[0])?.toString() ?? null
-      }
       return {
         id: r.id,
-        subjectName: name,
+        ...subjectNameFields(r.subjectName),
         gradeValue: r.gradeValue,
         gradeQualityTier: r.gradeQualityTier,
         bonusPoints: (r.bonusPoints ?? 0) as number,

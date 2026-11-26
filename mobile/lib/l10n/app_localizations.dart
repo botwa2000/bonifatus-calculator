@@ -2761,7 +2761,7 @@ abstract class AppLocalizations {
   /// No description provided for @homeChildGrades.
   ///
   /// In en, this message translates to:
-  /// **'{count} grade(s)'**
+  /// **'{count, plural, =1{1 grade} other{{count} grades}}'**
   String homeChildGrades(int count);
 
   /// No description provided for @settingsSectionSchool.

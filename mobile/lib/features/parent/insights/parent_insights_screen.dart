@@ -387,7 +387,7 @@ class _ActivityRow extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  '${child.childName}  ·  ${grade.subjectName ?? l10n.subjectFallback}',
+                  '${child.childName}  ·  ${grade.localizedName(Localizations.localeOf(context).languageCode, fallback: l10n.subjectFallback)}',
                   style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600),
                 ),
                 const SizedBox(height: 2),

@@ -1493,7 +1493,13 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String homeChildGrades(int count) {
-    return '$count note(s)';
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count notes',
+      one: '1 note',
+    );
+    return '$_temp0';
   }
 
   @override

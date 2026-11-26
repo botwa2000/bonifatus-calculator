@@ -1482,7 +1482,15 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String homeChildGrades(int count) {
-    return '$count оц.';
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count оценки',
+      many: '$count оценок',
+      few: '$count оценки',
+      one: '$count оценка',
+    );
+    return '$_temp0';
   }
 
   @override

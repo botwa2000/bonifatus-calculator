@@ -526,7 +526,7 @@
       }
     }
   },
-  "homeChildGrades": "{count} оц.",
+  "homeChildGrades": "{count, plural, one{{count} оценка} few{{count} оценки} many{{count} оценок} other{{count} оценки}}",
   "@homeChildGrades": {
     "placeholders": {
       "count": {

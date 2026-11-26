@@ -526,7 +526,7 @@
       }
     }
   },
-  "homeChildGrades": "{count} Noten",
+  "homeChildGrades": "{count, plural, =1{1 Note} other{{count} Noten}}",
   "@homeChildGrades": {
     "placeholders": {
       "count": {

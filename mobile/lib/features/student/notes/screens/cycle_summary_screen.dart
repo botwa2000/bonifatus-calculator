@@ -321,7 +321,7 @@ class _CycleNoteCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  grade.subjectName ?? AppLocalizations.of(context)!.subjectFallback,
+                  grade.localizedName(Localizations.localeOf(context).languageCode, fallback: AppLocalizations.of(context)!.subjectFallback),
                   style: TextStyle(
                     fontWeight: FontWeight.w600,
                     fontSize: 14,

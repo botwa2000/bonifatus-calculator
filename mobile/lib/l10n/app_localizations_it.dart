@@ -1474,7 +1474,13 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String homeChildGrades(int count) {
-    return '$count voto/i';
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count voti',
+      one: '1 voto',
+    );
+    return '$_temp0';
   }
 
   @override

@@ -526,7 +526,7 @@
       }
     }
   },
-  "homeChildGrades": "{count} voto/i",
+  "homeChildGrades": "{count, plural, =1{1 voto} other{{count} voti}}",
   "@homeChildGrades": {
     "placeholders": {
       "count": {

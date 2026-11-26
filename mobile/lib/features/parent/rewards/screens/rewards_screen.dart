@@ -393,7 +393,7 @@ class _GradeRow extends StatelessWidget {
           const SizedBox(width: 10),
           Expanded(
             child: Text(
-              grade.subjectName ?? AppLocalizations.of(context)!.subjectFallback,
+              grade.localizedName(Localizations.localeOf(context).languageCode, fallback: AppLocalizations.of(context)!.subjectFallback),
               style: TextStyle(
                 fontSize: 14,
                 color: Theme.of(context).colorScheme.onSurfaceVariant,
