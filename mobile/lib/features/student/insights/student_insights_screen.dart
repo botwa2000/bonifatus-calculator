@@ -471,7 +471,7 @@ class _InsightsBodyState extends State<_InsightsBody> {
               ),
               const SizedBox(width: 10),
               Expanded(
-                child: Column(children: [
+                child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
                   if (bestGrade != null)
                     Card(
                       child: Padding(

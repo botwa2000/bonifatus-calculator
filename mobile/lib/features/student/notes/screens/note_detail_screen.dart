@@ -66,7 +66,7 @@ class NoteDetailScreen extends ConsumerWidget {
         final tierColorLight =
             AppColors.tierColorLight(grade.gradeQualityTier);
         final dateStr =
-            DateFormat('MMM d, yyyy').format(grade.gradedAt);
+            DateFormat.yMMMd(Localizations.localeOf(context).languageCode).format(grade.gradedAt);
         final subjectLabel = grade.localizedName(Localizations.localeOf(context).languageCode, fallback: AppLocalizations.of(context)!.subjectFallback);
 
         final cs = Theme.of(context).colorScheme;

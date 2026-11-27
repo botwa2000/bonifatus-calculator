@@ -390,8 +390,8 @@ class _TermResultCard extends StatelessWidget {
     final tier = term.tier;
     final tierColor = AppColors.tierColor(tier);
     final tierBgColor = AppColors.tierColorLight(tier);
-    final primary = term.averagePrimary;
-    final secondary = term.averageSecondary;
+    final primary = localizeDecimal(term.averagePrimary, Localizations.localeOf(context).languageCode);
+    final secondary = term.averageSecondary == null ? null : localizeDecimal(term.averageSecondary!, Localizations.localeOf(context).languageCode);
     final settled = term.settlementStatus == 'settled';
     final pts = term.totalBonusPoints;
 
@@ -527,7 +527,7 @@ class _GradeCard extends StatelessWidget {
             Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
               Text(grade.localizedName(locale, fallback: l10n.subjectFallback),
                 style: TextStyle(fontSize: 17, fontWeight: FontWeight.w700, color: Theme.of(context).colorScheme.onSurface)),
-              Text(DateFormat('MMMM d, yyyy').format(grade.gradedAt),
+              Text(DateFormat.yMMMMd(Localizations.localeOf(context).languageCode).format(grade.gradedAt),
                 style: TextStyle(fontSize: 13, color: Theme.of(context).colorScheme.onSurfaceVariant)),
             ])),
           ]),
@@ -553,7 +553,7 @@ class _GradeCard extends StatelessWidget {
     final tier = grade.gradeQualityTier;
     final tierColor = AppColors.tierColor(tier);
     final tierColorLight = AppColors.tierColorLight(tier);
-    final dateStr = DateFormat('MMM d, yyyy').format(grade.gradedAt);
+    final dateStr = DateFormat.yMMMd(Localizations.localeOf(context).languageCode).format(grade.gradedAt);
 
     return InkWell(
       onTap: () => _showDetail(context),

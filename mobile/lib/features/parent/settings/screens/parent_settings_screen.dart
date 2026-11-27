@@ -298,7 +298,7 @@ class _ParentSettingsScreenState extends ConsumerState<ParentSettingsScreen> {
                               decoration: BoxDecoration(color: factor.color, shape: BoxShape.circle)),
                           title: Text(label, style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: cs.onSurface)),
                           trailing: Row(mainAxisSize: MainAxisSize.min, children: [
-                            Text('${factor.multiplier}x', style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: AppColors.primary)),
+                            Text('${localizeDecimal(factor.multiplier.toString(), Localizations.localeOf(context).languageCode)}x', style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: AppColors.primary)),
                             const SizedBox(width: 8),
                             InkWell(
                               onTap: () => _showMultiplierSheet(i, factor, l10n, onSaved: () => setSheetState(() {})),
@@ -436,14 +436,14 @@ class _ParentSettingsScreenState extends ConsumerState<ParentSettingsScreen> {
             Text(l10n.settingsEditMultiplier(label),
                 style: TextStyle(fontSize: 17, fontWeight: FontWeight.w700, color: Theme.of(ctx).colorScheme.onSurface)),
             const SizedBox(height: 20),
-            Center(child: Text('${currentValue.toStringAsFixed(1)}x',
+            Center(child: Text('${localizeDecimal(currentValue.toStringAsFixed(1), Localizations.localeOf(ctx).languageCode)}x',
                 style: TextStyle(fontSize: 36, fontWeight: FontWeight.w800, color: factor.color))),
             Slider(value: currentValue, min: sliderMin, max: sliderMax, divisions: divisions,
                 activeColor: factor.color,
                 onChanged: (v) => setSheetState(() => currentValue = v)),
             Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-              Text('${sliderMin.toStringAsFixed(1)}x', style: TextStyle(fontSize: 12, color: Theme.of(ctx).colorScheme.onSurfaceVariant)),
-              Text('${sliderMax.toStringAsFixed(1)}x', style: TextStyle(fontSize: 12, color: Theme.of(ctx).colorScheme.onSurfaceVariant)),
+              Text('${localizeDecimal(sliderMin.toStringAsFixed(1), Localizations.localeOf(ctx).languageCode)}x', style: TextStyle(fontSize: 12, color: Theme.of(ctx).colorScheme.onSurfaceVariant)),
+              Text('${localizeDecimal(sliderMax.toStringAsFixed(1), Localizations.localeOf(ctx).languageCode)}x', style: TextStyle(fontSize: 12, color: Theme.of(ctx).colorScheme.onSurfaceVariant)),
             ]),
             const SizedBox(height: 20),
             SizedBox(

@@ -593,7 +593,7 @@ class _HistoryTab extends ConsumerWidget {
           itemCount: settlements.length,
           itemBuilder: (ctx, i) {
             final s = settlements[i];
-            final dateStr = DateFormat('MMM d, yyyy').format(s.createdAt.toLocal());
+            final dateStr = DateFormat.yMMMd(Localizations.localeOf(context).languageCode).format(s.createdAt.toLocal());
             return Card(
               margin: const EdgeInsets.only(bottom: 10),
               clipBehavior: Clip.antiAlias,

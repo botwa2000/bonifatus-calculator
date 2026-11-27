@@ -81,7 +81,7 @@ class CycleSummaryScreen extends ConsumerWidget {
               .fold<double>(0.0, (s, g) => s + g.bonusPoints);
           final netPts = weekGrades.fold<double>(0.0, (s, g) => s + g.bonusPoints);
 
-          final fmt = DateFormat('MMM d, yyyy');
+          final fmt = DateFormat.yMMMd(Localizations.localeOf(context).languageCode);
           final startStr = fmt.format(startDate);
           final endStr = fmt.format(endDate);
 
@@ -278,7 +278,7 @@ class _CycleNoteCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final tierColor = AppColors.tierColor(grade.gradeQualityTier);
     final tierColorLight = AppColors.tierColorLight(grade.gradeQualityTier);
-    final dateStr = DateFormat('MMM d').format(grade.gradedAt);
+    final dateStr = DateFormat.MMMd(Localizations.localeOf(context).languageCode).format(grade.gradedAt);
 
     return InkWell(
       onTap: () => context.push('/student/notes/detail/${grade.id}'),

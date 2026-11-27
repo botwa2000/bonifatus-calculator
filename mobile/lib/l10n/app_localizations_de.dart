@@ -428,16 +428,16 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
-  String get settingsTierBestLabel => 'Sehr gut (Note 1–2)';
+  String get settingsTierBestLabel => 'Note 1–2 (sehr gut, gut)';
 
   @override
-  String get settingsTierSecondLabel => 'Gut (Note 3)';
+  String get settingsTierSecondLabel => 'Note 3 (befriedigend)';
 
   @override
-  String get settingsTierThirdLabel => 'Befriedigend (Note 4)';
+  String get settingsTierThirdLabel => 'Note 4 (ausreichend)';
 
   @override
-  String get settingsTierBelowLabel => 'Ungenügend (Note 5–6)';
+  String get settingsTierBelowLabel => 'Note 5–6 (mangelhaft, ungenügend)';
 
   @override
   String get settingsFailedToLoadChildren =>
@@ -818,7 +818,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get insightsTierOk => 'Befriedigend (2,5–3,4)';
 
   @override
-  String get insightsTierBelow => 'Ungenügend (3,5+)';
+  String get insightsTierBelow => 'Schwächer (ab 3,5)';
 
   @override
   String parentDashboardHiName(String name) {
@@ -1294,10 +1294,10 @@ class AppLocalizationsDe extends AppLocalizations {
   String get captureSelectSubject => 'Tippen zum Auswählen';
 
   @override
-  String get termTypeSemester1 => 'Semester 1';
+  String get termTypeSemester1 => '1. Halbjahr';
 
   @override
-  String get termTypeSemester2 => 'Semester 2';
+  String get termTypeSemester2 => '2. Halbjahr';
 
   @override
   String get termTypeTrimester1 => 'Trimester 1';
@@ -1468,7 +1468,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String insightsStreakWeeks(int count) {
-    return '${count}W';
+    return '$count Wo.';
   }
 
   @override

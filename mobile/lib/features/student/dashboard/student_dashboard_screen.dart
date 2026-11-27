@@ -292,7 +292,7 @@ class StudentDashboardScreen extends ConsumerWidget {
           children: recent.map((term) {
             final color = AppColors.tierColor(term.tier);
             final lightColor = AppColors.tierColorLight(term.tier);
-            final avg = term.averagePrimary;
+            final avg = localizeDecimal(term.averagePrimary, Localizations.localeOf(context).languageCode);
 
             return Padding(
               padding: const EdgeInsets.only(bottom: 12),
@@ -403,7 +403,7 @@ class _HeroCardState extends State<_HeroCard> {
         final ws = now.subtract(Duration(days: now.weekday - 1));
         final wStart = DateTime(ws.year, ws.month, ws.day);
         filtered = grades.where((g) => !g.gradedAt.isBefore(wStart)).toList();
-        dateLabel = '${DateFormat('MMM d').format(wStart)} – ${DateFormat('MMM d, y').format(wStart.add(const Duration(days: 6)))}';
+        dateLabel = '${DateFormat.MMMd(Localizations.localeOf(context).languageCode).format(wStart)} – ${DateFormat.yMMMd(Localizations.localeOf(context).languageCode).format(wStart.add(const Duration(days: 6)))}';
       case _CardPeriod.month:
         filtered = grades.where((g) => g.gradedAt.year == now.year && g.gradedAt.month == now.month).toList();
         dateLabel = DateFormat('MMMM y', locale).format(now);

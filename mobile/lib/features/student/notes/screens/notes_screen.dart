@@ -26,7 +26,7 @@ DateTime _weekStart(DateTime date) {
 }
 
 List<_WeekGroup> _groupByWeek(
-    List<QuickGrade> grades, String thisWeekStr, String lastWeekStr) {
+    List<QuickGrade> grades, String thisWeekStr, String lastWeekStr, String locale) {
   final map = <String, List<QuickGrade>>{};
   for (final g in grades) {
     final ws = _weekStart(g.gradedAt);
@@ -41,7 +41,7 @@ List<_WeekGroup> _groupByWeek(
   return map.entries.map((e) {
     final ws = DateTime.parse(e.key);
     final we = ws.add(const Duration(days: 6));
-    final fmt = DateFormat('MMM d');
+    final fmt = DateFormat.MMMd(locale);
     final diff = thisWeekStart.difference(ws).inDays;
     String label;
     if (diff == 0) {
@@ -135,7 +135,8 @@ class NotesScreen extends ConsumerWidget {
         data: (grades) {
           if (grades.isEmpty) return _buildEmptyState(context, l10n);
           final groups =
-              _groupByWeek(grades, l10n.notesThisWeek, l10n.notesLastWeek);
+              _groupByWeek(grades, l10n.notesThisWeek, l10n.notesLastWeek,
+                  Localizations.localeOf(context).languageCode);
           return _buildContent(context, ref, l10n, groups);
         },
       ),
@@ -419,7 +420,7 @@ class _NoteCard extends StatelessWidget {
     final tierColorLight = AppColors.tierColorLight(grade.gradeQualityTier);
     final l10n = AppLocalizations.of(context)!;
     final locale = Localizations.localeOf(context).languageCode;
-    final dateStr = DateFormat('MMM d').format(grade.gradedAt);
+    final dateStr = DateFormat.MMMd(Localizations.localeOf(context).languageCode).format(grade.gradedAt);
     final subjectLabel = grade.localizedName(locale, fallback: l10n.subjectFallback);
 
     return GestureDetector(

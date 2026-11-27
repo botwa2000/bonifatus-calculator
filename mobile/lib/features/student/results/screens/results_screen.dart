@@ -6,6 +6,7 @@ import '../../../../core/theme/app_colors.dart';
 import '../../providers/term_results_provider.dart';
 import '../../../../models/term_result.dart';
 import '../../../../utils/term_type_utils.dart';
+import '../../../../utils/format_utils.dart';
 
 class ResultsScreen extends ConsumerWidget {
   const ResultsScreen({super.key});
@@ -198,8 +199,8 @@ class _TermCard extends StatelessWidget {
     final tier = term.tier;
     final color = AppColors.tierColor(tier);
     final lightColor = AppColors.tierColorLight(tier);
-    final primary = term.averagePrimary;
-    final secondary = term.averageSecondary;
+    final primary = localizeDecimal(term.averagePrimary, Localizations.localeOf(context).languageCode);
+    final secondary = term.averageSecondary == null ? null : localizeDecimal(term.averageSecondary!, Localizations.localeOf(context).languageCode);
     final settled = term.settlementStatus == 'settled';
     final pts = term.totalBonusPoints;
     final ptsStr = pts % 1 == 0 ? pts.toInt().toString() : pts.toStringAsFixed(1);

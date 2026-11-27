@@ -220,8 +220,8 @@ class TermDetailScreen extends ConsumerWidget {
         final locale = Localizations.localeOf(context).languageCode;
         final tier = term.tier;
         final tierColor = AppColors.tierColor(tier);
-        final avgPrimary = term.averagePrimary;
-        final avgSecondary = term.averageSecondary;
+        final avgPrimary = localizeDecimal(term.averagePrimary, locale);
+        final avgSecondary = term.averageSecondary == null ? null : localizeDecimal(term.averageSecondary!, locale);
         final termSettled = term.settlementStatus == 'settled';
 
         return Scaffold(

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import '../core/theme/app_colors.dart';
 
 /// Format bonus points: show integer when whole number, one decimal otherwise.
@@ -24,4 +25,12 @@ Color bonusColor(double bonus) {
   if (bonus > 0) return AppColors.success;
   if (bonus < 0) return AppColors.error;
   return AppColors.warning;
+}
+
+/// A number the models format with a "." decimal point ("1.71", "≈ 2.3"), shown with the
+/// locale's separator ("1,71" in German). Letter grades and "—" pass through unchanged.
+String localizeDecimal(String value, String locale) {
+  final sep = NumberFormat.decimalPattern(locale).symbols.DECIMAL_SEP;
+  if (sep == '.') return value;
+  return value.replaceAllMapped(RegExp(r'(\d)\.(\d)'), (m) => '${m[1]}$sep${m[2]}');
 }

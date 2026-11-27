@@ -1236,7 +1236,7 @@ class _CalculatorScreenState extends ConsumerState<CalculatorScreen> {
                       ),
                       const SizedBox(height: 2),
                       Text(
-                        '${total.toStringAsFixed(1)} ${l10n.ptsAbbr}',
+                        '${localizeDecimal(fmtPts(total), Localizations.localeOf(context).languageCode)} ${l10n.ptsAbbr}',
                         style: TextStyle(
                           fontSize: 28,
                           fontWeight: FontWeight.w800,

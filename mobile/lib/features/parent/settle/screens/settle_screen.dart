@@ -832,7 +832,7 @@ class _HistoryTab extends ConsumerWidget {
           itemBuilder: (ctx, i) {
             final s = settlements[i];
             final dateStr =
-                DateFormat('MMM d, yyyy').format(s.createdAt.toLocal());
+                DateFormat.yMMMd(Localizations.localeOf(context).languageCode).format(s.createdAt.toLocal());
             final hasPackageLabel =
                 s.packageLabel != null && s.packageLabel!.isNotEmpty;
 
