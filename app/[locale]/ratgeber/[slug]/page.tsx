@@ -12,15 +12,40 @@ import { JsonLd, articleJsonLd, breadcrumbJsonLd, faqPageJsonLd } from '@/compon
 import { buildAlternates } from '@/lib/seo/alternates'
 import { RATGEBER_INDEX, getRatgeberMeta } from '@/content/ratgeber/index'
 import { getRatgeberArticle } from '@/content/ratgeber/registry'
+import { LAND_LOCALE, LAND_PAGES, getLandPageBySlug } from '@/content/ratgeber/laender'
+import { LandArticle } from '@/components/ratgeber/LandArticle'
 
 type Params = Promise<{ locale: string; slug: string }>
 
 export function generateStaticParams() {
-  return RATGEBER_INDEX.map(({ locale, slug }) => ({ locale, slug }))
+  return [
+    ...RATGEBER_INDEX.map(({ locale, slug }) => ({ locale, slug })),
+    ...LAND_PAGES.map((p) => ({ locale: LAND_LOCALE, slug: p.path.split('/').at(-1)! })),
+  ]
+}
+
+/** A Halbjahreszeugnis page per Land (content/ratgeber/laender), German only. */
+function landPageFor(locale: string, slug: string) {
+  return locale === LAND_LOCALE ? getLandPageBySlug(slug) : undefined
 }
 
 export async function generateMetadata({ params }: { params: Params }): Promise<Metadata> {
   const { locale, slug } = await params
+  const land = landPageFor(locale, slug)
+  if (land) {
+    return {
+      title: land.title,
+      description: land.description,
+      alternates: buildAlternates(locale, land.path),
+      openGraph: {
+        type: 'article',
+        title: land.title,
+        description: land.description,
+        publishedTime: land.publishedAt,
+        modifiedTime: land.updatedAt,
+      },
+    }
+  }
   const article = getRatgeberMeta(locale, slug)
   if (!article) return {}
   return {
@@ -40,6 +65,17 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
 export default async function RatgeberArticlePage({ params }: { params: Params }) {
   const { locale, slug } = await params
   setRequestLocale(locale)
+  const land = landPageFor(locale, slug)
+  if (land) {
+    const landSession = await auth()
+    return (
+      <div className="min-h-screen bg-white dark:bg-neutral-900">
+        <AppHeader variant="public" isAuthed={Boolean(landSession?.user)} />
+        <LandArticle page={land} locale={locale} />
+        <Footer />
+      </div>
+    )
+  }
   const article = getRatgeberArticle(locale, slug)
   if (!article) notFound()
 

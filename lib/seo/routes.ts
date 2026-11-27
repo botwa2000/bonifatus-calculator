@@ -2,6 +2,7 @@ import type { MetadataRoute } from 'next'
 import { hasLocale } from 'next-intl'
 import { routing, type Locale } from '@/i18n/routing'
 import { RATGEBER_INDEX } from '@/content/ratgeber/index'
+import { LAND_LOCALE, LAND_PAGES } from '@/content/ratgeber/laender'
 
 // Registry of every indexable page. The sitemap, hreflang/canonical tags and robots.txt
 // are all derived from this file, so a page is either listed here (and fully wired for
@@ -43,6 +44,14 @@ const RATGEBER_PAGES: PublicPage[] = RATGEBER_INDEX.length
         changeFrequency: 'monthly',
         priority: 0.8,
         locales: ratgeberLocalesOf([a.locale]),
+      })),
+      // Halbjahreszeugnis per Land (content/ratgeber/laender), German only.
+      ...LAND_PAGES.map((p): PublicPage => ({
+        path: p.path,
+        lastModified: p.updatedAt,
+        changeFrequency: 'monthly',
+        priority: 0.7,
+        locales: ratgeberLocalesOf([LAND_LOCALE]),
       })),
     ]
   : []

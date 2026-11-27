@@ -12,51 +12,66 @@ const body: RatgeberBody = {
       blocks: [
         {
           type: 'p',
-          text: 'Einen bundesweit einheitlichen Termin gibt es nicht. Wir haben für alle 16 Länder die amtlichen Quellen geprüft – Erlasse und Terminpläne der Kultusministerien und das Landesrecht. Manche Länder legen einen Tag fest, andere eine Regel, aus der sich der Tag ergibt. Drei Länder haben für 2026/27 keinen landesweiten Termin veröffentlicht; dort nennen wir auch keinen.',
+          text: 'Einen bundesweit einheitlichen Termin gibt es nicht. Wir haben für alle 16 Länder die amtlichen Quellen geprüft – Erlasse und Terminpläne der Kultusministerien und das Landesrecht. Manche Länder legen einen Tag fest, andere eine Regel, aus der sich der Tag ergibt. Zwei Länder haben für 2026/27 keinen landesweiten Termin veröffentlicht; dort nennen wir auch keinen. Jedes Land in der Tabelle führt zu einer eigenen Seite mit Ferien und Besonderheiten.',
         },
         {
           type: 'table',
           head: ['Bundesland', 'Halbjahreszeugnis 2026/27'],
           rows: [
             [
-              'Baden-Württemberg (BW)',
+              '[Baden-Württemberg (BW)](/ratgeber/halbjahreszeugnis-baden-wuerttemberg)',
               'in der Regel zwischen 1. und 10. Februar 2027; den Tag legt die Schule fest[^1]',
             ],
-            ['Bayern (BY)', 'Freitag, 19. Februar 2027[^2]'],
-            ['Berlin (BE)', 'Freitag, 29. Januar 2027[^3]'],
-            ['Brandenburg (BB)', 'Freitag, 29. Januar 2027[^4]'],
-            ['Bremen (HB)', 'Freitag, 29. Januar 2027[^5]'],
+            ['[Bayern (BY)](/ratgeber/halbjahreszeugnis-bayern)', 'Freitag, 19. Februar 2027[^2]'],
+            ['[Berlin (BE)](/ratgeber/halbjahreszeugnis-berlin)', 'Freitag, 29. Januar 2027[^3]'],
             [
-              'Hamburg (HH)',
+              '[Brandenburg (BB)](/ratgeber/halbjahreszeugnis-brandenburg)',
+              'Freitag, 29. Januar 2027[^4]',
+            ],
+            ['[Bremen (HB)](/ratgeber/halbjahreszeugnis-bremen)', 'Freitag, 29. Januar 2027[^5]'],
+            [
+              '[Hamburg (HH)](/ratgeber/halbjahreszeugnis-hamburg)',
               'kein landesweiter Termin veröffentlicht (Halbjahrespause: Freitag, 29. Januar 2027)[^6]',
             ],
             [
-              'Hessen (HE)',
+              '[Hessen (HE)](/ratgeber/halbjahreszeugnis-hessen)',
               'in der Regel Freitag, 29. Januar 2027 – letzter Unterrichtstag vor dem ersten Montag im Februar[^7]',
             ],
             [
-              'Mecklenburg-Vorpommern (MV)',
+              '[Mecklenburg-Vorpommern (MV)](/ratgeber/halbjahreszeugnis-mecklenburg-vorpommern)',
               'kein landesweiter Termin veröffentlicht (Winterferien ab 8. Februar 2027)[^8]',
             ],
-            ['Niedersachsen (NI)', 'Freitag, 29. Januar 2027[^9]'],
-            ['Nordrhein-Westfalen (NRW)', 'Freitag, 12. Februar 2027[^10]'],
             [
-              'Rheinland-Pfalz (RLP)',
+              '[Niedersachsen (NI)](/ratgeber/halbjahreszeugnis-niedersachsen)',
+              'Freitag, 29. Januar 2027[^9]',
+            ],
+            [
+              '[Nordrhein-Westfalen (NRW)](/ratgeber/halbjahreszeugnis-nordrhein-westfalen)',
+              'Freitag, 12. Februar 2027[^10]',
+            ],
+            [
+              '[Rheinland-Pfalz (RLP)](/ratgeber/halbjahreszeugnis-rheinland-pfalz)',
               'Freitag, 29. Januar 2027 – Regel: letzter Freitag im Januar[^11]',
             ],
             [
-              'Saarland (SL)',
+              '[Saarland (SL)](/ratgeber/halbjahreszeugnis-saarland)',
               'Freitag, 29. Januar 2027 (Gymnasien und Gemeinschaftsschulen ab Klasse 5)[^12]',
             ],
-            ['Sachsen (SN)', 'Freitag, 5. Februar 2027[^13]'],
-            ['Sachsen-Anhalt (ST)', 'Freitag, 29. Januar 2027[^14]'],
             [
-              'Schleswig-Holstein (SH)',
+              '[Sachsen (SN)](/ratgeber/halbjahreszeugnis-sachsen)',
+              'Freitag, 5. Februar 2027[^13]',
+            ],
+            [
+              '[Sachsen-Anhalt (ST)](/ratgeber/halbjahreszeugnis-sachsen-anhalt)',
+              'Freitag, 29. Januar 2027[^14]',
+            ],
+            [
+              '[Schleswig-Holstein (SH)](/ratgeber/halbjahreszeugnis-schleswig-holstein)',
               'Freitag, 29. Januar 2027 – Regel: letzter Freitag vor dem Halbjahresende am 31. Januar[^15][^16]',
             ],
             [
-              'Thüringen (TH)',
-              'legt das Bildungsministerium fest; für 2026/27 haben wir keine Veröffentlichung gefunden[^17]',
+              '[Thüringen (TH)](/ratgeber/halbjahreszeugnis-thueringen)',
+              'Freitag, 29. Januar 2027 – Regel: letzter Schultag vor den Winterferien (ab 1. Februar)[^17][^19]',
             ],
           ],
           note: 'Stand: 27. November 2026. Maßgeblich ist der Termin, den die Schule nennt.',
@@ -74,11 +89,12 @@ const body: RatgeberBody = {
             '**Saarland:** In der Hauptphase der gymnasialen Oberstufe gibt es die Halbjahreszeugnisse schon am 18. Dezember 2026.[^12]',
             '**Sachsen:** An diesem Tag werden Halbjahreszeugnisse und Halbjahresinformationen ausgegeben.[^13]',
             '**Schleswig-Holstein:** Die Zeugnisverordnung formuliert eine Soll-Regel; Abweichungen sind möglich.[^15]',
+            '**Thüringen:** Seit August 2025 wird im Halbjahreszeugnis vermerkt, wenn nach den Leistungen im ersten Halbjahr die Versetzung gefährdet ist.[^17]',
           ],
         },
         {
           type: 'p',
-          text: 'Für Hamburg, Mecklenburg-Vorpommern und Thüringen schätzen wir keinen Termin: Im Internet kursierende Daten widersprechen sich, und eine amtliche Festlegung lag uns nicht vor. Verlässlich ist der Terminplan Ihrer Schule. Wann in Ihrem Land die Winterferien liegen, zeigt der Ferienkalender der Kultusministerkonferenz.[^19]',
+          text: 'Für Hamburg und Mecklenburg-Vorpommern schätzen wir keinen Termin: Im Internet kursierende Daten widersprechen sich, und eine amtliche Festlegung lag uns nicht vor. Verlässlich ist der Terminplan Ihrer Schule. Wann in Ihrem Land die Winterferien liegen, zeigt der Ferienkalender der Kultusministerkonferenz.[^19]',
         },
       ],
     },
@@ -170,7 +186,7 @@ const body: RatgeberBody = {
     {
       question: 'Wann gibt es 2027 Halbjahreszeugnisse?',
       answer:
-        'Das hängt vom Land ab. Am Freitag, 29. Januar 2027 in Berlin, Brandenburg, Bremen, Niedersachsen, Rheinland-Pfalz, Sachsen-Anhalt und Schleswig-Holstein, im Saarland an Gymnasien und Gemeinschaftsschulen, in der Regel auch in Hessen. In Sachsen am 5. Februar, in Baden-Württemberg zwischen dem 1. und 10. Februar (den Tag legt die Schule fest), in Nordrhein-Westfalen am 12. Februar und in Bayern am 19. Februar. Für Hamburg, Mecklenburg-Vorpommern und Thüringen ist kein landesweiter Termin veröffentlicht; dort nennt die Schule den Tag.',
+        'Das hängt vom Land ab. In den meisten Ländern am Freitag, 29. Januar 2027; in Sachsen am 5. Februar, in Nordrhein-Westfalen am 12. Februar und in Bayern am 19. Februar. In Baden-Württemberg legt die Schule den Tag zwischen dem 1. und 10. Februar fest. Für Hamburg und Mecklenburg-Vorpommern nennt die Schule den Tag.',
     },
     {
       question: 'Zählt das Halbjahreszeugnis für die Versetzung?',
@@ -269,7 +285,7 @@ const body: RatgeberBody = {
       url: 'https://www.gesetze-rechtsprechung.sh.juris.de/perma?d=jlr-NNLSH000032C8NN00000000002',
     },
     {
-      text: 'Thüringer Schulordnung (ThürSchulO), § 60 Abs. 2, gültig ab 01.08.2025.',
+      text: 'Thüringer Schulordnung (ThürSchulO) vom 20. Januar 1994, § 60 Abs. 3 Satz 1 und Abs. 5 Satz 3; Abs. 5 in der Fassung der Dreizehnten Änderungsverordnung vom 6. Juni 2025 (GVBl. S. 179), in Kraft seit 1. August 2025.',
       url: 'https://landesrecht.thueringen.de/bsth/document/jlr-NNLTH0000384ENN00000000302',
     },
     {
