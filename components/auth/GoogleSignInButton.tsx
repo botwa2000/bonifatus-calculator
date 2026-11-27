@@ -8,14 +8,21 @@ import { useLocale } from 'next-intl'
  * "Continue with Google": the primary way in on the sign-in and sign-up pages. It
  * succeeds far more often than email + password (no password to forget, no code).
  */
-export function GoogleSignInButton({ label }: { label: string }) {
+export function GoogleSignInButton({
+  label,
+  next = '/dashboard',
+}: {
+  label: string
+  /** Same-site path to open after signing in (default: the dashboard router). */
+  next?: string
+}) {
   const locale = useLocale()
   const [loading, setLoading] = useState(false)
   const handleClick = async () => {
     setLoading(true)
     try {
       const { signIn } = await import('next-auth/react')
-      await signIn('google', { callbackUrl: getPathname({ href: '/dashboard', locale }) })
+      await signIn('google', { callbackUrl: getPathname({ href: next, locale }) })
     } finally {
       setLoading(false)
     }

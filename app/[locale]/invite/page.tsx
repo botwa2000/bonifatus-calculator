@@ -7,6 +7,7 @@ import { getUserProfile } from '@/lib/auth/session'
 import { AppHeader } from '@/components/layout/AppHeader'
 import { AppStoreBadges } from '@/components/app-store-badges'
 import { formatInviteCode, normalizeInviteCode } from '@/lib/connections/invite-code'
+import { INVITE_PARAM, afterAuthPath, connectPath } from '@/lib/connections/invite-handoff'
 
 // Landing page for the parent's invite QR code / link (https://bonifatus.com/invite?code=…),
 // e.g. when the code is scanned with the phone's camera instead of inside the app.
@@ -26,17 +27,20 @@ export default async function InvitePage({ params, searchParams }: Props) {
   const [{ locale }, { code: rawCode }] = await Promise.all([params, searchParams])
   setRequestLocale(locale)
   const code = normalizeInviteCode(rawCode)
+  // Links shared before 2026-11-26 carry a 6-digit code, which no longer works.
+  if (!code && /^\s*\d{6}\s*$/.test(rawCode ?? '')) return <ExpiredInvite locale={locale} />
   if (!code) notFound()
 
   const session = await auth()
   const profile = session?.user ? await getUserProfile() : null
   if (profile?.role === 'child') {
     // The child confirms the connection on the Connections tab; the link alone never connects.
-    redirect({ href: `/profile?tab=connections&code=${code}`, locale })
+    redirect({ href: connectPath(code), locale })
   }
 
   const t = await getTranslations('invite')
-  const invitePath = `/invite?code=${code}`
+  // Signing in or up from here lands on the Connections tab with the code filled in.
+  const nextPath = afterAuthPath(code)
   const isParent = Boolean(profile)
 
   return (
@@ -68,13 +72,13 @@ export default async function InvitePage({ params, searchParams }: Props) {
           <>
             <div className="flex flex-col sm:flex-row gap-3 justify-center mb-10">
               <Link
-                href={{ pathname: '/login', query: { redirectTo: invitePath } }}
+                href={{ pathname: '/login', query: { redirectTo: nextPath } }}
                 className="px-6 py-3 bg-gradient-to-r from-primary-600 to-secondary-600 text-white rounded-lg font-semibold hover:shadow-lg transition-all"
               >
                 {t('loginButton')}
               </Link>
               <Link
-                href="/register"
+                href={{ pathname: '/register', query: { [INVITE_PARAM]: code } }}
                 className="px-6 py-3 border border-neutral-300 dark:border-neutral-600 text-neutral-800 dark:text-neutral-100 rounded-lg font-semibold hover:bg-neutral-50 dark:hover:bg-neutral-800 transition-all"
               >
                 {t('registerButton')}
@@ -84,6 +88,21 @@ export default async function InvitePage({ params, searchParams }: Props) {
             <AppStoreBadges className="items-center" />
           </>
         )}
+      </main>
+    </div>
+  )
+}
+
+async function ExpiredInvite({ locale }: { locale: string }) {
+  const [session, t] = await Promise.all([auth(), getTranslations({ locale, namespace: 'invite' })])
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-primary-50 via-white to-secondary-50 dark:from-neutral-900 dark:via-neutral-800 dark:to-neutral-900">
+      <AppHeader variant="public" isAuthed={Boolean(session?.user)} />
+      <main className="max-w-lg mx-auto px-4 sm:px-6 py-16 sm:py-24 text-center">
+        <h1 className="text-3xl font-bold text-neutral-900 dark:text-white mb-3">
+          {t('expiredTitle')}
+        </h1>
+        <p className="text-lg text-neutral-600 dark:text-neutral-300">{t('expiredText')}</p>
       </main>
     </div>
   )

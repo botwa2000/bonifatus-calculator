@@ -970,7 +970,7 @@ export default function ProfileClient({
                     disabled={redeeming || !normalizeInviteCode(connectCode)}
                     className={btnPrimary}
                   >
-                    {redeeming ? '...' : tc('save')}
+                    {redeeming ? '...' : t('connectButton')}
                   </button>
                 </div>
               )}

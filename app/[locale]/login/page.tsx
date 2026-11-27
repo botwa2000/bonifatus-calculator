@@ -10,6 +10,7 @@ import { EmailCodeVerification } from '@/components/auth/EmailCodeVerification'
 import { SIGNIN_CODE_RATE_LIMITED, unverifiedUserId } from '@/lib/auth/signin-codes'
 import { useTranslations } from 'next-intl'
 import { dbg, dbgWarn, dbgError } from '@/lib/debug'
+import { safeNextPath } from '@/lib/connections/invite-handoff'
 
 export default function LoginPage() {
   const router = useRouter()
@@ -35,6 +36,11 @@ export default function LoginPage() {
   const fallbackVisible = useRef(false)
   const [, forceRender] = useState(0)
   const [turnstileFailed, setTurnstileFailed] = useState(false)
+  // ?redirectTo=… (e.g. from an invite link), same-site paths only; also used by Google.
+  const [nextPath, setNextPath] = useState('/dashboard')
+  useEffect(() => {
+    setNextPath(safeNextPath(new URLSearchParams(window.location.search).get('redirectTo')))
+  }, [])
   const pendingSubmitRef = useRef(false)
   const fallbackTimerRef = useRef<number | null>(null)
   const visibleFallbackTimerRef = useRef<number | null>(null)
@@ -184,8 +190,7 @@ export default function LoginPage() {
       // Navigate to the intended destination (or /dashboard by default).
       // Do NOT call router.refresh() here — it races with router.push()
       // and causes the middleware to see two concurrent navigations.
-      const searchParams = new URLSearchParams(window.location.search)
-      const redirectTo = searchParams.get('redirectTo') || '/dashboard'
+      const redirectTo = safeNextPath(new URLSearchParams(window.location.search).get('redirectTo'))
       dbg('login', 'login success — navigating', { redirectTo })
       router.push(redirectTo as '/')
     } catch (err) {
@@ -250,11 +255,12 @@ export default function LoginPage() {
                 password={formDataRef.current.password}
                 sendCodeOnOpen
                 notice={t('emailNotVerifiedNewCode')}
+                next={nextPath}
               />
             ) : (
               <>
                 {/* Google first: the quickest way in, no password to forget. */}
-                <GoogleSignInButton label={t('continueWithGoogle')} />
+                <GoogleSignInButton label={t('continueWithGoogle')} next={nextPath} />
                 <OrWithEmailDivider label={t('orWithEmail')} />
 
                 <form onSubmit={handleSubmit} className="space-y-6">

@@ -6,6 +6,7 @@ import { useSession } from 'next-auth/react'
 import { useTranslations } from 'next-intl'
 import Image from 'next/image'
 import { AppHeader } from '@/components/layout/AppHeader'
+import { afterAuthPath, inviteFromSearch } from '@/lib/connections/invite-handoff'
 
 export default function GoogleProfilePage() {
   const { data: session, update } = useSession()
@@ -17,15 +18,24 @@ export default function GoogleProfilePage() {
   const [dateOfBirth, setDateOfBirth] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
+  const [invite, setInvite] = useState<string | null>(null)
 
   useEffect(() => {
     if (session?.user?.name) setFullName(session.user.name)
   }, [session])
 
+  // Came from a parent's invite link: the account is for the child.
+  useEffect(() => {
+    const code = inviteFromSearch(window.location.search)
+    if (!code) return
+    setInvite(code)
+    setRole('child')
+  }, [])
+
   // If already set up, redirect
   useEffect(() => {
     if (session && !session.user.needsSetup) {
-      router.push('/dashboard')
+      router.push(afterAuthPath(inviteFromSearch(window.location.search)))
     }
   }, [session, router])
 
@@ -45,7 +55,8 @@ export default function GoogleProfilePage() {
         return
       }
       await update()
-      router.push(role === 'parent' ? '/parent/dashboard' : '/student/dashboard')
+      if (invite && role === 'child') router.push(afterAuthPath(invite))
+      else router.push(role === 'parent' ? '/parent/dashboard' : '/student/dashboard')
     } catch {
       setError(t('googleProfileErrorUnexpected'))
     } finally {

@@ -44,7 +44,7 @@ export default async function ProfilePage({
         code: g.code,
       }))}
       initialTab={tab}
-      initialConnectCode={code && /^\d{6}$/.test(code) ? code : undefined}
+      initialConnectCode={code}
     />
   )
 }

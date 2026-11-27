@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import Image from 'next/image'
 import { Link } from '@/i18n/navigation'
 import { Turnstile } from '@/components/ui/Turnstile'
@@ -8,6 +8,8 @@ import { AppHeader } from '@/components/layout/AppHeader'
 import { GoogleSignInButton, OrWithEmailDivider } from '@/components/auth/GoogleSignInButton'
 import { EmailCodeVerification } from '@/components/auth/EmailCodeVerification'
 import { useTranslations } from 'next-intl'
+import { afterAuthPath, inviteFromSearch } from '@/lib/connections/invite-handoff'
+import { formatInviteCode } from '@/lib/connections/invite-code'
 
 type RegistrationStep = 'form' | 'verification'
 
@@ -29,6 +31,16 @@ export default function RegisterPage() {
   const [passwordStrength, setPasswordStrength] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
+  // From a parent's invite link (/invite → "Schülerkonto erstellen"): a child account,
+  // and after sign-up the code is filled in on the Connections tab.
+  const [invite, setInvite] = useState<string | null>(null)
+  useEffect(() => {
+    const code = inviteFromSearch(window.location.search)
+    if (!code) return
+    setInvite(code)
+    setFormData((f) => ({ ...f, role: 'child' }))
+  }, [])
+  const nextPath = afterAuthPath(invite)
 
   const validatePassword = (password: string) => {
     if (password.length < 12) {
@@ -122,6 +134,7 @@ export default function RegisterPage() {
                 email={formData.email}
                 password={formData.password}
                 initialError={error}
+                next={nextPath}
               />
             </div>
           </div>
@@ -173,8 +186,13 @@ export default function RegisterPage() {
             <p className="text-neutral-600 dark:text-neutral-400">{t('createAccount')}</p>
           </div>
           <div className="bg-white dark:bg-neutral-800 rounded-2xl shadow-card p-8">
+            {invite && (
+              <p className="mb-6 rounded-lg bg-primary-50 dark:bg-primary-900/20 px-4 py-3 text-sm text-primary-800 dark:text-primary-200">
+                {t('inviteRegisterNote', { code: formatInviteCode(invite) })}
+              </p>
+            )}
             {/* Google first: no password to choose, no code to confirm. */}
-            <GoogleSignInButton label={t('continueWithGoogle')} />
+            <GoogleSignInButton label={t('continueWithGoogle')} next={nextPath} />
             <OrWithEmailDivider label={t('orWithEmail')} />
 
             <form onSubmit={handleSubmit} className="space-y-6">

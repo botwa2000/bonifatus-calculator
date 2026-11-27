@@ -290,7 +290,8 @@
     "helpCreateAccount": "¿Aún no tienes cuenta? Crea una",
     "helpResetPassword": "¿Olvidaste tu contraseña? Restablécela",
     "emailNotVerifiedNewCode": "Tu correo aún no está confirmado. Te acabamos de enviar un código nuevo.",
-    "tooManyAttempts": "Demasiados intentos de inicio de sesión. Espera 15 minutos e inténtalo de nuevo."
+    "tooManyAttempts": "Demasiados intentos de inicio de sesión. Espera 15 minutos e inténtalo de nuevo.",
+    "inviteRegisterNote": "Te han invitado: después de registrarte, el código {code} se rellena por ti y solo tienes que confirmar la conexión."
   },
   "calculator": {
     "settings": "Configuración",
@@ -1201,7 +1202,8 @@
     "redeemRevoked": "Tus padres han cancelado este código. Pide uno nuevo.",
     "redeemExpired": "Este código ha caducado. Pide uno nuevo a tus padres.",
     "redeemRateLimited": "Demasiados códigos incorrectos. Inténtalo de nuevo en {minutes} min.",
-    "redeemBusy": "Inténtalo de nuevo en un momento."
+    "redeemBusy": "Inténtalo de nuevo en un momento.",
+    "connectButton": "Conectar"
   },
   "about": {
     "title": "Acerca de Bonifatus",
@@ -1440,6 +1442,8 @@
     "appHint": "¿Usas la app? Abre Ajustes y escanea el código QR de tus padres o introduce el código.",
     "parentTitle": "Esta invitación es para un estudiante",
     "parentText": "Los códigos de invitación conectan una cuenta de estudiante con un padre o madre. Muestra este código o código QR a tu hijo para que lo confirme en su cuenta.",
-    "dashboardButton": "Ir al panel"
+    "dashboardButton": "Ir al panel",
+    "expiredTitle": "Esta invitación ha caducado",
+    "expiredText": "Este código es de una invitación antigua y ya no funciona. Pide a tu madre o padre que te envíe una nueva invitación en Bonifatus: es válida durante 7 días."
   }
 }

@@ -29,6 +29,7 @@ export function EmailCodeVerification({
   sendCodeOnOpen = false,
   notice,
   initialError,
+  next = '/dashboard',
 }: {
   userId: string
   email: string
@@ -38,6 +39,8 @@ export function EmailCodeVerification({
   /** Shown above the form, e.g. why the user landed here. */
   notice?: string
   initialError?: string
+  /** Same-site path to open once signed in (default: the dashboard router). */
+  next?: string
 }) {
   const router = useRouter()
   const t = useTranslations('auth')
@@ -77,13 +80,13 @@ export function EmailCodeVerification({
         const { signIn } = await import('next-auth/react')
         const result = await signIn('credentials', { redirect: false, email, password })
         if (result?.ok && !result.error) {
-          router.push('/dashboard')
+          router.push(next)
           return
         }
       } catch {
         // Auto sign-in failed: fall through to the sign-in page.
       }
-      router.push('/login?verified=true')
+      router.push(`/login?verified=true&redirectTo=${encodeURIComponent(next)}`)
     } catch {
       setError(t('unexpectedError'))
       setLoading(false)

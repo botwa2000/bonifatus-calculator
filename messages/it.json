@@ -290,7 +290,8 @@
     "helpCreateAccount": "Non hai ancora un account? Creane uno",
     "helpResetPassword": "Password dimenticata? Reimpostala",
     "emailNotVerifiedNewCode": "Il tuo indirizzo email non è ancora confermato. Ti abbiamo appena inviato un nuovo codice.",
-    "tooManyAttempts": "Troppi tentativi di accesso. Attendi 15 minuti e riprova."
+    "tooManyAttempts": "Troppi tentativi di accesso. Attendi 15 minuti e riprova.",
+    "inviteRegisterNote": "Sei stato invitato: dopo la registrazione il codice {code} viene inserito per te e devi solo confermare il collegamento."
   },
   "calculator": {
     "settings": "Impostazioni",
@@ -1201,7 +1202,8 @@
     "redeemRevoked": "I tuoi genitori hanno annullato questo codice. Chiedine uno nuovo.",
     "redeemExpired": "Questo codice è scaduto. Chiedine uno nuovo ai tuoi genitori.",
     "redeemRateLimited": "Troppi codici errati. Riprova tra {minutes} min.",
-    "redeemBusy": "Riprova tra un momento."
+    "redeemBusy": "Riprova tra un momento.",
+    "connectButton": "Collega"
   },
   "about": {
     "title": "Chi è Bonifatus",
@@ -1440,6 +1442,8 @@
     "appHint": "Usi l’app? Apri Impostazioni, poi scansiona il codice QR dei tuoi genitori o inserisci il codice.",
     "parentTitle": "Questo invito è per uno studente",
     "parentText": "I codici d’invito collegano un account studente a un genitore. Mostra questo codice o QR code a tuo figlio perché lo confermi nel suo account.",
-    "dashboardButton": "Vai alla dashboard"
+    "dashboardButton": "Vai alla dashboard",
+    "expiredTitle": "Questo invito è scaduto",
+    "expiredText": "Questo codice proviene da un invito precedente e non è più valido. Chiedi a un genitore di inviarti un nuovo invito in Bonifatus: vale 7 giorni."
   }
 }
