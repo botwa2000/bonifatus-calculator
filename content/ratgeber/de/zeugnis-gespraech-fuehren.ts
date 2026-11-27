@@ -12,7 +12,7 @@ const body: RatgeberBody = {
       blocks: [
         {
           type: 'p',
-          text: 'Das beste Zeugnisgespräch beginnt, bevor das Zeugnis da ist. Überlegen Sie vorher, was Ihnen an diesem Tag wichtig ist – und was nicht. Nummer gegen Kummer und die Bundesschülerkonferenz haben es zu den Halbjahreszeugnissen 2026 so formuliert: Zeugnisse sollten nicht zum einzigen Gradmesser für den Wert oder die Zukunft junger Menschen werden.[^1]',
+          text: 'Das beste Zeugnisgespräch beginnt, bevor das Zeugnis da ist. Überlegen Sie vorher, was Ihnen an diesem Tag wichtig ist – und was nicht. Nummer gegen Kummer und die Bundesschülerkonferenz haben es zu den Halbjahreszeugnissen 2026 so formuliert: Zeugnisse sollten nicht zum einzigen Gradmesser für den Wert oder die Zukunft junger Menschen werden.[^1] Wann es in Ihrem Land so weit ist, zeigt die Übersicht [Halbjahreszeugnis 2027: Termine aller Bundesländer](/ratgeber/halbjahreszeugnis-bedeutung).',
         },
         {
           type: 'ul',
@@ -119,13 +119,8 @@ const body: RatgeberBody = {
     },
   ],
   cta: {
-    title: 'Die vereinbarte Regel festhalten',
-    text: 'Was Sie im Zeugnisgespräch vereinbart haben, speichern Sie in Bonifatus als Regel Ihrer Familie. Ihr Kind trägt Noten ein oder scannt das Zeugnis und sieht selbst, was es verdient hat – auch für Verbesserungen.',
-    button: 'Kostenlos registrieren',
-    tool: {
-      href: '/tools/grade-reward-calculator',
-      label: 'Erst ohne Anmeldung ausprobieren: Noten-Belohnungsrechner',
-    },
+    title: 'Die vereinbarte Regel durchrechnen',
+    text: 'Was Sie im Gespräch vereinbart haben, rechnen Sie im Zeugnisgeld-Rechner mit echten Noten durch – auch als Regel pro Verbesserung.',
   },
   faqs: [
     {

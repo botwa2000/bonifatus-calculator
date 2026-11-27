@@ -358,6 +358,83 @@ async function landingPages(w: { from: Date; to: Date }, p: string, t: Tables) {
   }
 }
 
+// ── Ratgeber article → calculator → sign-up (growth plan CP1) ─────────────────
+/** The article CTA leads to the Zeugnisgeld-Rechner (components/ratgeber/CalculatorCta.tsx). */
+export const ARTICLE_PATH_STEPS = ['visits', 'calculator', 'result', 'started', 'created'] as const
+type ArticlePathRow = Record<(typeof ARTICLE_PATH_STEPS)[number], number> & { page: string }
+
+/** Per-article rows → a total row first, then articles by visits. */
+export function shapeArticlePath(rows: ArticlePathRow[]) {
+  const total = { page: 'all articles' } as ArticlePathRow
+  for (const k of ARTICLE_PATH_STEPS) total[k] = rows.reduce((n, r) => n + r[k], 0)
+  return [total, ...[...rows].sort((a, b) => b.visits - a.visits || a.page.localeCompare(b.page))]
+}
+
+async function articlePath(w: { from: Date; to: Date }, p: string, t: Tables) {
+  if (p !== 'all' && p !== 'web') return []
+  // Visits (one device, one UTC day) that entered on a Ratgeber article, then later
+  // that day: opened the Zeugnisgeld-Rechner → saw a result there → started a sign-up
+  // → created an account (same definitions as landingPages above). Each step requires
+  // the step before, so the columns only shrink.
+  const rows = await q(
+    `WITH pv AS (
+       SELECT ${DEV} AS dev, (ts AT TIME ZONE 'UTC')::date AS d, ts, screen, user_id
+         FROM ${t.usage_events}
+        WHERE platform = 'web' AND event = 'page_view' AND ts >= $1 AND ts < $2 AND ${DEV} IS NOT NULL
+     ), entry AS (
+       SELECT DISTINCT ON (dev, d) dev, d, ts, regexp_replace(screen, '/+$', '') AS page FROM pv ORDER BY dev, d, ts
+     ), art AS (
+       SELECT * FROM entry WHERE page ~ '^/[a-z]{2}/ratgeber/[a-z0-9-]+$'
+     ), calc AS (
+       SELECT a.dev, a.d, a.page, MIN(pv.ts) AS ts FROM art a
+         JOIN pv ON pv.dev = a.dev AND pv.d = a.d AND pv.ts > a.ts
+                AND pv.screen ~ '^/[a-z]{2}/tools/zeugnisgeld-rechner/?$'
+        GROUP BY 1, 2, 3
+     ), res AS (
+       SELECT c.dev, c.d, MIN(e.ts) AS ts FROM calc c
+         JOIN ${t.usage_events} e ON COALESCE(e.install_id, e.visitor_hash) = c.dev
+                AND e.platform = 'web' AND e.event = 'calculator_result' AND e.ts >= c.ts
+                AND (e.ts AT TIME ZONE 'UTC')::date = c.d
+        GROUP BY 1, 2
+     ), act AS (
+       SELECT ${DEV} AS dev, (ts AT TIME ZONE 'UTC')::date AS d, ts, action, outcome, reason
+         FROM ${t.action_log}
+        WHERE platform = 'web' AND ts >= $1 AND ts < $2 AND ${DEV} IS NOT NULL
+          AND (action = 'signup' OR (action = 'signin' AND provider = 'google'))
+     ), st AS (
+       SELECT r.dev, r.d, LEAST(
+                (SELECT MIN(pv.ts) FROM pv WHERE pv.dev = r.dev AND pv.d = r.d AND pv.ts >= r.ts
+                   AND pv.screen ~ '^/[a-z]{2}/register/?$'),
+                (SELECT MIN(a.ts) FROM act a WHERE a.dev = r.dev AND a.d = r.d AND a.ts >= r.ts)) AS ts
+         FROM res r
+     )
+     SELECT a.page, COUNT(*) AS visits, COUNT(c.dev) AS calculator, COUNT(r.dev) AS result,
+            COUNT(s.ts) AS started,
+            COUNT(*) FILTER (WHERE s.ts IS NOT NULL AND (
+                 EXISTS (SELECT 1 FROM act x WHERE x.dev = a.dev AND x.d = a.d AND x.ts >= s.ts AND x.outcome = 'ok'
+                           AND (x.action = 'signup' OR x.reason = 'new_account'))
+              OR EXISTS (SELECT 1 FROM pv JOIN ${t.user_profiles} pr ON pr.id = pv.user_id
+                          WHERE pv.dev = a.dev AND pv.d = a.d AND pv.ts >= s.ts
+                            AND (pr.created_at AT TIME ZONE 'UTC')::date = a.d))) AS created
+       FROM art a
+       LEFT JOIN calc c ON c.dev = a.dev AND c.d = a.d
+       LEFT JOIN res r ON r.dev = a.dev AND r.d = a.d
+       LEFT JOIN st s ON s.dev = a.dev AND s.d = a.d
+      GROUP BY 1`,
+    [w.from, w.to]
+  )
+  return shapeArticlePath(
+    rows.map((r: Row) => ({
+      page: String(r.page),
+      visits: int(r.visits),
+      calculator: int(r.calculator),
+      result: int(r.result),
+      started: int(r.started),
+      created: int(r.created),
+    }))
+  )
+}
+
 /** "/de/ratgeber/x" → "/ratgeber/x"; "/de" → "/". */
 const stripLocale = (page: string) => page.replace(/^\/[a-z]{2}(?=\/|$)/, '') || '/'
 
@@ -382,10 +459,11 @@ export async function funnels(
   days: string[],
   bucket: string
 ) {
-  const [denials, act, landing] = await Promise.all([
+  const [denials, act, landing, articles] = await Promise.all([
     signinDenials(w, p, t, days, bucket),
     activation(w, p, t),
     landingPages(w, p, t),
+    articlePath(w, p, t),
   ])
-  return { denials, activation: act, landing }
+  return { denials, activation: act, landing: { ...landing, articlePath: articles } }
 }

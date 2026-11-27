@@ -70,6 +70,9 @@ export default async function NotendurchschnittPage({ params }: { params: Params
         <div className="bg-white dark:bg-neutral-800/50 rounded-2xl p-6 sm:p-8 shadow-card">
           <NotendurchschnittRechner />
         </div>
+        <p className="mt-4 text-sm text-neutral-600 dark:text-neutral-300">
+          <RichText text={copy.season} />
+        </p>
 
         <SignupCta {...copy.cta} as="h2" className="mt-12" />
 

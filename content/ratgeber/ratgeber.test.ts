@@ -5,17 +5,18 @@ import type { RatgeberArticle } from '@/content/ratgeber/types'
 import { PUBLIC_PAGES, getPublicPage } from '@/lib/seo/routes'
 import { plainText } from '@/components/ratgeber/RichText'
 
-function allText(a: RatgeberArticle): string[] {
+function allText(a: RatgeberArticle, { readingOnly = false } = {}): string[] {
   const texts = [...a.intro]
   for (const s of a.sections) {
     texts.push(s.heading)
     for (const b of s.blocks) {
       if (b.type === 'p' || b.type === 'callout') texts.push(b.text)
       if (b.type === 'ul' || b.type === 'ol') texts.push(...b.items)
-      if (b.type === 'table') texts.push(...b.head, ...b.rows.flat(), b.note ?? '')
+      if (b.type === 'table' && !readingOnly) texts.push(...b.head, ...b.rows.flat(), b.note ?? '')
       if (b.type === 'djiAllowanceTable') texts.push(b.note ?? '')
     }
   }
+  if (!readingOnly) texts.push(a.cta.title, a.cta.text)
   for (const f of a.faqs) texts.push(f.question, f.answer)
   return texts
 }
@@ -57,7 +58,6 @@ describe.each(articles.map((a) => [a.slug, a] as const))('article %s', (_slug, a
     for (const text of texts) {
       for (const m of text.matchAll(/\]\((\/[^)\s]*)\)/g)) expect(registered).toContain(m[1])
     }
-    expect(registered).toContain(article.cta.tool.href)
   })
 
   it('uses https sources and has exactly one CTA block', () => {
@@ -72,8 +72,12 @@ describe.each(articles.map((a) => [a.slug, a] as const))('article %s', (_slug, a
     }
   })
 
-  it('is a substantial read (800–1300 words)', () => {
-    const words = texts.map(plainText).join(' ').split(/\s+/).filter(Boolean).length
+  it('is a substantial read (800–1300 words of prose; tables are lookup data)', () => {
+    const words = allText(article, { readingOnly: true })
+      .map(plainText)
+      .join(' ')
+      .split(/\s+/)
+      .filter(Boolean).length
     expect(words).toBeGreaterThanOrEqual(800)
     expect(words).toBeLessThanOrEqual(1300)
   })

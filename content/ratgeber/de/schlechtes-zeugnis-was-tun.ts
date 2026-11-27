@@ -93,7 +93,7 @@ const body: RatgeberBody = {
         },
         {
           type: 'p',
-          text: 'Zur letzten Frage: Das Halbjahreszeugnis ist in der Regel keine Versetzungsentscheidung. Was es bedeutet und wann es doch Gewicht hat, erklärt der Ratgeber [Halbjahreszeugnis: Was es bedeutet](/ratgeber/halbjahreszeugnis-bedeutung).',
+          text: 'Zur letzten Frage: Das Halbjahreszeugnis ist in der Regel keine Versetzungsentscheidung. Was es bedeutet und wann es doch Gewicht hat, erklärt der Ratgeber [Halbjahreszeugnis 2027: Termine und Bedeutung](/ratgeber/halbjahreszeugnis-bedeutung).',
         },
       ],
     },
@@ -131,13 +131,8 @@ const body: RatgeberBody = {
     },
   ],
   cta: {
-    title: 'Fortschritte sichtbar machen',
-    text: 'In Bonifatus trägt Ihr Kind jede Note ein oder scannt das Zeugnis. Sie sehen den Verlauf über die Halbjahre und belohnen nach einer Regel, die Sie festlegen – auch für Verbesserungen, nicht nur für Einsen.',
-    button: 'Kostenlos registrieren',
-    tool: {
-      href: '/tools/grade-reward-calculator',
-      label: 'Erst ohne Anmeldung ausprobieren: Noten-Belohnungsrechner',
-    },
+    title: 'Verbesserungen belohnen, nicht nur Einsen',
+    text: 'Im Zeugnisgeld-Rechner können Sie eine Regel pro Verbesserung ausprobieren: Geld gibt es für jede Notenstufe, um die sich ein Fach verbessert – eine Fünf, die zur Vier wird, zählt.',
   },
   faqs: [
     {

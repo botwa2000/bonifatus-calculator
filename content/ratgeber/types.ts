@@ -42,14 +42,12 @@ export interface RatgeberSource {
 export interface RatgeberArticle extends RatgeberMeta {
   intro: string[]
   sections: RatgeberSection[]
-  cta: {
-    title: string
-    text: string
-    /** Sign-up button; it always goes to /register. */
-    button: string
-    /** Plain link under the button: try the rule in a calculator first, no account needed. */
-    tool: { href: '/tools/grade-reward-calculator' | '/tools/zeugnisgeld-rechner'; label: string }
-  }
+  /**
+   * The article's next step: work out a rule in the Zeugnisgeld-Rechner first (no account),
+   * then save it as the family's rule there, which leads to sign-up. Rendered by
+   * components/ratgeber/CalculatorCta.tsx with a fixed button.
+   */
+  cta: { title: string; text: string }
   faqs: Array<{ question: string; answer: string }>
   /** Numbered in order; cited in text as [^1], [^2], … */
   sources: RatgeberSource[]

@@ -7,8 +7,8 @@ import { getLocalTools } from '@/content/tools/index'
 
 // Articles linked from every page's footer in the Ratgeber locale.
 const FOOTER_RATGEBER = [
-  'zeugnisgeld',
   'halbjahreszeugnis-bedeutung',
+  'zeugnisgeld',
   'schlechtes-zeugnis-was-tun',
   'taschengeld-tabelle',
 ]

@@ -141,13 +141,8 @@ const body: RatgeberBody = {
     },
   ],
   cta: {
-    title: 'Den Notenbonus getrennt vom Taschengeld führen',
-    text: 'In Bonifatus sammelt Ihr Kind Punkte für seine Noten, nach einer Regel, die Sie festlegen. Sie rechnen ab, wann Sie wollen, und sehen jederzeit, was verdient und was schon ausgezahlt ist – das Taschengeld bleibt unberührt.',
-    button: 'Kostenlos registrieren',
-    tool: {
-      href: '/tools/grade-reward-calculator',
-      label: 'Erst ohne Anmeldung ausprobieren: Noten-Belohnungsrechner',
-    },
+    title: 'Den Notenbonus vom Taschengeld trennen',
+    text: 'Legen Sie im Zeugnisgeld-Rechner einen Bonus mit Obergrenze fest – zum Beispiel ein halbes Monatstaschengeld – und sehen Sie, was er bei welchen Noten ergibt.',
   },
   faqs: [
     {

@@ -5,6 +5,18 @@ import type { RatgeberMeta } from './types'
 // content/ratgeber/<locale>/<slug>.ts and are loaded via ./registry.
 
 export const RATGEBER_INDEX: readonly RatgeberMeta[] = [
+  // Zeugnis season (Jan–Feb): the most searched article first.
+  {
+    slug: 'halbjahreszeugnis-bedeutung',
+    locale: 'de',
+    shortTitle: 'Halbjahreszeugnis 2027: Termine',
+    title: 'Halbjahreszeugnis 2027: Termine aller 16 Bundesländer',
+    description:
+      'Wann gibt es 2027 Halbjahreszeugnisse? Termine für alle 16 Bundesländer mit amtlicher Quelle – und was das Halbjahreszeugnis für Versetzung und Klasse 4 bedeutet.',
+    publishedAt: '2026-11-09',
+    updatedAt: '2026-11-27',
+    readingTimeMinutes: 7,
+  },
   {
     slug: 'zeugnisgeld',
     locale: 'de',
@@ -80,17 +92,6 @@ export const RATGEBER_INDEX: readonly RatgeberMeta[] = [
       'Ein schlechtes Zeugnis ist eine Momentaufnahme, kein Urteil über Ihr Kind. Was die Forschung über Strafen und Druck zeigt, welche Fragen helfen, die Ursache zu finden – und wann Sie sich Unterstützung holen sollten.',
     publishedAt: '2026-11-09',
     updatedAt: '2026-11-09',
-    readingTimeMinutes: 6,
-  },
-  {
-    slug: 'halbjahreszeugnis-bedeutung',
-    locale: 'de',
-    shortTitle: 'Halbjahreszeugnis',
-    title: 'Halbjahreszeugnis: Was es bedeutet – und was nicht (mit Terminen 2027)',
-    description:
-      'Das Halbjahreszeugnis ist keine Versetzungsentscheidung. Was es aussagt, wann es 2027 in welchem Bundesland ausgegeben wird und in welchen Fällen es doch Gewicht hat – etwa in Klasse 4.',
-    publishedAt: '2026-11-09',
-    updatedAt: '2026-11-22',
     readingTimeMinutes: 6,
   },
   {

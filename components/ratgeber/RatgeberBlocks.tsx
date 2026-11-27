@@ -2,7 +2,7 @@ import { getFormatter, getTranslations } from 'next-intl/server'
 import { DJI_ALLOWANCE_TABLE, type AllowanceEntry } from '@/lib/tools/allowance-table'
 import type { RatgeberArticle, RatgeberBlock } from '@/content/ratgeber/types'
 import { RichText } from './RichText'
-import { SignupCta } from './SignupCta'
+import { CalculatorCta } from './CalculatorCta'
 
 const tableClass = 'w-full text-sm'
 const thClass =
@@ -68,7 +68,7 @@ async function DjiAllowanceTable({ note }: { note?: string }) {
 }
 
 function Cta({ cta }: { cta: RatgeberArticle['cta'] }) {
-  return <SignupCta {...cta} className="my-10" />
+  return <CalculatorCta {...cta} className="my-10" />
 }
 
 export function RatgeberBlocks({

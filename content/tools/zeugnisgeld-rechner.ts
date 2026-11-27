@@ -91,7 +91,7 @@ export const zeugnisgeldCopy = {
     {
       question: 'Gilt die Regel auch für das Halbjahreszeugnis?',
       answer:
-        'Das entscheiden Sie. Viele Familien belohnen nur das Jahreszeugnis und nutzen das Halbjahreszeugnis als Zwischenstand. Wichtig ist, dass die Regel vorher feststeht und für beide Zeugnisse klar ist.',
+        'Das entscheiden Sie. Viele Familien belohnen nur das Jahreszeugnis und nutzen das Halbjahreszeugnis als Zwischenstand. Wichtig ist, dass die Regel vorher feststeht und für beide Zeugnisse klar ist. Wann es 2027 in Ihrem Land Halbjahreszeugnisse gibt, zeigt die Übersicht [Halbjahreszeugnis 2027: Termine aller Bundesländer](/ratgeber/halbjahreszeugnis-bedeutung).',
     },
     {
       question: 'Werden meine Eingaben gespeichert?',
@@ -105,6 +105,9 @@ export const zeugnisgeldCopy = {
     text: 'In Bonifatus legen Sie fest, was jede Note wert ist. Ihr Kind trägt seine Noten ein oder scannt das Zeugnis, und Bonifatus rechnet nach Ihrer Regel – für jedes Kind, mit Übersicht über alles, was schon ausgezahlt wurde.',
     button: 'Kostenlos registrieren',
   },
+
+  season:
+    'Halbjahreszeugnis 2027: [Termine aller 16 Bundesländer](/ratgeber/halbjahreszeugnis-bedeutung) – in den meisten Ländern am Freitag, 29. Januar.',
 
   otherSystems:
     'Für andere Notensysteme, etwa aus Österreich oder der Schweiz, gibt es den [Noten-Belohnungsrechner](/tools/grade-reward-calculator).',

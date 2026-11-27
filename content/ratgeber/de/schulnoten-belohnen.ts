@@ -131,13 +131,8 @@ const body: RatgeberBody = {
     },
   ],
   cta: {
-    title: 'Ihre Regel in Bonifatus speichern',
-    text: 'In Bonifatus legen Sie fest, was jede Note wert ist. Ihr Kind trägt seine Noten ein oder scannt das Zeugnis, und Bonifatus rechnet nach Ihrer Regel – mit Übersicht über alles, was schon ausgezahlt wurde.',
-    button: 'Kostenlos registrieren',
-    tool: {
-      href: '/tools/grade-reward-calculator',
-      label: 'Erst ohne Anmeldung ausprobieren: Noten-Belohnungsrechner',
-    },
+    title: 'Wenn Sie sich für eine Regel entscheiden',
+    text: 'Im Zeugnisgeld-Rechner sehen Sie, was eine Regel pro Note, pro Verbesserung oder pauschal ergibt – mit Obergrenze und als Satz, den Sie Ihrem Kind vorlesen können.',
   },
   faqs: [
     {

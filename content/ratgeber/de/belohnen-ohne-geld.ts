@@ -112,13 +112,8 @@ const body: RatgeberBody = {
     },
   ],
   cta: {
-    title: 'Punkte, die nicht Geld sein müssen',
-    text: 'In Bonifatus legen Sie fest, wie viele Punkte jede Note bringt. Ihr Kind trägt seine Noten ein oder scannt das Zeugnis, und die Punkte sammeln sich. Was sie wert sind – Euro, gemeinsame Zeit oder ein Ausflug –, entscheiden Sie beim Abrechnen.',
-    button: 'Kostenlos registrieren',
-    tool: {
-      href: '/tools/grade-reward-calculator',
-      label: 'Erst ohne Anmeldung ausprobieren: Noten-Belohnungsrechner',
-    },
+    title: 'Wenn Sie doch einen Betrag festlegen möchten',
+    text: 'Im Zeugnisgeld-Rechner sehen Sie in einer Minute, was eine Regel pro Note, pro Verbesserung oder pauschal ergibt – mit Obergrenze, damit die Belohnung nicht zur Hauptsache wird.',
   },
   faqs: [
     {

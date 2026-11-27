@@ -76,7 +76,7 @@ const body: RatgeberBody = {
         {
           type: 'ol',
           items: [
-            '**Vorher festlegen und aufschreiben** – am besten zu Beginn des Schuljahres oder Halbjahres und gemeinsam mit Ihrem Kind.',
+            '**Vorher festlegen und aufschreiben** – am besten zu Beginn des Schuljahres oder Halbjahres und gemeinsam mit Ihrem Kind. Wann die nächsten Zeugnisse kommen, zeigt die Übersicht [Halbjahreszeugnis 2027: Termine](/ratgeber/halbjahreszeugnis-bedeutung).',
             '**Verbesserungen zählen lassen.** Ein Sprung von 4 auf 3 kann mehr Arbeit bedeuten als eine gehaltene 1. Ein Bonus für jede verbesserte Note macht Anstrengung sichtbar, auch bei Kindern, die nicht zu den Klassenbesten gehören.',
             '**Keine Abzüge.** Schlechte Noten sind Anlass für ein Gespräch und für Unterstützung, nicht für Geldstrafen. Abzüge machen aus einem Bonus ein Druckmittel.',
             '**Eine Obergrenze vereinbaren.** So bleibt der Betrag planbar und im Verhältnis zum Taschengeld.',
@@ -118,13 +118,8 @@ const body: RatgeberBody = {
     },
   ],
   cta: {
-    title: 'Als Regel Ihrer Familie in Bonifatus speichern',
-    text: 'In Bonifatus legen Sie fest, was jede Note wert ist. Ihr Kind trägt seine Noten ein oder scannt das Zeugnis, und Bonifatus rechnet nach Ihrer Regel – für jedes Kind, mit Übersicht über alles, was schon ausgezahlt wurde.',
-    button: 'Kostenlos registrieren',
-    tool: {
-      href: '/tools/zeugnisgeld-rechner',
-      label: 'Erst ohne Anmeldung ausprobieren: Zeugnisgeld-Rechner',
-    },
+    title: 'Ihre Zeugnisgeld-Regel ausrechnen',
+    text: 'Noten eingeben, Regel wählen und sehen, wie viel es gibt – pro Note, pro Verbesserung oder pauschal, mit Obergrenze.',
   },
   faqs: [
     {

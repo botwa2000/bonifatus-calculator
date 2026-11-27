@@ -110,13 +110,8 @@ const body: RatgeberBody = {
     },
   ],
   cta: {
-    title: 'Eine Regel, die mit der Klasse mitwächst',
-    text: 'In Bonifatus gewichten Sie Noten nach Klassenstufe, sodass dieselbe Regel in Klasse 5 und in Klasse 10 passt. Ihr Kind trägt seine Noten ein oder scannt das Zeugnis, und Bonifatus rechnet nach Ihrer Regel.',
-    button: 'Kostenlos registrieren',
-    tool: {
-      href: '/tools/grade-reward-calculator',
-      label: 'Erst ohne Anmeldung ausprobieren: Noten-Belohnungsrechner',
-    },
+    title: 'Den Betrag für die Klasse Ihres Kindes ausrechnen',
+    text: 'Probieren Sie im Zeugnisgeld-Rechner Beträge und eine Obergrenze aus, die zum Alter Ihres Kindes passen, und sehen Sie, was bei seinen Noten herauskommt.',
   },
   faqs: [
     {

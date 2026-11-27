@@ -135,13 +135,8 @@ const body: RatgeberBody = {
     },
   ],
   cta: {
-    title: 'Eine Regel für alle Kinder speichern',
-    text: 'In Bonifatus gilt Ihre Regel für jedes Kind, und Klassenstufe und Halbjahr fließen nach festen Faktoren ein. Jedes Kind trägt seine Noten selbst ein oder scannt das Zeugnis; Sie sehen für alle Kinder, was verdient und was schon ausgezahlt ist.',
-    button: 'Kostenlos registrieren',
-    tool: {
-      href: '/tools/zeugnisgeld-rechner',
-      label: 'Erst ohne Anmeldung ausprobieren: Zeugnisgeld-Rechner',
-    },
+    title: 'Eine Regel für alle Kinder durchrechnen',
+    text: 'Rechnen Sie für jedes Kind aus, was dieselbe Regel ergibt – pro Note oder pro Verbesserung. So sehen Sie vorher, ob sie sich für beide fair anfühlt.',
   },
   faqs: [
     {

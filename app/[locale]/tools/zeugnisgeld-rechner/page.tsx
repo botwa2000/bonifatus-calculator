@@ -73,6 +73,9 @@ export default async function ZeugnisgeldRechnerPage({ params }: { params: Param
         <p className="mt-4 text-sm text-neutral-500 dark:text-neutral-400">
           <RichText text={copy.otherSystems} />
         </p>
+        <p className="mt-2 text-sm text-neutral-600 dark:text-neutral-300">
+          <RichText text={copy.season} />
+        </p>
 
         {/* Next step: keep the rule */}
         <SignupCta {...copy.cta} as="h2" className="mt-12" />

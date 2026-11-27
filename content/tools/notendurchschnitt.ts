@@ -66,7 +66,7 @@ export const notendurchschnittCopy = {
       id: 'einordnen',
       heading: 'Was ein Durchschnitt aussagt – und was nicht',
       paragraphs: [
-        'Ein Durchschnitt fasst ein Zeugnis in einer Zahl zusammen und verdeckt dabei, was dahinter steht: ob ein Fach abgerutscht ist, ob es Fortschritte gab, wie es beim Arbeitsverhalten aussieht. Wie Sie ein Zeugnis lesen, ohne sich an einer Zahl festzuhalten, beschreibt der Ratgeber [Halbjahreszeugnis: Was es bedeutet](/ratgeber/halbjahreszeugnis-bedeutung). Ist der Schnitt schlechter als erwartet, helfen die Fragen im Ratgeber [Schlechtes Zeugnis: Was tun?](/ratgeber/schlechtes-zeugnis-was-tun).',
+        'Ein Durchschnitt fasst ein Zeugnis in einer Zahl zusammen und verdeckt dabei, was dahinter steht: ob ein Fach abgerutscht ist, ob es Fortschritte gab, wie es beim Arbeitsverhalten aussieht. Wie Sie ein Zeugnis lesen, ohne sich an einer Zahl festzuhalten, beschreibt der Ratgeber [Halbjahreszeugnis 2027: Termine und Bedeutung](/ratgeber/halbjahreszeugnis-bedeutung). Ist der Schnitt schlechter als erwartet, helfen die Fragen im Ratgeber [Schlechtes Zeugnis: Was tun?](/ratgeber/schlechtes-zeugnis-was-tun).',
         'Wenn Sie gute Noten oder Verbesserungen anerkennen möchten, rechnet der [Zeugnisgeld-Rechner](/tools/zeugnisgeld-rechner) eine Belohnung nach einer Regel aus, die Sie vorher festlegen. Alle Ratgeber finden Sie unter [Ratgeber für Eltern](/ratgeber).',
       ],
     },
@@ -100,6 +100,9 @@ export const notendurchschnittCopy = {
       url: 'https://www.km.bayern.de/lernen/ubertritt-und-bildungswege/uebertritt',
     },
   ],
+
+  season:
+    'Halbjahreszeugnis 2027: [Termine aller 16 Bundesländer](/ratgeber/halbjahreszeugnis-bedeutung) – in den meisten Ländern am Freitag, 29. Januar.',
 
   cta: {
     title: 'Jedes Zeugnis speichern statt neu rechnen',

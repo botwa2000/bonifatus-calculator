@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { zeugnisgeldCopy } from '@/content/tools/zeugnisgeld-rechner'
 import {
   DEFAULT_RULE,
@@ -103,6 +103,19 @@ export function ZeugnisgeldRechner() {
   const [copied, setCopied] = useState(false)
 
   const result = useMemo(() => calculateZeugnisgeld(rule, rows), [rule, rows])
+
+  // First result of this page view → `calculator_result` (/admin/stats: article →
+  // calculator → result → sign-up). Once per visit to the page; no grades or amounts sent.
+  const reported = useRef(false)
+  useEffect(() => {
+    if (reported.current || result.counted === 0) return
+    reported.current = true
+    window.bonifatusTrack?.('calculator_result', {
+      source: 'zeugnisgeld',
+      mode: rule.model,
+      count: result.counted,
+    })
+  }, [result.counted, rule.model])
   const ruleText = describeRule(rule)
   const improvement = rule.model === 'improvement'
 

@@ -5,6 +5,7 @@ import {
   denialReason,
   entryPath,
   shapeActivation,
+  shapeArticlePath,
   shapeDenials,
   trackedLandingTotal,
   type StepId,
@@ -182,5 +183,38 @@ describe('landing pages and Search Console pages', () => {
         r('/', 2, 0, 0),
       ])
     ).toEqual({ visits: 22, started: 4, created: 2 })
+  })
+})
+
+describe('Ratgeber article → calculator → sign-up', () => {
+  const r = (page: string, visits: number, calculator: number, result: number, started = 0) => ({
+    page,
+    visits,
+    calculator,
+    result,
+    started,
+    created: 0,
+  })
+  it('puts a total row first, then articles by visits', () => {
+    const rows = shapeArticlePath([
+      r('/de/ratgeber/zeugnisgeld', 2, 1, 1, 1),
+      r('/de/ratgeber/halbjahreszeugnis-bedeutung', 5, 2, 1),
+    ])
+    expect(rows.map((x) => x.page)).toEqual([
+      'all articles',
+      '/de/ratgeber/halbjahreszeugnis-bedeutung',
+      '/de/ratgeber/zeugnisgeld',
+    ])
+    expect(rows[0]).toEqual({
+      page: 'all articles',
+      visits: 7,
+      calculator: 3,
+      result: 2,
+      started: 1,
+      created: 0,
+    })
+  })
+  it('has only the total row when nobody entered on an article', () => {
+    expect(shapeArticlePath([])).toEqual([r('all articles', 0, 0, 0)])
   })
 })

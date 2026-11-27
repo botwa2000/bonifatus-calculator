@@ -64,14 +64,14 @@ const STATIC_PAGES: readonly PublicPage[] = [
   },
   {
     path: '/tools/zeugnisgeld-rechner',
-    lastModified: '2026-11-22',
+    lastModified: '2026-11-27',
     changeFrequency: 'monthly',
     priority: 0.9,
     locales: ['de'],
   },
   {
     path: '/tools/notendurchschnitt-rechner',
-    lastModified: '2026-11-22',
+    lastModified: '2026-11-27',
     changeFrequency: 'monthly',
     priority: 0.8,
     locales: ['de'],
