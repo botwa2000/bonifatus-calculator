@@ -66,21 +66,42 @@ Kostenlose Ratgeber für Eltern zu Zeugnisgeld, Notendurchschnitt und Belohnung 
 
 ## Screenshot captions (German)
 
-The live screenshots have English captions over English UI. For the German listing, the screens
-should be captured in the German UI (Pixel_8_Phone, app language Deutsch) and captioned as below.
-`doc/store-assets/make_screenshots.py` renders headline + subline over each raw capture; it
-currently holds English copy only. Order = order in the listing (parents first: they install).
+**Rendered 2026-11-27:** `screenshots-de/android_phone/01…08_*.png` (1080 × 1920, Google Play
+phone), from German captures in `screenshots-de/raw/` (Pixel_8_Phone, app language Deutsch,
+light mode, the store-review demo family Anna + Lena Becker on the dev database). Re-render with
+`python docs/store-listing/make_screenshots_de.py`. Layout: header with badge, headline and
+subline above the app screen; no caption is drawn over app content (the live English set does
+that).
 
-| #   | Screen (raw capture)                                          | Headline                          | Subline                                                         |
-| --- | ------------------------------------------------------------- | --------------------------------- | --------------------------------------------------------------- |
-| 1   | Parent home with pending points (`p01_home`)                  | Gute Noten.<br>Faire Belohnung.   | Was Ihr Kind diese Woche verdient hat – auf einen Blick.        |
-| 2   | Child's grades and points (`p03_child_detail`)                | Jedes Zeugnis.<br>Jeder Punkt.    | Noten und Punkte pro Halbjahr, automatisch zusammengerechnet.   |
-| 3   | Bonus factors / rule (parent rewards screen, **new capture**) | Ihre Regel.<br>Einmal festgelegt. | Wie viele Punkte jede Note bringt – je nach Klasse und Zeugnis. |
-| 4   | Settle (`p05_settle`)                                         | Belohnen,<br>wann es passt.       | Offene Punkte prüfen und mit einem Tipp abrechnen.              |
-| 5   | Invite dialog with QR (**new capture**, B6)                   | Kind einladen<br>in einer Minute. | QR-Code scannen oder Link schicken – fertig.                    |
-| 6   | Grade capture, photo → recognised grades (**new capture**)    | Note fotografieren.<br>Fertig.    | Die App erkennt die Noten, dein Kind bestätigt sie.             |
-| 7   | Grade calculator (`s03_calculator`)                           | Notenrechner<br>mit Gewichtung.   | Notendurchschnitt und Punkte, bevor das Zeugnis kommt.          |
-| 8   | Student insights (`s04_insights`)                             | Fortschritt<br>sichtbar machen.   | Verlauf über die Halbjahre – nicht nur die Einsen zählen.       |
+| #   | Screen (raw capture)                                     | Headline                                     | Subline                                                           |
+| --- | -------------------------------------------------------- | -------------------------------------------- | ----------------------------------------------------------------- |
+| 1   | Parent home with pending points (`01_p01_home`)          | Gute Noten.<br>Faire Belohnung.              | Was Ihr Kind diese Woche verdient hat – auf einen Blick.          |
+| 2   | Child's report card and tests (`02_p03_child_detail`)    | Jedes Zeugnis.<br>Jeder Punkt.               | Noten und Punkte pro Halbjahr, automatisch zusammengerechnet.     |
+| 3   | Grade tier rule (`03_p_rule`)                            | Ihre Regel.<br>Einmal festgelegt.            | Wie viele Punkte jede Note bringt – Sie legen es fest.            |
+| 4   | Settle, package expanded (`04_p05_settle`)               | Belohnen,<br>wann es passt.                  | Offene Punkte prüfen und mit einem Tipp abrechnen.                |
+| 5   | Invite dialog with QR and code (`05_p_invite`)           | Kind einladen<br>in einer Minute.            | QR-Code scannen oder Link schicken – fertig.                      |
+| 6   | Report card photo → 7 grades recognised (`06_s_capture`) | Zeugnis fotografieren.<br>Fertig.            | Die App erkennt die Noten, du bestätigst sie.                     |
+| 7   | Grade calculator, 4 subjects (`07_s_calc`)               | Notenrechner.<br>Vorher wissen, was es gibt. | Punkte pro Fach ausrechnen, bevor das Zeugnis kommt.              |
+| 8   | Student insights (`08_s_insights`)                       | Fortschritt<br>sichtbar machen.              | Punkte Monat für Monat und deine Notenverteilung auf einen Blick. |
+
+Changed from the 11-23 draft so each caption only claims what its screen shows: #3 (the rule
+screen has no class or report-card factors), #6 (the photo is a report card; "du" like 7–8),
+#7 (the calculator shows points, no average), #8 (the history is monthly, not per half-year).
+
+Fixed in the app for these shots (they showed English or wrong German before): subject names
+in the app language everywhere, dates and decimals in the German format, "1 Note" (plural),
+"1. / 2. Halbjahr", the German grade-tier names, and the insights card layout. They ship
+with the next release; until it is live in production, Play users see the old texts.
+
+--- | ------------------------------------------------------------- | --------------------------------- | --------------------------------------------------------------- |
+| 1 | Parent home with pending points (`p01_home`) | Gute Noten.<br>Faire Belohnung. | Was Ihr Kind diese Woche verdient hat – auf einen Blick. |
+| 2 | Child's grades and points (`p03_child_detail`) | Jedes Zeugnis.<br>Jeder Punkt. | Noten und Punkte pro Halbjahr, automatisch zusammengerechnet. |
+| 3 | Bonus factors / rule (parent rewards screen, **new capture**) | Ihre Regel.<br>Einmal festgelegt. | Wie viele Punkte jede Note bringt – je nach Klasse und Zeugnis. |
+| 4 | Settle (`p05_settle`) | Belohnen,<br>wann es passt. | Offene Punkte prüfen und mit einem Tipp abrechnen. |
+| 5 | Invite dialog with QR (**new capture**, B6) | Kind einladen<br>in einer Minute. | QR-Code scannen oder Link schicken – fertig. |
+| 6 | Grade capture, photo → recognised grades (**new capture**) | Note fotografieren.<br>Fertig. | Die App erkennt die Noten, dein Kind bestätigt sie. |
+| 7 | Grade calculator (`s03_calculator`) | Notenrechner<br>mit Gewichtung. | Notendurchschnitt und Punkte, bevor das Zeugnis kommt. |
+| 8 | Student insights (`s04_insights`) | Fortschritt<br>sichtbar machen. | Verlauf über die Halbjahre – nicht nur die Einsen zählen. |
 
 Captions 1–5 address parents (Sie), 6–8 the child (du), matching the app.
 German headlines run longer than English: check that each line fits the template at 1080 px

@@ -250,7 +250,7 @@ def make_screenshot(cfg, raw_dir, status_bar, nav_bar,
 
     # ── Role badge ────────────────────────────────────────────────────────
     role      = cfg.get("role", "")
-    badge_txt = "For parents" if role == "parent" else "For students"
+    badge_txt = cfg.get("badge") or ("For parents" if role == "parent" else "For students")
     badge_rgb = BADGE_PARENT_BG if role == "parent" else BADGE_STUDENT_BG
     BADGE_SZ  = int(canvas_w * 0.022)
     font_badge = load_font(BADGE_SZ, bold=True)
