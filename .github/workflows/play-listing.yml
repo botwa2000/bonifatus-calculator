@@ -1,0 +1,40 @@
+name: Play — publish a store listing (manual)
+# Publishes the texts in mobile/store/play-listing/<language>/ and, if given, the
+# phone screenshots in a repo folder. Committing sends the listing to Google's review.
+#   gh workflow run play-listing.yml -f language=de-DE \
+#     -f screenshots=docs/store-listing/screenshots-de/android_phone
+
+on:
+  workflow_dispatch:
+    inputs:
+      language:
+        description: 'Play listing language, e.g. de-DE'
+        required: true
+        default: 'de-DE'
+        type: string
+      screenshots:
+        description: 'Folder with 2–8 phone screenshots (PNG), or - to keep the current ones'
+        required: true
+        default: '-'
+        type: string
+      dry_run:
+        description: 'Validate only, do not commit'
+        required: true
+        default: false
+        type: boolean
+
+jobs:
+  listing:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Publish ${{ inputs.language }} listing
+        env:
+          PLAY_RELEASE_SA_JSON: ${{ secrets.GCLOUD_SERVICE_ACCOUNT_CREDENTIALS }}
+          LANGUAGE: ${{ inputs.language }}
+          SHOTS: ${{ inputs.screenshots }}
+          DRY_RUN: ${{ inputs.dry_run && '--dry-run' || '' }}
+        run: node scripts/play/listing.mjs "$LANGUAGE" "$SHOTS" $DRY_RUN

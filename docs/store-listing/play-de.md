@@ -1,8 +1,8 @@
 # Google Play listing, German (de-DE): draft for review
 
-Status: **draft, 2026-11-23** (growth plan B7). Written by Claude Code; **Alex reviews and publishes**
-in Play Console → Store presence → Main store listing → Deutsch (de-DE).
-Nothing here has been sent to Play.
+Status: **approved 2026-11-28; published through `play-listing.yml`** (growth plan B7). The texts Play
+gets are the files in `mobile/store/play-listing/de-DE/`; keep them and this doc in sync. Publish:
+`gh workflow run play-listing.yml -f language=de-DE -f screenshots=docs/store-listing/screenshots-de/android_phone`.
 
 Search terms this listing targets (from the plan): _Belohnung für gute Noten_, _Zeugnis_ /
 _Zeugnisgeld_, _Notenrechner_ / _Notendurchschnitt_. Each claim below was checked against the app
