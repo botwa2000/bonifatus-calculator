@@ -1,8 +1,11 @@
 # Google Play listing, German (de-DE): draft for review
 
-Status: **approved 2026-11-28; published through `play-listing.yml`** (growth plan B7). The texts Play
-gets are the files in `mobile/store/play-listing/de-DE/`; keep them and this doc in sync. Publish:
-`gh workflow run play-listing.yml -f language=de-DE -f screenshots=docs/store-listing/screenshots-de/android_phone`.
+Status: **published 2026-11-28 in Play Console (de-DE), sent to Google's review** (growth plan B7).
+The texts Play got are the files in `mobile/store/play-listing/de-DE/`; keep them and this doc in
+sync. `play-listing.yml` can publish them by API
+(`gh workflow run play-listing.yml -f language=de-DE -f screenshots=docs/store-listing/screenshots-de/android_phone`)
+once the service account `play-publisher@` has Play's store-presence permission (today it gets
+403 on validate).
 
 Search terms this listing targets (from the plan): _Belohnung für gute Noten_, _Zeugnis_ /
 _Zeugnisgeld_, _Notenrechner_ / _Notendurchschnitt_. Each claim below was checked against the app
