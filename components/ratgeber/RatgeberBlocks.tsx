@@ -3,6 +3,7 @@ import { DJI_ALLOWANCE_TABLE, type AllowanceEntry } from '@/lib/tools/allowance-
 import type { RatgeberArticle, RatgeberBlock } from '@/content/ratgeber/types'
 import { RichText } from './RichText'
 import { CalculatorCta } from './CalculatorCta'
+import { ZeugnisErinnerungBlock } from './ZeugnisErinnerungBlock'
 
 const tableClass = 'w-full text-sm'
 const thClass =
@@ -144,6 +145,8 @@ export function RatgeberBlocks({
             return <DjiAllowanceTable key={i} note={block.note} />
           case 'cta':
             return <Cta key={i} cta={cta} />
+          case 'zeugnisErinnerung':
+            return <ZeugnisErinnerungBlock key={i} className="my-8" />
         }
       })}
     </>

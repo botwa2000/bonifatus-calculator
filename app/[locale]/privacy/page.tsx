@@ -28,7 +28,13 @@ export default async function PrivacyPage({ params }: { params: Promise<{ locale
   const t = await getTranslations('privacy')
   const tc = await getTranslations('common')
 
-  const sections = [
+  const sections: Array<{
+    id?: string
+    title: string
+    desc?: string
+    paragraphs?: string[]
+    items?: string[]
+  }> = [
     {
       title: t('introTitle'),
       paragraphs: [t('introDesc')],
@@ -75,6 +81,12 @@ export default async function PrivacyPage({ params }: { params: Promise<{ locale
         t('thirdPartyL4'),
         t('thirdPartyL5'),
       ],
+    },
+    {
+      id: 'zeugnis-erinnerung',
+      title: t('reminderTitle'),
+      desc: t('reminderDesc'),
+      items: [t('reminderL1'), t('reminderL2'), t('reminderL3'), t('reminderL4'), t('reminderL5')],
     },
     {
       title: t('cookiesTitle'),
@@ -131,7 +143,7 @@ export default async function PrivacyPage({ params }: { params: Promise<{ locale
 
           <div className="prose dark:prose-invert max-w-none space-y-8">
             {sections.map((section) => (
-              <section key={section.title}>
+              <section key={section.title} id={section.id} className="scroll-mt-24">
                 <h2 className="text-2xl font-semibold text-neutral-900 dark:text-white mb-3">
                   {section.title}
                 </h2>

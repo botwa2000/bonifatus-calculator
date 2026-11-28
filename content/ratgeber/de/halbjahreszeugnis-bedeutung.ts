@@ -96,6 +96,7 @@ const body: RatgeberBody = {
           type: 'p',
           text: 'Für Hamburg und Mecklenburg-Vorpommern schätzen wir keinen Termin: Im Internet kursierende Daten widersprechen sich, und eine amtliche Festlegung lag uns nicht vor. Verlässlich ist der Terminplan Ihrer Schule. Wann in Ihrem Land die Winterferien liegen, zeigt der Ferienkalender der Kultusministerkonferenz.[^19]',
         },
+        { type: 'zeugnisErinnerung' },
       ],
     },
     {

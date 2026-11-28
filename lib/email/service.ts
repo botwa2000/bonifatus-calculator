@@ -58,6 +58,8 @@ export interface EmailOptions {
   text: string
   html: string
   replyTo?: string
+  /** Extra headers, e.g. List-Unsubscribe for mails sent to a list. */
+  headers?: Record<string, string>
 }
 
 /**
@@ -81,6 +83,7 @@ export async function sendEmail(options: EmailOptions): Promise<boolean> {
       text: options.text, // Plain text version
       html: options.html, // HTML version
       replyTo: options.replyTo,
+      headers: options.headers,
     })
 
     console.log('[Email Service] ✓ Email sent successfully:', info.messageId)

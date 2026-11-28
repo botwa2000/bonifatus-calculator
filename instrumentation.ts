@@ -1,7 +1,8 @@
 /**
  * Server start hook (Next.js instrumentation). Runs once per Node.js server
- * process: schedules the nightly store import and the usage-stats retention
- * purge (raw text 30 days, events 13 months, visitor-hash salts 2 days).
+ * process: schedules the nightly store import, the usage-stats retention
+ * purge (raw text 30 days, events 13 months, visitor-hash salts 2 days) and the
+ * Zeugnis-Erinnerung mails (every 10 minutes; lib/reminders/zeugnis.ts).
  */
 export async function register() {
   if (process.env.NEXT_RUNTIME !== 'nodejs' || !process.env.DATABASE_URL) return
@@ -10,8 +11,10 @@ export async function register() {
 
   const { startStoreImports } = await import('@/lib/stats/store-import')
   const { purgeUsage } = await import('@/lib/stats/usage')
+  const { startZeugnisReminders } = await import('@/lib/reminders/zeugnis')
 
   startStoreImports()
+  startZeugnisReminders()
   purgeUsage()
   setInterval(purgeUsage, 6 * 60 * 60 * 1000).unref()
 

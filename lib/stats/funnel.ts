@@ -452,6 +452,81 @@ export function trackedLandingTotal(
   return t
 }
 
+// ── Zeugnis-Erinnerung sign-ups per page (growth plan B8) ────────────────────
+/** The form's pages: the overview article and the 16 Land pages (source keys in action_log). */
+export const REMINDER_STEPS = ['visits', 'requested', 'confirmed', 'unsubscribed'] as const
+type ReminderRow = Record<(typeof REMINDER_STEPS)[number], number> & { page: string }
+
+/** 'overview' / Land slug → the page path the dashboard shows. */
+export const reminderPageLabel = (key: string) =>
+  key === 'overview'
+    ? '/de/ratgeber/halbjahreszeugnis-bedeutung'
+    : `/de/ratgeber/halbjahreszeugnis-${key}`
+
+/** Per-page rows → a total row first, then pages by confirmed sign-ups, then visits. */
+export function shapeReminderRows(rows: ReminderRow[]) {
+  const total = { page: 'all pages' } as ReminderRow
+  for (const k of REMINDER_STEPS) total[k] = rows.reduce((n, r) => n + r[k], 0)
+  const sorted = [...rows].sort(
+    (a, b) => b.confirmed - a.confirmed || b.visits - a.visits || a.page.localeCompare(b.page)
+  )
+  return [total, ...sorted.map((r) => ({ ...r, page: reminderPageLabel(r.page) }))]
+}
+
+async function reminderSignups(w: { from: Date; to: Date }, p: string, t: Tables) {
+  if (p !== 'all' && p !== 'web') return { rows: [], mails: [] }
+  // Visits = one device on one UTC day on the page. requested = the form was accepted
+  // (opt-in mail sent, or nothing to do for an address already signed up); confirmed =
+  // first confirmation of the opt-in; unsubscribed = a confirmed sign-up removed itself.
+  const rows = await q(
+    `WITH views AS (
+       SELECT CASE WHEN screen ~ '^/de/ratgeber/halbjahreszeugnis-bedeutung/?$' THEN 'overview'
+                   ELSE substring(screen from '^/de/ratgeber/halbjahreszeugnis-([a-z-]+)/?$') END AS page,
+              COUNT(DISTINCT (${DEV}, (ts AT TIME ZONE 'UTC')::date)) AS visits
+         FROM ${t.usage_events}
+        WHERE platform = 'web' AND event = 'page_view' AND ts >= $1 AND ts < $2
+          AND screen ~ '^/de/ratgeber/halbjahreszeugnis-[a-z-]+/?$'
+        GROUP BY 1
+     ), acts AS (
+       SELECT source AS page,
+              COUNT(*) FILTER (WHERE action = 'reminder_signup') AS requested,
+              COUNT(*) FILTER (WHERE action = 'reminder_confirm' AND reason = 'confirmed') AS confirmed,
+              COUNT(*) FILTER (WHERE action = 'reminder_unsubscribe' AND reason = 'confirmed') AS unsubscribed
+         FROM ${t.action_log}
+        WHERE action IN ('reminder_signup', 'reminder_confirm', 'reminder_unsubscribe')
+          AND outcome = 'ok' AND source IS NOT NULL AND ts >= $1 AND ts < $2
+        GROUP BY 1
+     )
+     SELECT COALESCE(v.page, a.page) AS page, COALESCE(v.visits, 0) AS visits,
+            COALESCE(a.requested, 0) AS requested, COALESCE(a.confirmed, 0) AS confirmed,
+            COALESCE(a.unsubscribed, 0) AS unsubscribed
+       FROM views v FULL JOIN acts a ON a.page = v.page
+      WHERE COALESCE(v.page, a.page) IS NOT NULL`,
+    [w.from, w.to]
+  )
+  const mails = await q(
+    `SELECT result_id AS which, outcome, COUNT(*) AS n FROM ${t.action_log}
+      WHERE action = 'reminder_mail' AND ts >= $1 AND ts < $2 GROUP BY 1, 2 ORDER BY 1, 2`,
+    [w.from, w.to]
+  )
+  return {
+    rows: shapeReminderRows(
+      rows.map((r: Row) => ({
+        page: String(r.page),
+        visits: int(r.visits),
+        requested: int(r.requested),
+        confirmed: int(r.confirmed),
+        unsubscribed: int(r.unsubscribed),
+      }))
+    ),
+    mails: mails.map((r: Row) => ({
+      which: String(r.which),
+      outcome: String(r.outcome),
+      n: int(r.n),
+    })),
+  }
+}
+
 export async function funnels(
   w: { from: Date; to: Date },
   p: string,
@@ -459,11 +534,16 @@ export async function funnels(
   days: string[],
   bucket: string
 ) {
-  const [denials, act, landing, articles] = await Promise.all([
+  const [denials, act, landing, articles, reminders] = await Promise.all([
     signinDenials(w, p, t, days, bucket),
     activation(w, p, t),
     landingPages(w, p, t),
     articlePath(w, p, t),
+    reminderSignups(w, p, t),
   ])
-  return { denials, activation: act, landing: { ...landing, articlePath: articles } }
+  return {
+    denials,
+    activation: act,
+    landing: { ...landing, articlePath: articles, reminders },
+  }
 }

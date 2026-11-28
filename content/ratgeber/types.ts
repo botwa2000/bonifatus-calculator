@@ -26,6 +26,8 @@ export type RatgeberBlock =
   | { type: 'djiAllowanceTable'; note?: string }
   /** The article's call to action (see RatgeberArticle.cta). */
   | { type: 'cta' }
+  /** Zeugnis-Erinnerung sign-up for all 16 Länder (components/ratgeber/ZeugnisErinnerung.tsx). */
+  | { type: 'zeugnisErinnerung' }
 
 export interface RatgeberSection {
   /** Anchor id for the table of contents. */

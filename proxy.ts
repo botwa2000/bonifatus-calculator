@@ -55,7 +55,15 @@ function hasSessionCookie(req: NextRequest): boolean {
   return SESSION_COOKIE_NAMES.some((name) => !!req.cookies.get(name)?.value)
 }
 
-const publicApiPrefixes = ['/api/health', '/api/auth', '/api/config', '/api/contact', '/api/mobile']
+const publicApiPrefixes = [
+  '/api/health',
+  '/api/auth',
+  '/api/config',
+  '/api/contact',
+  '/api/mobile',
+  // Zeugnis-Erinnerung: anonymous sign-up, opt-in and one-click unsubscribe (own tokens).
+  '/api/zeugnis-erinnerung',
+]
 // Routes that do their own auth (or none): usage beacon, feedback, and the stats
 // dashboard API, which uses its own email-OTP session instead of NextAuth.
 const publicApiPaths = new Set(['/api/t', '/api/feedback', '/api/admin/usage-stats'])

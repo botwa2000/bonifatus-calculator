@@ -810,6 +810,16 @@ const DASHBOARD_JS = String.raw`
         { h: "Account created", n: 1, f: function (r) { return r.created ? '<span class="ok">' + fmt(r.created) + "</span>" : '<span class="muted">0</span>'; } }
       ], ap.length > 1 ? ap : [], "No visit entered on a Ratgeber article in this range."), "visits that entered on an article (one device, one day), then the same day: opened the Zeugnisgeld-Rechner → saw a result → opened sign-up or began a Google sign-up → account · each step needs the one before · % = of the step before")) + "</div>");
 
+    var rm = ld.reminders || { rows: [], mails: [] };
+    var rmMails = (rm.mails || []).map(function (m) { return (m.which === "pre" ? "week-before" : "report-day") + " " + (m.outcome === "ok" ? "sent " : "failed ") + fmt(m.n); }).join(" · ") || "none sent yet";
+    if (d.platform === "all" || d.platform === "web") html.push('<div class="grid">' + wide(card("Zeugnis-Erinnerung sign-ups per page", table([
+        { h: "Page", f: function (r) { return r.page === "all pages" ? "<b>" + esc(r.page) + "</b>" : esc(r.page); } },
+        { h: "Visits", n: 1, f: function (r) { return fmt(r.visits); } },
+        { h: "Requested", n: 1, f: function (r) { return fmt(r.requested) + ' <span class="muted">' + pct(r.visits ? r.requested / r.visits : null) + "</span>"; } },
+        { h: "Confirmed", n: 1, f: function (r) { return (r.confirmed ? '<span class="ok">' + fmt(r.confirmed) + "</span>" : '<span class="muted">0</span>') + ' <span class="muted">' + pct(r.requested ? r.confirmed / r.requested : null) + "</span>"; } },
+        { h: "Unsubscribed", n: 1, f: function (r) { return fmt(r.unsubscribed); } }
+      ], rm.rows.length > 1 ? rm.rows : [], "No visit to a Halbjahreszeugnis page and no sign-up in this range."), "visits = devices per day on the page · requested = form accepted (opt-in mail sent) · confirmed = double opt-in completed · unsubscribed = confirmed sign-ups that left · % = of the step before · mails: " + esc(rmMails))) + "</div>");
+
     var gs = d.searchConsole;
     var gscBody;
     if (!gs.status) gscBody = '<p class="muted">Not imported yet — it runs with the nightly store import (↻ Store import runs it now).</p>';

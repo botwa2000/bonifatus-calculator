@@ -3,6 +3,7 @@ import { Link } from '@/i18n/navigation'
 import { Breadcrumbs } from '@/components/ratgeber/Breadcrumbs'
 import { CalculatorCta } from '@/components/ratgeber/CalculatorCta'
 import { RatgeberBlocks } from '@/components/ratgeber/RatgeberBlocks'
+import { ZeugnisErinnerungBlock } from '@/components/ratgeber/ZeugnisErinnerungBlock'
 import { RichText, plainText, sourceAnchor } from '@/components/ratgeber/RichText'
 import { JsonLd, articleJsonLd, breadcrumbJsonLd, faqPageJsonLd } from '@/components/seo/JsonLd'
 import { LAND_COPY as c } from '@/content/ratgeber/laender/copy'
@@ -84,6 +85,8 @@ export async function LandArticle({ page, locale }: { page: LandPage; locale: st
             </p>
           ))}
         </div>
+
+        <ZeugnisErinnerungBlock land={page.slug} className="mb-12" />
 
         <article>
           <section id="termin" className="scroll-mt-24 mb-10">

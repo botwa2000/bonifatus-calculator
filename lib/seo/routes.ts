@@ -61,7 +61,7 @@ const STATIC_PAGES: readonly PublicPage[] = [
   { path: '/about', lastModified: '2026-08-01', changeFrequency: 'monthly', priority: 0.7 },
   { path: '/faq', lastModified: '2026-08-01', changeFrequency: 'monthly', priority: 0.8 },
   { path: '/contact', lastModified: '2026-08-01', changeFrequency: 'yearly', priority: 0.5 },
-  { path: '/privacy', lastModified: '2026-08-01', changeFrequency: 'yearly', priority: 0.3 },
+  { path: '/privacy', lastModified: '2026-11-28', changeFrequency: 'yearly', priority: 0.3 },
   { path: '/terms', lastModified: '2026-08-01', changeFrequency: 'yearly', priority: 0.3 },
   { path: '/cookies', lastModified: '2026-08-01', changeFrequency: 'yearly', priority: 0.3 },
   { path: '/tools', lastModified: '2026-08-01', changeFrequency: 'monthly', priority: 0.9 },
